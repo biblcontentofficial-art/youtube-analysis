@@ -48,24 +48,6 @@ export default function SearchResultList({ initialData, initialToken, query, fil
     }
   }, [nextToken, loading, query, filter]);
 
-  useEffect(() => {
-    const onTrigger = () => { if (!loading) handleLoadMore(); };
-    window.addEventListener("TRIGGER_LOAD_MORE", onTrigger);
-    return () => window.removeEventListener("TRIGGER_LOAD_MORE", onTrigger);
-  }, [handleLoadMore, loading]);
-
-  useEffect(() => {
-    const onCollect = () => handleCollect();
-    const onRemoveChannels = () => handleRemoveChannels();
-    window.addEventListener("TRIGGER_COLLECT", onCollect);
-    window.addEventListener("TRIGGER_REMOVE_CHANNELS", onRemoveChannels);
-    return () => {
-      window.removeEventListener("TRIGGER_COLLECT", onCollect);
-      window.removeEventListener("TRIGGER_REMOVE_CHANNELS", onRemoveChannels);
-    };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sortedVideos, checkedIds]);
-
   const handleSort = (key: SortKey) => {
     if (sortKey === key) setSortOrder(sortOrder === "desc" ? "asc" : "desc");
     else { setSortKey(key); setSortOrder("desc"); }
@@ -98,7 +80,7 @@ export default function SearchResultList({ initialData, initialToken, query, fil
   };
 
   // 영상 수집: 체크된 영상(없으면 전체) CSV 복사
-  const handleCollect = () => {
+  const handleCollect = useCallback(() => {
     const targets = checkedIds.size > 0
       ? sortedVideos.filter((v) => checkedIds.has(v.videoId))
       : sortedVideos;
@@ -127,10 +109,10 @@ export default function SearchResultList({ initialData, initialToken, query, fil
       document.body.removeChild(el);
       alert(`${targets.length}개 영상 데이터가 복사됐습니다!`);
     });
-  };
+  }, [sortedVideos, checkedIds]);
 
   // 채널 제거: 체크된 영상들의 채널ID를 블랙리스트로 추가해서 필터링
-  const handleRemoveChannels = () => {
+  const handleRemoveChannels = useCallback(() => {
     if (checkedIds.size === 0) {
       alert("제거할 채널의 영상을 먼저 선택해주세요.");
       return;
@@ -140,7 +122,24 @@ export default function SearchResultList({ initialData, initialToken, query, fil
     );
     setVideos((prev) => prev.filter((v) => !channelIdsToRemove.has(v.channelId)));
     setCheckedIds(new Set());
-  };
+  }, [sortedVideos, checkedIds]);
+
+  useEffect(() => {
+    const onTrigger = () => { if (!loading) handleLoadMore(); };
+    window.addEventListener("TRIGGER_LOAD_MORE", onTrigger);
+    return () => window.removeEventListener("TRIGGER_LOAD_MORE", onTrigger);
+  }, [handleLoadMore, loading]);
+
+  useEffect(() => {
+    const onCollect = () => handleCollect();
+    const onRemoveChannels = () => handleRemoveChannels();
+    window.addEventListener("TRIGGER_COLLECT", onCollect);
+    window.addEventListener("TRIGGER_REMOVE_CHANNELS", onRemoveChannels);
+    return () => {
+      window.removeEventListener("TRIGGER_COLLECT", onCollect);
+      window.removeEventListener("TRIGGER_REMOVE_CHANNELS", onRemoveChannels);
+    };
+  }, [handleCollect, handleRemoveChannels]);
 
   const renderSortIcon = (key: SortKey) => {
     if (sortKey !== key) return <span className="text-gray-700 ml-1 text-[10px]">↕</span>;
