@@ -1,4 +1,4 @@
-import Link from "next/link";
+import PricingButton from "./_components/PricingButtons";
 
 type Feature = { text: string; disabled?: boolean };
 
@@ -19,10 +19,10 @@ const PLANS = [
       { text: "기본 필터 (전체/쇼츠)" },
       { text: "알고리즘 확률 확인", disabled: true },
       { text: "검색 기록 저장", disabled: true },
-    ],
+    ] as Feature[],
     cta: "무료로 시작",
     ctaStyle: "bg-gray-800 hover:bg-gray-700 text-white border border-gray-700",
-    href: "/search",
+    planKey: "free",
   },
   {
     name: "Starter",
@@ -42,10 +42,10 @@ const PLANS = [
       { text: "검색 기록 30일 저장" },
       { text: "영상 수집 · 내보내기", disabled: true },
       { text: "팀 공유", disabled: true },
-    ],
+    ] as Feature[],
     cta: "Starter 시작하기",
     ctaStyle: "bg-gray-700 hover:bg-gray-600 text-white",
-    href: "/api/checkout?plan=starter",
+    planKey: "starter",
   },
   {
     name: "Pro",
@@ -66,10 +66,10 @@ const PLANS = [
       { text: "영상 수집 · CSV 내보내기" },
       { text: "채널 분석 리포트" },
       { text: "팀 공유", disabled: true },
-    ],
+    ] as Feature[],
     cta: "Pro 시작하기",
     ctaStyle: "bg-teal-500 hover:bg-teal-400 text-white",
-    href: "/api/checkout?plan=pro",
+    planKey: "pro",
   },
   {
     name: "Business",
@@ -89,10 +89,10 @@ const PLANS = [
       { text: "채널 심화 분석 리포트" },
       { text: "API 접근" },
       { text: "전용 고객 지원" },
-    ],
+    ] as Feature[],
     cta: "Business 시작하기",
     ctaStyle: "bg-purple-600 hover:bg-purple-500 text-white",
-    href: "/api/checkout?plan=business",
+    planKey: "business",
   },
 ];
 
@@ -170,12 +170,11 @@ export default function PricingPage() {
               </div>
 
               {/* CTA */}
-              <Link
-                href={plan.href}
-                className={`w-full py-2.5 rounded-xl font-semibold text-center text-sm transition-all ${plan.ctaStyle}`}
-              >
-                {plan.cta}
-              </Link>
+              <PricingButton
+                plan={plan.planKey}
+                cta={plan.cta}
+                ctaStyle={plan.ctaStyle}
+              />
             </div>
           ))}
         </div>
