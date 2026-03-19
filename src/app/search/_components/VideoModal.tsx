@@ -117,7 +117,9 @@ export default function VideoModal({ video, onClose }: Props) {
   const visibleComments = isExpanded ? comments : comments.slice(0, 1);
 
   // --- 통계 계산 로직 ---
-  const avgViews = channelInfo ? Math.round(channelInfo.viewCount / channelInfo.videoCount) : 0;
+  const avgViews = channelInfo && channelInfo.videoCount > 0
+    ? Math.round(channelInfo.viewCount / channelInfo.videoCount)
+    : 0;
   const daysSinceJoin = channelInfo ? Math.floor((new Date().getTime() - new Date(channelInfo.publishedAt).getTime()) / (1000 * 60 * 60 * 24)) : 0;
 
   // 조회수 성과 계산 (현재 영상 조회수 vs 채널 평균 조회수)
@@ -234,7 +236,7 @@ export default function VideoModal({ video, onClose }: Props) {
           <div className="bg-gray-950 rounded-2xl p-6 border border-gray-800">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-4">
-                <img src={video.channelThumbnail} alt={video.channelTitle} className="w-16 h-16 rounded-full border-2 border-gray-700" />
+                <img src={video.channelThumbnail} alt={video.channelTitle} className="w-16 h-16 rounded-full border-2 border-gray-700" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                 <div>
                   <h3 className="text-xl font-bold text-white">{video.channelTitle}</h3>
                   <span className="px-2 py-0.5 bg-gray-800 rounded text-xs text-gray-400">Youtube Channel</span>
