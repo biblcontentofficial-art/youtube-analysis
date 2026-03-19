@@ -20,7 +20,11 @@ export async function POST(req: NextRequest) {
     }
 
     // Parse orderId: format is "userId_plan_timestamp"
-    const [userId, plan] = PCD_PAY_OID.split('_')
+    // Clerk userId can contain underscores (e.g. "user_abc123"), so we parse
+    // from the end: last part = timestamp, second-to-last = plan, rest = userId
+    const parts = (PCD_PAY_OID as string).split('_')
+    const plan = parts[parts.length - 2]
+    const userId = parts.slice(0, parts.length - 2).join('_')
 
     if (!userId || !plan || !PLANS[plan as PlanKey]) {
       return NextResponse.json({ error: 'Invalid order' }, { status: 400 })
