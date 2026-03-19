@@ -2,11 +2,24 @@
 
 import { useEffect, useState } from "react";
 import { Video } from "@/types";
-import { fetchVideoDetail, fetchVideoComments, fetchChannelDetail } from "../actions"; 
+import { fetchVideoDetail, fetchVideoComments, fetchChannelDetail } from "../actions";
 
 interface Props {
   video: Video;
   onClose: () => void;
+}
+
+// XSS 방지: HTML 태그 제거 후 텍스트만 반환 (줄바꿈 보존)
+function sanitizeComment(text: string): string {
+  return text
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .trim();
 }
 
 // [작은 통계 박스 컴포넌트]
@@ -31,7 +44,7 @@ function CommentItem({ comment }: { comment: any }) {
         <span className="font-bold text-gray-300 text-sm">{comment.author}</span>
         <span className="text-xs text-gray-600">{comment.publishedAt}</span>
       </div>
-      <div className="text-sm text-gray-400 leading-relaxed mb-2 break-words" dangerouslySetInnerHTML={{ __html: comment.text }} />
+      <p className="text-sm text-gray-400 leading-relaxed mb-2 break-words whitespace-pre-wrap">{sanitizeComment(comment.text)}</p>
       <div className="flex items-center gap-4">
         <div className="text-xs text-gray-500">👍 {comment.likeCount}</div>
         {hasReplies && (
@@ -51,7 +64,7 @@ function CommentItem({ comment }: { comment: any }) {
                 <span className="font-bold text-gray-400 text-xs">{reply.author}</span>
                 <span className="text-[10px] text-gray-600">{reply.publishedAt}</span>
               </div>
-              <div className="text-xs text-gray-400 leading-relaxed mb-1 break-words" dangerouslySetInnerHTML={{ __html: reply.text }} />
+              <p className="text-xs text-gray-400 leading-relaxed mb-1 break-words whitespace-pre-wrap">{sanitizeComment(reply.text)}</p>
               <div className="text-[10px] text-gray-500">👍 {reply.likeCount}</div>
             </div>
           ))}
@@ -66,11 +79,13 @@ export default function VideoModal({ video, onClose }: Props) {
   const [channelInfo, setChannelInfo] = useState<any>(null);
   const [comments, setComments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
       setLoading(true);
+      setFetchError(false);
       try {
         const [d, c] = await Promise.all([
           fetchVideoDetail(video.videoId),
@@ -85,6 +100,7 @@ export default function VideoModal({ video, onClose }: Props) {
         }
       } catch (e) {
         console.error(e);
+        setFetchError(true);
       } finally {
         setLoading(false);
       }
@@ -127,7 +143,14 @@ export default function VideoModal({ video, onClose }: Props) {
 
         {/* 본문 */}
         <div className="flex-1 overflow-y-auto p-6 space-y-8 scrollbar-hide">
-          
+
+          {/* 에러 상태 */}
+          {fetchError && !loading && (
+            <div className="p-4 bg-red-950/50 border border-red-800 rounded-xl text-center text-sm text-red-400">
+              정보를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.
+            </div>
+          )}
+
           {/* 1. 상단: 영상 정보 */}
           <div className="flex flex-col md:flex-row gap-6">
             <div className="w-full md:w-1/2 flex flex-col gap-3">
@@ -138,7 +161,7 @@ export default function VideoModal({ video, onClose }: Props) {
             </div>
             <div className="w-full md:w-1/2 space-y-4">
               {/* 영상 통계 */}
-              <div className="grid grid-cols-3 gap-2 bg-gray-800/50 p-4 rounded-xl border border-gray-700">
+              <div className="grid grid-cols-3 gap-2 bg-gray-800/50 p-3 sm:p-4 rounded-xl border border-gray-700">
                 <div className="text-center flex flex-col justify-center">
                   <div className="text-xs text-gray-400 mb-1">조회수</div>
                   <div className="font-bold text-white text-lg">{video.viewCountFormatted}</div>
@@ -231,7 +254,7 @@ export default function VideoModal({ video, onClose }: Props) {
               <div className="text-center text-gray-500 py-8">채널 정보 분석 중...</div>
             ) : (
               <>
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 mb-6">
                   <StatBox label="구독자" value={`${channelInfo.subscriberCount.toLocaleString()}명`} />
                   <StatBox label="총 영상 수" value={`${channelInfo.videoCount.toLocaleString()}개`} />
                   <StatBox label="채널 개설일" value={channelInfo.publishedAt} subValue={`${daysSinceJoin.toLocaleString()}일 경과`} />

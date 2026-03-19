@@ -38,6 +38,16 @@ function todayString() {
   return new Date().toISOString().slice(0, 10);
 }
 
+// 오늘 날짜가 아닌 오래된 memoryStore 키 정리 (메모리 누수 방지)
+function pruneMemoryStore() {
+  const today = todayString();
+  for (const key of memoryStore.keys()) {
+    if (!key.endsWith(`:${today}`)) {
+      memoryStore.delete(key);
+    }
+  }
+}
+
 export async function getUserPlan(): Promise<PlanKey> {
   try {
     const user = await currentUser();
@@ -127,6 +137,7 @@ export async function incrementSearchCount(): Promise<{ ok: boolean; used: numbe
       await r.expire(key, ttl);
     }
   } else {
+    pruneMemoryStore();
     used = (memoryStore.get(key) ?? 0) + 1;
     memoryStore.set(key, used);
   }

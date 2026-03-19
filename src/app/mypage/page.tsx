@@ -66,9 +66,9 @@ export default async function MyPage({
           )}
 
           {/* 유저 정보 */}
-          <div className="bg-gray-800/50 rounded-xl p-4">
-            <p className="text-white font-semibold text-base">{displayName}</p>
-            {email && <p className="text-gray-500 text-sm mt-0.5">{email}</p>}
+          <div className="bg-gray-800/50 rounded-xl p-4 overflow-hidden">
+            <p className="text-white font-semibold text-base truncate">{displayName}</p>
+            {email && <p className="text-gray-500 text-sm mt-0.5 truncate">{email}</p>}
           </div>
 
           {/* 현재 플랜 */}

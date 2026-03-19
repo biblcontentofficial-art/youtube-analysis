@@ -39,7 +39,7 @@ export default function KakaoChannelBanner() {
   if (!show) return null;
 
   return (
-    <div className="fixed bottom-6 right-6 z-40 w-72 bg-[#FEE500] rounded-2xl shadow-2xl overflow-hidden animate-in slide-in-from-bottom-4 duration-300">
+    <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40 w-[calc(100vw-2rem)] max-w-[288px] bg-[#FEE500] rounded-2xl shadow-2xl overflow-hidden animate-in slide-in-from-bottom-4 duration-300">
       <div className="p-5">
         <div className="flex items-start gap-3 mb-4">
           <div className="shrink-0 w-10 h-10 bg-[#191919] rounded-xl flex items-center justify-center">
