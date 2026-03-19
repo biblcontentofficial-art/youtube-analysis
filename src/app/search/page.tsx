@@ -29,29 +29,45 @@ export default async function SearchPage({ searchParams }: Props) {
   let limitExceeded = false;
   let apiError: "quota_exceeded" | "api_error" | null = null;
 
-  const { used, limit, plan } = await getSearchUsage();
+  let used = 0;
+  let limit = 2;
+  let plan: string = "free";
+
+  try {
+    const usage = await getSearchUsage();
+    used = usage.used;
+    limit = usage.limit;
+    plan = usage.plan;
+  } catch {
+    // getSearchUsage 실패해도 기본값 사용
+  }
 
   const isPaid = plan !== "free";
 
   if (query) {
-    const countResult = fromHistory ? { ok: true } : await incrementSearchCount();
-    const { ok } = countResult;
-    if (!ok) {
-      limitExceeded = true;
-    } else {
-      const first = await searchVideos(query, filter, undefined, isPaid);
-      if (first.error) {
-        apiError = first.error;
+    try {
+      const countResult = fromHistory ? { ok: true } : await incrementSearchCount();
+      const { ok } = countResult;
+      if (!ok) {
+        limitExceeded = true;
       } else {
-        videos = first.items;
-        nextPageToken = first.nextPageToken;
+        const first = await searchVideos(query, filter, undefined, isPaid);
+        if (first.error) {
+          apiError = first.error;
+        } else {
+          videos = first.items;
+          nextPageToken = first.nextPageToken;
 
-        for (let i = 1; i < pagesToFetch && nextPageToken; i++) {
-          const more = await searchVideos(query, filter, nextPageToken, isPaid);
-          videos = [...videos, ...more.items];
-          nextPageToken = more.nextPageToken;
+          for (let i = 1; i < pagesToFetch && nextPageToken; i++) {
+            const more = await searchVideos(query, filter, nextPageToken, isPaid);
+            videos = [...videos, ...more.items];
+            nextPageToken = more.nextPageToken;
+          }
         }
       }
+    } catch (e) {
+      console.error("Search error:", e);
+      apiError = "api_error";
     }
   }
 

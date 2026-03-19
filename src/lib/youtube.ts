@@ -166,7 +166,13 @@ export async function searchVideos(query: string, filter?: string, pageToken?: s
   nextPageToken?: string;
   error?: "quota_exceeded" | "api_error";
 }> {
-  const apiKeys = getAllApiKeys(isPaid);
+  let apiKeys: string[];
+  try {
+    apiKeys = getAllApiKeys(isPaid);
+  } catch {
+    console.error("❌ YouTube API Key Missing");
+    return { items: [], error: "api_error" };
+  }
   if (!query) return { items: [], nextPageToken: undefined };
 
   // 캐시 확인
