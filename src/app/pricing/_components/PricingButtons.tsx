@@ -26,7 +26,7 @@ export default function PricingButton({ plan, cta, ctaStyle }: PricingButtonProp
       return;
     }
 
-    router.push(`/api/checkout?plan=${plan}`);
+    router.push(`/payment?plan=${plan}`);
   };
 
   return (
