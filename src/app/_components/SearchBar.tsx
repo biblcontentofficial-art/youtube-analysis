@@ -81,6 +81,14 @@ export default function SearchBar() {
     router.push(`/search?q=${encodeURIComponent(trimmed)}&count=${count}`);
   };
 
+  // 최근 검색어 클릭: 카운트 증가 없이 기존 결과 보기
+  const navigateFromHistory = (term: string) => {
+    setKeyword(term);
+    const existing = loadHistory().find((h) => h.term === term);
+    const count = existing?.count ?? 1;
+    router.push(`/search?q=${encodeURIComponent(term)}&count=${count}&fromHistory=1`);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     executeSearch(keyword);
@@ -137,7 +145,7 @@ export default function SearchBar() {
                 {history.map((item, index) => (
                   <div
                     key={index}
-                    onClick={() => { setKeyword(item.term); executeSearch(item.term); }}
+                    onClick={() => navigateFromHistory(item.term)}
                     className="group flex items-center gap-1.5 px-2.5 py-1.5 bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-teal-600 rounded-lg cursor-pointer transition-all"
                   >
                     <span className="text-xs font-medium text-gray-200">{item.term}</span>

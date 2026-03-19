@@ -5,41 +5,52 @@ import SearchResultList from "./_components/SearchResultList";
 import SearchSkeleton from "./_components/SearchSkeleton";
 import SearchBar from "../_components/SearchBar";
 import { getSearchUsage, incrementSearchCount } from "@/lib/searchLimit";
+import LimitModal from "./_components/LimitModal";
+import KakaoChannelBanner from "./_components/KakaoChannelBanner";
 
 interface Props {
   searchParams: {
     q?: string;
     filter?: string;
     count?: string;
+    fromHistory?: string;
   };
 }
 
 export default async function SearchPage({ searchParams }: Props) {
   const query = searchParams.q || "";
   const filter = searchParams.filter || "";
+  const fromHistory = searchParams.fromHistory === "1";
   const searchCount = Math.max(1, parseInt(searchParams.count || "1"));
   const pagesToFetch = Math.min(searchCount, 3);
 
   let videos: any[] = [];
   let nextPageToken: string | undefined;
   let limitExceeded = false;
+  let apiError: "quota_exceeded" | "api_error" | null = null;
 
   const { used, limit, plan } = await getSearchUsage();
 
+  const isPaid = plan !== "free";
+
   if (query) {
-    // 서버 렌더링 시 첫 페이지 fetch만 카운트 (이후 페이지는 같은 세션)
-    const { ok } = await incrementSearchCount();
+    const countResult = fromHistory ? { ok: true } : await incrementSearchCount();
+    const { ok } = countResult;
     if (!ok) {
       limitExceeded = true;
     } else {
-      const first = await searchVideos(query, filter);
-      videos = first.items;
-      nextPageToken = first.nextPageToken;
+      const first = await searchVideos(query, filter, undefined, isPaid);
+      if (first.error) {
+        apiError = first.error;
+      } else {
+        videos = first.items;
+        nextPageToken = first.nextPageToken;
 
-      for (let i = 1; i < pagesToFetch && nextPageToken; i++) {
-        const more = await searchVideos(query, filter, nextPageToken);
-        videos = [...videos, ...more.items];
-        nextPageToken = more.nextPageToken;
+        for (let i = 1; i < pagesToFetch && nextPageToken; i++) {
+          const more = await searchVideos(query, filter, nextPageToken, isPaid);
+          videos = [...videos, ...more.items];
+          nextPageToken = more.nextPageToken;
+        }
       }
     }
   }
@@ -49,6 +60,8 @@ export default async function SearchPage({ searchParams }: Props) {
 
   return (
     <main className="min-h-screen bg-gray-950 text-white">
+      <LimitModal show={limitExceeded} limit={limit} />
+      <KakaoChannelBanner />
       {/* 검색 바 영역 */}
       <div className="border-b border-gray-800 bg-gray-900/40 px-4 py-3">
         <div className="max-w-screen-xl mx-auto flex flex-col md:flex-row md:items-center gap-3">
@@ -78,6 +91,25 @@ export default async function SearchPage({ searchParams }: Props) {
       </div>
 
       <div className="max-w-screen-xl mx-auto px-4 py-6">
+        {/* API 에러 안내 */}
+        {apiError === "quota_exceeded" && (
+          <div className="mb-6 p-5 bg-orange-950/50 border border-orange-700 rounded-xl text-center">
+            <p className="text-2xl mb-2">⚠️</p>
+            <p className="text-orange-300 font-semibold mb-1">
+              YouTube API 일일 쿼터가 소진됐습니다
+            </p>
+            <p className="text-gray-400 text-sm">
+              매일 한국 시간 오후 5시에 초기화됩니다. 잠시 후 다시 시도해주세요.
+            </p>
+          </div>
+        )}
+        {apiError === "api_error" && (
+          <div className="mb-6 p-5 bg-red-950/50 border border-red-800 rounded-xl text-center">
+            <p className="text-red-300 font-semibold mb-1">검색 중 오류가 발생했습니다</p>
+            <p className="text-gray-400 text-sm">잠시 후 다시 시도해주세요.</p>
+          </div>
+        )}
+
         {/* 한도 초과 안내 */}
         {limitExceeded && (
           <div className="mb-6 p-4 bg-amber-950/50 border border-amber-700 rounded-xl text-center">
@@ -97,7 +129,7 @@ export default async function SearchPage({ searchParams }: Props) {
         )}
 
         {/* 필터 + 액션 툴바 */}
-        {query && !limitExceeded && (
+        {query && !limitExceeded && !apiError && (
           <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
             {/* 필터 탭 (count 유지) */}
             <div className="flex items-center gap-1.5">
@@ -117,9 +149,10 @@ export default async function SearchPage({ searchParams }: Props) {
           </div>
         )}
 
-        {!limitExceeded && (
+        {!limitExceeded && !apiError && (
           <Suspense fallback={<SearchSkeleton />}>
             <SearchResultList
+              key={`${query}-${filter}`}
               initialData={videos}
               initialToken={nextPageToken}
               query={query}

@@ -13,9 +13,14 @@ if (hasClerk) {
   const { clerkMiddleware, createRouteMatcher } = require("@clerk/nextjs/server");
   const isPublicRoute = createRouteMatcher([
     "/",
+    "/search(.*)",
     "/pricing",
+    "/privacy",
+    "/terms",
+    "/refund",
     "/sign-in(.*)",
     "/sign-up(.*)",
+    "/sso-callback(.*)",
     "/api/youtube/search(.*)",
   ]);
   middlewareHandler = clerkMiddleware(async (auth: any, req: NextRequest) => {

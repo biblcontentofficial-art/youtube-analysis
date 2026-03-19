@@ -26,7 +26,12 @@ export default async function RootLayout({
 
   if (hasClerk) {
     const clerkModule = await import("@clerk/nextjs");
-    ClerkProvider = clerkModule.ClerkProvider;
+    const { koKR } = await import("@clerk/localizations");
+    const BaseClerkProvider = clerkModule.ClerkProvider;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ClerkProvider = ({ children }) => (
+      <BaseClerkProvider localization={koKR as any}>{children}</BaseClerkProvider>
+    );
     const navUserModule = await import("./_components/NavUser");
     NavUser = navUserModule.default;
   }
@@ -76,6 +81,48 @@ export default async function RootLayout({
           </div>
         </nav>
         {children}
+        <footer className="border-t border-gray-800 bg-gray-950 mt-16">
+          <div className="max-w-screen-xl mx-auto px-4 py-10">
+            <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-8">
+              {/* 브랜드 */}
+              <div className="shrink-0">
+                <a href="/" className="flex items-center gap-2 mb-3">
+                  <div className="w-7 h-7 bg-black border border-gray-700 rounded-md flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" className="w-3.5 h-3.5">
+                      <path d="M8 5.14v14l11-7-11-7z" />
+                    </svg>
+                  </div>
+                  <span className="font-bold text-sm tracking-tight">
+                    <span className="text-white">bibl</span>
+                    <span className="text-teal-400"> lab</span>
+                  </span>
+                </a>
+                <p className="text-xs text-gray-600 max-w-xs">유튜브 트렌드 분석 도구 — 크리에이터를 위한 데이터 인사이트</p>
+              </div>
+
+              {/* 사업자 정보 */}
+              <div className="text-xs text-gray-600 space-y-1 leading-relaxed">
+                <p className="font-medium text-gray-500">세모골프 &nbsp;|&nbsp; 대표: 김태민</p>
+                <p>사업자등록번호: 315-47-01018 &nbsp;|&nbsp; 통신판매업신고: 2023-수원권선-1549</p>
+                <p>주소: 경기도 수원시 권선구 세화로 151번길 29-2 1층 (우편번호 16619)</p>
+                <p>고객문의: bibl.content.official@gmail.com &nbsp;|&nbsp; 070-8027-2532</p>
+                <p>개인정보관리 책임자: 김태민</p>
+              </div>
+
+              {/* 링크 */}
+              <div className="flex flex-col gap-2 text-xs shrink-0">
+                <a href="/privacy" className="text-gray-500 hover:text-gray-300 transition">개인정보처리방침</a>
+                <a href="/terms" className="text-gray-500 hover:text-gray-300 transition">이용약관</a>
+                <a href="/refund" className="text-gray-500 hover:text-gray-300 transition">환불정책</a>
+                <a href="mailto:bibl.content.official@gmail.com" className="text-gray-500 hover:text-gray-300 transition">문의하기</a>
+              </div>
+            </div>
+
+            <div className="mt-8 pt-6 border-t border-gray-900 text-xs text-gray-700 text-center">
+              © {new Date().getFullYear()} 세모골프. All Rights Reserved. bibl lab은 세모골프의 서비스입니다.
+            </div>
+          </div>
+        </footer>
       </body>
     </html>
   );

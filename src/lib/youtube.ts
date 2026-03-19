@@ -1,7 +1,22 @@
-function getApiKey() {
-  const key = process.env.YOUTUBE_API_KEY;
-  if (!key) throw new Error("API Key Missing");
-  return key;
+// 유료 유저 전용 키: YOUTUBE_API_KEY_PAID_1 ~ YOUTUBE_API_KEY_PAID_10
+// 무료 유저 키: YOUTUBE_API_KEY, YOUTUBE_API_KEY_2, ...
+function getAllApiKeys(paid: boolean = false): string[] {
+  const keys: string[] = [];
+  if (paid) {
+    for (let i = 1; i <= 10; i++) {
+      const k = process.env[`YOUTUBE_API_KEY_PAID_${i}`];
+      if (k) keys.push(k);
+    }
+    if (keys.length > 0) return keys;
+    // 유료 전용 키 미설정 시 일반 키 사용
+  }
+  if (process.env.YOUTUBE_API_KEY) keys.push(process.env.YOUTUBE_API_KEY);
+  for (let i = 2; i <= 10; i++) {
+    const k = process.env[`YOUTUBE_API_KEY_${i}`];
+    if (k) keys.push(k);
+  }
+  if (!keys.length) throw new Error("YouTube API Key Missing");
+  return keys;
 }
 
 function formatCount(count: string | number) {
@@ -146,8 +161,12 @@ function calculatePerformanceRatio(viewCount: number, channelInfo: any) {
   return { ratio: ratioStr, raw: ratio, color };
 }
 
-export async function searchVideos(query: string, filter?: string, pageToken?: string) {
-  const apiKey = getApiKey();
+export async function searchVideos(query: string, filter?: string, pageToken?: string, isPaid: boolean = false): Promise<{
+  items: any[];
+  nextPageToken?: string;
+  error?: "quota_exceeded" | "api_error";
+}> {
+  const apiKeys = getAllApiKeys(isPaid);
   if (!query) return { items: [], nextPageToken: undefined };
 
   // 캐시 확인
@@ -162,18 +181,35 @@ export async function searchVideos(query: string, filter?: string, pageToken?: s
   let currentToken = pageToken;
   let foundItems: any[] = [];
   let attempt = 0;
-  const maxAttempts = 5; 
+  const maxAttempts = 5;
   let nextTokenToReturn: string | undefined = undefined;
+  let activeKeyIndex = 0; // 현재 사용 중인 키 인덱스
 
   try {
-    console.log(`🔍 검색 시작: "${query}" (필터: ${filter || "없음"})`);
+    console.log(`🔍 검색 시작: "${query}" (필터: ${filter || "없음"}, 키 ${activeKeyIndex + 1}/${apiKeys.length})`);
 
     while (foundItems.length === 0 && attempt < maxAttempts) {
+      const apiKey = apiKeys[activeKeyIndex];
       let searchUrl = `https://www.googleapis.com/youtube/v3/search?part=id&q=${encodeURIComponent(query)}&key=${apiKey}&type=video&maxResults=50`;
       if (currentToken) searchUrl += `&pageToken=${currentToken}`;
 
       const searchRes = await fetch(searchUrl, { cache: 'no-store' });
-      if (!searchRes.ok) break;
+      if (!searchRes.ok) {
+        const errBody = await searchRes.json().catch(() => ({}));
+        const errMsg = errBody?.error?.message || "";
+        if (searchRes.status === 403 && errMsg.includes("quota")) {
+          // 다음 키로 전환
+          activeKeyIndex++;
+          if (activeKeyIndex < apiKeys.length) {
+            console.warn(`⚠️ 키 ${activeKeyIndex} 쿼터 소진 → 키 ${activeKeyIndex + 1}로 전환`);
+            continue; // 같은 attempt, 다음 키로 재시도
+          }
+          console.error("❌ 모든 YouTube API 키 쿼터 소진");
+          return { items: [], error: "quota_exceeded" };
+        }
+        console.error(`❌ YouTube API 에러 ${searchRes.status}:`, JSON.stringify(errMsg));
+        return { items: [], error: "api_error" };
+      }
 
       const searchData = await searchRes.json();
       if (!searchData.items?.length) break; 
@@ -182,7 +218,7 @@ export async function searchVideos(query: string, filter?: string, pageToken?: s
       nextTokenToReturn = currentToken;
 
       const videoIds = searchData.items.map((item: any) => item.id.videoId).join(",");
-      const videosUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics,contentDetails&id=${videoIds}&key=${apiKey}`;
+      const videosUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics,contentDetails&id=${videoIds}&key=${apiKeys[activeKeyIndex]}`;
       const videosRes = await fetch(videosUrl, { cache: 'no-store' });
       const videosData = await videosRes.json();
       
@@ -211,7 +247,7 @@ export async function searchVideos(query: string, filter?: string, pageToken?: s
     if (foundItems.length === 0) return { items: [], nextPageToken: nextTokenToReturn };
 
     const channelIds = [...new Set(foundItems.map((item: any) => item.snippet.channelId))].join(",");
-    const channelsUrl = `https://www.googleapis.com/youtube/v3/channels?part=statistics,snippet&id=${channelIds}&key=${apiKey}`;
+    const channelsUrl = `https://www.googleapis.com/youtube/v3/channels?part=statistics,snippet&id=${channelIds}&key=${apiKeys[activeKeyIndex]}`;
     const channelsRes = await fetch(channelsUrl);
     const channelsData = await channelsRes.json();
     

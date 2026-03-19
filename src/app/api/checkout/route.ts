@@ -24,6 +24,7 @@ export async function GET(req: NextRequest) {
     payment_method_types: ["card"],
     line_items: [{ price: priceId, quantity: 1 }],
     metadata: { userId, plan },
+    subscription_data: { metadata: { userId, plan } },
     success_url: `${process.env.NEXT_PUBLIC_APP_URL}/search?upgraded=1`,
     cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/pricing`,
   });
