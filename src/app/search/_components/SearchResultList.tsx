@@ -1,94 +1,179 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { VideoCard, VideoCardModel } from "@/components/VideoCard";
+import { useState, useEffect, useCallback, useMemo } from "react";
+import VideoCard from "./VideoCard";
+import VideoModal from "./VideoModal";
+import { getMoreVideos } from "../actions";
+import { Video } from "@/types";
 
-type SortOrder = "relevance" | "viewCount-desc" | "viewCount-asc";
-
-const gridCols = "grid-cols-[128px_1fr_100px_180px_200px]";
-
-interface SearchResultListProps {
-  initialData: VideoCardModel[];
+interface Props {
+  initialData: Video[];
+  initialToken?: string;
+  query: string;
+  filter: string;
 }
 
-export default function SearchResultList({ initialData }: SearchResultListProps) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
+type SortKey = "viewCount" | "subscriberCountRaw" | "scoreValue" | "publishedAtRaw" | "performanceRatioRaw" | "algorithmScore" | null;
+type SortOrder = "asc" | "desc";
 
-  const [sort, setSort] = useState<SortOrder>(
-    (searchParams.get("sort") as SortOrder) || "relevance",
-  );
-
-  // initialData를 기반으로 정렬 함수
-  const getSortedVideos = (data: VideoCardModel[], currentSort: SortOrder) => {
-    if (currentSort === "viewCount-desc") {
-      return [...data].sort((a, b) => b.viewCount - a.viewCount);
-    } else if (currentSort === "viewCount-asc") {
-      return [...data].sort((a, b) => a.viewCount - b.viewCount);
-    }
-    return data; // "relevance" 또는 기타 경우 (서버에서 이미 관련성 순으로 옴)
-  };
-
-  const [displayedVideos, setDisplayedVideos] = useState<VideoCardModel[]>(() =>
-    getSortedVideos(initialData, sort),
-  );
+export default function SearchResultList({ initialData, initialToken, query, filter }: Props) {
+  const [videos, setVideos] = useState<Video[]>(initialData || []);
+  const [nextToken, setNextToken] = useState<string | undefined>(initialToken);
+  const [loading, setLoading] = useState(false);
+  const [sortKey, setSortKey] = useState<SortKey>(null);
+  const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
+  const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
+  const [checkedIds, setCheckedIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    // initialData나 sort 파라미터가 변경될 때마다 displayedVideos를 업데이트
-    setDisplayedVideos(getSortedVideos(initialData, sort));
-  }, [initialData, sort]);
+    setVideos(initialData || []);
+    setNextToken(initialToken);
+    setSortKey(null);
+    setCheckedIds(new Set());
+  }, [initialData, initialToken, filter]);
 
-  const handleSortChange = (newSort: SortOrder) => {
-    setSort(newSort);
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("sort", newSort);
-    router.push(`?${params.toString()}`);
+  const handleLoadMore = useCallback(async () => {
+    if (!nextToken || loading) return;
+    setLoading(true);
+    try {
+      const res = await getMoreVideos(query, filter, nextToken);
+      if (res) {
+        if (res.items.length > 0) setVideos((prev) => [...prev, ...res.items]);
+        setNextToken(res.nextPageToken || undefined);
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  }, [nextToken, loading, query, filter]);
+
+  useEffect(() => {
+    const onTrigger = () => { if (!loading) handleLoadMore(); };
+    window.addEventListener("TRIGGER_LOAD_MORE", onTrigger);
+    return () => window.removeEventListener("TRIGGER_LOAD_MORE", onTrigger);
+  }, [handleLoadMore, loading]);
+
+  const handleSort = (key: SortKey) => {
+    if (sortKey === key) setSortOrder(sortOrder === "desc" ? "asc" : "desc");
+    else { setSortKey(key); setSortOrder("desc"); }
   };
 
-  // 오류 처리 (현재 search/page.tsx에서 이미 error를 처리하므로 여기서는 제거)
-  if (initialData.length === 0) {
+  const sortedVideos = useMemo(() => {
+    if (!sortKey) return videos;
+    return [...videos].sort((a, b) => {
+      const valA = a[sortKey];
+      const valB = b[sortKey];
+      if (typeof valA === "number" && typeof valB === "number") {
+        return sortOrder === "asc" ? valA - valB : valB - valA;
+      }
+      return 0;
+    });
+  }, [videos, sortKey, sortOrder]);
+
+  const toggleCheck = (id: string) => {
+    setCheckedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleAll = () => {
+    if (checkedIds.size === sortedVideos.length) setCheckedIds(new Set());
+    else setCheckedIds(new Set(sortedVideos.map((v) => v.videoId)));
+  };
+
+  const renderSortIcon = (key: SortKey) => {
+    if (sortKey !== key) return <span className="text-gray-700 ml-1 text-[10px]">↕</span>;
+    return sortOrder === "asc"
+      ? <span className="text-teal-400 ml-1 text-[10px]">▲</span>
+      : <span className="text-teal-400 ml-1 text-[10px]">▼</span>;
+  };
+
+  if (!initialData || initialData.length === 0) {
     return (
-      <div className="card rounded-2xl p-6">
-        <div className="text-lg font-semibold text-white">결과가 없어요.</div>
-        <div className="mt-2 text-sm text-white/60">
-          다른 키워드로 다시 시도해보세요.
-        </div>
+      <div className="p-12 text-center border border-gray-800 rounded-xl bg-gray-900/50 mt-4">
+        <div className="text-4xl mb-4">🔍</div>
+        <p className="text-gray-400 font-medium">검색 결과가 없어요</p>
+        <p className="text-gray-600 text-sm mt-1">다른 키워드로 검색해보세요</p>
       </div>
     );
   }
 
-  return (
-    <div className="card rounded-2xl">
-      {/* 헤더 */}
-      <div
-        className={`card sticky top-0 z-10 hidden items-center rounded-t-2xl border-b border-white/10 bg-black/50 px-4 py-3 text-xs font-semibold uppercase text-white/70 backdrop-blur-sm md:grid ${gridCols}`}
-      >
-        <div>썸네일</div>
-        <div>제목</div>
-        <button
-          onClick={() =>
-            handleSortChange(
-              sort === "viewCount-desc" ? "viewCount-asc" : "viewCount-desc",
-            )
-          }
-          className="flex items-center justify-end gap-1 text-right"
-        >
-          조회수
-          {sort === "viewCount-desc" && <span className="text-xs">▼</span>}
-          {sort === "viewCount-asc" && <span className="text-xs">▲</span>}
-        </button>
-        <div className="text-right">채널명(구독자)</div>
-        <div className="text-right">추세</div>
-      </div>
+  const allChecked = checkedIds.size === sortedVideos.length && sortedVideos.length > 0;
 
-      <div className="min-w-full overflow-x-auto">
-        <div className="divide-y divide-white/10 border-b border-white/10 last:border-b-0">
-          {displayedVideos.map((v) => (
-            <VideoCard key={v.videoId} video={v} />
-          ))}
+  return (
+    <div className="w-full mt-4 pb-12">
+      {/* 테이블 헤더 */}
+      <div
+        className="hidden md:grid items-center gap-2 px-3 py-2.5 bg-gray-900 border border-gray-800 text-[11px] text-gray-500 font-medium rounded-t-lg select-none"
+        style={{ gridTemplateColumns: "32px 36px 110px 1fr 90px 140px 80px 80px 90px 90px" }}
+      >
+        <div className="flex justify-center">
+          <input
+            type="checkbox"
+            checked={allChecked}
+            onChange={toggleAll}
+            className="w-3.5 h-3.5 accent-teal-500 cursor-pointer"
+          />
+        </div>
+        <div className="text-center">CC</div>
+        <div className="text-center">썸네일 ({sortedVideos.length})</div>
+        <div className="pl-1">제목</div>
+        <div onClick={() => handleSort("viewCount")} className="cursor-pointer hover:text-white flex items-center justify-center">
+          조회수 {renderSortIcon("viewCount")}
+        </div>
+        <div onClick={() => handleSort("subscriberCountRaw")} className="cursor-pointer hover:text-white flex items-center justify-center">
+          구독자 {renderSortIcon("subscriberCountRaw")}
+        </div>
+        <div onClick={() => handleSort("performanceRatioRaw")} className="cursor-pointer hover:text-white flex items-center justify-center">
+          아웃라이어 {renderSortIcon("performanceRatioRaw")}
+        </div>
+        <div onClick={() => handleSort("scoreValue")} className="cursor-pointer hover:text-white flex items-center justify-center">
+          성과도 {renderSortIcon("scoreValue")}
+        </div>
+        <div onClick={() => handleSort("algorithmScore")} className="cursor-pointer hover:text-white flex items-center justify-center">
+          알고리즘 🔥 {renderSortIcon("algorithmScore")}
+        </div>
+        <div onClick={() => handleSort("publishedAtRaw")} className="cursor-pointer hover:text-white flex items-center justify-center">
+          게시일 {renderSortIcon("publishedAtRaw")}
         </div>
       </div>
+
+      {/* 리스트 */}
+      <div className="border border-gray-800 border-t-0 rounded-b-lg divide-y divide-gray-800/60 overflow-hidden">
+        {sortedVideos.map((video) => (
+          <VideoCard
+            key={video.videoId}
+            video={video}
+            checked={checkedIds.has(video.videoId)}
+            onCheck={() => toggleCheck(video.videoId)}
+            onClick={() => setSelectedVideo(video)}
+          />
+        ))}
+      </div>
+
+      {loading && (
+        <div className="py-6 text-center text-gray-400 flex justify-center items-center gap-2">
+          <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+          추가 데이터 불러오는 중...
+        </div>
+      )}
+
+      {!loading && nextToken && (
+        <div className="mt-6 flex justify-center">
+          <button
+            onClick={handleLoadMore}
+            className="px-6 py-2.5 bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm font-medium rounded-full border border-gray-700 transition-colors"
+          >
+            더 보기
+          </button>
+        </div>
+      )}
+
+      {selectedVideo && <VideoModal video={selectedVideo} onClose={() => setSelectedVideo(null)} />}
     </div>
   );
 }

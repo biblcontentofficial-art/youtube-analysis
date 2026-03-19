@@ -2,74 +2,156 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { searchVideos } from "@/lib/youtube";
 import SearchResultList from "./_components/SearchResultList";
+import SearchSkeleton from "./_components/SearchSkeleton";
+import SearchBar from "../_components/SearchBar";
+import { getSearchUsage, incrementSearchCount } from "@/lib/searchLimit";
 
 interface Props {
   searchParams: {
     q?: string;
     filter?: string;
+    count?: string;
   };
 }
 
 export default async function SearchPage({ searchParams }: Props) {
   const query = searchParams.q || "";
-  const filter = searchParams.filter || ""; // 'shorts', 'long', or undefined (all)
-  
-  // 검색어가 없으면 빈 배열
-  const videos = query ? await searchVideos(query, filter) : [];
+  const filter = searchParams.filter || "";
+  const searchCount = Math.max(1, parseInt(searchParams.count || "1"));
+  const pagesToFetch = Math.min(searchCount, 3);
 
-  // 쿼리 문자열 인코딩 (링크 생성용)
+  let videos: any[] = [];
+  let nextPageToken: string | undefined;
+  let limitExceeded = false;
+
+  const { used, limit, plan } = await getSearchUsage();
+
+  if (query) {
+    // 서버 렌더링 시 첫 페이지 fetch만 카운트 (이후 페이지는 같은 세션)
+    const { ok } = await incrementSearchCount();
+    if (!ok) {
+      limitExceeded = true;
+    } else {
+      const first = await searchVideos(query, filter);
+      videos = first.items;
+      nextPageToken = first.nextPageToken;
+
+      for (let i = 1; i < pagesToFetch && nextPageToken; i++) {
+        const more = await searchVideos(query, filter, nextPageToken);
+        videos = [...videos, ...more.items];
+        nextPageToken = more.nextPageToken;
+      }
+    }
+  }
+
   const encodedQuery = encodeURIComponent(query);
+  const encodedCount = searchCount;
 
   return (
-    <main className="min-h-screen bg-black text-white p-4 md:p-8">
-      <div className="max-w-6xl mx-auto">
-        <h1 className="text-3xl font-bold mb-2">YouTube 성과 분석</h1>
-        <p className="text-gray-400 mb-8">
-          키워드를 입력하면 관련 영상 리스트와 성과(스파크라인 + 배지)를 보여줘요.
-        </p>
+    <main className="min-h-screen bg-gray-950 text-white">
+      {/* 검색 바 영역 */}
+      <div className="border-b border-gray-800 bg-gray-900/40 px-4 py-3">
+        <div className="max-w-screen-xl mx-auto flex flex-col md:flex-row md:items-center gap-3">
+          <SearchBar />
 
-        {/* --- 필터 버튼 영역 시작 --- */}
-        {query && (
-          <div className="flex gap-2 mb-6">
+          {/* 검색어 칩 + 횟수 */}
+          {query && (
+            <div className="flex items-center gap-2 shrink-0">
+              <span className="flex items-center gap-1.5 px-3 py-1.5 bg-teal-900/50 border border-teal-700 rounded-full text-sm text-teal-300">
+                🔍 {query}
+                {searchCount > 1 && (
+                  <span className="text-[11px] font-bold bg-teal-600 text-white px-1.5 py-0.5 rounded-full ml-1">
+                    {searchCount}회 검색
+                  </span>
+                )}
+              </span>
+            </div>
+          )}
+
+          {/* 검색 횟수 표시 */}
+          {query && (
+            <div className="text-xs text-gray-500 shrink-0">
+              오늘 {used}/{limit}회 사용
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="max-w-screen-xl mx-auto px-4 py-6">
+        {/* 한도 초과 안내 */}
+        {limitExceeded && (
+          <div className="mb-6 p-4 bg-amber-950/50 border border-amber-700 rounded-xl text-center">
+            <p className="text-amber-300 font-semibold mb-1">
+              오늘 검색 한도({limit}회)를 모두 사용했습니다
+            </p>
+            <p className="text-gray-400 text-sm mb-3">
+              내일 자정에 초기화되거나, 플랜을 업그레이드하세요.
+            </p>
             <Link
-              href={`/search?q=${encodedQuery}`}
-              className={`px-4 py-1.5 rounded-full text-sm transition-colors ${
-                !filter
-                  ? "bg-blue-600 text-white font-medium"
-                  : "bg-gray-800 text-gray-400 hover:bg-gray-700"
-              }`}
+              href="/pricing"
+              className="inline-block bg-teal-600 hover:bg-teal-500 text-white text-sm font-semibold px-5 py-2 rounded-lg transition"
             >
-              전체
-            </Link>
-            <Link
-              href={`/search?q=${encodedQuery}&filter=long`}
-              className={`px-4 py-1.5 rounded-full text-sm transition-colors ${
-                filter === "long"
-                  ? "bg-blue-600 text-white font-medium"
-                  : "bg-gray-800 text-gray-400 hover:bg-gray-700"
-              }`}
-            >
-              쇼츠 제외 (3분+)
-            </Link>
-            <Link
-              href={`/search?q=${encodedQuery}&filter=shorts`}
-              className={`px-4 py-1.5 rounded-full text-sm transition-colors ${
-                filter === "shorts"
-                  ? "bg-blue-600 text-white font-medium"
-                  : "bg-gray-800 text-gray-400 hover:bg-gray-700"
-              }`}
-            >
-              쇼츠만 보기 (3분 미만)
+              플랜 업그레이드 →
             </Link>
           </div>
         )}
-        {/* --- 필터 버튼 영역 끝 --- */}
 
-        {/* 검색 결과 리스트 */}
-        <Suspense fallback={<div className="text-gray-500">데이터 분석 중...</div>}>
-          <SearchResultList initialData={videos} />
-        </Suspense>
+        {/* 필터 + 액션 툴바 */}
+        {query && !limitExceeded && (
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+            {/* 필터 탭 (count 유지) */}
+            <div className="flex items-center gap-1.5">
+              <FilterTab href={`/search?q=${encodedQuery}&count=${encodedCount}`} active={!filter} label="전체" />
+              <FilterTab href={`/search?q=${encodedQuery}&filter=long&count=${encodedCount}`} active={filter === "long"} label="쇼츠 제외" />
+              <FilterTab href={`/search?q=${encodedQuery}&filter=shorts&count=${encodedCount}`} active={filter === "shorts"} label="쇼츠만" />
+            </div>
+
+            {/* 액션 버튼 */}
+            <div className="flex items-center gap-2">
+              <ActionButton label="영상 수집" icon="📥" />
+              <ActionButton label="채널 제거" icon="🗑" />
+              <div className="text-xs text-gray-600 bg-gray-900 border border-gray-800 px-2.5 py-1.5 rounded-lg font-mono">
+                {videos.length}건
+              </div>
+            </div>
+          </div>
+        )}
+
+        {!limitExceeded && (
+          <Suspense fallback={<SearchSkeleton />}>
+            <SearchResultList
+              initialData={videos}
+              initialToken={nextPageToken}
+              query={query}
+              filter={filter}
+            />
+          </Suspense>
+        )}
       </div>
     </main>
+  );
+}
+
+function FilterTab({ href, active, label }: { href: string; active: boolean; label: string }) {
+  return (
+    <Link
+      href={href}
+      className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
+        active
+          ? "bg-teal-600 text-white"
+          : "bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700"
+      }`}
+    >
+      {label}
+    </Link>
+  );
+}
+
+function ActionButton({ label, icon }: { label: string; icon: string }) {
+  return (
+    <button className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-white bg-gray-900 hover:bg-gray-800 border border-gray-800 px-3 py-1.5 rounded-lg transition-colors">
+      <span>{icon}</span>
+      {label}
+    </button>
   );
 }

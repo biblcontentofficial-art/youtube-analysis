@@ -1,50 +1,38 @@
 "use client";
 
-import {
-  Line,
-  LineChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
-import type { SparkPoint } from "@/lib/youtube";
+import { useMemo } from "react";
 
-export function Sparkline({ data }: { data: SparkPoint[] }) {
-  return (
-    <div className="h-12 w-44">
-      <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={data}>
-          <XAxis dataKey="day" hide />
-          <YAxis hide domain={["dataMin", "dataMax"]} />
-          <Tooltip
-            cursor={false}
-            contentStyle={{
-              background: "rgba(15, 22, 35, 0.95)",
-              border: "1px solid rgba(255,255,255,0.08)",
-              borderRadius: 10,
-              color: "white",
-              fontSize: 12,
-            }}
-            labelStyle={{ color: "rgba(255,255,255,0.7)" }}
-            formatter={(value: unknown) => [
-              typeof value === "number"
-                ? Math.round(value).toLocaleString("ko-KR")
-                : String(value),
-              "예상 일일 조회수",
-            ]}
-            labelFormatter={(label: unknown) => `최근 30일 · Day ${label}`}
-          />
-          <Line
-            type="monotone"
-            dataKey="views"
-            stroke="#60a5fa"
-            strokeWidth={2}
-            dot={false}
-          />
-        </LineChart>
-      </ResponsiveContainer>
-    </div>
-  );
+interface Props {
+  data: number[];
+  color?: string;
 }
 
+export default function Sparkline({ data, color = "#60A5FA" }: Props) {
+  const points = useMemo(() => {
+    if (!data || data.length === 0) return "";
+    const max = Math.max(...data);
+    const min = Math.min(...data);
+    const range = max - min || 1;
+    
+    return data
+      .map((val, i) => {
+        const x = (i / (data.length - 1)) * 100;
+        const y = 100 - ((val - min) / range) * 100;
+        return `${x},${y}`;
+      })
+      .join(" ");
+  }, [data]);
+
+  return (
+    <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible" preserveAspectRatio="none">
+      <polyline
+        fill="none"
+        stroke={color}
+        strokeWidth="3"
+        points={points}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}

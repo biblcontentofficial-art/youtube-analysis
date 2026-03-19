@@ -1,0 +1,46 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import Link from "next/link";
+
+interface UsageData {
+  used: number;
+  limit: number;
+  plan: string;
+}
+
+export default function SearchUsageBadge() {
+  const [usage, setUsage] = useState<UsageData | null>(null);
+
+  useEffect(() => {
+    fetch("/api/usage")
+      .then((r) => r.json())
+      .then(setUsage)
+      .catch(() => {});
+  }, []);
+
+  if (!usage) return null;
+
+  const remaining = Math.max(0, usage.limit - usage.used);
+  const isLow = remaining <= 1;
+  const isOut = remaining === 0;
+
+  return (
+    <Link
+      href="/pricing"
+      className={`hidden sm:flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full border transition ${
+        isOut
+          ? "border-red-700 bg-red-950/50 text-red-400"
+          : isLow
+          ? "border-amber-700 bg-amber-950/50 text-amber-400"
+          : "border-gray-700 bg-gray-900 text-gray-400"
+      }`}
+      title="검색 가능 횟수"
+    >
+      <span>{isOut ? "🚫" : isLow ? "⚠️" : "🔍"}</span>
+      <span>
+        {isOut ? "한도 초과" : `${remaining}회 남음`}
+      </span>
+    </Link>
+  );
+}

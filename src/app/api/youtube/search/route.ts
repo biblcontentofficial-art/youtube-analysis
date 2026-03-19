@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
-import { searchVideosWithDetails } from "@/lib/youtube";
+import { searchVideos } from "@/lib/youtube";
+import { incrementSearchCount } from "@/lib/searchLimit";
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const q = (searchParams.get("q") ?? "").trim();
-  const maxResults = Number(searchParams.get("maxResults") ?? 12);
 
   if (!q) {
     return NextResponse.json(
@@ -13,12 +13,25 @@ export async function GET(req: Request) {
     );
   }
 
+  // 검색 횟수 제한 체크 및 카운트 증가
+  const { ok, used, limit } = await incrementSearchCount();
+  if (!ok) {
+    return NextResponse.json(
+      {
+        error: "SEARCH_LIMIT_EXCEEDED",
+        message: `오늘 검색 한도(${limit}회)를 초과했습니다. 플랜을 업그레이드하세요.`,
+        used,
+        limit,
+      },
+      { status: 429 },
+    );
+  }
+
   try {
-    const items = await searchVideosWithDetails(q, Math.min(25, maxResults));
-    return NextResponse.json({ items });
+    const data = await searchVideos(q);
+    return NextResponse.json({ items: data.items, used, limit });
   } catch (e) {
     const message = e instanceof Error ? e.message : "Unknown error";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
-
