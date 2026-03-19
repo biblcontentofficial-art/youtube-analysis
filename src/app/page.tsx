@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 const EXAMPLE_KEYWORDS = ["캠핑", "영어 공부", "주식 투자", "다이어트", "여행 브이로그", "요리 레시피"];
 
@@ -51,7 +52,6 @@ export default function Home() {
       {/* Hero */}
       <div className="flex-1 flex flex-col items-center justify-center px-4 py-20">
         <div className="w-full max-w-3xl text-center space-y-8">
-
           {/* 배지 */}
           <div className="inline-flex items-center rounded-full border border-teal-800 bg-teal-950/50 px-4 py-1.5 text-sm text-teal-400">
             <span className="flex h-2 w-2 rounded-full bg-teal-400 mr-2 animate-pulse" />
@@ -111,8 +111,26 @@ export default function Home() {
         </div>
       </div>
 
+      {/* 소셜 프루프 */}
+      <div className="border-y border-gray-800 bg-gray-900/50 py-6">
+        <div className="max-w-3xl mx-auto px-4 grid grid-cols-3 gap-4 text-center">
+          <div>
+            <p className="text-2xl font-bold text-teal-400">10,000+</p>
+            <p className="text-xs text-gray-500 mt-1">키워드 분석됨</p>
+          </div>
+          <div>
+            <p className="text-2xl font-bold text-teal-400">실시간</p>
+            <p className="text-xs text-gray-500 mt-1">YouTube 데이터 수집</p>
+          </div>
+          <div>
+            <p className="text-2xl font-bold text-teal-400">무료</p>
+            <p className="text-xs text-gray-500 mt-1">로그인 없이 2회 검색</p>
+          </div>
+        </div>
+      </div>
+
       {/* 기능 소개 */}
-      <div className="border-t border-gray-800 bg-gray-900/30">
+      <div className="bg-gray-900/30">
         <div className="max-w-5xl mx-auto px-4 py-16 grid grid-cols-1 md:grid-cols-3 gap-8">
           <FeatureCard
             icon="📈"
@@ -131,6 +149,38 @@ export default function Home() {
           />
         </div>
       </div>
+
+      {/* 이용 방법 */}
+      <div className="border-t border-gray-800 py-16 px-4">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-2xl font-bold text-center text-white mb-12">3단계로 바로 시작</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
+            <StepCard step={1} title="키워드 입력" desc="분석하고 싶은 유튜브 키워드를 검색창에 입력하세요" />
+            <StepCard step={2} title="실시간 분석" desc="YouTube API로 최신 영상 데이터를 수집·분석합니다" />
+            <StepCard step={3} title="인사이트 확인" desc="성과도·조회수·채널 분석 결과로 전략을 세우세요" />
+          </div>
+        </div>
+      </div>
+
+      {/* 요금제 CTA */}
+      <div className="border-t border-gray-800 bg-gradient-to-b from-gray-950 to-gray-900 py-16 px-4 text-center">
+        <h2 className="text-2xl font-bold text-white mb-3">더 많이 분석하고 싶으신가요?</h2>
+        <p className="text-gray-400 mb-8 max-w-md mx-auto">무료로 하루 2회 검색 가능합니다. 더 많은 검색과 고급 기능은 유료 플랜에서 이용하세요.</p>
+        <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          <Link
+            href="/pricing"
+            className="px-8 py-3 bg-teal-500 hover:bg-teal-400 text-white font-semibold rounded-xl transition"
+          >
+            요금제 보기
+          </Link>
+          <button
+            onClick={() => { const count = saveToHistory("캠핑"); router.push(`/search?q=캠핑&count=${count}`); }}
+            className="px-8 py-3 bg-gray-800 hover:bg-gray-700 text-white font-semibold rounded-xl transition"
+          >
+            무료로 체험하기
+          </button>
+        </div>
+      </div>
     </main>
   );
 }
@@ -140,6 +190,18 @@ function FeatureCard({ icon, title, desc }: { icon: string; title: string; desc:
     <div className="flex flex-col gap-3">
       <div className="w-10 h-10 bg-gray-800 rounded-xl flex items-center justify-center text-xl">
         {icon}
+      </div>
+      <h3 className="font-semibold text-white">{title}</h3>
+      <p className="text-sm text-gray-500 leading-relaxed">{desc}</p>
+    </div>
+  );
+}
+
+function StepCard({ step, title, desc }: { step: number; title: string; desc: string }) {
+  return (
+    <div className="flex flex-col items-center text-center gap-3">
+      <div className="w-12 h-12 rounded-full bg-teal-500/10 border border-teal-500/30 flex items-center justify-center text-teal-400 font-bold text-lg">
+        {step}
       </div>
       <h3 className="font-semibold text-white">{title}</h3>
       <p className="text-sm text-gray-500 leading-relaxed">{desc}</p>

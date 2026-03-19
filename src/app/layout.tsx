@@ -12,8 +12,47 @@ const hasClerk =
   process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY !== "pk_test_placeholder";
 
 export const metadata: Metadata = {
-  title: "bibl lab - 유튜브 데이터 분석",
-  description: "키워드로 유튜브 트렌드를 분석하세요",
+  title: {
+    default: "bibl lab - 유튜브 키워드 분석 도구",
+    template: "%s | bibl lab",
+  },
+  description: "유튜브 키워드로 트렌드를 선점하세요. 조회수·구독자·성과도를 한눈에 분석해 경쟁력 있는 콘텐츠 주제를 찾아드립니다. 유튜버·크리에이터를 위한 데이터 분석 도구.",
+  keywords: ["유튜브 분석", "유튜브 키워드", "유튜브 트렌드", "크리에이터 도구", "유튜브 성과도", "유튜브 조회수 분석", "콘텐츠 전략", "유튜브 SEO", "bibl lab"],
+  authors: [{ name: "bibl lab" }],
+  creator: "bibl lab",
+  openGraph: {
+    type: "website",
+    locale: "ko_KR",
+    url: "https://youtube-analysis-lemon.vercel.app",
+    siteName: "bibl lab",
+    title: "bibl lab - 유튜브 키워드 분석 도구",
+    description: "유튜브 키워드로 트렌드를 선점하세요. 조회수·구독자·성과도를 한눈에 분석.",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "bibl lab - 유튜브 데이터 분석",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "bibl lab - 유튜브 키워드 분석 도구",
+    description: "유튜브 키워드로 트렌드를 선점하세요.",
+    images: ["/og-image.png"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+    },
+  },
+  verification: {
+    google: "",
+  },
 };
 
 export default async function RootLayout({
