@@ -46,6 +46,20 @@ export default function SignInForm() {
             소셜 계정으로 3초 만에 로그인하세요
           </p>
 
+          {/* 혜택 */}
+          <div className="space-y-2 mb-6">
+            {[
+              { icon: "🔍", text: "하루 10회 무료 검색" },
+              { icon: "📈", text: "조회수·성과도 실시간 분석" },
+              { icon: "💳", text: "카드 정보 불필요" },
+            ].map((b) => (
+              <div key={b.text} className="flex items-center gap-2.5 text-sm text-gray-400">
+                <span className="text-base">{b.icon}</span>
+                {b.text}
+              </div>
+            ))}
+          </div>
+
           {/* 카카오 로그인 */}
           <button
             onClick={() => handleOAuth("oauth_custom_kakao")}

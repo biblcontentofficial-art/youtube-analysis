@@ -166,15 +166,29 @@ export default async function SearchPage({ searchParams }: Props) {
         )}
 
         {!limitExceeded && !apiError && (
-          <Suspense fallback={<SearchSkeleton />}>
-            <SearchResultList
-              key={`${query}-${filter}`}
-              initialData={videos}
-              initialToken={nextPageToken}
-              query={query}
-              filter={filter}
-            />
-          </Suspense>
+          <>
+            {/* 무료 유저 업그레이드 유도 */}
+            {!isPaid && !limitExceeded && videos.length > 0 && (
+              <div className="mb-4 p-4 bg-gradient-to-r from-teal-950/50 to-gray-900 border border-teal-800/50 rounded-xl flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-sm font-semibold text-teal-300">⚡ Starter 플랜으로 하루 10회 검색</p>
+                  <p className="text-xs text-gray-500 mt-0.5">지금 월 ₩49,000 — 언제든지 취소 가능</p>
+                </div>
+                <Link href="/pricing" className="shrink-0 bg-teal-600 hover:bg-teal-500 text-white text-xs font-semibold px-4 py-2 rounded-lg transition">
+                  업그레이드
+                </Link>
+              </div>
+            )}
+            <Suspense fallback={<SearchSkeleton />}>
+              <SearchResultList
+                key={`${query}-${filter}`}
+                initialData={videos}
+                initialToken={nextPageToken}
+                query={query}
+                filter={filter}
+              />
+            </Suspense>
+          </>
         )}
       </div>
     </main>

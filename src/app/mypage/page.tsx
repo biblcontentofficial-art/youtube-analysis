@@ -4,7 +4,11 @@ import Link from "next/link";
 import { getSearchUsage } from "@/lib/searchLimit";
 import LogoutButton from "./_components/LogoutButton";
 
-export default async function MyPage() {
+export default async function MyPage({
+  searchParams,
+}: {
+  searchParams: { payment?: string };
+}) {
   const { userId } = await auth();
   if (!userId) redirect("/sign-in");
 
@@ -54,6 +58,13 @@ export default async function MyPage() {
         <div className="bg-gray-900 border border-gray-800 rounded-2xl p-7 space-y-6">
           <h1 className="text-xl font-bold text-white text-center">마이페이지</h1>
 
+          {searchParams.payment === 'success' && (
+            <div className="bg-teal-950/50 border border-teal-700 rounded-xl p-4 text-center">
+              <p className="text-teal-400 font-semibold text-sm">🎉 구독이 시작됐습니다!</p>
+              <p className="text-gray-500 text-xs mt-1">이제 더 많은 검색을 즐기세요.</p>
+            </div>
+          )}
+
           {/* 유저 정보 */}
           <div className="bg-gray-800/50 rounded-xl p-4">
             <p className="text-white font-semibold text-base">{displayName}</p>
@@ -77,6 +88,13 @@ export default async function MyPage() {
               </Link>
             )}
           </div>
+          {plan !== "free" && (
+            <div className="text-xs text-gray-600 mt-1">
+              {plan === 'starter' && '하루 10회 검색 · 결과 100건'}
+              {plan === 'pro' && '하루 50회 검색 · 결과 200건'}
+              {plan === 'business' && '무제한 검색 · 결과 200건'}
+            </div>
+          )}
 
           {/* 오늘 사용량 */}
           <div className="bg-gray-800/50 rounded-xl p-4">
