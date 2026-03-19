@@ -1,10 +1,13 @@
 "use server";
 
 import { searchVideos } from "@/lib/youtube";
+import { getUserPlan } from "@/lib/searchLimit";
 
 // 1. 더보기 기능
 export async function getMoreVideos(query: string, filter: string | undefined, pageToken: string) {
-  return await searchVideos(query, filter, pageToken);
+  const plan = await getUserPlan();
+  const isPaid = plan !== "free";
+  return await searchVideos(query, filter, pageToken, isPaid);
 }
 
 // 2. 영상 상세 정보 가져오기
