@@ -23,9 +23,10 @@ if (hasClerk) {
     "/sso-callback(.*)",
     "/api/youtube/search(.*)",
     "/api/usage(.*)",
-    // 결제 콜백: 외부 서버(Payple/Toss)가 인증 없이 호출
+    // 결제 콜백: 외부 서버(Payple/Toss/Stripe)가 인증 없이 호출
     "/api/payple/confirm(.*)",
     "/api/toss/confirm(.*)",
+    "/api/stripe/webhook(.*)",
   ]);
   middlewareHandler = clerkMiddleware(async (auth: any, req: NextRequest) => {
     if (!isPublicRoute(req)) {
