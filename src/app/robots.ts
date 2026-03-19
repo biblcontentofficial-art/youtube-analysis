@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: '/',
       disallow: ['/admin', '/api/', '/mypage'],
     },
-    sitemap: 'https://youtube-analysis-lemon.vercel.app/sitemap.xml',
+    sitemap: 'https://bibllab.com/sitemap.xml',
   }
 }

@@ -2,6 +2,7 @@ export interface Video {
     videoId: string;
     title: string;
     thumbnail: string;
+    channelId: string;
     channelTitle: string;
     channelThumbnail: string;
     subscriberCount: string;

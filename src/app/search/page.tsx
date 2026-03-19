@@ -156,8 +156,8 @@ export default async function SearchPage({ searchParams }: Props) {
 
             {/* 액션 버튼 */}
             <div className="flex items-center gap-2">
-              <ActionButton label="영상 수집" icon="📥" />
-              <ActionButton label="채널 제거" icon="🗑" />
+              <ActionButton label="영상 수집" icon="📥" event="TRIGGER_COLLECT" />
+              <ActionButton label="채널 제거" icon="🗑" event="TRIGGER_REMOVE_CHANNELS" />
               <div className="text-xs text-gray-600 bg-gray-900 border border-gray-800 px-2.5 py-1.5 rounded-lg font-mono">
                 {videos.length}건
               </div>
@@ -210,9 +210,15 @@ function FilterTab({ href, active, label }: { href: string; active: boolean; lab
   );
 }
 
-function ActionButton({ label, icon }: { label: string; icon: string }) {
+function ActionButton({ label, icon, event }: { label: string; icon: string; event?: string }) {
+  const handleClick = () => {
+    if (event) window.dispatchEvent(new Event(event));
+  };
   return (
-    <button className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-white bg-gray-900 hover:bg-gray-800 border border-gray-800 px-3 py-1.5 rounded-lg transition-colors">
+    <button
+      onClick={handleClick}
+      className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-white bg-gray-900 hover:bg-gray-800 border border-gray-800 px-3 py-1.5 rounded-lg transition-colors"
+    >
       <span>{icon}</span>
       {label}
     </button>

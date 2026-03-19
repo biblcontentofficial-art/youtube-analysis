@@ -288,6 +288,7 @@ export async function searchVideos(query: string, filter?: string, pageToken?: s
         videoId: item.id,
         title: item.snippet.title,
         thumbnail: item.snippet.thumbnails.medium?.url || item.snippet.thumbnails.default?.url,
+        channelId: item.snippet.channelId,
         channelTitle: item.snippet.channelTitle,
         channelThumbnail: channelInfo.thumb,
         subscriberCount: formatCount(channelInfo.sub),

@@ -54,6 +54,18 @@ export default function SearchResultList({ initialData, initialToken, query, fil
     return () => window.removeEventListener("TRIGGER_LOAD_MORE", onTrigger);
   }, [handleLoadMore, loading]);
 
+  useEffect(() => {
+    const onCollect = () => handleCollect();
+    const onRemoveChannels = () => handleRemoveChannels();
+    window.addEventListener("TRIGGER_COLLECT", onCollect);
+    window.addEventListener("TRIGGER_REMOVE_CHANNELS", onRemoveChannels);
+    return () => {
+      window.removeEventListener("TRIGGER_COLLECT", onCollect);
+      window.removeEventListener("TRIGGER_REMOVE_CHANNELS", onRemoveChannels);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sortedVideos, checkedIds]);
+
   const handleSort = (key: SortKey) => {
     if (sortKey === key) setSortOrder(sortOrder === "desc" ? "asc" : "desc");
     else { setSortKey(key); setSortOrder("desc"); }
@@ -83,6 +95,51 @@ export default function SearchResultList({ initialData, initialToken, query, fil
   const toggleAll = () => {
     if (checkedIds.size === sortedVideos.length) setCheckedIds(new Set());
     else setCheckedIds(new Set(sortedVideos.map((v) => v.videoId)));
+  };
+
+  // 영상 수집: 체크된 영상(없으면 전체) CSV 복사
+  const handleCollect = () => {
+    const targets = checkedIds.size > 0
+      ? sortedVideos.filter((v) => checkedIds.has(v.videoId))
+      : sortedVideos;
+    const header = "제목,채널,조회수,구독자,성과도,게시일,URL";
+    const rows = targets.map((v) =>
+      [
+        `"${v.title?.replace(/"/g, '""') ?? ''}"`,
+        `"${v.channelTitle?.replace(/"/g, '""') ?? ''}"`,
+        v.viewCount ?? '',
+        v.subscriberCount ?? '',
+        v.score ?? '',
+        v.publishedAt ?? '',
+        `https://youtube.com/watch?v=${v.videoId}`,
+      ].join(",")
+    );
+    const csv = [header, ...rows].join("\n");
+    navigator.clipboard.writeText(csv).then(() => {
+      alert(`${targets.length}개 영상 데이터가 클립보드에 복사됐습니다!\nExcel에 붙여넣기 하세요.`);
+    }).catch(() => {
+      // fallback
+      const el = document.createElement("textarea");
+      el.value = csv;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand("copy");
+      document.body.removeChild(el);
+      alert(`${targets.length}개 영상 데이터가 복사됐습니다!`);
+    });
+  };
+
+  // 채널 제거: 체크된 영상들의 채널ID를 블랙리스트로 추가해서 필터링
+  const handleRemoveChannels = () => {
+    if (checkedIds.size === 0) {
+      alert("제거할 채널의 영상을 먼저 선택해주세요.");
+      return;
+    }
+    const channelIdsToRemove = new Set(
+      sortedVideos.filter((v) => checkedIds.has(v.videoId)).map((v) => v.channelId)
+    );
+    setVideos((prev) => prev.filter((v) => !channelIdsToRemove.has(v.channelId)));
+    setCheckedIds(new Set());
   };
 
   const renderSortIcon = (key: SortKey) => {

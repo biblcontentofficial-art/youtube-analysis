@@ -23,7 +23,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "ko_KR",
-    url: "https://youtube-analysis-lemon.vercel.app",
+    url: "https://bibllab.com",
     siteName: "bibl lab",
     title: "bibl lab - 유튜브 키워드 분석 도구",
     description: "유튜브 키워드로 트렌드를 선점하세요. 조회수·구독자·성과도를 한눈에 분석.",

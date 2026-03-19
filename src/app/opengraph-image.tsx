@@ -183,7 +183,7 @@ export default async function Image() {
             display: "flex",
           }}
         >
-          youtube-analysis-lemon.vercel.app
+          bibllab.com
         </div>
       </div>
     ),
