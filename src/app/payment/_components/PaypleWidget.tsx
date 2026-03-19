@@ -29,6 +29,7 @@ export default function PaypleWidget({
     }
 
     const orderId = `${userId}_${plan}_${Date.now()}`
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin
 
     // Payple payment object
     const payplePay = {
@@ -40,7 +41,7 @@ export default function PaypleWidget({
       PCD_PAY_OID: orderId,
       PCD_PAYER_EMAIL: userEmail,
       PCD_PAYER_NAME: userName || '고객',
-      PCD_RST_URL: '/api/payple/confirm', // callback URL
+      PCD_RST_URL: `${appUrl}/api/payple/confirm`, // 절대 URL (Payple 콜백)
       PCD_AUTH_KEY: authData.access_token,
       PCD_CST_ID: authData.cst_id,
       callbackFunction: (res: any) => {
