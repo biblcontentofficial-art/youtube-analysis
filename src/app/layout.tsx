@@ -27,20 +27,11 @@ export const metadata: Metadata = {
     siteName: "bibl lab",
     title: "bibl lab - 유튜브 키워드 분석 도구",
     description: "유튜브 키워드로 트렌드를 선점하세요. 조회수·구독자·성과도를 한눈에 분석.",
-    images: [
-      {
-        url: "/og-image.png",
-        width: 1200,
-        height: 630,
-        alt: "bibl lab - 유튜브 데이터 분석",
-      },
-    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "bibl lab - 유튜브 키워드 분석 도구",
     description: "유튜브 키워드로 트렌드를 선점하세요.",
-    images: ["/og-image.png"],
   },
   robots: {
     index: true,
