@@ -18,16 +18,28 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Price not configured" }, { status: 500 });
   }
 
-  const stripe = getStripe();
-  const session = await stripe.checkout.sessions.create({
-    mode: "subscription",
-    payment_method_types: ["card"],
-    line_items: [{ price: priceId, quantity: 1 }],
-    metadata: { userId, plan },
-    subscription_data: { metadata: { userId, plan } },
-    success_url: `${process.env.NEXT_PUBLIC_APP_URL}/search?upgraded=1`,
-    cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/pricing`,
-  });
+  let stripe;
+  try {
+    stripe = getStripe();
+  } catch {
+    return NextResponse.redirect(new URL("/pricing?error=payment", req.url));
+  }
 
-  return NextResponse.redirect(session.url!);
+  try {
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin;
+    const session = await stripe.checkout.sessions.create({
+      mode: "subscription",
+      payment_method_types: ["card"],
+      line_items: [{ price: priceId, quantity: 1 }],
+      metadata: { userId, plan },
+      subscription_data: { metadata: { userId, plan } },
+      success_url: `${appUrl}/search?upgraded=1`,
+      cancel_url: `${appUrl}/pricing`,
+    });
+
+    return NextResponse.redirect(session.url!);
+  } catch (e) {
+    console.error("Stripe checkout error:", e);
+    return NextResponse.redirect(new URL("/pricing?error=payment", req.url));
+  }
 }

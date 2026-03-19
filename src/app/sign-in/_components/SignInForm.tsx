@@ -7,9 +7,9 @@ export default function SignInForm() {
   const { signIn, isLoaded } = useSignIn();
   const [loading, setLoading] = useState<"kakao" | "google" | null>(null);
 
-  const handleOAuth = async (provider: "oauth_kakao" | "oauth_google") => {
+  const handleOAuth = async (provider: "oauth_custom_kakao" | "oauth_google") => {
     if (!isLoaded || loading) return;
-    setLoading(provider === "oauth_kakao" ? "kakao" : "google");
+    setLoading(provider === "oauth_custom_kakao" ? "kakao" : "google");
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (signIn as any).authenticateWithRedirect({
@@ -48,7 +48,7 @@ export default function SignInForm() {
 
           {/* 카카오 로그인 */}
           <button
-            onClick={() => handleOAuth("oauth_kakao")}
+            onClick={() => handleOAuth("oauth_custom_kakao")}
             disabled={!!loading}
             className="w-full flex items-center justify-center gap-3 bg-[#FEE500] hover:bg-[#FDD835] text-[#191919] font-bold py-3.5 px-4 rounded-xl transition mb-3 disabled:opacity-70"
           >
