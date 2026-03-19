@@ -97,6 +97,14 @@ export default async function RootLayout({
             {/* 우측 */}
             <div className="flex items-center gap-2">
               <SearchUsageBadge />
+              {/* 모바일 전용: 요금제 링크 */}
+              <a
+                href="/pricing"
+                className="md:hidden text-xs text-gray-400 hover:text-white px-2 py-1 rounded-md transition"
+                title="요금제"
+              >
+                💳
+              </a>
               {NavUser ? (
                 <NavUser />
               ) : (
