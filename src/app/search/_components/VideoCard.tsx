@@ -1,4 +1,5 @@
-import Image from "next/image";
+// next/image 대신 <img> 사용 — Vercel Image Optimization 비용 절감
+// YouTube 썸네일은 YouTube CDN이 이미 최적화해서 제공하므로 재최적화 불필요
 import { Video } from "@/types";
 
 interface Props {
@@ -89,7 +90,7 @@ export default function VideoCard({ video, checked, onCheck, onClick, canAlgorit
 
         {/* 썸네일 */}
         <div className="relative aspect-video rounded-md overflow-hidden cursor-pointer border border-gray-800 group-hover:border-gray-600 transition-colors shrink-0" onClick={onClick}>
-          <Image src={video.thumbnail} alt={video.title} fill sizes="110px" className="object-cover" />
+          <img src={video.thumbnail} alt={video.title} className="w-full h-full object-cover" />
           {video.duration && (
             <div className="absolute bottom-1 right-1 bg-black/80 text-white text-[10px] font-mono px-1 py-0.5 rounded">
               {video.duration}
@@ -156,7 +157,7 @@ export default function VideoCard({ video, checked, onCheck, onClick, canAlgorit
 
         {/* 썸네일 */}
         <div className="relative w-28 aspect-video rounded-lg overflow-hidden cursor-pointer shrink-0 border border-gray-800" onClick={onClick}>
-          <Image src={video.thumbnail} alt={video.title} fill sizes="112px" className="object-cover" />
+          <img src={video.thumbnail} alt={video.title} className="w-full h-full object-cover" />
           {video.duration && (
             <div className="absolute bottom-1 right-1 bg-black/80 text-white text-[9px] font-mono px-1 py-0.5 rounded">
               {video.duration}

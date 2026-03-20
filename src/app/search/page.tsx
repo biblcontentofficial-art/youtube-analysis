@@ -53,14 +53,20 @@ export default async function SearchPage({ searchParams }: Props) {
   }
 
   const planData = PLANS[plan as PlanKey] ?? PLANS.free;
-  const resultLimit = planData.resultLimit;
   const canCollect = planData.canCollect;
   const canAlgorithm = planData.canAlgorithm;
   const isPaid = plan !== "free";
 
-  // 서버 사이드 초기 로드: 최대 2페이지만 (빠른 응답 우선)
-  // 추가 결과는 클라이언트에서 "더 보기" 또는 같은 키워드 재검색으로 로드
-  const pagesToFetch = plan === "free" ? 1 : 2;
+  // 검색 횟수 기반 점진적 결과 수: 1차=50, 2차=100, 3차+=200
+  // 각 검색이 독립적인 데이터셋 → 정렬 필터 정상 작동
+  const countBasedLimit = searchCount === 1 ? 50 : searchCount === 2 ? 100 : 200;
+  const resultLimit = Math.min(planData.resultLimit, countBasedLimit);
+  const canSearchMore = resultLimit < planData.resultLimit;
+
+  // 서버에서 한 번에 가져올 최대 페이지 수 (각 페이지 ≈ 105 YouTube units)
+  // 쇼츠 필터링으로 인해 목표치보다 더 많은 페이지가 필요할 수 있음
+  const maxPagesForCount = searchCount === 1 ? 2 : searchCount === 2 ? 4 : 8;
+  const pagesToFetch = plan === "free" ? 1 : maxPagesForCount;
 
   if (query) {
     try {
@@ -85,13 +91,19 @@ export default async function SearchPage({ searchParams }: Props) {
           videos = first.items;
           nextPageToken = first.nextPageToken;
 
-          for (let i = 1; i < pagesToFetch && nextPageToken; i++) {
+          // resultLimit에 도달하거나 pagesToFetch 한도까지 서버에서 한 번에 가져옴
+          // → 클라이언트에 완전한 독립 데이터셋 제공 → 정렬 필터 정상 작동
+          let pagesLoaded = 1;
+          while (videos.length < resultLimit && nextPageToken && pagesLoaded < pagesToFetch) {
             const more = await searchVideos(query, filter, nextPageToken, isPaid);
+            if (more.error) break;
             const existingIds = new Set(videos.map((v: any) => v.videoId));
             const newItems = more.items.filter((item: any) => !existingIds.has(item.videoId));
             videos = [...videos, ...newItems];
             nextPageToken = more.nextPageToken;
+            pagesLoaded++;
           }
+          videos = videos.slice(0, resultLimit);
         }
       }
     } catch (e) {
@@ -233,12 +245,12 @@ export default async function SearchPage({ searchParams }: Props) {
               <SearchResultList
                 key={`${query}-${filter}-${searchCount}`}
                 initialData={videos}
-                initialToken={nextPageToken}
                 query={query}
                 filter={filter}
                 canAlgorithm={canAlgorithm}
                 canCollect={canCollect}
-                resultLimit={resultLimit}
+                resultLimit={planData.resultLimit}
+                canSearchMore={canSearchMore}
               />
             </Suspense>
           </>

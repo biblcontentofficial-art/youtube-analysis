@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useConfirm } from "./ConfirmDialog";
 interface HistoryItem {
   term: string;
   count: number;
@@ -25,6 +26,7 @@ function loadHistory(): HistoryItem[] {
 export default function SearchBar() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const showConfirm = useConfirm();
   const [keyword, setKeyword] = useState("");
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [isExpanded, setIsExpanded] = useState(true);
@@ -60,38 +62,35 @@ export default function SearchBar() {
     return newCount;
   };
 
-  const removeAllHistory = (e: React.MouseEvent) => {
+  const removeAllHistory = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!confirm("최근 검색어를 모두 삭제할까요?")) return;
+    if (!await showConfirm("최근 검색어를 모두 삭제할까요?")) return;
     setHistory([]);
     localStorage.removeItem("searchHistory");
   };
 
-  const executeSearch = (searchTerm: string) => {
+  const executeSearch = async (searchTerm: string) => {
     const trimmed = searchTerm.trim().normalize("NFC");
     if (!trimmed) return;
 
-    if (!confirm(`"${trimmed}" 검색하시겠습니까?`)) return;
-
-    // 같은 키워드를 이미 보고 있으면 → 페이지 이동 없이 추가 로드
-    const currentQ = searchParams.get("q");
-    if (currentQ && decodeURIComponent(currentQ).normalize("NFC") === trimmed) {
-      saveToHistory(trimmed);
-      window.dispatchEvent(new Event("TRIGGER_LOAD_MORE"));
-      return;
-    }
+    if (!await showConfirm(`"${trimmed}" 검색하시겠습니까?`)) return;
 
     const count = saveToHistory(trimmed);
-    router.push(`/search?q=${encodeURIComponent(trimmed)}&count=${count}`);
+    const currentQ = searchParams.get("q");
+    const currentFilter = searchParams.get("filter");
+    const filterParam = currentFilter ? `&filter=${currentFilter}` : "";
+
+    // 같은 키워드 재검색 → count 증가로 더 많은 결과 (50→100→200)
+    // 현재 필터 탭 유지 (전체/쇼츠제외/쇼츠만)
+    router.push(`/search?q=${encodeURIComponent(trimmed)}&count=${count}${filterParam}`);
   };
 
   // 최근 검색어 클릭: 카운트 증가 없이 기존 결과 보기
   const navigateFromHistory = (term: string) => {
     setKeyword(term);
-    // 같은 키워드면 추가 로드
     const currentQ = searchParams.get("q");
+    // 이미 같은 키워드 결과를 보고 있으면 그대로 유지
     if (currentQ && decodeURIComponent(currentQ).normalize("NFC") === term.normalize("NFC")) {
-      window.dispatchEvent(new Event("TRIGGER_LOAD_MORE"));
       return;
     }
     router.push(`/search?q=${encodeURIComponent(term)}&fromHistory=1`);
@@ -99,7 +98,7 @@ export default function SearchBar() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    executeSearch(keyword);
+    void executeSearch(keyword);
   };
 
   return (
@@ -170,8 +169,8 @@ export default function SearchBar() {
                     {/* X 버튼 — 부모 onClick과 완전 분리 */}
                     <button
                       type="button"
-                      onClick={() => {
-                        if (!confirm(`"${item.term}" 검색어를 삭제할까요?`)) return;
+                      onClick={async () => {
+                        if (!await showConfirm(`"${item.term}" 검색어를 삭제할까요?`)) return;
                         const next = history.filter((h) => h.term !== item.term);
                         setHistory(next);
                         localStorage.setItem("searchHistory", JSON.stringify(next));

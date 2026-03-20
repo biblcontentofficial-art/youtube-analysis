@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import SearchUsageBadge from "./_components/SearchUsageBadge";
 import NavigationLoader from "./_components/NavigationLoader";
+import { ConfirmProvider } from "./_components/ConfirmDialog";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -71,6 +72,7 @@ export default async function RootLayout({
     <html lang="ko">
       <body className={`${inter.className} bg-gray-950 text-white`}>
         <NavigationLoader>
+        <ConfirmProvider>
         <nav className="border-b border-gray-800 bg-gray-950 sticky top-0 z-50">
           <div className="max-w-screen-xl mx-auto px-4 h-14 flex items-center justify-between">
             {/* 로고 + 탭 */}
@@ -164,6 +166,7 @@ export default async function RootLayout({
             </div>
           </div>
         </footer>
+        </ConfirmProvider>
         </NavigationLoader>
       </body>
     </html>

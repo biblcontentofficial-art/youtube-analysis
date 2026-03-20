@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useUser } from "@clerk/nextjs";
 import { useNavigationLoading } from "@/app/_components/NavigationLoader";
+import { useConfirm } from "@/app/_components/ConfirmDialog";
 
 const EXAMPLE_KEYWORDS = ["캠핑", "영어 공부", "주식 투자", "다이어트", "여행 브이로그", "요리 레시피"];
 
@@ -12,6 +13,7 @@ export default function Home() {
   const router = useRouter();
   const { isSignedIn, isLoaded } = useUser();
   const { showLoading } = useNavigationLoading();
+  const showConfirm = useConfirm();
   const [keyword, setKeyword] = useState("");
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [pendingKeyword, setPendingKeyword] = useState("");
@@ -53,11 +55,11 @@ export default function Home() {
     router.push(`/search?q=${encodeURIComponent(trimmed)}&count=${count}`);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const trimmed = keyword.trim();
     if (!trimmed) return;
-    if (!confirm(`"${trimmed}" 검색하시겠습니까?`)) return;
+    if (!await showConfirm(`"${trimmed}" 검색하시겠습니까?`)) return;
     trySearch(trimmed);
   };
 
