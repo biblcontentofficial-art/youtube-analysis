@@ -206,15 +206,23 @@ export async function searchVideos(query: string, filter?: string, pageToken?: s
       if (!searchRes.ok) {
         const errBody = await searchRes.json().catch(() => ({}));
         const errMsg = errBody?.error?.message || "";
-        if (searchRes.status === 403 && errMsg.includes("quota")) {
+        const isQuotaError = searchRes.status === 403 && errMsg.includes("quota");
+        const isInvalidKey = searchRes.status === 400 || searchRes.status === 403;
+        if (isQuotaError || isInvalidKey) {
           // 다음 키로 전환
+          const prevIndex = activeKeyIndex;
           activeKeyIndex++;
           if (activeKeyIndex < apiKeys.length) {
-            console.warn(`⚠️ 키 ${activeKeyIndex} 쿼터 소진 → 키 ${activeKeyIndex + 1}로 전환`);
+            const reason = isQuotaError ? "쿼터 소진" : `에러 ${searchRes.status}`;
+            console.warn(`⚠️ 키 ${prevIndex + 1} ${reason} → 키 ${activeKeyIndex + 1}로 전환`);
             continue; // 같은 attempt, 다음 키로 재시도
           }
-          console.error("❌ 모든 YouTube API 키 쿼터 소진");
-          return { items: [], error: "quota_exceeded" };
+          if (isQuotaError) {
+            console.error("❌ 모든 YouTube API 키 쿼터 소진");
+            return { items: [], error: "quota_exceeded" };
+          }
+          console.error("❌ 모든 YouTube API 키 유효하지 않음");
+          return { items: [], error: "api_error" };
         }
         console.error(`❌ YouTube API 에러 ${searchRes.status}:`, JSON.stringify(errMsg));
         return { items: [], error: "api_error" };
