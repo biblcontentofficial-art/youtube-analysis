@@ -5,6 +5,7 @@ import SearchResultList from "./_components/SearchResultList";
 import SearchSkeleton from "./_components/SearchSkeleton";
 import SearchBar from "../_components/SearchBar";
 import { getSearchUsage, incrementSearchCount } from "@/lib/searchLimit";
+import { cacheGet, searchCacheKey } from "@/lib/cache";
 import LimitModal from "./_components/LimitModal";
 import KakaoChannelBanner from "./_components/KakaoChannelBanner";
 import { ActionButton } from "./_components/SearchActionButtons";
@@ -63,7 +64,16 @@ export default async function SearchPage({ searchParams }: Props) {
 
   if (query) {
     try {
-      const countResult = fromHistory ? { ok: true } : await incrementSearchCount();
+      // fromHistory=1: 필터 탭 전환 또는 히스토리 재방문
+      // cache hit → API 비용 0 → 카운트 면제
+      // cache miss → 실제 YouTube API 호출 발생 → 카운트 차감 (quota 보호)
+      let skipCount = false;
+      if (fromHistory) {
+        const cKey = searchCacheKey(query, filter, undefined, "relevance");
+        const isCached = (await cacheGet(cKey)) !== null;
+        skipCount = isCached;
+      }
+      const countResult = skipCount ? { ok: true } : await incrementSearchCount();
       const { ok } = countResult;
       if (!ok) {
         limitExceeded = true;

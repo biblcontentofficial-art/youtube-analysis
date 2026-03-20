@@ -31,6 +31,8 @@ type SortOrder = "asc" | "desc";
 
 // nextToken 소진 시 다른 정렬로 새 배치 요청 (관련도 → 조회수 → 최신 → 평점)
 const EXTRA_ORDERS = ["viewCount", "date", "rating"] as const;
+// quota 보호: 더 보기 1회당 최대 5페이지 (페이지당 ~102 units → 최대 510 units/클릭)
+const MAX_PAGES_PER_LOAD = 5;
 
 export default function SearchResultList({ initialData, initialToken, query, filter, canAlgorithm, canCollect, resultLimit }: Props) {
   const [videos, setVideos] = useState<Video[]>(() => dedup(initialData || []));
@@ -81,8 +83,11 @@ export default function SearchResultList({ initialData, initialToken, query, fil
       }
 
       const collected: Video[] = [];
+      let pagesThisLoad = 0;
       // token === null 이면 페이지 소진, token !== null (undefined 포함) 이면 계속 가능
-      while (collected.length < resultLimit && token !== null) {
+      // MAX_PAGES_PER_LOAD: quota 보호 (admin resultLimit=9999 무한루프 방지)
+      while (collected.length < resultLimit && token !== null && pagesThisLoad < MAX_PAGES_PER_LOAD) {
+        pagesThisLoad++;
         const res = await getMoreVideos(query, filter, token ?? undefined, currentOrder);
         if (!res || res.items.length === 0) break;
         collected.push(...res.items);
