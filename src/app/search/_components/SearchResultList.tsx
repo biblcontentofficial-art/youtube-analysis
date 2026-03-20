@@ -11,12 +11,15 @@ interface Props {
   initialToken?: string;
   query: string;
   filter: string;
+  canAlgorithm: boolean;
+  canCollect: boolean;
+  resultLimit: number;
 }
 
 type SortKey = "viewCount" | "subscriberCountRaw" | "scoreValue" | "publishedAtRaw" | "performanceRatioRaw" | "algorithmScore" | null;
 type SortOrder = "asc" | "desc";
 
-export default function SearchResultList({ initialData, initialToken, query, filter }: Props) {
+export default function SearchResultList({ initialData, initialToken, query, filter, canAlgorithm, canCollect, resultLimit }: Props) {
   const [videos, setVideos] = useState<Video[]>(initialData || []);
   const [nextToken, setNextToken] = useState<string | undefined>(initialToken);
   const [loading, setLoading] = useState(false);
@@ -40,7 +43,13 @@ export default function SearchResultList({ initialData, initialToken, query, fil
     try {
       const res = await getMoreVideos(query, filter, nextToken);
       if (res) {
-        if (res.items.length > 0) setVideos((prev) => [...prev, ...res.items]);
+        if (res.items.length > 0) {
+          setVideos((prev) => {
+            const merged = [...prev, ...res.items];
+            // 플랜별 결과 건수 제한 적용
+            return merged.slice(0, resultLimit);
+          });
+        }
         setNextToken(res.nextPageToken || undefined);
       }
     } catch (error) {
@@ -49,7 +58,7 @@ export default function SearchResultList({ initialData, initialToken, query, fil
     } finally {
       setLoading(false);
     }
-  }, [nextToken, loading, query, filter]);
+  }, [nextToken, loading, query, filter, resultLimit]);
 
   const handleSort = (key: SortKey) => {
     if (sortKey === key) setSortOrder(sortOrder === "desc" ? "asc" : "desc");
@@ -82,8 +91,12 @@ export default function SearchResultList({ initialData, initialToken, query, fil
     else setCheckedIds(new Set(sortedVideos.map((v) => v.videoId)));
   };
 
-  // 영상 수집: 체크된 영상(없으면 전체) CSV 복사
+  // 영상 수집: Pro/Business 전용
   const handleCollect = useCallback(() => {
+    if (!canCollect) {
+      alert("영상 수집은 Pro 플랜부터 사용 가능합니다.\n/pricing 에서 업그레이드하세요.");
+      return;
+    }
     const targets = checkedIds.size > 0
       ? sortedVideos.filter((v) => checkedIds.has(v.videoId))
       : sortedVideos;
@@ -112,7 +125,7 @@ export default function SearchResultList({ initialData, initialToken, query, fil
       document.body.removeChild(el);
       alert(`${targets.length}개 영상 데이터가 복사됐습니다!`);
     });
-  }, [sortedVideos, checkedIds]);
+  }, [sortedVideos, checkedIds, canCollect]);
 
   // 채널 제거: 체크된 영상들의 채널ID를 블랙리스트로 추가해서 필터링
   const handleRemoveChannels = useCallback(() => {
@@ -168,7 +181,7 @@ export default function SearchResultList({ initialData, initialToken, query, fil
       {/* 테이블 헤더 */}
       <div
         className="hidden md:grid items-center gap-2 px-3 py-2.5 bg-gray-900 border border-gray-800 text-[11px] text-gray-500 font-medium rounded-t-lg select-none"
-        style={{ gridTemplateColumns: "32px 36px 110px 1fr 90px 140px 80px 80px 90px 90px" }}
+        style={{ gridTemplateColumns: canAlgorithm ? "32px 36px 110px 1fr 90px 140px 80px 80px 90px 90px" : "32px 36px 110px 1fr 90px 140px 80px 80px 90px" }}
       >
         <div className="flex justify-center">
           <input
@@ -193,9 +206,12 @@ export default function SearchResultList({ initialData, initialToken, query, fil
         <div onClick={() => handleSort("scoreValue")} className="cursor-pointer hover:text-white flex items-center justify-center">
           성과도 {renderSortIcon("scoreValue")}
         </div>
-        <div onClick={() => handleSort("algorithmScore")} className="cursor-pointer hover:text-white flex items-center justify-center">
-          알고리즘 🔥 {renderSortIcon("algorithmScore")}
-        </div>
+        {/* 알고리즘 확률 — Starter 이상만 */}
+        {canAlgorithm && (
+          <div onClick={() => handleSort("algorithmScore")} className="cursor-pointer hover:text-white flex items-center justify-center">
+            알고리즘 🔥 {renderSortIcon("algorithmScore")}
+          </div>
+        )}
         <div onClick={() => handleSort("publishedAtRaw")} className="cursor-pointer hover:text-white flex items-center justify-center">
           게시일 {renderSortIcon("publishedAtRaw")}
         </div>
@@ -210,6 +226,7 @@ export default function SearchResultList({ initialData, initialToken, query, fil
             checked={checkedIds.has(video.videoId)}
             onCheck={() => toggleCheck(video.videoId)}
             onClick={() => setSelectedVideo(video)}
+            canAlgorithm={canAlgorithm}
           />
         ))}
       </div>
@@ -233,7 +250,7 @@ export default function SearchResultList({ initialData, initialToken, query, fil
         </div>
       )}
 
-      {!loading && !loadError && nextToken && (
+      {!loading && !loadError && nextToken && videos.length < resultLimit && (
         <div className="mt-6 flex justify-center">
           <button
             onClick={handleLoadMore}
@@ -241,6 +258,16 @@ export default function SearchResultList({ initialData, initialToken, query, fil
           >
             더 보기
           </button>
+        </div>
+      )}
+
+      {/* 플랜 결과 건수 한도 도달 안내 */}
+      {!loading && videos.length >= resultLimit && (
+        <div className="mt-6 p-4 bg-gray-900/60 border border-gray-800 rounded-xl text-center">
+          <p className="text-xs text-gray-500">
+            현재 플랜 최대 <span className="text-white font-semibold">{resultLimit}건</span>까지 표시됩니다.
+            <a href="/pricing" className="ml-2 text-teal-400 hover:text-teal-300 underline">플랜 업그레이드 →</a>
+          </p>
         </div>
       )}
 

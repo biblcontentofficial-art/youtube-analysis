@@ -6,6 +6,7 @@ interface Props {
   checked: boolean;
   onCheck: () => void;
   onClick: () => void;
+  canAlgorithm: boolean;
 }
 
 function ScoreBadge({ score }: { score: "Good" | "Normal" | "Bad" }) {
@@ -60,7 +61,7 @@ function AlgorithmBadge({ score }: { score: number }) {
   );
 }
 
-export default function VideoCard({ video, checked, onCheck, onClick }: Props) {
+export default function VideoCard({ video, checked, onCheck, onClick, canAlgorithm }: Props) {
   const isShorts = (video.durationSeconds ?? 9999) <= 180;
 
   return (
@@ -70,7 +71,7 @@ export default function VideoCard({ video, checked, onCheck, onClick }: Props) {
         className={`hidden md:grid items-center gap-2 px-3 py-3 transition-colors group ${
           checked ? "bg-teal-950/20" : "hover:bg-gray-900/60"
         }`}
-        style={{ gridTemplateColumns: "32px 36px 110px 1fr 90px 140px 80px 80px 90px 90px" }}
+        style={{ gridTemplateColumns: canAlgorithm ? "32px 36px 110px 1fr 90px 140px 80px 80px 90px 90px" : "32px 36px 110px 1fr 90px 140px 80px 80px 90px" }}
       >
         {/* 체크박스 */}
         <div className="flex justify-center" onClick={(e) => e.stopPropagation()}>
@@ -127,10 +128,12 @@ export default function VideoCard({ video, checked, onCheck, onClick }: Props) {
           <ScoreBadge score={video.score} />
         </div>
 
-        {/* 알고리즘 확률 */}
-        <div className="flex justify-center">
-          <AlgorithmBadge score={video.algorithmScore} />
-        </div>
+        {/* 알고리즘 확률 — Starter 이상만 */}
+        {canAlgorithm && (
+          <div className="flex justify-center">
+            <AlgorithmBadge score={video.algorithmScore} />
+          </div>
+        )}
 
         {/* 게시일 */}
         <div className="text-center">
@@ -188,7 +191,7 @@ export default function VideoCard({ video, checked, onCheck, onClick }: Props) {
             <span className="text-xs font-bold text-white">{video.viewCountFormatted}</span>
             <span className={`text-xs font-bold ${video.performanceColor}`}>{video.performanceRatio}</span>
             <ScoreBadge score={video.score} />
-            <AlgorithmBadge score={video.algorithmScore} />
+            {canAlgorithm && <AlgorithmBadge score={video.algorithmScore} />}
           </div>
 
           {/* 게시일 */}
