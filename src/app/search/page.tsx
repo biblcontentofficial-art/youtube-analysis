@@ -12,6 +12,7 @@ import { PLANS, PlanKey } from "@/lib/stripe";
 import FilterTab from "./_components/FilterTab";
 import PageLoadedSignal from "./_components/PageLoadedSignal";
 import ViewStatsInline from "./_components/ViewStatsInline";
+import VideoCountBadge from "./_components/VideoCountBadge";
 
 interface Props {
   searchParams: {
@@ -199,9 +200,7 @@ export default async function SearchPage({ searchParams }: Props) {
                 </Link>
               )}
               <ActionButton label="채널 제거" icon="🗑" event="TRIGGER_REMOVE_CHANNELS" />
-              <div className="text-xs text-gray-600 bg-gray-900 border border-gray-800 px-2.5 py-1.5 rounded-lg font-mono">
-                {videos.length}건
-              </div>
+              <VideoCountBadge initial={videos.length} />
             </div>
           </div>
         )}

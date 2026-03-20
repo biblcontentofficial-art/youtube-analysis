@@ -64,27 +64,30 @@ export default function SearchResultList({ initialData, initialToken, query, fil
     setLoading(true);
     setLoadError(false);
     try {
-      let token: string | undefined = nextToken;
+      // null = "페이지 소진" 센티널, undefined = "새 order 첫 페이지"
+      let token: string | null | undefined = nextToken;
       let currentOrder: string;
       let currentPhase = orderPhase;
 
       if (token) {
-        // 현재 order 계속
+        // 현재 order 계속 (token = 기존 nextPageToken 문자열)
         currentOrder = currentPhase === 0 ? "relevance" : EXTRA_ORDERS[currentPhase - 1];
       } else {
         // nextToken 소진 → 다음 order로 새 배치 (첫 페이지부터)
         currentOrder = EXTRA_ORDERS[currentPhase];
         currentPhase = currentPhase + 1;
         setOrderPhase(currentPhase);
-        token = undefined;
+        token = undefined; // undefined = 첫 페이지 요청
       }
 
       const collected: Video[] = [];
+      // token === null 이면 페이지 소진, token !== null (undefined 포함) 이면 계속 가능
       while (collected.length < resultLimit && token !== null) {
-        const res = await getMoreVideos(query, filter, token, currentOrder);
+        const res = await getMoreVideos(query, filter, token ?? undefined, currentOrder);
         if (!res || res.items.length === 0) break;
         collected.push(...res.items);
-        token = res.nextPageToken || undefined;
+        // nextPageToken 없으면 null로 설정 → 루프 종료 조건 충족
+        token = res.nextPageToken ?? null;
         if (collected.length >= resultLimit) break;
       }
 
@@ -95,7 +98,8 @@ export default function SearchResultList({ initialData, initialToken, query, fil
           return [...prev, ...newItems.slice(0, resultLimit)];
         });
       }
-      setNextToken(token);
+      // null → undefined 변환 (nextToken state 타입 맞춤)
+      setNextToken(token ?? undefined);
     } catch (error) {
       console.error(error);
       setLoadError(true);
@@ -213,10 +217,14 @@ export default function SearchResultList({ initialData, initialToken, query, fil
   }, [handleCollect, handleRemoveChannels]);
 
   // 조회수 통계 — 필터탭 옆 ViewStatsInline 에 이벤트로 전달
+  // setTimeout(0): ViewStatsInline 리스너가 먼저 등록된 뒤 이벤트 발사 보장
   useEffect(() => {
     const views = videos.map((v) => v.viewCount ?? 0).filter((v) => v > 0);
     const total = views.reduce((sum, v) => sum + v, 0);
-    window.dispatchEvent(new CustomEvent("UPDATE_VIEW_STATS", { detail: { total, count: videos.length } }));
+    const t = setTimeout(() => {
+      window.dispatchEvent(new CustomEvent("UPDATE_VIEW_STATS", { detail: { total, count: videos.length } }));
+    }, 0);
+    return () => clearTimeout(t);
   }, [videos]);
 
   const renderSortIcon = (key: SortKey) => {
