@@ -83,6 +83,7 @@ export async function GET() {
     let searchActiveUsersToday = 0;
     let redisCommandsToday = 0;
     const dailySearches: { date: string; count: number }[] = [];
+    let usageMap: Record<string, number> = {};
 
     try {
       if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
@@ -100,6 +101,7 @@ export async function GET() {
           const todayCounts = await redis.mget<number[]>(...todayKeys);
           for (let i = 0; i < todayCounts.length; i++) {
             const c = todayCounts[i] ?? 0;
+            usageMap[userIds[i]] = c;
             if (c > 0) {
               todaySearches += c;
               searchActiveUsersToday++;
@@ -166,6 +168,7 @@ export async function GET() {
         activeUsersToday: searchActiveUsersToday,
         byPlan: searchesByPlan,
         daily: dailySearches,
+        usageMap,
       },
       youtube: {
         estimatedUnitsToday,

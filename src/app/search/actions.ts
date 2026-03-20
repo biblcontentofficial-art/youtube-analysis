@@ -18,14 +18,26 @@ export async function getMoreVideos(query: string, filter: string | undefined, p
   return await searchVideos(query, filter, pageToken, isPaid);
 }
 
+type VideoDetail = {
+  channelId: string; description: string; tags: string[];
+  likeCount: string; commentCount: string;
+  rawLikeCount: number; rawViewCount: number;
+} | null;
+
+type ChannelDetail = {
+  title: string; description: string; publishedAt: string;
+  viewCount: number; subscriberCount: number; videoCount: number;
+  keywords: string[];
+} | null;
+
 // 2. 영상 상세 정보 가져오기
-export async function fetchVideoDetail(videoId: string) {
+export async function fetchVideoDetail(videoId: string): Promise<VideoDetail> {
   const apiKey = process.env.YOUTUBE_API_KEY;
   if (!apiKey) return null;
 
   // 캐시 확인 (24시간)
   const cacheKey = videoCacheKey(videoId);
-  const cached = await cacheGet<ReturnType<typeof fetchVideoDetail>>(cacheKey);
+  const cached = await cacheGet<VideoDetail>(cacheKey);
   if (cached) return cached;
 
   try {
@@ -105,13 +117,13 @@ export async function fetchVideoComments(videoId: string) {
 }
 
 // 4. 채널 상세 정보 가져오기 (키워드 로직 개선)
-export async function fetchChannelDetail(channelId: string) {
+export async function fetchChannelDetail(channelId: string): Promise<ChannelDetail> {
   const apiKey = process.env.YOUTUBE_API_KEY;
   if (!apiKey) return null;
 
   // 캐시 확인 (24시간)
   const cacheKey = channelCacheKey(channelId);
-  const cached = await cacheGet<ReturnType<typeof fetchChannelDetail>>(cacheKey);
+  const cached = await cacheGet<ChannelDetail>(cacheKey);
   if (cached) return cached;
 
   try {
