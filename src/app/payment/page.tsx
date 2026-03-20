@@ -52,7 +52,7 @@ export default async function PaymentPage({
           )}
 
           {/* 토스 빌링 결제 (메인) */}
-          <TossBillingButton plan={plan} amount={PLANS[plan].amount} />
+          <TossBillingButton plan={plan} amount={PLANS[plan].amount} userId={userId} />
 
           {/* 구분선 */}
           <div className="flex items-center gap-3 my-4">
