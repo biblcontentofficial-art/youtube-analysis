@@ -94,7 +94,11 @@ export async function getSearchUsage(): Promise<{ used: number; limit: number; p
 
   let used = 0;
   if (r) {
-    used = (await r.get<number>(key)) ?? 0;
+    try {
+      used = (await r.get<number>(key)) ?? 0;
+    } catch {
+      used = memoryStore.get(key) ?? 0;
+    }
   } else {
     used = memoryStore.get(key) ?? 0;
   }
@@ -127,14 +131,22 @@ export async function incrementSearchCount(): Promise<{ ok: boolean; used: numbe
 
   let used: number;
   if (r) {
-    used = await r.incr(key);
-    if (used === 1) {
-      const now = new Date();
-      const midnight = new Date(now);
-      midnight.setUTCDate(midnight.getUTCDate() + 1);
-      midnight.setUTCHours(0, 0, 0, 0);
-      const ttl = Math.floor((midnight.getTime() - now.getTime()) / 1000);
-      await r.expire(key, ttl);
+    try {
+      used = await r.incr(key);
+      if (used === 1) {
+        const now = new Date();
+        const midnight = new Date(now);
+        midnight.setUTCDate(midnight.getUTCDate() + 1);
+        midnight.setUTCHours(0, 0, 0, 0);
+        const ttl = Math.floor((midnight.getTime() - now.getTime()) / 1000);
+        await r.expire(key, ttl);
+      }
+    } catch (e) {
+      // Redis 오류 시 메모리 폴백 (신규 회원 포함 모든 유저 보호)
+      console.error("Redis incr error, falling back to memory:", e);
+      pruneMemoryStore();
+      used = (memoryStore.get(key) ?? 0) + 1;
+      memoryStore.set(key, used);
     }
   } else {
     pruneMemoryStore();

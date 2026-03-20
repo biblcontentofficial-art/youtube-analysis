@@ -1,20 +1,23 @@
 // 유료 유저 전용 키: YOUTUBE_API_KEY_PAID_1 ~ YOUTUBE_API_KEY_PAID_10
 // 무료 유저 키: YOUTUBE_API_KEY, YOUTUBE_API_KEY_2, ...
+// 무료 키가 모두 소진되면 유료 키로 자동 폴백 (신규 회원 오류 방지)
 function getAllApiKeys(paid: boolean = false): string[] {
-  const keys: string[] = [];
-  if (paid) {
-    for (let i = 1; i <= 10; i++) {
-      const k = process.env[`YOUTUBE_API_KEY_PAID_${i}`];
-      if (k) keys.push(k);
-    }
-    if (keys.length > 0) return keys;
-    // 유료 전용 키 미설정 시 일반 키 사용
-  }
-  if (process.env.YOUTUBE_API_KEY) keys.push(process.env.YOUTUBE_API_KEY);
+  const freeKeys: string[] = [];
+  const paidKeys: string[] = [];
+
+  if (process.env.YOUTUBE_API_KEY) freeKeys.push(process.env.YOUTUBE_API_KEY);
   for (let i = 2; i <= 10; i++) {
     const k = process.env[`YOUTUBE_API_KEY_${i}`];
-    if (k) keys.push(k);
+    if (k) freeKeys.push(k);
   }
+  for (let i = 1; i <= 10; i++) {
+    const k = process.env[`YOUTUBE_API_KEY_PAID_${i}`];
+    if (k) paidKeys.push(k);
+  }
+
+  // 유료 유저: 유료 키 우선, 소진 시 무료 키로 폴백
+  // 무료 유저: 무료 키 우선, 소진 시 유료 키로 폴백 (신규 회원 오류 방지)
+  const keys = paid ? [...paidKeys, ...freeKeys] : [...freeKeys, ...paidKeys];
   if (!keys.length) throw new Error("YouTube API Key Missing");
   return keys;
 }
