@@ -12,6 +12,7 @@
     "@clerk/localizations": "^4.2.2",
     "@clerk/nextjs": "^5.7.5",
     "@stripe/stripe-js": "^8.11.0",
+    "@supabase/supabase-js": "^2.99.3",
     "@upstash/redis": "^1.37.0",
     "next": "^14.2.35",
     "react": "^18.2.0",
