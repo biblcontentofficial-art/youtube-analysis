@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import VideoCard from "./VideoCard";
 import VideoModal from "./VideoModal";
 import { getMoreVideos } from "../actions";
@@ -16,65 +16,120 @@ interface Props {
   resultLimit: number;
 }
 
+// videoId 기준 중복 제거
+function dedup(items: Video[]): Video[] {
+  const seen = new Set<string>();
+  return items.filter((v) => {
+    if (seen.has(v.videoId)) return false;
+    seen.add(v.videoId);
+    return true;
+  });
+}
+
 type SortKey = "viewCount" | "subscriberCountRaw" | "scoreValue" | "publishedAtRaw" | "performanceRatioRaw" | "algorithmScore" | null;
 type SortOrder = "asc" | "desc";
 
+// nextToken 소진 시 다른 정렬로 새 배치 요청 (관련도 → 조회수 → 최신 → 평점)
+const EXTRA_ORDERS = ["viewCount", "date", "rating"] as const;
+
 export default function SearchResultList({ initialData, initialToken, query, filter, canAlgorithm, canCollect, resultLimit }: Props) {
-  const [videos, setVideos] = useState<Video[]>(initialData || []);
+  const [videos, setVideos] = useState<Video[]>(() => dedup(initialData || []));
   const [nextToken, setNextToken] = useState<string | undefined>(initialToken);
+  const [orderPhase, setOrderPhase] = useState(0); // 0=relevance 소진됨, 1=viewCount, 2=date, 3=rating
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState(false);
   const [sortKey, setSortKey] = useState<SortKey>(null);
   const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
   const [checkedIds, setCheckedIds] = useState<Set<string>>(new Set());
+  // ref 기반 동시 실행 방지
+  const isLoadingRef = useRef(false);
 
   useEffect(() => {
-    setVideos(initialData || []);
+    setVideos(dedup(initialData || []));
     setNextToken(initialToken);
+    setOrderPhase(0);
     setSortKey(null);
     setCheckedIds(new Set());
   }, [initialData, initialToken, filter]);
 
+  // 검색마다 플랜 resultLimit 만큼 추가 로드
+  // nextToken 소진 시 다음 order로 새 배치 요청
   const handleLoadMore = useCallback(async () => {
-    if (!nextToken || loading) return;
+    if (isLoadingRef.current) return;
+    // nextToken 없고 order도 모두 소진됐으면 종료
+    if (!nextToken && orderPhase >= EXTRA_ORDERS.length) return;
+
+    isLoadingRef.current = true;
     setLoading(true);
     setLoadError(false);
     try {
-      const res = await getMoreVideos(query, filter, nextToken);
-      if (res) {
-        if (res.items.length > 0) {
-          setVideos((prev) => {
-            const merged = [...prev, ...res.items];
-            // 플랜별 결과 건수 제한 적용
-            return merged.slice(0, resultLimit);
-          });
-        }
-        setNextToken(res.nextPageToken || undefined);
+      let token: string | undefined = nextToken;
+      let currentOrder: string;
+      let currentPhase = orderPhase;
+
+      if (token) {
+        // 현재 order 계속
+        currentOrder = currentPhase === 0 ? "relevance" : EXTRA_ORDERS[currentPhase - 1];
+      } else {
+        // nextToken 소진 → 다음 order로 새 배치 (첫 페이지부터)
+        currentOrder = EXTRA_ORDERS[currentPhase];
+        currentPhase = currentPhase + 1;
+        setOrderPhase(currentPhase);
+        token = undefined;
       }
+
+      const collected: Video[] = [];
+      while (collected.length < resultLimit && token !== null) {
+        const res = await getMoreVideos(query, filter, token, currentOrder);
+        if (!res || res.items.length === 0) break;
+        collected.push(...res.items);
+        token = res.nextPageToken || undefined;
+        if (collected.length >= resultLimit) break;
+      }
+
+      if (collected.length > 0) {
+        setVideos((prev) => {
+          const existingIds = new Set(prev.map((v) => v.videoId));
+          const newItems = collected.filter((item) => !existingIds.has(item.videoId));
+          return [...prev, ...newItems.slice(0, resultLimit)];
+        });
+      }
+      setNextToken(token);
     } catch (error) {
       console.error(error);
       setLoadError(true);
     } finally {
       setLoading(false);
+      isLoadingRef.current = false;
     }
-  }, [nextToken, loading, query, filter, resultLimit]);
+  }, [nextToken, orderPhase, query, filter, resultLimit]);
 
   const handleSort = (key: SortKey) => {
-    if (sortKey === key) setSortOrder(sortOrder === "desc" ? "asc" : "desc");
-    else { setSortKey(key); setSortOrder("desc"); }
+    if (sortKey === key) {
+      setSortOrder((o) => (o === "desc" ? "asc" : "desc"));
+    } else {
+      setSortKey(key);
+      setSortOrder("desc");
+    }
   };
 
   const sortedVideos = useMemo(() => {
     if (!sortKey) return videos;
-    return [...videos].sort((a, b) => {
-      const valA = a[sortKey];
-      const valB = b[sortKey];
-      if (typeof valA === "number" && typeof valB === "number") {
-        return sortOrder === "asc" ? valA - valB : valB - valA;
+    const get = (v: Video): number => {
+      switch (sortKey) {
+        case "viewCount": return v.viewCount ?? 0;
+        case "subscriberCountRaw": return v.subscriberCountRaw ?? 0;
+        case "scoreValue": return v.scoreValue ?? 0;
+        case "publishedAtRaw": return v.publishedAtRaw ?? 0;
+        case "performanceRatioRaw": return v.performanceRatioRaw ?? 0;
+        case "algorithmScore": return v.algorithmScore ?? 0;
+        default: return 0;
       }
-      return 0;
-    });
+    };
+    return [...videos].sort((a, b) =>
+      sortOrder === "asc" ? get(a) - get(b) : get(b) - get(a)
+    );
   }, [videos, sortKey, sortOrder]);
 
   const toggleCheck = (id: string) => {
@@ -141,10 +196,10 @@ export default function SearchResultList({ initialData, initialToken, query, fil
   }, [sortedVideos, checkedIds]);
 
   useEffect(() => {
-    const onTrigger = () => { if (!loading) handleLoadMore(); };
+    const onTrigger = () => handleLoadMore();
     window.addEventListener("TRIGGER_LOAD_MORE", onTrigger);
     return () => window.removeEventListener("TRIGGER_LOAD_MORE", onTrigger);
-  }, [handleLoadMore, loading]);
+  }, [handleLoadMore]);
 
   useEffect(() => {
     const onCollect = () => handleCollect();
@@ -156,6 +211,13 @@ export default function SearchResultList({ initialData, initialToken, query, fil
       window.removeEventListener("TRIGGER_REMOVE_CHANNELS", onRemoveChannels);
     };
   }, [handleCollect, handleRemoveChannels]);
+
+  // 조회수 통계 — 필터탭 옆 ViewStatsInline 에 이벤트로 전달
+  useEffect(() => {
+    const views = videos.map((v) => v.viewCount ?? 0).filter((v) => v > 0);
+    const total = views.reduce((sum, v) => sum + v, 0);
+    window.dispatchEvent(new CustomEvent("UPDATE_VIEW_STATS", { detail: { total, count: videos.length } }));
+  }, [videos]);
 
   const renderSortIcon = (key: SortKey) => {
     if (sortKey !== key) return <span className="text-gray-700 ml-1 text-[10px]">↕</span>;
@@ -178,6 +240,7 @@ export default function SearchResultList({ initialData, initialToken, query, fil
 
   return (
     <div className="w-full mt-4 pb-12">
+
       {/* 테이블 헤더 */}
       <div
         className="hidden md:grid items-center gap-2 px-3 py-2.5 bg-gray-900 border border-gray-800 text-[11px] text-gray-500 font-medium rounded-t-lg select-none"
@@ -250,7 +313,8 @@ export default function SearchResultList({ initialData, initialToken, query, fil
         </div>
       )}
 
-      {!loading && !loadError && nextToken && videos.length < resultLimit && (
+      {/* 더 보기: nextToken 있거나 아직 시도 안 한 order가 남아있으면 표시 */}
+      {!loading && !loadError && (nextToken || orderPhase < EXTRA_ORDERS.length) && (
         <div className="mt-6 flex justify-center">
           <button
             onClick={handleLoadMore}
@@ -261,11 +325,11 @@ export default function SearchResultList({ initialData, initialToken, query, fil
         </div>
       )}
 
-      {/* 플랜 결과 건수 한도 도달 안내 */}
-      {!loading && videos.length >= resultLimit && (
+      {/* 더 이상 결과 없음 */}
+      {!loading && !nextToken && orderPhase >= EXTRA_ORDERS.length && videos.length > 0 && (
         <div className="mt-6 p-4 bg-gray-900/60 border border-gray-800 rounded-xl text-center">
           <p className="text-xs text-gray-500">
-            현재 플랜 최대 <span className="text-white font-semibold">{resultLimit}건</span>까지 표시됩니다.
+            총 <span className="text-white font-semibold">{videos.length}건</span> — 모든 관련 영상을 가져왔습니다.
             <a href="/pricing" className="ml-2 text-teal-400 hover:text-teal-300 underline">플랜 업그레이드 →</a>
           </p>
         </div>

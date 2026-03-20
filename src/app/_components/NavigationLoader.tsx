@@ -6,6 +6,7 @@ import {
   useState,
   useEffect,
   useCallback,
+  useRef,
   Suspense,
 } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
@@ -15,9 +16,13 @@ import { usePathname, useSearchParams } from "next/navigation";
 // ─────────────────────────────────────────────────────────
 interface LoadingCtx {
   showLoading: (message?: string) => void;
+  hideLoading: () => void;
 }
 
-const LoadingContext = createContext<LoadingCtx>({ showLoading: () => {} });
+const LoadingContext = createContext<LoadingCtx>({
+  showLoading: () => {},
+  hideLoading: () => {},
+});
 
 export function useNavigationLoading() {
   return useContext(LoadingContext);
@@ -25,21 +30,22 @@ export function useNavigationLoading() {
 
 // ─────────────────────────────────────────────────────────
 // Watcher: pathname/searchParams 변경 감지 → 로딩 숨김
-// (useSearchParams는 Suspense 안에서만 사용 가능)
 // ─────────────────────────────────────────────────────────
 function NavigationWatcher({ onNavigate }: { onNavigate: () => void }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const searchString = searchParams.toString();
 
   useEffect(() => {
     onNavigate();
-  }, [pathname, searchParams, onNavigate]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname, searchString]);
 
   return null;
 }
 
 // ─────────────────────────────────────────────────────────
-// Provider + Overlay
+// Provider + 상단 프로그레스 바 (비블로킹)
 // ─────────────────────────────────────────────────────────
 export default function NavigationLoader({
   children,
@@ -47,61 +53,66 @@ export default function NavigationLoader({
   children: React.ReactNode;
 }) {
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("로딩 중...");
+  const [message, setMessage] = useState<string | undefined>(undefined);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const hideLoading = useCallback(() => setLoading(false), []);
+  const hideLoading = useCallback(() => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+    setLoading(false);
+    setMessage(undefined);
+  }, []);
 
   const showLoading = useCallback((msg?: string) => {
-    setMessage(msg ?? "로딩 중...");
+    setMessage(msg);
     setLoading(true);
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => {
+      setLoading(false);
+      setMessage(undefined);
+      timerRef.current = null;
+    }, 8000);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
   }, []);
 
   return (
-    <LoadingContext.Provider value={{ showLoading }}>
-      {/* pathname/searchParams 변경 시 자동으로 로딩 닫힘 */}
+    <LoadingContext.Provider value={{ showLoading, hideLoading }}>
       <Suspense fallback={null}>
         <NavigationWatcher onNavigate={hideLoading} />
       </Suspense>
 
       {children}
 
-      {/* 전체화면 로딩 오버레이 */}
+      {/* 상단 프로그레스 바 */}
       {loading && (
-        <div className="fixed inset-0 z-[9999] bg-gray-950/75 backdrop-blur-sm flex items-center justify-center">
-          <div className="flex flex-col items-center gap-5">
-            {/* 스피너 링 */}
-            <div className="relative w-16 h-16">
-              <div className="absolute inset-0 rounded-full border-4 border-gray-800" />
-              <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-teal-400 animate-spin" />
-              {/* 중앙 로고 아이콘 */}
-              <div className="absolute inset-0 flex items-center justify-center">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="white"
-                  className="w-5 h-5 opacity-60"
-                >
-                  <path d="M8 5.14v14l11-7-11-7z" />
-                </svg>
-              </div>
-            </div>
+        <div className="fixed top-0 left-0 right-0 z-[9999] h-1 pointer-events-none">
+          <div className="h-full bg-teal-400 animate-progress-bar" />
+          <style jsx>{`
+            @keyframes progress-bar {
+              0% { width: 0%; }
+              50% { width: 70%; }
+              100% { width: 95%; }
+            }
+            .animate-progress-bar {
+              animation: progress-bar 4s ease-out forwards;
+            }
+          `}</style>
+        </div>
+      )}
 
-            {/* 메시지 */}
-            <div className="text-center">
-              <p className="text-white font-semibold text-sm">{message}</p>
-              <p className="text-gray-500 text-xs mt-1">잠시만 기다려주세요</p>
-            </div>
-
-            {/* 하단 점 애니메이션 */}
-            <div className="flex gap-1.5">
-              {[0, 1, 2].map((i) => (
-                <div
-                  key={i}
-                  className="w-1.5 h-1.5 rounded-full bg-teal-400 animate-bounce"
-                  style={{ animationDelay: `${i * 0.15}s` }}
-                />
-              ))}
-            </div>
+      {/* 검색 로딩 오버레이 (message 있을 때만) */}
+      {loading && message && (
+        <div className="fixed inset-0 z-[9998] flex items-center justify-center bg-black/60 backdrop-blur-sm pointer-events-none">
+          <div className="flex flex-col items-center gap-4 px-8 py-7 bg-gray-900/90 border border-gray-700 rounded-2xl shadow-2xl">
+            <div className="w-10 h-10 border-[3px] border-teal-400 border-t-transparent rounded-full animate-spin" />
+            <p className="text-white text-sm font-medium">{message}</p>
           </div>
         </div>
       )}

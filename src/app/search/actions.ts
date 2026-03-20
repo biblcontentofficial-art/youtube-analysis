@@ -11,11 +11,11 @@ import {
   commentCacheKey,
 } from "@/lib/cache";
 
-// 1. 더보기 기능
-export async function getMoreVideos(query: string, filter: string | undefined, pageToken: string) {
+// 1. 더보기 기능 (pageToken 없으면 새 order로 첫 페이지부터)
+export async function getMoreVideos(query: string, filter: string | undefined, pageToken: string | undefined, order?: string) {
   const plan = await getUserPlan();
   const isPaid = plan !== "free";
-  return await searchVideos(query, filter, pageToken, isPaid);
+  return await searchVideos(query, filter, pageToken, isPaid, order || "relevance");
 }
 
 type VideoDetail = {

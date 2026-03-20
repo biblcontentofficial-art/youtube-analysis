@@ -10,6 +10,8 @@ import KakaoChannelBanner from "./_components/KakaoChannelBanner";
 import { ActionButton } from "./_components/SearchActionButtons";
 import { PLANS, PlanKey } from "@/lib/stripe";
 import FilterTab from "./_components/FilterTab";
+import PageLoadedSignal from "./_components/PageLoadedSignal";
+import ViewStatsInline from "./_components/ViewStatsInline";
 
 interface Props {
   searchParams: {
@@ -17,14 +19,18 @@ interface Props {
     filter?: string;
     fromHistory?: string;
     upgraded?: string;
+    count?: string; // 같은 키워드 반복 검색 횟수 (localStorage → URL)
   };
 }
 
 export default async function SearchPage({ searchParams }: Props) {
   const query = searchParams.q || "";
-  const filter = searchParams.filter || "";
+  // 기본 필터: 쇼츠 제외 (long). 명시적으로 filter 파라미터를 줄 때만 변경
+  const filter = searchParams.filter ?? "long";
   const fromHistory = searchParams.fromHistory === "1";
   const upgraded = searchParams.upgraded === "1";
+  // 같은 키워드를 몇 번 검색했는지 (1부터 시작)
+  const searchCount = Math.max(parseInt(searchParams.count || "1"), 1);
 
   let videos: any[] = [];
   let nextPageToken: string | undefined;
@@ -50,8 +56,9 @@ export default async function SearchPage({ searchParams }: Props) {
   const canAlgorithm = planData.canAlgorithm;
   const isPaid = plan !== "free";
 
-  // 플랜별 검색 결과 페이지 수 (50건/페이지)
-  const pagesToFetch = Math.ceil(resultLimit / 50);
+  // 서버 사이드 초기 로드: 최대 2페이지만 (빠른 응답 우선)
+  // 추가 결과는 클라이언트에서 "더 보기" 또는 같은 키워드 재검색으로 로드
+  const pagesToFetch = plan === "free" ? 1 : 2;
 
   if (query) {
     try {
@@ -69,7 +76,9 @@ export default async function SearchPage({ searchParams }: Props) {
 
           for (let i = 1; i < pagesToFetch && nextPageToken; i++) {
             const more = await searchVideos(query, filter, nextPageToken, isPaid);
-            videos = [...videos, ...more.items];
+            const existingIds = new Set(videos.map((v: any) => v.videoId));
+            const newItems = more.items.filter((item: any) => !existingIds.has(item.videoId));
+            videos = [...videos, ...newItems];
             nextPageToken = more.nextPageToken;
           }
         }
@@ -81,9 +90,13 @@ export default async function SearchPage({ searchParams }: Props) {
   }
 
   const encodedQuery = encodeURIComponent(query);
+  // 필터 탭: 검색 횟수 차감 없이 이동 + 현재 count 유지 (결과 수 동일)
+  const filterBase = `q=${encodedQuery}&fromHistory=1&count=${searchCount}`;
 
   return (
     <main className="min-h-screen bg-gray-950 text-white">
+      {/* 검색마다 key가 바뀌어 강제 리마운트 → hideLoading() 반드시 실행 */}
+      <PageLoadedSignal key={`signal-${query}-${filter}-${searchCount}`} />
       <LimitModal show={limitExceeded} limit={limit} />
       <KakaoChannelBanner />
       {/* 검색 바 영역 */}
@@ -161,11 +174,12 @@ export default async function SearchPage({ searchParams }: Props) {
         {/* 필터 + 액션 툴바 */}
         {query && !limitExceeded && !apiError && (
           <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-            {/* 필터 탭 */}
-            <div className="flex items-center gap-1.5">
-              <FilterTab href={`/search?q=${encodedQuery}`} active={!filter} label="전체" />
-              <FilterTab href={`/search?q=${encodedQuery}&filter=long`} active={filter === "long"} label="쇼츠 제외" />
-              <FilterTab href={`/search?q=${encodedQuery}&filter=shorts`} active={filter === "shorts"} label="쇼츠만" />
+            {/* 필터 탭 + 조회수 합계 (Starter 이상) */}
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <FilterTab href={`/search?${filterBase}&filter=all`} active={filter === "all"} label="전체" />
+              <FilterTab href={`/search?${filterBase}`} active={filter === "long"} label="쇼츠 제외" />
+              <FilterTab href={`/search?${filterBase}&filter=shorts`} active={filter === "shorts"} label="쇼츠만" />
+              {isPaid && <ViewStatsInline />}
             </div>
 
             {/* 액션 버튼 */}
@@ -208,7 +222,7 @@ export default async function SearchPage({ searchParams }: Props) {
             )}
             <Suspense fallback={<SearchSkeleton />}>
               <SearchResultList
-                key={`${query}-${filter}`}
+                key={`${query}-${filter}-${searchCount}`}
                 initialData={videos}
                 initialToken={nextPageToken}
                 query={query}
@@ -224,5 +238,3 @@ export default async function SearchPage({ searchParams }: Props) {
     </main>
   );
 }
-
-

@@ -52,8 +52,8 @@ export async function cacheSet(
   }
 }
 
-export function searchCacheKey(query: string, filter: string, pageToken?: string): string {
-  return `yt:v2:${query.toLowerCase().trim()}:${filter || "all"}:${pageToken || "first"}`;
+export function searchCacheKey(query: string, filter: string, pageToken?: string, order?: string): string {
+  return `yt:v2:${query.toLowerCase().trim()}:${filter || "all"}:${order || "relevance"}:${pageToken || "first"}`;
 }
 
 export function videoCacheKey(videoId: string): string {

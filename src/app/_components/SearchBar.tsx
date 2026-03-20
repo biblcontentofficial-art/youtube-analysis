@@ -2,8 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useNavigationLoading } from "./NavigationLoader";
-
 interface HistoryItem {
   term: string;
   count: number;
@@ -27,7 +25,6 @@ function loadHistory(): HistoryItem[] {
 export default function SearchBar() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { showLoading } = useNavigationLoading();
   const [keyword, setKeyword] = useState("");
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [isExpanded, setIsExpanded] = useState(true);
@@ -65,6 +62,7 @@ export default function SearchBar() {
 
   const removeHistory = (e: React.MouseEvent, term: string) => {
     e.stopPropagation();
+    if (!confirm(`"${term}" 검색어를 삭제할까요?`)) return;
     const next = history.filter((h) => h.term !== term);
     setHistory(next);
     localStorage.setItem("searchHistory", JSON.stringify(next));
@@ -72,6 +70,7 @@ export default function SearchBar() {
 
   const removeAllHistory = (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (!confirm("최근 검색어를 모두 삭제할까요?")) return;
     setHistory([]);
     localStorage.removeItem("searchHistory");
   };
@@ -79,15 +78,28 @@ export default function SearchBar() {
   const executeSearch = (searchTerm: string) => {
     const trimmed = searchTerm.trim().normalize("NFC");
     if (!trimmed) return;
-    saveToHistory(trimmed);
-    showLoading("YouTube 검색 중...");
-    router.push(`/search?q=${encodeURIComponent(trimmed)}`);
+
+    // 같은 키워드를 이미 보고 있으면 → 페이지 이동 없이 추가 로드
+    const currentQ = searchParams.get("q");
+    if (currentQ && decodeURIComponent(currentQ).normalize("NFC") === trimmed) {
+      saveToHistory(trimmed);
+      window.dispatchEvent(new Event("TRIGGER_LOAD_MORE"));
+      return;
+    }
+
+    const count = saveToHistory(trimmed);
+    router.push(`/search?q=${encodeURIComponent(trimmed)}&count=${count}`);
   };
 
   // 최근 검색어 클릭: 카운트 증가 없이 기존 결과 보기
   const navigateFromHistory = (term: string) => {
     setKeyword(term);
-    showLoading("YouTube 검색 중...");
+    // 같은 키워드면 추가 로드
+    const currentQ = searchParams.get("q");
+    if (currentQ && decodeURIComponent(currentQ).normalize("NFC") === term.normalize("NFC")) {
+      window.dispatchEvent(new Event("TRIGGER_LOAD_MORE"));
+      return;
+    }
     router.push(`/search?q=${encodeURIComponent(term)}&fromHistory=1`);
   };
 

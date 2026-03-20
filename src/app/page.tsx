@@ -4,12 +4,14 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useUser } from "@clerk/nextjs";
+import { useNavigationLoading } from "@/app/_components/NavigationLoader";
 
 const EXAMPLE_KEYWORDS = ["캠핑", "영어 공부", "주식 투자", "다이어트", "여행 브이로그", "요리 레시피"];
 
 export default function Home() {
   const router = useRouter();
   const { isSignedIn, isLoaded } = useUser();
+  const { showLoading } = useNavigationLoading();
   const [keyword, setKeyword] = useState("");
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [pendingKeyword, setPendingKeyword] = useState("");
@@ -47,6 +49,7 @@ export default function Home() {
       return;
     }
     const count = saveToHistory(trimmed);
+    showLoading(`"${trimmed}" 검색 중...`);
     router.push(`/search?q=${encodeURIComponent(trimmed)}&count=${count}`);
   };
 
