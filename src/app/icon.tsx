@@ -11,7 +11,7 @@ export default function Icon() {
           width: 32,
           height: 32,
           borderRadius: "50%",
-          background: "#0d9488", // teal-600
+          background: "#000000",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -20,14 +20,13 @@ export default function Icon() {
         <span
           style={{
             color: "white",
-            fontSize: 14,
-            fontWeight: 800,
+            fontSize: 22,
+            fontWeight: 900,
             fontFamily: "sans-serif",
-            letterSpacing: "-0.5px",
             lineHeight: 1,
           }}
         >
-          bi
+          B
         </span>
       </div>
     ),
