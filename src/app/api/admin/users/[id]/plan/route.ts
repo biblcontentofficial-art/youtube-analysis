@@ -2,7 +2,7 @@ import { currentUser } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
 const ADMIN_EMAILS = ["bibl.content.official@gmail.com"];
-const VALID_PLANS = ["free", "starter", "pro", "business"];
+const VALID_PLANS = ["free", "starter", "pro", "business", "admin"];
 
 export async function PATCH(
   req: Request,
