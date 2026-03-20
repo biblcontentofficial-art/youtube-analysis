@@ -178,3 +178,73 @@ export async function getAllSubscriptions(): Promise<Subscription[]> {
   if (error) return [];
   return data as Subscription[];
 }
+
+// ─────────────────────────────────────────────────────────────
+// 검색 기록 (search_history)
+// ─────────────────────────────────────────────────────────────
+
+export interface SearchHistoryItem {
+  term: string;
+  count: number;
+  searched_at: string;
+}
+
+/** 검색어 저장 또는 카운트 증가 */
+export async function upsertSearchHistory(userId: string, term: string): Promise<void> {
+  const db = getSupabase();
+  if (!db) return;
+
+  const { data: existing } = await db
+    .from("search_history")
+    .select("count")
+    .eq("user_id", userId)
+    .eq("term", term)
+    .single();
+
+  if (existing) {
+    await db
+      .from("search_history")
+      .update({ count: existing.count + 1, searched_at: new Date().toISOString() })
+      .eq("user_id", userId)
+      .eq("term", term);
+  } else {
+    await db.from("search_history").insert({
+      user_id: userId,
+      term,
+      count: 1,
+      searched_at: new Date().toISOString(),
+    });
+  }
+}
+
+/** 검색 기록 조회 (최신순) */
+export async function getSearchHistory(userId: string, limit = 30): Promise<SearchHistoryItem[]> {
+  const db = getSupabase();
+  if (!db) return [];
+
+  const { data, error } = await db
+    .from("search_history")
+    .select("term, count, searched_at")
+    .eq("user_id", userId)
+    .order("searched_at", { ascending: false })
+    .limit(limit);
+
+  if (error) return [];
+  return data as SearchHistoryItem[];
+}
+
+/** 단일 검색어 삭제 */
+export async function deleteSearchHistoryItem(userId: string, term: string): Promise<void> {
+  const db = getSupabase();
+  if (!db) return;
+
+  await db.from("search_history").delete().eq("user_id", userId).eq("term", term);
+}
+
+/** 전체 검색 기록 삭제 */
+export async function clearSearchHistory(userId: string): Promise<void> {
+  const db = getSupabase();
+  if (!db) return;
+
+  await db.from("search_history").delete().eq("user_id", userId);
+}

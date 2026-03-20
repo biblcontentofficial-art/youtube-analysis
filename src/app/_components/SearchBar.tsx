@@ -3,12 +3,15 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useConfirm } from "./ConfirmDialog";
+import { useNavigationLoading } from "./NavigationLoader";
+import { useUser } from "@clerk/nextjs";
+
 interface HistoryItem {
   term: string;
   count: number;
 }
 
-function loadHistory(): HistoryItem[] {
+function loadLocalHistory(): HistoryItem[] {
   const saved = localStorage.getItem("searchHistory");
   if (!saved) return [];
   try {
@@ -23,17 +26,46 @@ function loadHistory(): HistoryItem[] {
   }
 }
 
+function saveLocalHistory(history: HistoryItem[]) {
+  localStorage.setItem("searchHistory", JSON.stringify(history));
+}
+
 export default function SearchBar() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const showConfirm = useConfirm();
+  const { showLoading } = useNavigationLoading();
+  const { user } = useUser();
   const [keyword, setKeyword] = useState("");
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [isExpanded, setIsExpanded] = useState(true);
 
+  // 플랜 확인 (publicMetadata.plan)
+  const plan = (user?.publicMetadata?.plan as string) ?? "free";
+  const useServerHistory = ["starter", "pro", "business", "admin"].includes(plan);
+
+  // 히스토리 로드
   useEffect(() => {
-    setHistory(loadHistory());
-  }, []);
+    if (!user) {
+      setHistory(loadLocalHistory());
+      return;
+    }
+    if (useServerHistory) {
+      fetch("/api/search-history")
+        .then((r) => r.json())
+        .then((data) => {
+          if (data.items?.length) {
+            setHistory(data.items.map((it: { term: string; count: number }) => ({ term: it.term, count: it.count })));
+          } else {
+            setHistory(loadLocalHistory());
+          }
+        })
+        .catch(() => setHistory(loadLocalHistory()));
+    } else {
+      setHistory(loadLocalHistory());
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id, useServerHistory]);
 
   useEffect(() => {
     const currentQ = searchParams.get("q");
@@ -42,7 +74,7 @@ export default function SearchBar() {
 
   // count를 반환 (서버로 전달용)
   const saveToHistory = (term: string): number => {
-    const prev = loadHistory();
+    const prev = useServerHistory ? history : loadLocalHistory();
     const existing = prev.find((h) => h.term === term);
     let updated: HistoryItem[];
     let newCount: number;
@@ -57,7 +89,18 @@ export default function SearchBar() {
 
     updated = updated.slice(0, 30);
     setHistory(updated);
-    localStorage.setItem("searchHistory", JSON.stringify(updated));
+
+    if (useServerHistory) {
+      // 서버 저장 (fire-and-forget)
+      fetch("/api/search-history", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ term }),
+      }).catch(() => {});
+    } else {
+      saveLocalHistory(updated);
+    }
+
     if (!isExpanded) setIsExpanded(true);
     return newCount;
   };
@@ -66,7 +109,22 @@ export default function SearchBar() {
     e.stopPropagation();
     if (!await showConfirm("최근 검색어를 모두 삭제할까요?")) return;
     setHistory([]);
-    localStorage.removeItem("searchHistory");
+    if (useServerHistory) {
+      fetch("/api/search-history", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({}) }).catch(() => {});
+    } else {
+      localStorage.removeItem("searchHistory");
+    }
+  };
+
+  const removeHistoryItem = async (term: string) => {
+    if (!await showConfirm(`"${term}" 검색어를 삭제할까요?`)) return;
+    const next = history.filter((h) => h.term !== term);
+    setHistory(next);
+    if (useServerHistory) {
+      fetch("/api/search-history", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ term }) }).catch(() => {});
+    } else {
+      saveLocalHistory(next);
+    }
   };
 
   const executeSearch = async (searchTerm: string) => {
@@ -76,9 +134,10 @@ export default function SearchBar() {
     if (!await showConfirm(`"${trimmed}" 검색하시겠습니까?`)) return;
 
     const count = saveToHistory(trimmed);
-    const currentQ = searchParams.get("q");
     const currentFilter = searchParams.get("filter");
     const filterParam = currentFilter ? `&filter=${currentFilter}` : "";
+
+    showLoading("검색 중...");
 
     // 같은 키워드 재검색 → count 증가로 더 많은 결과 (50→100→200)
     // 현재 필터 탭 유지 (전체/쇼츠제외/쇼츠만)
@@ -134,6 +193,7 @@ export default function SearchBar() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               최근 검색어
+              {useServerHistory && <span className="text-[10px] text-teal-600 bg-teal-950/40 border border-teal-900 px-1 py-0.5 rounded">서버 저장</span>}
               <span className={`transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`}>▼</span>
             </div>
             {isExpanded && (
@@ -169,12 +229,7 @@ export default function SearchBar() {
                     {/* X 버튼 — 부모 onClick과 완전 분리 */}
                     <button
                       type="button"
-                      onClick={async () => {
-                        if (!await showConfirm(`"${item.term}" 검색어를 삭제할까요?`)) return;
-                        const next = history.filter((h) => h.term !== item.term);
-                        setHistory(next);
-                        localStorage.setItem("searchHistory", JSON.stringify(next));
-                      }}
+                      onClick={() => void removeHistoryItem(item.term)}
                       className="pr-2 pl-0.5 py-1.5 text-gray-600 hover:text-red-400 transition-colors self-stretch flex items-center"
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5">

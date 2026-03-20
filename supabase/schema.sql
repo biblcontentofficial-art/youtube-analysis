@@ -52,3 +52,18 @@ CREATE OR REPLACE TRIGGER subscriptions_updated_at
 -- 5. Row Level Security (서버에서 Service Role Key 쓰므로 비활성화)
 ALTER TABLE subscriptions DISABLE ROW LEVEL SECURITY;
 ALTER TABLE payments DISABLE ROW LEVEL SECURITY;
+
+-- 6. 검색 기록 테이블 (Starter 이상)
+CREATE TABLE IF NOT EXISTS search_history (
+  id          UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id     TEXT NOT NULL,              -- Clerk userId
+  term        TEXT NOT NULL,              -- 검색어
+  count       INTEGER NOT NULL DEFAULT 1, -- 검색 횟수
+  searched_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(user_id, term)
+);
+
+CREATE INDEX IF NOT EXISTS idx_search_history_user_id ON search_history(user_id);
+CREATE INDEX IF NOT EXISTS idx_search_history_searched_at ON search_history(searched_at DESC);
+
+ALTER TABLE search_history DISABLE ROW LEVEL SECURITY;

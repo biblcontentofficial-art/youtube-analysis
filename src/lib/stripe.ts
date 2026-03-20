@@ -13,43 +13,58 @@ export const PLANS = {
   free: {
     name: "Free",
     priceId: null,
-    searchLimit: 2,           // 2회/일
-    resultLimit: 50,          // 검색 결과 최대 50건
-    canCollect: false,        // 영상 수집/CSV 내보내기
-    canAlgorithm: false,      // 알고리즘 확률 확인
+    searchLimit: 2,
+    resultLimit: 50,
+    canCollect: false,
+    canAlgorithm: false,
+    canChannelReport: false,
+    canServerHistory: false,  // 서버 검색 기록 저장
+    historyDays: 0,           // 0 = localStorage만
   },
   starter: {
     name: "Starter",
     priceId: process.env.STRIPE_STARTER_PRICE_ID,
-    searchLimit: 10,          // 10회/일
-    resultLimit: 100,         // 검색 결과 최대 100건
-    canCollect: false,        // 영상 수집/CSV 내보내기
-    canAlgorithm: true,       // 알고리즘 확률 확인
+    searchLimit: 10,
+    resultLimit: 100,
+    canCollect: false,
+    canAlgorithm: true,
+    canChannelReport: false,
+    canServerHistory: true,
+    historyDays: 30,
   },
   pro: {
     name: "Pro",
     priceId: process.env.STRIPE_PRO_PRICE_ID,
-    searchLimit: 50,          // 50회/일
-    resultLimit: 200,         // 검색 결과 최대 200건
-    canCollect: true,         // 영상 수집/CSV 내보내기
-    canAlgorithm: true,       // 알고리즘 확률 확인
+    searchLimit: 50,
+    resultLimit: 200,
+    canCollect: true,
+    canAlgorithm: true,
+    canChannelReport: true,
+    canServerHistory: true,
+    historyDays: 9999,        // 무제한
   },
   business: {
     name: "Business",
     priceId: process.env.STRIPE_BUSINESS_PRICE_ID,
-    searchLimit: 9999,        // 무제한 (실질적 무제한)
-    resultLimit: 200,         // 검색 결과 최대 200건
-    canCollect: true,         // 영상 수집/CSV 내보내기
-    canAlgorithm: true,       // 알고리즘 확률 확인
+    searchLimit: 9999,
+    resultLimit: 200,
+    canCollect: true,
+    canAlgorithm: true,
+    canChannelReport: true,
+    canServerHistory: true,
+    historyDays: 9999,
   },
   // 관리자 전용 플랜 — 결제 없음, pricing 페이지 미노출, 매출 집계 제외
   admin: {
     name: "Admin",
     priceId: null,
-    searchLimit: 999,         // 999회/일 (실질적 무제한)
-    resultLimit: 9999,        // 결과 건수 무제한
+    searchLimit: 999,
+    resultLimit: 9999,
     canCollect: true,
     canAlgorithm: true,
+    canChannelReport: true,
+    canServerHistory: true,
+    historyDays: 9999,
   },
 } as const;
 

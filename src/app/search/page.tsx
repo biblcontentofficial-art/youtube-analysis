@@ -55,6 +55,7 @@ export default async function SearchPage({ searchParams }: Props) {
   const planData = PLANS[plan as PlanKey] ?? PLANS.free;
   const canCollect = planData.canCollect;
   const canAlgorithm = planData.canAlgorithm;
+  const canChannelReport = planData.canChannelReport;
   const isPaid = plan !== "free";
 
   // 검색 횟수 기반 점진적 결과 수: 1차=50, 2차=100, 3차+=200
@@ -207,6 +208,20 @@ export default async function SearchPage({ searchParams }: Props) {
 
             {/* 액션 버튼 */}
             <div className="flex items-center gap-2">
+              {/* 채널 리포트: Pro/Business 전용 */}
+              {canChannelReport ? (
+                <ActionButton label="채널 리포트" icon="📊" event="TRIGGER_CHANNEL_REPORT" />
+              ) : (
+                <Link
+                  href="/pricing"
+                  title="Pro 플랜부터 사용 가능"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-900 border border-gray-700 text-gray-600 text-xs cursor-pointer hover:border-teal-700 hover:text-teal-400 transition-colors"
+                >
+                  <span>📊</span>
+                  <span>채널 리포트</span>
+                  <span className="text-[10px] bg-gray-800 px-1 py-0.5 rounded text-gray-500">Pro↑</span>
+                </Link>
+              )}
               {/* 영상 수집: Pro/Business 전용 */}
               {canCollect ? (
                 <ActionButton label="영상 수집" icon="📥" event="TRIGGER_COLLECT" />
@@ -249,6 +264,7 @@ export default async function SearchPage({ searchParams }: Props) {
                 filter={filter}
                 canAlgorithm={canAlgorithm}
                 canCollect={canCollect}
+                canChannelReport={canChannelReport}
                 resultLimit={planData.resultLimit}
                 canSearchMore={canSearchMore}
               />

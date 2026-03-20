@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import VideoCard from "./VideoCard";
 import VideoModal from "./VideoModal";
+import ChannelReport from "./ChannelReport";
 import { Video } from "@/types";
 
 interface Props {
@@ -11,6 +12,7 @@ interface Props {
   filter: string;
   canAlgorithm: boolean;
   canCollect: boolean;
+  canChannelReport: boolean;
   resultLimit: number;    // 플랜 최대치 (업그레이드 배너용)
   canSearchMore: boolean; // 재검색 시 더 많은 결과 가능 여부
 }
@@ -28,12 +30,13 @@ function dedup(items: Video[]): Video[] {
 type SortKey = "viewCount" | "subscriberCountRaw" | "scoreValue" | "publishedAtRaw" | "performanceRatioRaw" | "algorithmScore" | null;
 type SortOrder = "asc" | "desc";
 
-export default function SearchResultList({ initialData, query, filter, canAlgorithm, canCollect, resultLimit, canSearchMore }: Props) {
+export default function SearchResultList({ initialData, query, filter, canAlgorithm, canCollect, canChannelReport, resultLimit, canSearchMore }: Props) {
   const [videos, setVideos] = useState<Video[]>(() => dedup(initialData || []));
   const [sortKey, setSortKey] = useState<SortKey>(null);
   const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
   const [checkedIds, setCheckedIds] = useState<Set<string>>(new Set());
+  const [showChannelReport, setShowChannelReport] = useState(false);
 
   // 상태 초기화는 page.tsx의 key={query-filter-count}가 변경될 때
   // 컴포넌트 리마운트로 처리됨 (useState 초기값이 자동 재설정)
@@ -131,11 +134,14 @@ export default function SearchResultList({ initialData, query, filter, canAlgori
   useEffect(() => {
     const onCollect = () => handleCollect();
     const onRemoveChannels = () => handleRemoveChannels();
+    const onChannelReport = () => setShowChannelReport(true);
     window.addEventListener("TRIGGER_COLLECT", onCollect);
     window.addEventListener("TRIGGER_REMOVE_CHANNELS", onRemoveChannels);
+    window.addEventListener("TRIGGER_CHANNEL_REPORT", onChannelReport);
     return () => {
       window.removeEventListener("TRIGGER_COLLECT", onCollect);
       window.removeEventListener("TRIGGER_REMOVE_CHANNELS", onRemoveChannels);
+      window.removeEventListener("TRIGGER_CHANNEL_REPORT", onChannelReport);
     };
   }, [handleCollect, handleRemoveChannels]);
 
@@ -244,6 +250,7 @@ export default function SearchResultList({ initialData, query, filter, canAlgori
       )}
 
       {selectedVideo && <VideoModal video={selectedVideo} onClose={() => setSelectedVideo(null)} />}
+      {showChannelReport && <ChannelReport videos={videos} onClose={() => setShowChannelReport(false)} />}
     </div>
   );
 }

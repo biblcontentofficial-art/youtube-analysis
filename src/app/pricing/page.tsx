@@ -1,6 +1,6 @@
 import PricingButton from "./_components/PricingButtons";
 
-type Feature = { text: string; disabled?: boolean };
+type Feature = { text: string; disabled?: boolean; comingSoon?: boolean };
 
 const PLANS = [
   {
@@ -84,10 +84,10 @@ const PLANS = [
     ],
     features: [
       { text: "Pro 모든 기능 포함" },
-      { text: "팀원 5명 공유" },
-      { text: "주간 트렌드 리포트 이메일" },
+      { text: "팀원 5명 공유", comingSoon: true },
+      { text: "주간 트렌드 리포트 이메일", comingSoon: true },
       { text: "채널 심화 분석 리포트" },
-      { text: "API 접근" },
+      { text: "API 접근", comingSoon: true },
       { text: "전용 고객 지원" },
     ] as Feature[],
     cta: "Business 시작하기",
@@ -163,7 +163,12 @@ export default function PricingPage() {
                       <span className={`shrink-0 ${f.disabled ? "text-gray-700" : "text-teal-400"}`}>
                         {f.disabled ? "✕" : "✓"}
                       </span>
-                      {f.text}
+                      <span className="flex items-center gap-1.5 flex-wrap">
+                        {f.text}
+                        {f.comingSoon && (
+                          <span className="text-[10px] bg-gray-800 border border-gray-700 text-gray-500 px-1.5 py-0.5 rounded-full leading-none">준비중</span>
+                        )}
+                      </span>
                     </li>
                   ))}
                 </ul>
