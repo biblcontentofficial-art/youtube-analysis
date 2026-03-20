@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useNavigationLoading } from "./NavigationLoader";
 
 interface HistoryItem {
   term: string;
@@ -26,6 +27,7 @@ function loadHistory(): HistoryItem[] {
 export default function SearchBar() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { showLoading } = useNavigationLoading();
   const [keyword, setKeyword] = useState("");
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [isExpanded, setIsExpanded] = useState(true);
@@ -77,16 +79,16 @@ export default function SearchBar() {
   const executeSearch = (searchTerm: string) => {
     const trimmed = searchTerm.trim().normalize("NFC");
     if (!trimmed) return;
-    const count = saveToHistory(trimmed);
-    router.push(`/search?q=${encodeURIComponent(trimmed)}&count=${count}`);
+    saveToHistory(trimmed);
+    showLoading("YouTube 검색 중...");
+    router.push(`/search?q=${encodeURIComponent(trimmed)}`);
   };
 
   // 최근 검색어 클릭: 카운트 증가 없이 기존 결과 보기
   const navigateFromHistory = (term: string) => {
     setKeyword(term);
-    const existing = loadHistory().find((h) => h.term === term);
-    const count = existing?.count ?? 1;
-    router.push(`/search?q=${encodeURIComponent(term)}&count=${count}&fromHistory=1`);
+    showLoading("YouTube 검색 중...");
+    router.push(`/search?q=${encodeURIComponent(term)}&fromHistory=1`);
   };
 
   const handleSubmit = (e: React.FormEvent) => {

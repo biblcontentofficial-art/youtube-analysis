@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import SearchUsageBadge from "./_components/SearchUsageBadge";
+import NavigationLoader from "./_components/NavigationLoader";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -69,6 +70,7 @@ export default async function RootLayout({
   const content = (
     <html lang="ko">
       <body className={`${inter.className} bg-gray-950 text-white`}>
+        <NavigationLoader>
         <nav className="border-b border-gray-800 bg-gray-950 sticky top-0 z-50">
           <div className="max-w-screen-xl mx-auto px-4 h-14 flex items-center justify-between">
             {/* 로고 + 탭 */}
@@ -120,6 +122,7 @@ export default async function RootLayout({
         </nav>
         {children}
         <footer className="border-t border-gray-800 bg-gray-950 mt-16">
+
           <div className="max-w-screen-xl mx-auto px-4 py-10">
             <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-8">
               {/* 브랜드 */}
@@ -161,6 +164,7 @@ export default async function RootLayout({
             </div>
           </div>
         </footer>
+        </NavigationLoader>
       </body>
     </html>
   );

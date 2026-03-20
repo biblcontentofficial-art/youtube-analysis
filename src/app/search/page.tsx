@@ -9,6 +9,7 @@ import LimitModal from "./_components/LimitModal";
 import KakaoChannelBanner from "./_components/KakaoChannelBanner";
 import { ActionButton } from "./_components/SearchActionButtons";
 import { PLANS, PlanKey } from "@/lib/stripe";
+import FilterTab from "./_components/FilterTab";
 
 interface Props {
   searchParams: {
@@ -224,18 +225,4 @@ export default async function SearchPage({ searchParams }: Props) {
   );
 }
 
-function FilterTab({ href, active, label }: { href: string; active: boolean; label: string }) {
-  return (
-    <Link
-      href={href}
-      className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
-        active
-          ? "bg-teal-600 text-white"
-          : "bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700"
-      }`}
-    >
-      {label}
-    </Link>
-  );
-}
 
