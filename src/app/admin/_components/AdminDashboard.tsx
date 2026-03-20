@@ -23,6 +23,7 @@ interface StatsData {
     activeUsersToday: number;
     byPlan: Record<string, number>;
     daily: { date: string; count: number }[];
+    usageMap: Record<string, number>;
   };
   youtube: {
     estimatedUnitsToday: number;
@@ -55,6 +56,7 @@ const PLAN_BADGE: Record<string, string> = {
   starter: "bg-blue-900 text-blue-300",
   pro: "bg-teal-900 text-teal-300",
   business: "bg-purple-900 text-purple-300",
+  admin: "bg-red-900 text-red-300 border border-red-700",
 };
 
 const PLAN_PRICE: Record<string, number> = {
@@ -62,6 +64,7 @@ const PLAN_PRICE: Record<string, number> = {
   starter: 49000,
   pro: 199000,
   business: 490000,
+  admin: 0,  // 매출 집계 제외
 };
 
 const PLAN_LABEL: Record<string, string> = {
@@ -69,6 +72,7 @@ const PLAN_LABEL: Record<string, string> = {
   starter: "Starter",
   pro: "Pro",
   business: "Business",
+  admin: "🛡 Admin",
 };
 
 const PLAN_COLOR: Record<string, string> = {
@@ -76,6 +80,7 @@ const PLAN_COLOR: Record<string, string> = {
   starter: "#3b82f6",
   pro: "#14b8a6",
   business: "#a855f7",
+  admin: "#ef4444",
 };
 
 type Tab = "overview" | "users" | "usage" | "costs";
@@ -145,6 +150,7 @@ export default function AdminDashboard() {
   const [planFilter, setPlanFilter] = useState("all");
   const [editingPlan, setEditingPlan] = useState<{ id: string; plan: string } | null>(null);
   const [planSaving, setPlanSaving] = useState(false);
+  const [usageResetting, setUsageResetting] = useState<string | null>(null);
 
   const fetchUsers = useCallback(() => {
     setUsersLoading(true);
@@ -195,6 +201,30 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleResetUsage = async (userId: string) => {
+    setUsageResetting(userId);
+    try {
+      const res = await fetch(`/api/admin/users/${userId}/reset-usage`, { method: "POST" });
+      if (!res.ok) throw new Error("Failed");
+      // Optimistically update the stats usageMap
+      setStats((prev) =>
+        prev
+          ? {
+              ...prev,
+              searches: {
+                ...prev.searches,
+                usageMap: { ...prev.searches.usageMap, [userId]: 0 },
+              },
+            }
+          : prev
+      );
+    } catch {
+      alert("초기화에 실패했습니다.");
+    } finally {
+      setUsageResetting(null);
+    }
+  };
+
   const filteredUsers = users.filter((u) => {
     const matchesPlan = planFilter === "all" || u.plan === planFilter;
     const matchesSearch =
@@ -204,8 +234,9 @@ export default function AdminDashboard() {
     return matchesPlan && matchesSearch;
   });
 
-  const mrr = users.reduce((s, u) => s + (PLAN_PRICE[u.plan] ?? 0), 0);
-  const payingUsers = users.filter((u) => u.plan !== "free").length;
+  // admin 플랜은 매출 집계에서 제외
+  const mrr = users.reduce((s, u) => s + (u.plan !== "admin" ? (PLAN_PRICE[u.plan] ?? 0) : 0), 0);
+  const payingUsers = users.filter((u) => u.plan !== "free" && u.plan !== "admin").length;
   const planCounts = users.reduce<Record<string, number>>((acc, u) => {
     acc[u.plan] = (acc[u.plan] ?? 0) + 1;
     return acc;
@@ -268,6 +299,9 @@ export default function AdminDashboard() {
           planSaving={planSaving}
           onPlanSave={handlePlanSave}
           onRefresh={fetchUsers}
+          usageMap={stats?.searches.usageMap ?? {}}
+          usageResetting={usageResetting}
+          onResetUsage={handleResetUsage}
         />
       )}
 
@@ -394,7 +428,7 @@ function OverviewTab({
           <div className="text-gray-500 text-sm">로딩 중...</div>
         ) : (
           <div className="space-y-3">
-            {["free", "starter", "pro", "business"].map((plan) => {
+            {["free", "starter", "pro", "business", "admin"].map((plan) => {
               const count = planCounts[plan] ?? 0;
               const pct = users.length > 0 ? Math.round((count / users.length) * 100) : 0;
               return (
@@ -484,6 +518,9 @@ function UsersTab({
   planSaving,
   onPlanSave,
   onRefresh,
+  usageMap,
+  usageResetting,
+  onResetUsage,
 }: {
   users: AdminUser[];
   filteredUsers: AdminUser[];
@@ -498,6 +535,9 @@ function UsersTab({
   planSaving: boolean;
   onPlanSave: (id: string, plan: string) => void;
   onRefresh: () => void;
+  usageMap: Record<string, number>;
+  usageResetting: string | null;
+  onResetUsage: (id: string) => void;
 }) {
   return (
     <div className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden">
@@ -528,6 +568,7 @@ function UsersTab({
             <option value="starter">Starter</option>
             <option value="pro">Pro</option>
             <option value="business">Business</option>
+            <option value="admin">🛡 Admin</option>
           </select>
           <button
             onClick={onRefresh}
@@ -548,66 +589,86 @@ function UsersTab({
                 <th className="px-6 py-3 text-left">이메일</th>
                 <th className="px-6 py-3 text-left">이름</th>
                 <th className="px-6 py-3 text-left">플랜</th>
+                <th className="px-6 py-3 text-left">오늘 검색</th>
                 <th className="px-6 py-3 text-left">가입일</th>
-                <th className="px-6 py-3 text-left">마지막 활동</th>
                 <th className="px-6 py-3 text-left">관리</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-800">
-              {filteredUsers.map((u) => (
-                <tr key={u.id} className="hover:bg-gray-800/50 transition">
-                  <td className="px-6 py-4 text-gray-200 font-medium">{u.email || "-"}</td>
-                  <td className="px-6 py-4 text-gray-400">
-                    {[u.firstName, u.lastName].filter(Boolean).join(" ") || "-"}
-                  </td>
-                  <td className="px-6 py-4">
-                    {editingPlan?.id === u.id ? (
-                      <div className="flex items-center gap-2">
-                        <select
-                          value={editingPlan.plan}
-                          onChange={(e) => setEditingPlan({ id: u.id, plan: e.target.value })}
-                          className="bg-gray-700 border border-gray-600 rounded px-2 py-1 text-xs text-white focus:outline-none"
+              {filteredUsers.map((u) => {
+                const todayCount = usageMap[u.id] ?? 0;
+                const isResetting = usageResetting === u.id;
+                return (
+                  <tr key={u.id} className="hover:bg-gray-800/50 transition">
+                    <td className="px-6 py-4 text-gray-200 font-medium">{u.email || "-"}</td>
+                    <td className="px-6 py-4 text-gray-400">
+                      {[u.firstName, u.lastName].filter(Boolean).join(" ") || "-"}
+                    </td>
+                    <td className="px-6 py-4">
+                      {editingPlan?.id === u.id ? (
+                        <div className="flex items-center gap-2">
+                          <select
+                            value={editingPlan.plan}
+                            onChange={(e) => setEditingPlan({ id: u.id, plan: e.target.value })}
+                            className="bg-gray-700 border border-gray-600 rounded px-2 py-1 text-xs text-white focus:outline-none"
+                          >
+                            {["free", "starter", "pro", "business", "admin"].map((p) => (
+                              <option key={p} value={p}>{PLAN_LABEL[p]}</option>
+                            ))}
+                          </select>
+                          <button
+                            onClick={() => onPlanSave(u.id, editingPlan.plan)}
+                            disabled={planSaving}
+                            className="text-xs px-2 py-1 bg-teal-600 hover:bg-teal-500 text-white rounded transition disabled:opacity-50"
+                          >
+                            {planSaving ? "..." : "저장"}
+                          </button>
+                          <button
+                            onClick={() => setEditingPlan(null)}
+                            className="text-xs text-gray-500 hover:text-gray-300"
+                          >
+                            취소
+                          </button>
+                        </div>
+                      ) : (
+                        <span
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+                            PLAN_BADGE[u.plan] ?? "bg-gray-700 text-gray-300"
+                          }`}
                         >
-                          {["free", "starter", "pro", "business"].map((p) => (
-                            <option key={p} value={p}>{PLAN_LABEL[p]}</option>
-                          ))}
-                        </select>
-                        <button
-                          onClick={() => onPlanSave(u.id, editingPlan.plan)}
-                          disabled={planSaving}
-                          className="text-xs px-2 py-1 bg-teal-600 hover:bg-teal-500 text-white rounded transition disabled:opacity-50"
-                        >
-                          {planSaving ? "..." : "저장"}
-                        </button>
-                        <button
-                          onClick={() => setEditingPlan(null)}
-                          className="text-xs text-gray-500 hover:text-gray-300"
-                        >
-                          취소
-                        </button>
-                      </div>
-                    ) : (
-                      <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-                          PLAN_BADGE[u.plan] ?? "bg-gray-700 text-gray-300"
-                        }`}
-                      >
-                        {PLAN_LABEL[u.plan] ?? u.plan}
+                          {PLAN_LABEL[u.plan] ?? u.plan}
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`text-sm font-semibold ${todayCount > 0 ? "text-yellow-400" : "text-gray-600"}`}>
+                        {todayCount}회
                       </span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 text-gray-500">{formatDate(u.createdAt)}</td>
-                  <td className="px-6 py-4 text-gray-500">{formatDate(u.lastActiveAt)}</td>
-                  <td className="px-6 py-4">
-                    <button
-                      onClick={() => setEditingPlan({ id: u.id, plan: u.plan })}
-                      className="text-xs text-gray-500 hover:text-teal-400 transition"
-                    >
-                      플랜 변경
-                    </button>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                    <td className="px-6 py-4 text-gray-500">{formatDate(u.createdAt)}</td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <button
+                          onClick={() => setEditingPlan({ id: u.id, plan: u.plan })}
+                          className="text-xs text-gray-500 hover:text-teal-400 transition"
+                        >
+                          플랜 변경
+                        </button>
+                        {todayCount > 0 && (
+                          <button
+                            onClick={() => onResetUsage(u.id)}
+                            disabled={isResetting}
+                            title="오늘 검색 횟수 초기화"
+                            className="text-xs px-2 py-0.5 bg-orange-900/50 hover:bg-orange-800/60 border border-orange-700/50 text-orange-400 hover:text-orange-300 rounded transition disabled:opacity-50"
+                          >
+                            {isResetting ? "..." : "🔄 초기화"}
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
               {filteredUsers.length === 0 && (
                 <tr>
                   <td colSpan={6} className="px-6 py-12 text-center text-gray-600">

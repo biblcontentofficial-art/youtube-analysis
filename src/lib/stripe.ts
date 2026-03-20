@@ -42,6 +42,15 @@ export const PLANS = {
     canCollect: true,         // 영상 수집/CSV 내보내기
     canAlgorithm: true,       // 알고리즘 확률 확인
   },
+  // 관리자 전용 플랜 — 결제 없음, pricing 페이지 미노출, 매출 집계 제외
+  admin: {
+    name: "Admin",
+    priceId: null,
+    searchLimit: 999,         // 999회/일 (실질적 무제한)
+    resultLimit: 9999,        // 결과 건수 무제한
+    canCollect: true,
+    canAlgorithm: true,
+  },
 } as const;
 
 export type PlanKey = keyof typeof PLANS;
