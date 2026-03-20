@@ -2,6 +2,14 @@
 
 import { searchVideos } from "@/lib/youtube";
 import { getUserPlan } from "@/lib/searchLimit";
+import {
+  cacheGet,
+  cacheSet,
+  TTL,
+  videoCacheKey,
+  channelCacheKey,
+  commentCacheKey,
+} from "@/lib/cache";
 
 // 1. 더보기 기능
 export async function getMoreVideos(query: string, filter: string | undefined, pageToken: string) {
@@ -15,6 +23,11 @@ export async function fetchVideoDetail(videoId: string) {
   const apiKey = process.env.YOUTUBE_API_KEY;
   if (!apiKey) return null;
 
+  // 캐시 확인 (24시간)
+  const cacheKey = videoCacheKey(videoId);
+  const cached = await cacheGet<ReturnType<typeof fetchVideoDetail>>(cacheKey);
+  if (cached) return cached;
+
   try {
     const url = `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&id=${videoId}&key=${apiKey}`;
     const res = await fetch(url, { cache: 'no-store' });
@@ -25,16 +38,18 @@ export async function fetchVideoDetail(videoId: string) {
     const item = data.items[0];
     const format = (num: string) => num ? parseInt(num).toLocaleString() : "0";
 
-    return {
+    const result = {
       channelId: item.snippet.channelId,
       description: item.snippet.description || "설명이 없습니다.",
       tags: item.snippet.tags || [],
       likeCount: format(item.statistics.likeCount),
       commentCount: format(item.statistics.commentCount),
-      // 평균 좋아요 추정용 raw 데이터는 이제 필요 없지만, 혹시 몰라 둡니다.
       rawLikeCount: parseInt(item.statistics.likeCount || "0"),
       rawViewCount: parseInt(item.statistics.viewCount || "0"),
     };
+
+    await cacheSet(cacheKey, result, TTL.VIDEO);
+    return result;
   } catch (e) {
     console.error("Detail Fetch Error:", e);
     return null;
@@ -46,16 +61,21 @@ export async function fetchVideoComments(videoId: string) {
   const apiKey = process.env.YOUTUBE_API_KEY;
   if (!apiKey) return [];
 
+  // 캐시 확인 (12시간)
+  const cacheKey = commentCacheKey(videoId);
+  const cached = await cacheGet<any[]>(cacheKey);
+  if (cached) return cached;
+
   try {
     const url = `https://www.googleapis.com/youtube/v3/commentThreads?part=snippet,replies&videoId=${videoId}&maxResults=10&order=relevance&key=${apiKey}`;
     const res = await fetch(url, { cache: 'no-store' });
-    
+
     if (!res.ok) return [];
 
     const data = await res.json();
     if (!data.items) return [];
 
-    return data.items.map((item: any) => {
+    const result = data.items.map((item: any) => {
       const topComment = item.snippet.topLevelComment.snippet;
       const replies = item.replies?.comments?.map((reply: any) => ({
         id: reply.id,
@@ -75,6 +95,9 @@ export async function fetchVideoComments(videoId: string) {
         replies: replies,
       };
     });
+
+    await cacheSet(cacheKey, result, TTL.COMMENT);
+    return result;
   } catch (e) {
     console.error("Comment Fetch Error:", e);
     return [];
@@ -85,6 +108,11 @@ export async function fetchVideoComments(videoId: string) {
 export async function fetchChannelDetail(channelId: string) {
   const apiKey = process.env.YOUTUBE_API_KEY;
   if (!apiKey) return null;
+
+  // 캐시 확인 (24시간)
+  const cacheKey = channelCacheKey(channelId);
+  const cached = await cacheGet<ReturnType<typeof fetchChannelDetail>>(cacheKey);
+  if (cached) return cached;
 
   try {
     const url = `https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics,brandingSettings&id=${channelId}&key=${apiKey}`;
@@ -97,18 +125,16 @@ export async function fetchChannelDetail(channelId: string) {
     const stats = item.statistics;
     const publishedAt = item.snippet.publishedAt.split("T")[0];
 
-    // [수정] 키워드 파싱 로직 개선 (모든 키워드 가져오기)
     let keywords: string[] = [];
     if (item.brandingSettings?.channel?.keywords) {
       const rawKeywords = item.brandingSettings.channel.keywords;
-      // 쉼표나 공백으로 분리하고, 따옴표 제거 및 빈 문자열 필터링
       keywords = rawKeywords
-        .split(/[, ]+/) // 쉼표 또는 공백 하나 이상으로 분리
-        .map((k: string) => k.replace(/"/g, "").trim()) // 따옴표 제거 및 공백 정리
-        .filter((k: string) => k.length > 0); // 빈 문자열 제거
+        .split(/[, ]+/)
+        .map((k: string) => k.replace(/"/g, "").trim())
+        .filter((k: string) => k.length > 0);
     }
 
-    return {
+    const result = {
       title: item.snippet.title,
       description: item.snippet.description || "채널 설명이 없습니다.",
       publishedAt: publishedAt,
@@ -117,6 +143,9 @@ export async function fetchChannelDetail(channelId: string) {
       videoCount: parseInt(stats.videoCount || "0"),
       keywords: keywords,
     };
+
+    await cacheSet(cacheKey, result, TTL.CHANNEL);
+    return result;
   } catch (e) {
     console.error("Channel Fetch Error:", e);
     return null;

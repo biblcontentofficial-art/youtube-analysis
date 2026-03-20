@@ -20,7 +20,13 @@ async function getRedis() {
   return redis;
 }
 
-const CACHE_TTL = 60 * 60 * 6; // 6시간
+// TTL 상수 (초 단위)
+export const TTL = {
+  SEARCH:  60 * 60 * 6,  // 검색 결과: 6시간
+  VIDEO:   60 * 60 * 24, // 영상 상세: 24시간
+  CHANNEL: 60 * 60 * 24, // 채널 상세: 24시간
+  COMMENT: 60 * 60 * 12, // 댓글:      12시간
+};
 
 export async function cacheGet<T>(key: string): Promise<T | null> {
   const r = await getRedis();
@@ -32,11 +38,15 @@ export async function cacheGet<T>(key: string): Promise<T | null> {
   }
 }
 
-export async function cacheSet(key: string, value: unknown): Promise<void> {
+export async function cacheSet(
+  key: string,
+  value: unknown,
+  ttl: number = TTL.SEARCH,
+): Promise<void> {
   const r = await getRedis();
   if (!r) return;
   try {
-    await r.set(key, value, { ex: CACHE_TTL });
+    await r.set(key, value, { ex: ttl });
   } catch {
     // 캐시 실패해도 서비스 계속
   }
@@ -44,4 +54,16 @@ export async function cacheSet(key: string, value: unknown): Promise<void> {
 
 export function searchCacheKey(query: string, filter: string, pageToken?: string): string {
   return `yt:v2:${query.toLowerCase().trim()}:${filter || "all"}:${pageToken || "first"}`;
+}
+
+export function videoCacheKey(videoId: string): string {
+  return `yt:video:${videoId}`;
+}
+
+export function channelCacheKey(channelId: string): string {
+  return `yt:channel:${channelId}`;
+}
+
+export function commentCacheKey(videoId: string): string {
+  return `yt:comments:${videoId}`;
 }
