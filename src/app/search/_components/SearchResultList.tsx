@@ -156,7 +156,7 @@ export default function SearchResultList({ initialData, initialToken, query, fil
     else setCheckedIds(new Set(sortedVideos.map((v) => v.videoId)));
   };
 
-  // 영상 수집: Pro/Business 전용
+  // 영상 수집: Pro/Business 전용 — CSV 파일 다운로드
   const handleCollect = useCallback(() => {
     if (!canCollect) {
       alert("영상 수집은 Pro 플랜부터 사용 가능합니다.\n/pricing 에서 업그레이드하세요.");
@@ -165,7 +165,7 @@ export default function SearchResultList({ initialData, initialToken, query, fil
     const targets = checkedIds.size > 0
       ? sortedVideos.filter((v) => checkedIds.has(v.videoId))
       : sortedVideos;
-    const header = "제목,채널,조회수,구독자,성과도,게시일,URL";
+    const header = "제목,채널,조회수,구독자,성과도,아웃라이어,게시일,URL";
     const rows = targets.map((v) =>
       [
         `"${v.title?.replace(/"/g, '""') ?? ''}"`,
@@ -173,23 +173,23 @@ export default function SearchResultList({ initialData, initialToken, query, fil
         v.viewCount ?? '',
         v.subscriberCount ?? '',
         v.score ?? '',
+        v.performanceRatio ?? '',
         v.publishedAt ?? '',
         `https://youtube.com/watch?v=${v.videoId}`,
       ].join(",")
     );
-    const csv = [header, ...rows].join("\n");
-    navigator.clipboard.writeText(csv).then(() => {
-      alert(`${targets.length}개 영상 데이터가 클립보드에 복사됐습니다!\nExcel에 붙여넣기 하세요.`);
-    }).catch(() => {
-      // fallback
-      const el = document.createElement("textarea");
-      el.value = csv;
-      document.body.appendChild(el);
-      el.select();
-      document.execCommand("copy");
-      document.body.removeChild(el);
-      alert(`${targets.length}개 영상 데이터가 복사됐습니다!`);
-    });
+    // BOM(\uFEFF) 추가 — Excel 한글 깨짐 방지
+    const csv = "\uFEFF" + [header, ...rows].join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    const date = new Date().toISOString().slice(0, 10);
+    a.href = url;
+    a.download = `bibl_영상수집_${date}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   }, [sortedVideos, checkedIds, canCollect]);
 
   // 채널 제거: 체크된 영상들의 채널ID를 블랙리스트로 추가해서 필터링

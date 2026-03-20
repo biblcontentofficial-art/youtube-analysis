@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getSearchUsage } from "@/lib/searchLimit";
 import LogoutButton from "./_components/LogoutButton";
+import RecentSearches from "./_components/RecentSearches";
 
 export default async function MyPage({
   searchParams,
@@ -110,6 +111,9 @@ export default async function MyPage({
               />
             </div>
           </div>
+
+          {/* 최근 검색 키워드 */}
+          <RecentSearches />
 
           {/* 검색 바로가기 */}
           <Link
