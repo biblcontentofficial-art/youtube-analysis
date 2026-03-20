@@ -140,8 +140,11 @@ export async function GET() {
     // ── 4. YouTube API 쿼터 계산 ───────────────────────────────────
     const UNITS_PER_SEARCH = 105; // search(100) + videos(1) + channels(4)
     const FREE_QUOTA_PER_KEY = 10000;
-    const FREE_KEY_COUNT = 9;
-    const PAID_KEY_COUNT = 1;
+    // 실제 env에서 키 수 동적 계산
+    let FREE_KEY_COUNT = process.env.YOUTUBE_API_KEY ? 1 : 0;
+    for (let i = 2; i <= 10; i++) { if (process.env[`YOUTUBE_API_KEY_${i}`]) FREE_KEY_COUNT++; }
+    let PAID_KEY_COUNT = 0;
+    for (let i = 1; i <= 10; i++) { if (process.env[`YOUTUBE_API_KEY_PAID_${i}`]) PAID_KEY_COUNT++; }
     const totalFreeQuota = FREE_KEY_COUNT * FREE_QUOTA_PER_KEY; // 90,000
     const totalPaidQuota = PAID_KEY_COUNT * FREE_QUOTA_PER_KEY; // 10,000
     const estimatedUnitsToday = todaySearches * UNITS_PER_SEARCH;

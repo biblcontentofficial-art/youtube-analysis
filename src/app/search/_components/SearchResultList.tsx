@@ -98,9 +98,10 @@ export default function SearchResultList({ initialData, initialToken, query, fil
 
       if (collected.length > 0) {
         setVideos((prev) => {
+          if (prev.length >= resultLimit) return prev; // 이미 한도 도달
           const existingIds = new Set(prev.map((v) => v.videoId));
           const newItems = collected.filter((item) => !existingIds.has(item.videoId));
-          return [...prev, ...newItems.slice(0, resultLimit)];
+          return [...prev, ...newItems].slice(0, resultLimit); // 총 건수 resultLimit으로 캡
         });
       }
       // null → undefined 변환 (nextToken state 타입 맞춤)
@@ -326,8 +327,8 @@ export default function SearchResultList({ initialData, initialToken, query, fil
         </div>
       )}
 
-      {/* 더 보기: nextToken 있거나 아직 시도 안 한 order가 남아있으면 표시 */}
-      {!loading && !loadError && (nextToken || orderPhase < EXTRA_ORDERS.length) && (
+      {/* 더 보기: nextToken/order 남아있고 아직 resultLimit 미달 시 표시 */}
+      {!loading && !loadError && videos.length < resultLimit && (nextToken || orderPhase < EXTRA_ORDERS.length) && (
         <div className="mt-6 flex justify-center">
           <button
             onClick={handleLoadMore}
@@ -338,12 +339,21 @@ export default function SearchResultList({ initialData, initialToken, query, fil
         </div>
       )}
 
-      {/* 더 이상 결과 없음 */}
-      {!loading && !nextToken && orderPhase >= EXTRA_ORDERS.length && videos.length > 0 && (
+      {/* 플랜 한도 도달 — 업그레이드 유도 */}
+      {!loading && videos.length >= resultLimit && (
+        <div className="mt-6 p-4 bg-gray-900/60 border border-gray-800 rounded-xl text-center">
+          <p className="text-xs text-gray-500">
+            현재 플랜 최대 <span className="text-white font-semibold">{resultLimit}건</span> 표시 중.
+            <a href="/pricing" className="ml-2 text-teal-400 hover:text-teal-300 underline">플랜 업그레이드로 더 보기 →</a>
+          </p>
+        </div>
+      )}
+
+      {/* 더 이상 결과 없음 (플랜 한도 이전에 API 소진) */}
+      {!loading && videos.length < resultLimit && !nextToken && orderPhase >= EXTRA_ORDERS.length && videos.length > 0 && (
         <div className="mt-6 p-4 bg-gray-900/60 border border-gray-800 rounded-xl text-center">
           <p className="text-xs text-gray-500">
             총 <span className="text-white font-semibold">{videos.length}건</span> — 모든 관련 영상을 가져왔습니다.
-            <a href="/pricing" className="ml-2 text-teal-400 hover:text-teal-300 underline">플랜 업그레이드 →</a>
           </p>
         </div>
       )}
