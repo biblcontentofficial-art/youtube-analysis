@@ -55,7 +55,10 @@ export default function Home() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    trySearch(keyword);
+    const trimmed = keyword.trim();
+    if (!trimmed) return;
+    if (!confirm(`"${trimmed}" 검색하시겠습니까?`)) return;
+    trySearch(trimmed);
   };
 
   const handleExample = (kw: string) => {

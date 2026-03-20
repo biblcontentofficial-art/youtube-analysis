@@ -60,14 +60,6 @@ export default function SearchBar() {
     return newCount;
   };
 
-  const removeHistory = (e: React.MouseEvent, term: string) => {
-    e.stopPropagation();
-    if (!confirm(`"${term}" 검색어를 삭제할까요?`)) return;
-    const next = history.filter((h) => h.term !== term);
-    setHistory(next);
-    localStorage.setItem("searchHistory", JSON.stringify(next));
-  };
-
   const removeAllHistory = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!confirm("최근 검색어를 모두 삭제할까요?")) return;
@@ -78,6 +70,8 @@ export default function SearchBar() {
   const executeSearch = (searchTerm: string) => {
     const trimmed = searchTerm.trim().normalize("NFC");
     if (!trimmed) return;
+
+    if (!confirm(`"${trimmed}" 검색하시겠습니까?`)) return;
 
     // 같은 키워드를 이미 보고 있으면 → 페이지 이동 없이 추가 로드
     const currentQ = searchParams.get("q");
@@ -159,19 +153,30 @@ export default function SearchBar() {
                 {history.map((item, index) => (
                   <div
                     key={index}
-                    onClick={() => navigateFromHistory(item.term)}
-                    className="group flex items-center gap-1.5 px-2.5 py-1.5 bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-teal-600 rounded-lg cursor-pointer transition-all"
+                    className="group flex items-center bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-teal-600 rounded-lg transition-all overflow-hidden"
                   >
-                    <span className="text-xs font-medium text-gray-200">{item.term}</span>
-                    {/* 검색 횟수 뱃지 */}
-                    {item.count > 1 && (
-                      <span className="text-[10px] font-bold text-teal-400 bg-teal-950/60 border border-teal-800 px-1.5 py-0.5 rounded-full leading-none">
-                        {item.count}회
-                      </span>
-                    )}
+                    {/* 클릭 → 검색 영역 */}
+                    <div
+                      onClick={() => navigateFromHistory(item.term)}
+                      className="flex items-center gap-1.5 px-2.5 py-1.5 cursor-pointer"
+                    >
+                      <span className="text-xs font-medium text-gray-200">{item.term}</span>
+                      {item.count > 1 && (
+                        <span className="text-[10px] font-bold text-teal-400 bg-teal-950/60 border border-teal-800 px-1.5 py-0.5 rounded-full leading-none">
+                          {item.count}회
+                        </span>
+                      )}
+                    </div>
+                    {/* X 버튼 — 부모 onClick과 완전 분리 */}
                     <button
-                      onClick={(e) => removeHistory(e, item.term)}
-                      className="text-gray-600 hover:text-red-400 transition-colors ml-0.5"
+                      type="button"
+                      onClick={() => {
+                        if (!confirm(`"${item.term}" 검색어를 삭제할까요?`)) return;
+                        const next = history.filter((h) => h.term !== item.term);
+                        setHistory(next);
+                        localStorage.setItem("searchHistory", JSON.stringify(next));
+                      }}
+                      className="pr-2 pl-0.5 py-1.5 text-gray-600 hover:text-red-400 transition-colors self-stretch flex items-center"
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5">
                         <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
