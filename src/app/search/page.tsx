@@ -58,16 +58,15 @@ export default async function SearchPage({ searchParams }: Props) {
   const canChannelReport = planData.canChannelReport;
   const isPaid = plan !== "free";
 
-  // 검색 횟수 기반 점진적 결과 수: 1차=50, 2차=100, 3차+=200
-  // 각 검색이 독립적인 데이터셋 → 정렬 필터 정상 작동
-  const countBasedLimit = searchCount === 1 ? 50 : searchCount === 2 ? 100 : 200;
+  // 검색 횟수 기반 점진적 결과 수: 매 회차마다 50씩 누적 (50→100→150→200→...)
+  // 플랜 한도 내에서 계속 증가, 한도 도달 시 canSearchMore=false
+  const countBasedLimit = searchCount * 50;
   const resultLimit = Math.min(planData.resultLimit, countBasedLimit);
   const canSearchMore = resultLimit < planData.resultLimit;
 
-  // 서버에서 한 번에 가져올 최대 페이지 수 (각 페이지 ≈ 105 YouTube units)
+  // resultLimit에 비례해서 페이지 수 결정 (페이지당 유효 영상 ~30개 기준)
   // 쇼츠 필터링으로 인해 목표치보다 더 많은 페이지가 필요할 수 있음
-  const maxPagesForCount = searchCount === 1 ? 2 : searchCount === 2 ? 4 : 8;
-  const pagesToFetch = plan === "free" ? 1 : maxPagesForCount;
+  const pagesToFetch = plan === "free" ? 1 : Math.max(2, Math.min(Math.ceil(resultLimit / 25), 20));
 
   if (query) {
     try {
