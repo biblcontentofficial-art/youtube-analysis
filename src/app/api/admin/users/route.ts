@@ -32,22 +32,36 @@ export async function GET() {
   }
 
   try {
-    const response = await fetch("https://api.clerk.com/v1/users?limit=100&order_by=-created_at", {
-      headers: {
-        Authorization: `Bearer ${clerkSecretKey}`,
-        "Content-Type": "application/json",
-      },
-    });
+    // 페이지네이션으로 최대 500명까지 가져오기
+    const allUsers: Record<string, unknown>[] = [];
+    let offset = 0;
+    const pageLimit = 100;
 
-    if (!response.ok) {
-      const text = await response.text();
-      console.error("Clerk API error:", text);
-      return NextResponse.json({ error: "Failed to fetch users" }, { status: 500 });
+    while (true) {
+      const response = await fetch(
+        `https://api.clerk.com/v1/users?limit=${pageLimit}&offset=${offset}&order_by=-created_at`,
+        {
+          headers: {
+            Authorization: `Bearer ${clerkSecretKey}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        const text = await response.text();
+        console.error("Clerk API error:", text);
+        return NextResponse.json({ error: "Failed to fetch users" }, { status: 500 });
+      }
+
+      const page = await response.json();
+      if (!Array.isArray(page) || page.length === 0) break;
+      allUsers.push(...page);
+      if (page.length < pageLimit || allUsers.length >= 500) break;
+      offset += pageLimit;
     }
 
-    const clerkUsers = await response.json();
-
-    const users: AdminUser[] = clerkUsers.map((u: Record<string, unknown>) => {
+    const users: AdminUser[] = allUsers.map((u: Record<string, unknown>) => {
       const emailAddresses = u.email_addresses as Array<{ email_address: string }> | undefined;
       const publicMetadata = (u.public_metadata as Record<string, unknown>) ?? {};
       return {
@@ -61,7 +75,7 @@ export async function GET() {
       };
     });
 
-    return NextResponse.json({ users });
+    return NextResponse.json({ users, total: users.length });
   } catch (err) {
     console.error("Admin users error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

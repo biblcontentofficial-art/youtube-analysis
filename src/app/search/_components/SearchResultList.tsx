@@ -20,6 +20,7 @@ export default function SearchResultList({ initialData, initialToken, query, fil
   const [videos, setVideos] = useState<Video[]>(initialData || []);
   const [nextToken, setNextToken] = useState<string | undefined>(initialToken);
   const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState(false);
   const [sortKey, setSortKey] = useState<SortKey>(null);
   const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
@@ -35,6 +36,7 @@ export default function SearchResultList({ initialData, initialToken, query, fil
   const handleLoadMore = useCallback(async () => {
     if (!nextToken || loading) return;
     setLoading(true);
+    setLoadError(false);
     try {
       const res = await getMoreVideos(query, filter, nextToken);
       if (res) {
@@ -43,6 +45,7 @@ export default function SearchResultList({ initialData, initialToken, query, fil
       }
     } catch (error) {
       console.error(error);
+      setLoadError(true);
     } finally {
       setLoading(false);
     }
@@ -218,7 +221,19 @@ export default function SearchResultList({ initialData, initialToken, query, fil
         </div>
       )}
 
-      {!loading && nextToken && (
+      {loadError && !loading && (
+        <div className="mt-4 p-4 bg-red-950/40 border border-red-800 rounded-xl text-center text-sm">
+          <p className="text-red-400 mb-2">데이터를 불러오지 못했습니다.</p>
+          <button
+            onClick={handleLoadMore}
+            className="text-xs text-gray-400 hover:text-white underline"
+          >
+            다시 시도
+          </button>
+        </div>
+      )}
+
+      {!loading && !loadError && nextToken && (
         <div className="mt-6 flex justify-center">
           <button
             onClick={handleLoadMore}

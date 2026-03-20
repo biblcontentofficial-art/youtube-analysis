@@ -13,7 +13,8 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect(new URL("/pricing", req.url));
   }
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin;
+  // req.nextUrl.origin 우선 사용 (도메인 변경 시에도 자동 대응)
+  const appUrl = req.nextUrl.origin || process.env.NEXT_PUBLIC_APP_URL || "https://bibllab.com";
   const planData = TOSS_PLANS[plan];
   const orderId = `order_${userId}_${plan}_${Date.now()}`;
 

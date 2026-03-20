@@ -7,6 +7,7 @@ import SearchBar from "../_components/SearchBar";
 import { getSearchUsage, incrementSearchCount } from "@/lib/searchLimit";
 import LimitModal from "./_components/LimitModal";
 import KakaoChannelBanner from "./_components/KakaoChannelBanner";
+import { ActionButton } from "./_components/SearchActionButtons";
 
 interface Props {
   searchParams: {
@@ -14,6 +15,7 @@ interface Props {
     filter?: string;
     count?: string;
     fromHistory?: string;
+    upgraded?: string;
   };
 }
 
@@ -21,6 +23,7 @@ export default async function SearchPage({ searchParams }: Props) {
   const query = searchParams.q || "";
   const filter = searchParams.filter || "";
   const fromHistory = searchParams.fromHistory === "1";
+  const upgraded = searchParams.upgraded === "1";
   const searchCount = Math.max(1, parseInt(searchParams.count || "1"));
   const pagesToFetch = Math.min(searchCount, 3);
 
@@ -107,6 +110,17 @@ export default async function SearchPage({ searchParams }: Props) {
       </div>
 
       <div className="max-w-screen-xl mx-auto px-4 py-6">
+        {/* 플랜 업그레이드 완료 알림 */}
+        {upgraded && (
+          <div className="mb-6 p-4 bg-teal-950/60 border border-teal-700 rounded-xl flex items-center gap-3">
+            <span className="text-2xl shrink-0">🎉</span>
+            <div>
+              <p className="text-teal-300 font-semibold text-sm">플랜 업그레이드 완료!</p>
+              <p className="text-gray-400 text-xs mt-0.5">새로운 검색 한도가 적용됐습니다. 페이지를 새로고침하면 업데이트된 사용량이 표시됩니다.</p>
+            </div>
+          </div>
+        )}
+
         {/* API 에러 안내 */}
         {apiError === "quota_exceeded" && (
           <div className="mb-6 p-5 bg-orange-950/50 border border-orange-700 rounded-xl text-center">
@@ -210,17 +224,3 @@ function FilterTab({ href, active, label }: { href: string; active: boolean; lab
   );
 }
 
-function ActionButton({ label, icon, event }: { label: string; icon: string; event?: string }) {
-  const handleClick = () => {
-    if (event) window.dispatchEvent(new Event(event));
-  };
-  return (
-    <button
-      onClick={handleClick}
-      className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-white bg-gray-900 hover:bg-gray-800 border border-gray-800 px-3 py-1.5 rounded-lg transition-colors"
-    >
-      <span>{icon}</span>
-      {label}
-    </button>
-  );
-}

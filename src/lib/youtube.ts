@@ -315,5 +315,8 @@ export async function searchVideos(query: string, filter?: string, pageToken?: s
 
     return result;
 
-  } catch (error) { return { items: [], nextPageToken: undefined }; }
+  } catch (error) {
+    console.error("searchVideos 예외 발생:", error);
+    return { items: [], nextPageToken: undefined };
+  }
 }

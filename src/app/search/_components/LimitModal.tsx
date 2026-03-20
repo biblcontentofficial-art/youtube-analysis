@@ -36,9 +36,9 @@ export default function LimitModal({ show, limit }: { show: boolean; limit: numb
           무료 검색 {limit}회를 다 쓰셨어요
         </h2>
         <p className="text-gray-400 text-sm mb-1">
-          로그인하면 <span className="text-teal-400 font-semibold">하루 10회</span> 무료 검색이 가능합니다
+          가입 후 <span className="text-teal-400 font-semibold">Starter 플랜</span>으로 하루 10회 검색이 가능합니다
         </p>
-        <p className="text-gray-600 text-xs mb-7">카드 정보 불필요 · 1분 만에 시작</p>
+        <p className="text-gray-600 text-xs mb-7">1분 만에 가입 · Starter ₩49,000/월부터</p>
 
         {/* 카카오 버튼 */}
         <button

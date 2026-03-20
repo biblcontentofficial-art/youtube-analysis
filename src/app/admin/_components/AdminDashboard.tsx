@@ -10,6 +10,13 @@ const PLAN_BADGE: Record<string, string> = {
   business: "bg-purple-900 text-purple-300",
 };
 
+const PLAN_PRICE: Record<string, number> = {
+  free: 0,
+  starter: 49000,
+  pro: 199000,
+  business: 490000,
+};
+
 function formatDate(ts: number | null): string {
   if (!ts) return "-";
   return new Date(ts).toLocaleDateString("ko-KR", {
@@ -23,6 +30,8 @@ export default function AdminDashboard() {
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [planFilter, setPlanFilter] = useState<string>("all");
 
   useEffect(() => {
     fetch("/api/admin/users")
@@ -41,37 +50,87 @@ export default function AdminDashboard() {
 
   const totalUsers = users.length;
   const payingUsers = users.filter((u) => u.plan !== "free").length;
+  const mrr = users.reduce((sum, u) => sum + (PLAN_PRICE[u.plan] ?? 0), 0);
+
+  const planCounts = users.reduce<Record<string, number>>((acc, u) => {
+    acc[u.plan] = (acc[u.plan] ?? 0) + 1;
+    return acc;
+  }, {});
+
+  const filteredUsers = users.filter((u) => {
+    const matchesPlan = planFilter === "all" || u.plan === planFilter;
+    const matchesSearch =
+      !search ||
+      u.email.toLowerCase().includes(search.toLowerCase()) ||
+      [u.firstName, u.lastName].filter(Boolean).join(" ").toLowerCase().includes(search.toLowerCase());
+    return matchesPlan && matchesSearch;
+  });
 
   return (
     <div className="space-y-8">
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
-          <p className="text-gray-500 text-sm mb-1">전체 사용자</p>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
+          <p className="text-gray-500 text-xs mb-1">전체 사용자</p>
           <p className="text-3xl font-extrabold text-white">
             {loading ? "..." : totalUsers.toLocaleString()}
           </p>
         </div>
-        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
-          <p className="text-gray-500 text-sm mb-1">유료 사용자</p>
+        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
+          <p className="text-gray-500 text-xs mb-1">유료 사용자</p>
           <p className="text-3xl font-extrabold text-teal-400">
             {loading ? "..." : payingUsers.toLocaleString()}
           </p>
         </div>
-        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
-          <p className="text-gray-500 text-sm mb-1">오늘 수익 추정</p>
-          <p className="text-3xl font-extrabold text-purple-400">
-            {loading
-              ? "..."
-              : "집계 중"}
+        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
+          <p className="text-gray-500 text-xs mb-1">월 예상 매출 (MRR)</p>
+          <p className="text-2xl font-extrabold text-purple-400">
+            {loading ? "..." : `₩${mrr.toLocaleString()}`}
           </p>
+        </div>
+        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
+          <p className="text-gray-500 text-xs mb-2">플랜별 분포</p>
+          {loading ? (
+            <p className="text-gray-500 text-sm">...</p>
+          ) : (
+            <div className="space-y-1 text-xs">
+              {["starter", "pro", "business"].map((p) => (
+                <div key={p} className="flex justify-between">
+                  <span className="text-gray-400 capitalize">{p}</span>
+                  <span className="text-white font-semibold">{planCounts[p] ?? 0}명</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
       {/* Users Table */}
       <div className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-800">
-          <h2 className="text-lg font-bold text-white">사용자 목록</h2>
+        <div className="px-6 py-4 border-b border-gray-800 flex flex-col sm:flex-row sm:items-center gap-3">
+          <h2 className="text-lg font-bold text-white shrink-0">
+            사용자 목록 {!loading && <span className="text-sm text-gray-500 font-normal">({filteredUsers.length}/{totalUsers}명)</span>}
+          </h2>
+          <div className="flex flex-1 gap-2">
+            <input
+              type="text"
+              placeholder="이메일 또는 이름 검색..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-teal-500"
+            />
+            <select
+              value={planFilter}
+              onChange={(e) => setPlanFilter(e.target.value)}
+              className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-sm text-gray-300 focus:outline-none focus:border-teal-500"
+            >
+              <option value="all">전체 플랜</option>
+              <option value="free">Free</option>
+              <option value="starter">Starter</option>
+              <option value="pro">Pro</option>
+              <option value="business">Business</option>
+            </select>
+          </div>
         </div>
 
         {loading && (
@@ -93,7 +152,7 @@ export default function AdminDashboard() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-800">
-                {users.map((u) => (
+                {filteredUsers.map((u) => (
                   <tr key={u.id} className="hover:bg-gray-800/50 transition">
                     <td className="px-6 py-4 text-gray-200 font-medium">{u.email || "-"}</td>
                     <td className="px-6 py-4 text-gray-400">
@@ -112,10 +171,10 @@ export default function AdminDashboard() {
                     <td className="px-6 py-4 text-gray-500">{formatDate(u.lastActiveAt)}</td>
                   </tr>
                 ))}
-                {users.length === 0 && (
+                {filteredUsers.length === 0 && (
                   <tr>
                     <td colSpan={5} className="px-6 py-12 text-center text-gray-600">
-                      사용자가 없습니다.
+                      {search || planFilter !== "all" ? "검색 결과가 없습니다." : "사용자가 없습니다."}
                     </td>
                   </tr>
                 )}
@@ -123,19 +182,6 @@ export default function AdminDashboard() {
             </table>
           </div>
         )}
-      </div>
-
-      {/* Recent Activity Placeholder */}
-      <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
-        <h2 className="text-lg font-bold text-white mb-4">최근 활동</h2>
-        <div className="space-y-3">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="flex items-center gap-3 text-sm text-gray-600">
-              <div className="w-2 h-2 rounded-full bg-gray-700 shrink-0" />
-              <span>활동 로그 준비 중...</span>
-            </div>
-          ))}
-        </div>
       </div>
     </div>
   );

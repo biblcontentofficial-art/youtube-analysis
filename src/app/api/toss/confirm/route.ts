@@ -5,7 +5,6 @@ import { TOSS_PLANS, TossPlanKey } from "@/lib/toss";
 
 export async function GET(req: NextRequest) {
   const { userId } = await auth();
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin;
 
   const paymentKey = req.nextUrl.searchParams.get("paymentKey");
   const orderId = req.nextUrl.searchParams.get("orderId");
@@ -39,11 +38,16 @@ export async function GET(req: NextRequest) {
       return NextResponse.redirect(new URL("/pricing?error=payment", req.url));
     }
 
-    // 플랜 업데이트 (Clerk publicMetadata)
-    const client = await clerkClient();
-    await client.users.updateUser(userId, {
-      publicMetadata: { plan },
-    });
+    // 플랜 업데이트 (Clerk publicMetadata) — 결제 성공 후 best-effort
+    try {
+      const client = await clerkClient();
+      await client.users.updateUser(userId, {
+        publicMetadata: { plan },
+      });
+    } catch (metaErr) {
+      // 메타데이터 업데이트 실패해도 결제는 완료됨 → 로그만 남기고 성공 처리
+      console.error("Toss 플랜 메타데이터 업데이트 실패 (userId:", userId, "plan:", plan, "):", metaErr);
+    }
 
     return NextResponse.redirect(new URL("/search?upgraded=1", req.url));
   } catch (e) {

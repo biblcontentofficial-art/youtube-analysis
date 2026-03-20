@@ -82,36 +82,45 @@ export default function VideoModal({ video, onClose }: Props) {
   const [fetchError, setFetchError] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
 
-  useEffect(() => {
-    async function fetchData() {
-      setLoading(true);
-      setFetchError(false);
-      try {
-        const [d, c] = await Promise.all([
-          fetchVideoDetail(video.videoId),
-          fetchVideoComments(video.videoId),
-        ]);
-        setDetail(d);
-        setComments(c);
+  async function fetchData() {
+    setLoading(true);
+    setFetchError(false);
+    try {
+      const [d, c] = await Promise.all([
+        fetchVideoDetail(video.videoId),
+        fetchVideoComments(video.videoId),
+      ]);
+      setDetail(d);
+      setComments(c);
 
-        if (d && d.channelId) {
-          const chData = await fetchChannelDetail(d.channelId);
-          setChannelInfo(chData);
-        }
-      } catch (e) {
-        console.error(e);
-        setFetchError(true);
-      } finally {
-        setLoading(false);
+      if (d && d.channelId) {
+        const chData = await fetchChannelDetail(d.channelId);
+        setChannelInfo(chData);
       }
+    } catch (e) {
+      console.error(e);
+      setFetchError(true);
+    } finally {
+      setLoading(false);
     }
+  }
+
+  useEffect(() => {
     fetchData();
+
+    // 모달 열릴 때 body 스크롤 잠금 (모바일 iOS 포함)
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
 
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
     };
     window.addEventListener("keydown", handleEsc);
-    return () => window.removeEventListener("keydown", handleEsc);
+    return () => {
+      window.removeEventListener("keydown", handleEsc);
+      document.body.style.overflow = prevOverflow;
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [video, onClose]);
 
   const visibleComments = isExpanded ? comments : comments.slice(0, 1);
@@ -148,8 +157,14 @@ export default function VideoModal({ video, onClose }: Props) {
 
           {/* 에러 상태 */}
           {fetchError && !loading && (
-            <div className="p-4 bg-red-950/50 border border-red-800 rounded-xl text-center text-sm text-red-400">
-              정보를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.
+            <div className="p-4 bg-red-950/50 border border-red-800 rounded-xl text-center text-sm">
+              <p className="text-red-400 mb-2">정보를 불러오지 못했습니다.</p>
+              <button
+                onClick={fetchData}
+                className="text-xs text-gray-400 hover:text-white border border-gray-700 hover:border-gray-500 px-3 py-1.5 rounded-lg transition"
+              >
+                다시 시도
+              </button>
             </div>
           )}
 

@@ -101,12 +101,12 @@ export default async function MyPage({
             <p className="text-gray-500 text-xs mb-2">오늘 검색 사용량</p>
             <div className="flex items-center justify-between mb-2">
               <span className="text-white font-bold text-lg">{usage.used} / {usage.limit}회</span>
-              <span className="text-gray-600 text-xs">매일 00:00 UTC 리셋</span>
+              <span className="text-gray-600 text-xs">매일 오전 09:00 (KST) 리셋</span>
             </div>
             <div className="w-full bg-gray-700 rounded-full h-1.5">
               <div
                 className="bg-teal-500 h-1.5 rounded-full transition-all"
-                style={{ width: `${Math.min((usage.used / usage.limit) * 100, 100)}%` }}
+                style={{ width: `${usage.limit > 0 ? Math.min((usage.used / usage.limit) * 100, 100) : 0}%` }}
               />
             </div>
           </div>

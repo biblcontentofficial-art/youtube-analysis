@@ -26,7 +26,8 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin;
+    // req.nextUrl.origin 우선 사용 (도메인 변경 시에도 자동 대응)
+    const appUrl = req.nextUrl.origin || process.env.NEXT_PUBLIC_APP_URL || "https://bibllab.com";
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
       payment_method_types: ["card"],
