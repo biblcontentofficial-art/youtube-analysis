@@ -3,12 +3,16 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useUser } from "@clerk/nextjs";
 
 const EXAMPLE_KEYWORDS = ["캠핑", "영어 공부", "주식 투자", "다이어트", "여행 브이로그", "요리 레시피"];
 
 export default function Home() {
   const router = useRouter();
+  const { isSignedIn, isLoaded } = useUser();
   const [keyword, setKeyword] = useState("");
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [pendingKeyword, setPendingKeyword] = useState("");
 
   interface HistoryItem { term: string; count: number; }
 
@@ -34,21 +38,77 @@ export default function Home() {
     return newCount;
   };
 
+  const trySearch = (term: string) => {
+    const trimmed = term.trim();
+    if (!trimmed) return;
+    if (isLoaded && !isSignedIn) {
+      setPendingKeyword(trimmed);
+      setShowAuthModal(true);
+      return;
+    }
+    const count = saveToHistory(trimmed);
+    router.push(`/search?q=${encodeURIComponent(trimmed)}&count=${count}`);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const trimmedInput = keyword.trim();
-    if (!trimmedInput) return;
-    const count = saveToHistory(trimmedInput);
-    router.push(`/search?q=${encodeURIComponent(trimmedInput)}&count=${count}`);
+    trySearch(keyword);
   };
 
   const handleExample = (kw: string) => {
-    const count = saveToHistory(kw);
-    router.push(`/search?q=${encodeURIComponent(kw)}&count=${count}`);
+    trySearch(kw);
   };
 
   return (
     <main className="min-h-screen bg-gray-950 text-white flex flex-col">
+      {/* 로그인 유도 모달 */}
+      {showAuthModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm px-4"
+          onClick={() => setShowAuthModal(false)}
+        >
+          <div
+            className="bg-gray-900 border border-gray-700 rounded-2xl p-8 w-full max-w-sm shadow-2xl text-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* 아이콘 */}
+            <div className="w-14 h-14 bg-teal-500/10 border border-teal-500/30 rounded-full flex items-center justify-center mx-auto mb-5">
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-7 h-7 text-teal-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+              </svg>
+            </div>
+
+            <h2 className="text-xl font-bold text-white mb-2">로그인이 필요합니다</h2>
+            <p className="text-sm text-gray-400 mb-1">
+              <span className="text-teal-400 font-medium">&ldquo;{pendingKeyword}&rdquo;</span> 검색을 시작하려면<br />
+              로그인 또는 회원가입을 해주세요.
+            </p>
+            <p className="text-xs text-gray-600 mb-7">가입 후 하루 2회 무료 검색 · 1분 만에 시작</p>
+
+            <div className="flex flex-col gap-3">
+              <Link
+                href={`/sign-up?redirect_url=/search?q=${encodeURIComponent(pendingKeyword)}`}
+                className="w-full py-3 bg-teal-500 hover:bg-teal-400 text-white font-semibold rounded-xl transition text-sm"
+              >
+                회원가입 후 검색하기
+              </Link>
+              <Link
+                href={`/sign-in?redirect_url=/search?q=${encodeURIComponent(pendingKeyword)}`}
+                className="w-full py-3 bg-gray-800 hover:bg-gray-700 text-white font-semibold rounded-xl transition text-sm border border-gray-700"
+              >
+                로그인
+              </Link>
+            </div>
+
+            <button
+              onClick={() => setShowAuthModal(false)}
+              className="mt-5 text-xs text-gray-600 hover:text-gray-400 transition"
+            >
+              닫기
+            </button>
+          </div>
+        </div>
+      )}
       {/* Hero */}
       <div className="flex-1 flex flex-col items-center justify-center px-4 py-20">
         <div className="w-full max-w-3xl text-center space-y-8">
@@ -174,7 +234,7 @@ export default function Home() {
             요금제 보기
           </Link>
           <button
-            onClick={() => { const count = saveToHistory("캠핑"); router.push(`/search?q=캠핑&count=${count}`); }}
+            onClick={() => trySearch("캠핑")}
             className="px-8 py-3 bg-gray-800 hover:bg-gray-700 text-white font-semibold rounded-xl transition"
           >
             무료로 체험하기
