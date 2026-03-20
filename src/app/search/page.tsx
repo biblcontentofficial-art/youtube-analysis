@@ -27,8 +27,8 @@ interface Props {
 
 export default async function SearchPage({ searchParams }: Props) {
   const query = searchParams.q || "";
-  // 기본 필터: 쇼츠 제외 (long). 명시적으로 filter 파라미터를 줄 때만 변경
-  const filter = searchParams.filter ?? "long";
+  // 기본 필터: 전체 (all). 명시적으로 filter 파라미터를 줄 때만 변경
+  const filter = searchParams.filter ?? "all";
   const fromHistory = searchParams.fromHistory === "1";
   const upgraded = searchParams.upgraded === "1";
   // 같은 키워드를 몇 번 검색했는지 (1부터 시작)
@@ -76,14 +76,53 @@ export default async function SearchPage({ searchParams }: Props) {
       // cache miss → 실제 YouTube API 호출 발생 → 카운트 차감 (quota 보호)
       let skipCount = false;
       if (fromHistory) {
-        const cKey = searchCacheKey(query, filter, undefined, "relevance");
-        const isCached = (await cacheGet(cKey)) !== null;
-        skipCount = isCached;
+        if (filter === "all") {
+          // all = long + shorts 병렬 fetch → 각각 캐시 확인
+          const [cLong, cShorts] = await Promise.all([
+            cacheGet(searchCacheKey(query, "long", undefined, "relevance")),
+            cacheGet(searchCacheKey(query, "shorts", undefined, "relevance")),
+          ]);
+          skipCount = cLong !== null && cShorts !== null;
+        } else {
+          const isCached = (await cacheGet(searchCacheKey(query, filter, undefined, "relevance"))) !== null;
+          skipCount = isCached;
+        }
       }
       const countResult = skipCount ? { ok: true } : await incrementSearchCount();
       const { ok } = countResult;
       if (!ok) {
         limitExceeded = true;
+      } else if (filter === "all") {
+        // 전체 = 쇼츠 제외 50% + 쇼츠 50% 병렬 fetch
+        const half = Math.ceil(resultLimit / 2);
+
+        const fetchHalf = async (f: "long" | "shorts", limit: number) => {
+          const items: any[] = [];
+          let token: string | undefined;
+          let pages = 0;
+          let err: "quota_exceeded" | "api_error" | null = null;
+          while (items.length < limit && pages < pagesToFetch) {
+            const res = await searchVideos(query, f, token, isPaid);
+            if (res.error) { err = res.error; break; }
+            const seen = new Set(items.map((v: any) => v.videoId));
+            items.push(...res.items.filter((v: any) => !seen.has(v.videoId)));
+            token = res.nextPageToken;
+            pages++;
+            if (!token) break;
+          }
+          return { items: items.slice(0, limit), error: err };
+        };
+
+        const [longRes, shortsRes] = await Promise.all([
+          fetchHalf("long", half),
+          fetchHalf("shorts", resultLimit - half),
+        ]);
+
+        if (longRes.error && shortsRes.error) {
+          apiError = longRes.error;
+        } else {
+          videos = [...longRes.items, ...shortsRes.items];
+        }
       } else {
         const first = await searchVideos(query, filter, undefined, isPaid);
         if (first.error) {
@@ -92,8 +131,6 @@ export default async function SearchPage({ searchParams }: Props) {
           videos = first.items;
           nextPageToken = first.nextPageToken;
 
-          // resultLimit에 도달하거나 pagesToFetch 한도까지 서버에서 한 번에 가져옴
-          // → 클라이언트에 완전한 독립 데이터셋 제공 → 정렬 필터 정상 작동
           let pagesLoaded = 1;
           while (videos.length < resultLimit && nextPageToken && pagesLoaded < pagesToFetch) {
             const more = await searchVideos(query, filter, nextPageToken, isPaid);
@@ -200,8 +237,8 @@ export default async function SearchPage({ searchParams }: Props) {
           <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
             {/* 필터 탭 + 조회수 합계 (Starter 이상) */}
             <div className="flex items-center gap-1.5 flex-wrap">
-              <FilterTab href={`/search?${filterBase}&filter=all`} active={filter === "all"} label="전체" />
-              <FilterTab href={`/search?${filterBase}`} active={filter === "long"} label="쇼츠 제외" />
+              <FilterTab href={`/search?${filterBase}`} active={filter === "all"} label="전체" />
+              <FilterTab href={`/search?${filterBase}&filter=long`} active={filter === "long"} label="쇼츠 제외" />
               <FilterTab href={`/search?${filterBase}&filter=shorts`} active={filter === "shorts"} label="쇼츠만" />
               {isPaid && <ViewStatsInline />}
             </div>

@@ -55,6 +55,7 @@ export default async function RootLayout({
 }>) {
   let ClerkProvider: React.ComponentType<{ children: React.ReactNode }> | null = null;
   let NavUser: React.ComponentType | null = null;
+  let isAdmin = false;
 
   if (hasClerk) {
     const clerkModule = await import("@clerk/nextjs");
@@ -66,6 +67,14 @@ export default async function RootLayout({
     );
     const navUserModule = await import("./_components/NavUser");
     NavUser = navUserModule.default;
+
+    // admin 플랜 확인 → nav 준비중 잠금 해제
+    try {
+      const { auth } = await import("@clerk/nextjs/server");
+      const { sessionClaims } = await auth();
+      const plan = (sessionClaims?.publicMetadata as Record<string, string> | undefined)?.plan;
+      isAdmin = plan === "admin";
+    } catch { /* auth 실패 시 기본값 false */ }
   }
 
   const content = (
@@ -91,9 +100,9 @@ export default async function RootLayout({
 
               <div className="hidden md:flex items-center gap-1 text-sm">
                 <NavTab href="/search" icon="🎬" label="영상 찾기" />
-                <NavTab href="/channels" icon="📺" label="채널 찾기" soon />
-                <NavTab href="/trending" icon="📊" label="트렌드 분석" soon />
-                <NavTab href="/saved" icon="🔖" label="수집한 영상" soon />
+                <NavTab href="/channels" icon="📺" label="채널 찾기" soon={!isAdmin} />
+                <NavTab href="/trending" icon="📊" label="트렌드 분석" soon={!isAdmin} />
+                <NavTab href="/saved" icon="🔖" label="수집한 영상" soon={!isAdmin} />
                 <NavTab href="/pricing" icon="💳" label="요금제" />
               </div>
             </div>
