@@ -1,0 +1,85 @@
+import { auth } from "@clerk/nextjs/server";
+import { NextRequest, NextResponse } from "next/server";
+import { getSavedVideos, upsertSavedVideo, deleteSavedVideo, clearSavedVideos } from "@/lib/db";
+import { PLANS, PlanKey } from "@/lib/stripe";
+
+async function getAuthedUser() {
+  const { userId, sessionClaims } = await auth();
+  if (!userId) return null;
+  const plan = (sessionClaims?.publicMetadata as Record<string, string> | undefined)?.plan ?? "free";
+  const planData = PLANS[plan as PlanKey] ?? PLANS.free;
+  return { userId, plan, canSavedVideos: planData.canSavedVideos };
+}
+
+export async function GET() {
+  try {
+    const user = await getAuthedUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!user.canSavedVideos) return NextResponse.json({ error: "Pro 플랜 이상 필요" }, { status: 403 });
+
+    const videos = await getSavedVideos(user.userId);
+    return NextResponse.json({ videos });
+  } catch {
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
+  }
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    const user = await getAuthedUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!user.canSavedVideos) return NextResponse.json({ error: "Pro 플랜 이상 필요" }, { status: 403 });
+
+    const body = await req.json();
+    const { videos } = body; // array of video objects
+
+    if (!videos || !Array.isArray(videos)) {
+      return NextResponse.json({ error: "Invalid body" }, { status: 400 });
+    }
+
+    await Promise.all(
+      videos.map((v: any) =>
+        upsertSavedVideo({
+          userId: user.userId,
+          videoId: v.videoId,
+          title: v.title,
+          thumbnail: v.thumbnail,
+          channelId: v.channelId,
+          channelTitle: v.channelTitle,
+          channelThumbnail: v.channelThumbnail,
+          subscriberCount: v.subscriberCount,
+          viewCount: v.viewCount,
+          publishedAt: v.publishedAt,
+          score: v.score,
+          performanceRatio: v.performanceRatio,
+          query: v.query,
+        })
+      )
+    );
+
+    return NextResponse.json({ ok: true });
+  } catch {
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
+  }
+}
+
+export async function DELETE(req: NextRequest) {
+  try {
+    const user = await getAuthedUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!user.canSavedVideos) return NextResponse.json({ error: "Pro 플랜 이상 필요" }, { status: 403 });
+
+    const body = await req.json().catch(() => ({}));
+    const { videoId } = body;
+
+    if (videoId) {
+      await deleteSavedVideo(user.userId, videoId);
+    } else {
+      await clearSavedVideos(user.userId);
+    }
+
+    return NextResponse.json({ ok: true });
+  } catch {
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
+  }
+}

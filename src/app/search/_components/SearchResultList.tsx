@@ -82,8 +82,8 @@ export default function SearchResultList({ initialData, query, filter, canAlgori
     else setCheckedIds(new Set(sortedVideos.map((v) => v.videoId)));
   };
 
-  // 영상 수집: Pro/Business 전용 — CSV 파일 다운로드
-  const handleCollect = useCallback(() => {
+  // 영상 수집: Pro/Business 전용 — CSV 다운로드 + 서버 저장
+  const handleCollect = useCallback(async () => {
     if (!canCollect) {
       alert("영상 수집은 Pro 플랜부터 사용 가능합니다.\n/pricing 에서 업그레이드하세요.");
       return;
@@ -116,7 +116,33 @@ export default function SearchResultList({ initialData, query, filter, canAlgori
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-  }, [sortedVideos, checkedIds, canCollect]);
+
+    // 서버에도 저장 (수집한 영상 페이지에서 확인 가능)
+    try {
+      await fetch("/api/saved-videos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          videos: targets.map((v) => ({
+            videoId: v.videoId,
+            title: v.title,
+            thumbnail: v.thumbnail,
+            channelId: v.channelId,
+            channelTitle: v.channelTitle,
+            channelThumbnail: v.channelThumbnail,
+            subscriberCount: v.subscriberCount,
+            viewCount: v.viewCount,
+            publishedAt: v.publishedAt,
+            score: v.score,
+            performanceRatio: v.performanceRatio,
+            query,
+          })),
+        }),
+      });
+    } catch {
+      // 서버 저장 실패해도 CSV 다운로드는 성공했으므로 조용히 넘어감
+    }
+  }, [sortedVideos, checkedIds, canCollect, query]);
 
   // 채널 제거: 체크된 영상들의 채널ID를 블랙리스트로 추가해서 필터링
   const handleRemoveChannels = useCallback(() => {

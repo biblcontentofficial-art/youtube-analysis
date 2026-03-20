@@ -18,6 +18,9 @@ export const PLANS = {
     canCollect: false,
     canAlgorithm: false,
     canChannelReport: false,
+    canChannelSearch: false,  // 채널 찾기
+    canTrending: false,       // 트렌드 분석
+    canSavedVideos: false,    // 수집한 영상
     canServerHistory: false,  // 서버 검색 기록 저장
     historyDays: 0,           // 0 = localStorage만
   },
@@ -29,6 +32,9 @@ export const PLANS = {
     canCollect: false,
     canAlgorithm: true,
     canChannelReport: false,
+    canChannelSearch: true,
+    canTrending: true,
+    canSavedVideos: false,
     canServerHistory: true,
     historyDays: 30,
   },
@@ -40,6 +46,9 @@ export const PLANS = {
     canCollect: true,
     canAlgorithm: true,
     canChannelReport: true,
+    canChannelSearch: true,
+    canTrending: true,
+    canSavedVideos: true,
     canServerHistory: true,
     historyDays: 9999,        // 무제한
   },
@@ -51,6 +60,9 @@ export const PLANS = {
     canCollect: true,
     canAlgorithm: true,
     canChannelReport: true,
+    canChannelSearch: true,
+    canTrending: true,
+    canSavedVideos: true,
     canServerHistory: true,
     historyDays: 9999,
   },
@@ -63,6 +75,9 @@ export const PLANS = {
     canCollect: true,
     canAlgorithm: true,
     canChannelReport: true,
+    canChannelSearch: true,
+    canTrending: true,
+    canSavedVideos: true,
     canServerHistory: true,
     historyDays: 9999,
   },

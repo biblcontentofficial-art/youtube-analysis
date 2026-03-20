@@ -67,3 +67,28 @@ CREATE INDEX IF NOT EXISTS idx_search_history_user_id ON search_history(user_id)
 CREATE INDEX IF NOT EXISTS idx_search_history_searched_at ON search_history(searched_at DESC);
 
 ALTER TABLE search_history DISABLE ROW LEVEL SECURITY;
+
+-- 7. 수집한 영상 테이블 (Pro 이상)
+CREATE TABLE IF NOT EXISTS saved_videos (
+  id               UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id          TEXT NOT NULL,              -- Clerk userId
+  video_id         TEXT NOT NULL,              -- YouTube videoId
+  title            TEXT NOT NULL,
+  thumbnail        TEXT,
+  channel_id       TEXT,
+  channel_title    TEXT,
+  channel_thumbnail TEXT,
+  subscriber_count TEXT,
+  view_count       INTEGER DEFAULT 0,
+  published_at     TEXT,
+  score            TEXT,                       -- Good | Normal | Bad
+  performance_ratio TEXT,
+  query            TEXT,                       -- 수집 시 검색 키워드
+  saved_at         TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(user_id, video_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_saved_videos_user_id ON saved_videos(user_id);
+CREATE INDEX IF NOT EXISTS idx_saved_videos_saved_at ON saved_videos(saved_at DESC);
+
+ALTER TABLE saved_videos DISABLE ROW LEVEL SECURITY;

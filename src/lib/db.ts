@@ -248,3 +248,100 @@ export async function clearSearchHistory(userId: string): Promise<void> {
 
   await db.from("search_history").delete().eq("user_id", userId);
 }
+
+// ─────────────────────────────────────────────────────────────
+// 수집한 영상 (saved_videos)
+// ─────────────────────────────────────────────────────────────
+
+export interface SavedVideo {
+  id: string;
+  user_id: string;
+  video_id: string;
+  title: string;
+  thumbnail: string | null;
+  channel_id: string | null;
+  channel_title: string | null;
+  channel_thumbnail: string | null;
+  subscriber_count: string | null;
+  view_count: number;
+  published_at: string | null;
+  score: string | null;
+  performance_ratio: string | null;
+  query: string | null;
+  saved_at: string;
+}
+
+export interface SaveVideoParams {
+  userId: string;
+  videoId: string;
+  title: string;
+  thumbnail?: string;
+  channelId?: string;
+  channelTitle?: string;
+  channelThumbnail?: string;
+  subscriberCount?: string;
+  viewCount?: number;
+  publishedAt?: string;
+  score?: string;
+  performanceRatio?: string;
+  query?: string;
+}
+
+/** 영상 저장 (이미 있으면 saved_at 갱신) */
+export async function upsertSavedVideo(params: SaveVideoParams): Promise<void> {
+  const db = getSupabase();
+  if (!db) return;
+
+  const { error } = await db.from("saved_videos").upsert(
+    {
+      user_id: params.userId,
+      video_id: params.videoId,
+      title: params.title,
+      thumbnail: params.thumbnail ?? null,
+      channel_id: params.channelId ?? null,
+      channel_title: params.channelTitle ?? null,
+      channel_thumbnail: params.channelThumbnail ?? null,
+      subscriber_count: params.subscriberCount ?? null,
+      view_count: params.viewCount ?? 0,
+      published_at: params.publishedAt ?? null,
+      score: params.score ?? null,
+      performance_ratio: params.performanceRatio ?? null,
+      query: params.query ?? null,
+      saved_at: new Date().toISOString(),
+    },
+    { onConflict: "user_id,video_id" }
+  );
+  if (error) console.error("upsertSavedVideo error:", error);
+}
+
+/** 수집한 영상 목록 조회 (최신순) */
+export async function getSavedVideos(userId: string, limit = 200): Promise<SavedVideo[]> {
+  const db = getSupabase();
+  if (!db) return [];
+
+  const { data, error } = await db
+    .from("saved_videos")
+    .select("*")
+    .eq("user_id", userId)
+    .order("saved_at", { ascending: false })
+    .limit(limit);
+
+  if (error) return [];
+  return data as SavedVideo[];
+}
+
+/** 단일 영상 삭제 */
+export async function deleteSavedVideo(userId: string, videoId: string): Promise<void> {
+  const db = getSupabase();
+  if (!db) return;
+
+  await db.from("saved_videos").delete().eq("user_id", userId).eq("video_id", videoId);
+}
+
+/** 전체 수집 영상 삭제 */
+export async function clearSavedVideos(userId: string): Promise<void> {
+  const db = getSupabase();
+  if (!db) return;
+
+  await db.from("saved_videos").delete().eq("user_id", userId);
+}
