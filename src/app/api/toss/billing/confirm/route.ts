@@ -13,6 +13,7 @@
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 import { TOSS_PLANS, TossPlanKey } from "@/lib/toss";
+import { upsertSubscription, insertPayment } from "@/lib/db";
 
 export async function GET(req: NextRequest) {
   const { userId } = await auth();
@@ -80,8 +81,19 @@ export async function GET(req: NextRequest) {
     if (!chargeRes.ok) {
       const err = await chargeRes.json().catch(() => ({}));
       console.error("Toss 빌링 결제 실패:", err);
+      // 결제 실패 이력도 DB에 저장
+      await insertPayment({
+        userId,
+        plan,
+        amount: planData.amount,
+        orderId,
+        status: "failed",
+        raw: err,
+      });
       return NextResponse.redirect(new URL("/pricing?error=payment", req.url));
     }
+
+    const chargeData = await chargeRes.json();
 
     // ── Step 3: Clerk 메타데이터 업데이트 ────────────────────────────
     try {
@@ -95,9 +107,27 @@ export async function GET(req: NextRequest) {
         },
       });
     } catch (metaErr) {
-      // 메타데이터 업데이트 실패해도 결제는 완료됨 → 로그만
       console.error("Toss 빌링 메타데이터 업데이트 실패:", metaErr);
     }
+
+    // ── Step 4: DB에 구독 & 결제 이력 저장 ───────────────────────────
+    await Promise.all([
+      upsertSubscription({
+        userId,
+        plan,
+        billingKey,
+        customerKey,
+      }),
+      insertPayment({
+        userId,
+        plan,
+        amount: planData.amount,
+        orderId,
+        paymentKey: chargeData.paymentKey,
+        status: "success",
+        raw: chargeData,
+      }),
+    ]);
 
     return NextResponse.redirect(new URL("/search?upgraded=1", req.url));
   } catch (e) {
