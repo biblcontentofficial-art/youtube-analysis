@@ -26,6 +26,7 @@ if (hasClerk) {
     // 결제 콜백: 외부 서버(Payple/Toss/Stripe)가 인증 없이 호출
     "/api/payple/confirm(.*)",
     "/api/toss/confirm(.*)",
+    "/api/toss/billing/confirm(.*)",
     "/api/stripe/webhook(.*)",
   ]);
   middlewareHandler = clerkMiddleware(async (auth: any, req: NextRequest) => {
