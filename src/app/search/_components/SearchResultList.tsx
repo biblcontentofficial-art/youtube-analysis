@@ -47,13 +47,9 @@ export default function SearchResultList({ initialData, initialToken, query, fil
   // ref 기반 동시 실행 방지
   const isLoadingRef = useRef(false);
 
-  useEffect(() => {
-    setVideos(dedup(initialData || []));
-    setNextToken(initialToken);
-    setOrderPhase(0);
-    setSortKey(null);
-    setCheckedIds(new Set());
-  }, [initialData, initialToken, filter]);
+  // 상태 초기화는 page.tsx의 key={query-filter-count}가 변경될 때
+  // 컴포넌트 리마운트로 처리됨 (useState 초기값이 자동 재설정)
+  // useEffect로 처리하면 서버에서 새 배열 참조가 올 때마다 setSortKey(null) 발동 → 정렬 버그
 
   // 검색마다 플랜 resultLimit 만큼 추가 로드
   // nextToken 소진 시 다음 order로 새 배치 요청
