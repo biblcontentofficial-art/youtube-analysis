@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useCallback } from "react";
+import { createContext, useContext, useState, useCallback, useEffect } from "react";
 
 interface ConfirmOptions {
   message: string;
@@ -30,15 +30,25 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  const handleConfirm = () => {
+  const handleConfirm = useCallback(() => {
     state?.resolve(true);
     setState(null);
-  };
+  }, [state]);
 
-  const handleCancel = () => {
+  const handleCancel = useCallback(() => {
     state?.resolve(false);
     setState(null);
-  };
+  }, [state]);
+
+  useEffect(() => {
+    if (!state) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Enter") { e.preventDefault(); handleConfirm(); }
+      else if (e.key === "Escape") { handleCancel(); }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [state, handleConfirm, handleCancel]);
 
   return (
     <ConfirmContext.Provider value={confirm}>
