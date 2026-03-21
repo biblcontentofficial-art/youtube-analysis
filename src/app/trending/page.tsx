@@ -6,22 +6,23 @@ import { getTrendingRefreshUsage } from "@/lib/trendingLimit";
 import TrendingRefreshButton from "./_components/TrendingRefreshButton";
 
 // YouTube 공식 카테고리 (한국 기준)
+// unsupported: 한국 급상승 차트에서 API가 지원하지 않는 카테고리
 const CATEGORIES = [
-  { id: "",   label: "전체",       emoji: "🔥" },
-  { id: "10", label: "음악",       emoji: "🎵" },
-  { id: "24", label: "엔터테인먼트", emoji: "🎭" },
-  { id: "20", label: "게임",       emoji: "🎮" },
-  { id: "17", label: "스포츠",     emoji: "⚽" },
-  { id: "25", label: "뉴스/정치",  emoji: "📰" },
-  { id: "28", label: "과학/기술",  emoji: "🔬" },
-  { id: "27", label: "교육",       emoji: "📚" },
-  { id: "1",  label: "영화/애니",  emoji: "🎬" },
-  { id: "22", label: "인물/블로그", emoji: "👤" },
-  { id: "23", label: "코미디",     emoji: "😄" },
-  { id: "26", label: "뷰티/스타일", emoji: "💄" },
-  { id: "2",  label: "자동차",     emoji: "🚗" },
-  { id: "15", label: "동물",       emoji: "🐾" },
-  { id: "19", label: "여행",       emoji: "✈️" },
+  { id: "",   label: "전체",        emoji: "🔥", unsupported: false },
+  { id: "10", label: "음악",        emoji: "🎵", unsupported: false },
+  { id: "24", label: "엔터테인먼트", emoji: "🎭", unsupported: false },
+  { id: "20", label: "게임",        emoji: "🎮", unsupported: false },
+  { id: "17", label: "스포츠",      emoji: "⚽", unsupported: false },
+  { id: "25", label: "뉴스/정치",   emoji: "📰", unsupported: false },
+  { id: "28", label: "과학/기술",   emoji: "🔬", unsupported: false },
+  { id: "27", label: "교육",        emoji: "📚", unsupported: true  }, // KR 미지원
+  { id: "1",  label: "영화/애니",   emoji: "🎬", unsupported: false },
+  { id: "22", label: "인물/블로그", emoji: "👤", unsupported: false },
+  { id: "23", label: "코미디",      emoji: "😄", unsupported: false },
+  { id: "26", label: "뷰티/스타일", emoji: "💄", unsupported: false },
+  { id: "2",  label: "자동차",      emoji: "🚗", unsupported: false },
+  { id: "15", label: "동물",        emoji: "🐾", unsupported: false },
+  { id: "19", label: "여행",        emoji: "✈️", unsupported: true  }, // KR 미지원
 ];
 
 const TYPE_TABS = [
@@ -145,14 +146,20 @@ export default async function TrendingPage({ searchParams }: Props) {
                 <Link
                   key={cat.id}
                   href={buildUrl(cat.id, videoType)}
+                  title={cat.unsupported ? "한국 YouTube에서 지원되지 않는 카테고리입니다" : undefined}
                   className={`flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${
                     isActive
                       ? "bg-teal-600 text-white shadow-sm shadow-teal-900"
-                      : "text-gray-400 hover:text-white hover:bg-gray-800"
+                      : cat.unsupported
+                        ? "text-gray-600 hover:text-gray-500 hover:bg-gray-900 line-through decoration-gray-700"
+                        : "text-gray-400 hover:text-white hover:bg-gray-800"
                   }`}
                 >
                   <span>{cat.emoji}</span>
                   <span>{cat.label}</span>
+                  {cat.unsupported && !isActive && (
+                    <span className="text-[9px] text-gray-700 ml-0.5">KR미지원</span>
+                  )}
                 </Link>
               );
             })}
@@ -240,12 +247,19 @@ export default async function TrendingPage({ searchParams }: Props) {
             </Link>
           </div>
         )}
-        {/* 카테고리에 영상이 없는 경우 */}
+        {/* 카테고리에 영상이 없는 경우 (오류 없음 = YouTube 미지원 or 데이터 없음) */}
         {!error && allVideos.length === 0 && (
           <div className="mb-6 p-8 bg-gray-900/50 border border-gray-800 rounded-xl text-center">
             <p className="text-3xl mb-3">{activeCategory.emoji}</p>
-            <p className="text-gray-400 font-medium">{activeCategory.label} 카테고리에 현재 급상승 영상이 없습니다</p>
-            <p className="text-gray-600 text-sm mt-1">다른 카테고리를 선택하거나 잠시 후 다시 확인해주세요.</p>
+            <p className="text-gray-400 font-medium">
+              {activeCategory.id
+                ? `${activeCategory.label} 카테고리는 한국 급상승 차트에서 지원되지 않습니다`
+                : "현재 급상승 영상을 불러올 수 없습니다"}
+            </p>
+            <p className="text-gray-600 text-sm mt-2">다른 카테고리를 선택해주세요.</p>
+            <Link href="/trending" className="inline-block mt-3 text-xs text-teal-400 hover:text-teal-300">
+              전체 보기 →
+            </Link>
           </div>
         )}
         {/* RSS 폴백 안내 */}

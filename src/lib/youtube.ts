@@ -300,22 +300,38 @@ export async function getTrendingVideos(isPaid = false, maxResults = 50, categor
       if (!res.ok) {
         const errBody = await res.json().catch(() => ({}));
         const reason = errBody?.error?.errors?.[0]?.reason ?? "";
+        const errMsg = (errBody?.error?.message ?? "").toLowerCase();
+
+        // 1) 카테고리 자체가 지원 안 됨 → 키 문제 아님, 즉시 빈 결과 반환
+        //    YouTube API: notFound(404) or 400 category error
+        const isCategoryUnsupported =
+          reason === "notFound" ||
+          reason === "videoCategoryNotFound" ||
+          reason === "invalidVideoCategory" ||
+          errMsg.includes("videocategoryid") ||
+          (errMsg.includes("category") && res.status === 400) ||
+          errMsg.includes("not supported for this");
+        if (isCategoryUnsupported) return { items: [] };
+
+        // 2) 쿼터 초과 → 다음 키로
         const isQuota =
           res.status === 403 && (
-            errBody?.error?.message?.toLowerCase().includes("quota") ||
+            errMsg.includes("quota") ||
             reason.toLowerCase().includes("quota") ||
             errBody?.error?.errors?.[0]?.domain?.toLowerCase().includes("quota") ||
             reason === "dailyLimitExceeded" ||
             reason === "quotaExceeded"
           );
+
+        // 3) 키 자체 불량 (badRequest에서 카테고리 오류 제외) → 다음 키로
         const isBadKey =
-          res.status === 400 ||
           res.status === 401 ||
-          reason === "badRequest" ||
           reason === "keyInvalid" ||
-          (errBody?.error?.message ?? "").toLowerCase().includes("not valid");
+          errMsg.includes("not valid") ||
+          (res.status === 400 && !isCategoryUnsupported);
+
         if (isQuota) { lastError = "quota_exceeded"; activeKeyIndex++; continue; }
-        if (isBadKey) { activeKeyIndex++; continue; }  // 무효 키 → 다음 키로
+        if (isBadKey) { activeKeyIndex++; continue; }
         return { items: [], error: "api_error" };
       }
 
