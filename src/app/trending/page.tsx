@@ -22,8 +22,15 @@ const CATEGORIES = [
   { id: "19", label: "여행",       emoji: "✈️" },
 ];
 
+const TYPE_TABS = [
+  { id: "all",    label: "전체",      emoji: "📋" },
+  { id: "long",   label: "일반 영상", emoji: "🎬" },
+  { id: "shorts", label: "쇼츠",     emoji: "⚡" },
+] as const;
+type VideoType = "all" | "long" | "shorts";
+
 interface Props {
-  searchParams: { category?: string };
+  searchParams: { category?: string; type?: string };
 }
 
 export default async function TrendingPage({ searchParams }: Props) {
@@ -51,10 +58,32 @@ export default async function TrendingPage({ searchParams }: Props) {
 
   const isPaid = plan !== "free";
   const categoryId = searchParams.category ?? "";
+  const videoType: VideoType = (searchParams.type as VideoType) ?? "all";
   const activeCategory = CATEGORIES.find(c => c.id === categoryId) ?? CATEGORIES[0];
+  const activeType = TYPE_TABS.find(t => t.id === videoType) ?? TYPE_TABS[0];
 
-  const { items: videos, error } = await getTrendingVideos(isPaid, 50, categoryId);
-  const isRssFallback = !error && videos.length > 0 && videos.every(v => v.viewCount === 0);
+  // YouTube API에서 최대 50개 가져온 뒤 타입 필터링
+  // 쇼츠/일반이 섞여있으므로 충분한 수를 가져와서 필터
+  const fetchCount = videoType === "all" ? 50 : 50;
+  const { items: allVideos, error } = await getTrendingVideos(isPaid, fetchCount, categoryId);
+
+  // 쇼츠 여부: durationSeconds <= 180 (또는 0 = 알 수 없음이면 쇼츠로 처리)
+  const videos = videoType === "all"
+    ? allVideos
+    : videoType === "shorts"
+      ? allVideos.filter(v => v.durationSeconds > 0 && v.durationSeconds <= 180)
+      : allVideos.filter(v => v.durationSeconds === 0 || v.durationSeconds > 180);
+
+  const isRssFallback = !error && allVideos.length > 0 && allVideos.every(v => v.viewCount === 0);
+
+  // 현재 탭에서 카테고리/타입 파라미터 유지하는 URL 생성
+  const buildUrl = (newCategory: string, newType: string) => {
+    const params = new URLSearchParams();
+    if (newCategory) params.set("category", newCategory);
+    if (newType && newType !== "all") params.set("type", newType);
+    const qs = params.toString();
+    return qs ? `/trending?${qs}` : "/trending";
+  };
 
   return (
     <main className="min-h-screen bg-gray-950 text-white">
@@ -95,7 +124,7 @@ export default async function TrendingPage({ searchParams }: Props) {
               return (
                 <Link
                   key={cat.id}
-                  href={cat.id ? `/trending?category=${cat.id}` : "/trending"}
+                  href={buildUrl(cat.id, videoType)}
                   className={`flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${
                     isActive
                       ? "bg-teal-600 text-white shadow-sm shadow-teal-900"
@@ -109,15 +138,54 @@ export default async function TrendingPage({ searchParams }: Props) {
             })}
           </div>
         </div>
+
+        {/* 쇼츠 / 일반 타입 필터 */}
+        <div className="max-w-screen-xl mx-auto px-4 pb-2 flex items-center gap-2">
+          {TYPE_TABS.map(tab => {
+            const isActive = tab.id === videoType;
+            return (
+              <Link
+                key={tab.id}
+                href={buildUrl(categoryId, tab.id)}
+                className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-medium transition-all border ${
+                  isActive
+                    ? tab.id === "shorts"
+                      ? "bg-red-900/60 border-red-700 text-red-300"
+                      : tab.id === "long"
+                        ? "bg-blue-900/60 border-blue-700 text-blue-300"
+                        : "bg-gray-700 border-gray-600 text-white"
+                    : "border-gray-800 text-gray-500 hover:text-gray-300 hover:border-gray-700"
+                }`}
+              >
+                <span>{tab.emoji}</span>
+                <span>{tab.label}</span>
+                {isActive && allVideos.length > 0 && (
+                  <span className="ml-1 opacity-60">{videos.length}</span>
+                )}
+              </Link>
+            );
+          })}
+          <span className="text-[10px] text-gray-700 ml-auto">
+            {videoType === "shorts" ? "재생시간 3분 이하" : videoType === "long" ? "재생시간 3분 초과" : ""}
+          </span>
+        </div>
       </div>
 
       <div className="max-w-screen-xl mx-auto px-4 py-6">
-        {/* 현재 카테고리 표시 */}
+        {/* 현재 카테고리 + 타입 표시 */}
         <div className="flex items-center gap-2 mb-4">
           <span className="text-lg">{activeCategory.emoji}</span>
-          <h2 className="text-sm font-semibold text-white">{activeCategory.label} 인기 급상승 TOP {videos.length || 50}</h2>
+          <h2 className="text-sm font-semibold text-white">
+            {activeCategory.label}
+            {videoType !== "all" && (
+              <span className={`ml-1.5 text-xs font-medium px-1.5 py-0.5 rounded ${
+                videoType === "shorts" ? "text-red-400 bg-red-950/50" : "text-blue-400 bg-blue-950/50"
+              }`}>{activeType.label}</span>
+            )}
+            {" "}인기 급상승
+          </h2>
           {videos.length > 0 && (
-            <span className="text-[11px] text-gray-600 ml-auto">{videos.length}개 영상</span>
+            <span className="text-[11px] text-gray-600 ml-auto">{videos.length}개</span>
           )}
         </div>
 
@@ -134,8 +202,26 @@ export default async function TrendingPage({ searchParams }: Props) {
             <p className="text-gray-400 text-sm mt-1">잠시 후 다시 시도해주세요.</p>
           </div>
         )}
+        {/* 필터 결과 없는 경우 */}
+        {!error && videos.length === 0 && allVideos.length > 0 && (
+          <div className="mb-6 p-8 bg-gray-900/50 border border-gray-800 rounded-xl text-center">
+            <p className="text-3xl mb-3">{activeType.emoji}</p>
+            <p className="text-gray-400 font-medium">
+              {activeCategory.label} · {activeType.label} 영상이 현재 없습니다
+            </p>
+            <p className="text-gray-600 text-sm mt-1">
+              전체 탭에는 {allVideos.length}개 영상이 있습니다.
+            </p>
+            <Link
+              href={buildUrl(categoryId, "all")}
+              className="inline-block mt-3 text-xs text-teal-400 hover:text-teal-300"
+            >
+              전체 보기 →
+            </Link>
+          </div>
+        )}
         {/* 카테고리에 영상이 없는 경우 */}
-        {!error && videos.length === 0 && (
+        {!error && allVideos.length === 0 && (
           <div className="mb-6 p-8 bg-gray-900/50 border border-gray-800 rounded-xl text-center">
             <p className="text-3xl mb-3">{activeCategory.emoji}</p>
             <p className="text-gray-400 font-medium">{activeCategory.label} 카테고리에 현재 급상승 영상이 없습니다</p>
