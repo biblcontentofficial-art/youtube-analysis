@@ -48,7 +48,7 @@ export default function SearchBar() {
   const searchParams = useSearchParams();
   const showConfirm = useConfirm();
   const { showLoading } = useNavigationLoading();
-  const { user } = useUser();
+  const { user, isLoaded } = useUser();
   const [keyword, setKeyword] = useState("");
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [isExpanded, setIsExpanded] = useState(true);
@@ -79,8 +79,9 @@ export default function SearchBar() {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  // 히스토리 로드 — userId 스코핑으로 계정 전환 시 타인 기록 노출 방지
+  // 히스토리 로드 — Clerk isLoaded 확정 후 실행 (플리커 방지)
   useEffect(() => {
+    if (!isLoaded) return; // Clerk가 아직 유저 정보 로딩 중이면 실행하지 않음
     if (!user) {
       // 비로그인: 공유 키 사용 (브라우저 익명)
       setHistory(loadLocalHistory());
@@ -102,7 +103,7 @@ export default function SearchBar() {
       setHistory(loadLocalHistory(user.id));
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id, useServerHistory]);
+  }, [isLoaded, user?.id, useServerHistory]);
 
   useEffect(() => {
     const currentQ = searchParams.get("q");
