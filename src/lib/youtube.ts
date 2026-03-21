@@ -270,7 +270,7 @@ export interface TrendingVideo {
   durationSeconds: number;
 }
 
-export async function getTrendingVideos(isPaid = false, maxResults = 50): Promise<{
+export async function getTrendingVideos(isPaid = false, maxResults = 50, categoryId = ""): Promise<{
   items: TrendingVideo[];
   error?: "quota_exceeded" | "api_error";
 }> {
@@ -283,7 +283,7 @@ export async function getTrendingVideos(isPaid = false, maxResults = 50): Promis
 
   // Redis 캐시 확인 (1시간 TTL — 트렌드는 자주 변경)
   const { cacheGet, cacheSet, trendingCacheKey, TTL } = await import("./cache");
-  const cacheKey = trendingCacheKey("KR", maxResults);
+  const cacheKey = trendingCacheKey("KR", maxResults, categoryId);
   const cached = await cacheGet<TrendingVideo[]>(cacheKey);
   if (cached) return { items: cached };
 
@@ -293,7 +293,8 @@ export async function getTrendingVideos(isPaid = false, maxResults = 50): Promis
   while (activeKeyIndex < apiKeys.length) {
     const apiKey = apiKeys[activeKeyIndex];
     try {
-      const url = `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics,contentDetails&chart=mostPopular&regionCode=KR&maxResults=${maxResults}&key=${apiKey}`;
+      const catParam = categoryId ? `&videoCategoryId=${categoryId}` : "";
+      const url = `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics,contentDetails&chart=mostPopular&regionCode=KR&maxResults=${maxResults}${catParam}&key=${apiKey}`;
       const res = await fetch(url, { cache: "no-store" });
 
       if (!res.ok) {
