@@ -265,7 +265,7 @@ export default function SearchResultList({
       {/* 테이블 헤더 */}
       <div
         className="hidden md:grid items-center gap-2 px-3 py-2.5 bg-gray-900 border border-gray-800 text-[11px] text-gray-500 font-medium rounded-t-lg select-none"
-        style={{ gridTemplateColumns: canAlgorithm ? "32px 36px 110px 1fr 90px 140px 80px 80px 90px 90px" : "32px 36px 110px 1fr 90px 140px 80px 80px 90px" }}
+        style={{ gridTemplateColumns: canAlgorithm ? "32px 36px 110px 1fr 90px 140px 80px 80px 90px 90px 90px" : "32px 36px 110px 1fr 90px 140px 80px 80px 90px 90px" }}
       >
         <div className="flex justify-center">
           <input
@@ -296,6 +296,9 @@ export default function SearchResultList({
             알고리즘 🔥 {renderSortIcon("algorithmScore")}
           </div>
         )}
+        <div className="flex items-center justify-center">
+          트렌드
+        </div>
         <div onClick={() => handleSort("publishedAtRaw")} className="cursor-pointer hover:text-white flex items-center justify-center">
           게시일 {renderSortIcon("publishedAtRaw")}
         </div>

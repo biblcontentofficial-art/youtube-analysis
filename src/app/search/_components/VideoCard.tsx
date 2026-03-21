@@ -1,6 +1,7 @@
 // next/image 대신 <img> 사용 — Vercel Image Optimization 비용 절감
 // YouTube 썸네일은 YouTube CDN이 이미 최적화해서 제공하므로 재최적화 불필요
 import { Video } from "@/types";
+import ViewTrendGraph from "./ViewTrendGraph";
 
 interface Props {
   video: Video;
@@ -72,7 +73,7 @@ export default function VideoCard({ video, checked, onCheck, onClick, canAlgorit
         className={`hidden md:grid items-center gap-2 px-3 py-3 transition-colors group ${
           checked ? "bg-teal-950/20" : "hover:bg-gray-900/60"
         }`}
-        style={{ gridTemplateColumns: canAlgorithm ? "32px 36px 110px 1fr 90px 140px 80px 80px 90px 90px" : "32px 36px 110px 1fr 90px 140px 80px 80px 90px" }}
+        style={{ gridTemplateColumns: canAlgorithm ? "32px 36px 110px 1fr 90px 140px 80px 80px 90px 90px 90px" : "32px 36px 110px 1fr 90px 140px 80px 80px 90px 90px" }}
       >
         {/* 체크박스 */}
         <div className="flex justify-center" onClick={(e) => e.stopPropagation()}>
@@ -135,6 +136,11 @@ export default function VideoCard({ video, checked, onCheck, onClick, canAlgorit
             <AlgorithmBadge score={video.algorithmScore} />
           </div>
         )}
+
+        {/* 조회수 그래프 */}
+        <div className="flex justify-center items-center">
+          <ViewTrendGraph algorithmScore={video.algorithmScore} videoId={video.videoId} />
+        </div>
 
         {/* 게시일 */}
         <div className="text-center">
