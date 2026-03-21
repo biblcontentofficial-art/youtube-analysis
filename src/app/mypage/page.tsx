@@ -5,6 +5,8 @@ import { getSearchUsage } from "@/lib/searchLimit";
 import { getPayments } from "@/lib/db";
 import LogoutButton from "./_components/LogoutButton";
 import RecentSearches from "./_components/RecentSearches";
+import CancelSubscriptionButton from "./_components/CancelSubscriptionButton";
+import DeleteAccountButton from "./_components/DeleteAccountButton";
 
 export default async function MyPage({
   searchParams,
@@ -94,7 +96,7 @@ export default async function MyPage({
           </div>
           {plan !== "free" && (
             <div className="text-xs text-gray-600 mt-1">
-              {plan === 'starter' && '월 200회 검색 (일 최대 20회) · 결과 200건'}
+              {plan === 'starter' && '월 200회 검색 (일 최대 20회) · 결과 100건'}
               {plan === 'pro' && '월 500회 검색 · 결과 500건'}
               {plan === 'business' && '무제한 검색 · 결과 무제한'}
             </div>
@@ -163,6 +165,14 @@ export default async function MyPage({
 
           {/* 로그아웃 */}
           <LogoutButton />
+
+          {/* 구독 취소 (유료 플랜만) */}
+          {plan !== "free" && plan !== "admin" && (
+            <CancelSubscriptionButton />
+          )}
+
+          {/* 계정 삭제 */}
+          <DeleteAccountButton />
         </div>
       </div>
     </main>

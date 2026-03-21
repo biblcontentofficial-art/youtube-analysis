@@ -233,7 +233,7 @@ export default function Home() {
       {/* 요금제 CTA */}
       <div className="border-t border-gray-800 bg-gradient-to-b from-gray-950 to-gray-900 py-16 px-4 text-center">
         <h2 className="text-2xl font-bold text-white mb-3">더 많이 분석하고 싶으신가요?</h2>
-        <p className="text-gray-400 mb-8 max-w-md mx-auto">무료로 하루 2회 검색 가능합니다. 더 많은 검색과 고급 기능은 유료 플랜에서 이용하세요.</p>
+        <p className="text-gray-400 mb-8 max-w-md mx-auto">로그인 후 무료 3회 검색 가능합니다. 더 많은 검색과 고급 기능은 유료 플랜에서 이용하세요.</p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Link
             href="/pricing"
