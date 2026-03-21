@@ -4,6 +4,7 @@ import { createContext, useContext, useState, useCallback, useEffect } from "rea
 
 interface ConfirmOptions {
   message: string;
+  subMessage?: string;
   confirmText?: string;
   cancelText?: string;
 }
@@ -75,9 +76,15 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
               </span>
             </div>
 
-            <p className="text-white text-sm leading-relaxed mb-6">
+            <p className="text-white text-sm leading-relaxed mb-2">
               {state.options.message}
             </p>
+            {state.options.subMessage && (
+              <p className="text-gray-500 text-xs leading-relaxed mb-6">
+                {state.options.subMessage}
+              </p>
+            )}
+            {!state.options.subMessage && <div className="mb-6" />}
 
             <div className="flex gap-2 justify-end">
               <button

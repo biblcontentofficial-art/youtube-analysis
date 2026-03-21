@@ -212,7 +212,10 @@ export default function SearchBar() {
     const currentFilter = searchParams.get("filter");
     const filterParam = currentFilter ? `&filter=${currentFilter}` : "";
 
-    if (!await showConfirm(`"${trimmed}" 검색하시겠습니까?`)) return;
+    if (!await showConfirm({
+      message: `"${trimmed}" 검색하시겠습니까?`,
+      subMessage: "확인 시 검색 사용량 1회가 차감됩니다.",
+    })) return;
 
     saveToHistory(trimmed);
 
