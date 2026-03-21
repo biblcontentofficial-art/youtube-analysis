@@ -288,6 +288,7 @@ export async function getTrendingVideos(isPaid = false, maxResults = 50): Promis
   if (cached) return { items: cached };
 
   let activeKeyIndex = 0;
+  let lastError: "quota_exceeded" | "api_error" = "api_error";
 
   while (activeKeyIndex < apiKeys.length) {
     const apiKey = apiKeys[activeKeyIndex];
@@ -297,9 +298,22 @@ export async function getTrendingVideos(isPaid = false, maxResults = 50): Promis
 
       if (!res.ok) {
         const errBody = await res.json().catch(() => ({}));
-        const isQuota = res.status === 403 && errBody?.error?.message?.includes("quota");
-        if (isQuota && activeKeyIndex + 1 < apiKeys.length) { activeKeyIndex++; continue; }
-        if (isQuota) return { items: [], error: "quota_exceeded" };
+        console.error(`[trending] API error status=${res.status} key[${activeKeyIndex}] body=`, JSON.stringify(errBody).slice(0, 300));
+        const isQuota =
+          res.status === 403 && (
+            errBody?.error?.message?.toLowerCase().includes("quota") ||
+            errBody?.error?.errors?.[0]?.reason?.toLowerCase().includes("quota") ||
+            errBody?.error?.errors?.[0]?.domain?.toLowerCase().includes("quota") ||
+            errBody?.error?.errors?.[0]?.reason === "dailyLimitExceeded" ||
+            errBody?.error?.errors?.[0]?.reason === "quotaExceeded"
+          );
+        if (isQuota) {
+          lastError = "quota_exceeded";
+          activeKeyIndex++;
+          continue;
+        }
+        // 401 = 키 자체가 잘못됨 → 다음 키 시도
+        if (res.status === 401) { activeKeyIndex++; continue; }
         return { items: [], error: "api_error" };
       }
 
@@ -310,7 +324,7 @@ export async function getTrendingVideos(isPaid = false, maxResults = 50): Promis
       const channelIds = [...new Set(data.items.map((v: any) => v.snippet.channelId))].join(",");
       const chUrl = `https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics&id=${channelIds}&key=${apiKey}`;
       const chRes = await fetch(chUrl, { cache: "no-store" });
-      const chData = await chRes.json();
+      const chData = await chRes.json().catch(() => ({ items: [] }));
       const channelMap: Record<string, { sub: number; thumb: string }> = {};
       (chData.items || []).forEach((ch: any) => {
         channelMap[ch.id] = {
@@ -343,11 +357,13 @@ export async function getTrendingVideos(isPaid = false, maxResults = 50): Promis
       await cacheSet(cacheKey, items, TTL.TRENDING);
       return { items };
     } catch {
-      return { items: [], error: "api_error" };
+      // 네트워크 오류 등 예외 → 다음 키 시도
+      activeKeyIndex++;
+      continue;
     }
   }
 
-  return { items: [], error: "api_error" };
+  return { items: [], error: lastError };
 }
 
 export async function searchVideos(query: string, filter?: string, pageToken?: string, isPaid: boolean = false, order: string = "relevance", regionCode: string = "KR"): Promise<{
