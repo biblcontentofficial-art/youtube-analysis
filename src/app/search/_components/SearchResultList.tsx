@@ -57,6 +57,7 @@ export default function SearchResultList({
   const [pageTokenLong, setPageTokenLong] = useState<string | undefined>(initPageTokenLong);
   const [pageTokenShorts, setPageTokenShorts] = useState<string | undefined>(initPageTokenShorts);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [exhausted, setExhausted] = useState(false);
 
   // 토큰 소진 시 다른 정렬로 폴백: relevance → date → viewCount
   const LOAD_ORDERS = ["relevance", "date", "viewCount"] as const;
@@ -103,9 +104,9 @@ export default function SearchResultList({
     else setCheckedIds(new Set(sortedVideos.map((v) => v.videoId)));
   };
 
-  // 더보기 — 토큰 소진 시 다음 order로 자동 폴백
+  // 더보기 — relevance 우선, 소진 시 date → viewCount 폴백
   const handleLoadMore = useCallback(async () => {
-    if (isLoadingMore) return;
+    if (isLoadingMore || exhausted) return;
     if (videos.length >= resultLimit) return;
     setIsLoadingMore(true);
     try {
@@ -115,16 +116,21 @@ export default function SearchResultList({
         const hasTokens = pageTokenLong || pageTokenShorts;
 
         if (!hasTokens) {
-          // 현재 order 소진 → 다음 order로 전환 (token 없이 새 batch)
+          // 현재 order 소진 → 다음 order로 전환
           const nextIdx = orderIdx + 1;
-          if (nextIdx >= LOAD_ORDERS.length) return;
+          if (nextIdx >= LOAD_ORDERS.length) { setExhausted(true); return; }
           setOrderIdx(nextIdx);
           const nextOrder = LOAD_ORDERS[nextIdx];
           const [longRes, shortsRes] = await Promise.all([
             getMoreVideos(query, "long", undefined, nextOrder, region),
             getMoreVideos(query, "shorts", undefined, nextOrder, region),
           ]);
-          setVideos((prev) => dedup([...prev, ...(longRes.items || []), ...(shortsRes.items || [])]));
+          const newItems = [...(longRes.items || []), ...(shortsRes.items || [])];
+          setVideos((prev) => {
+            const updated = dedup([...prev, ...newItems]);
+            if (updated.length === prev.length && !longRes.nextPageToken && !shortsRes.nextPageToken) setExhausted(true);
+            return updated;
+          });
           setPageTokenLong(longRes.nextPageToken);
           setPageTokenShorts(shortsRes.nextPageToken);
         } else {
@@ -136,7 +142,12 @@ export default function SearchResultList({
               ? getMoreVideos(query, "shorts", pageTokenShorts, currentOrder, region)
               : Promise.resolve({ items: [], nextPageToken: undefined, error: null }),
           ]);
-          setVideos((prev) => dedup([...prev, ...(longRes.items || []), ...(shortsRes.items || [])]));
+          const newItems = [...(longRes.items || []), ...(shortsRes.items || [])];
+          setVideos((prev) => {
+            const updated = dedup([...prev, ...newItems]);
+            if (updated.length === prev.length && !longRes.nextPageToken && !shortsRes.nextPageToken) setExhausted(true);
+            return updated;
+          });
           setPageTokenLong(longRes.nextPageToken);
           setPageTokenShorts(shortsRes.nextPageToken);
         }
@@ -144,15 +155,23 @@ export default function SearchResultList({
         if (!pageToken) {
           // 현재 order 소진 → 다음 order로 전환
           const nextIdx = orderIdx + 1;
-          if (nextIdx >= LOAD_ORDERS.length) return;
+          if (nextIdx >= LOAD_ORDERS.length) { setExhausted(true); return; }
           setOrderIdx(nextIdx);
           const nextOrder = LOAD_ORDERS[nextIdx];
           const result = await getMoreVideos(query, filter, undefined, nextOrder, region);
-          setVideos((prev) => dedup([...prev, ...(result.items || [])]));
+          setVideos((prev) => {
+            const updated = dedup([...prev, ...(result.items || [])]);
+            if (updated.length === prev.length && !result.nextPageToken) setExhausted(true);
+            return updated;
+          });
           setPageToken(result.nextPageToken);
         } else {
           const result = await getMoreVideos(query, filter, pageToken, currentOrder, region);
-          setVideos((prev) => dedup([...prev, ...(result.items || [])]));
+          setVideos((prev) => {
+            const updated = dedup([...prev, ...(result.items || [])]);
+            if (updated.length === prev.length && !result.nextPageToken) setExhausted(true);
+            return updated;
+          });
           setPageToken(result.nextPageToken);
         }
       }
@@ -161,13 +180,10 @@ export default function SearchResultList({
     } finally {
       setIsLoadingMore(false);
     }
-  }, [filter, isLoadingMore, orderIdx, pageToken, pageTokenLong, pageTokenShorts, query, resultLimit, videos.length, region]);
+  }, [filter, isLoadingMore, exhausted, orderIdx, pageToken, pageTokenLong, pageTokenShorts, query, resultLimit, videos.length, region]);
 
-  // 더보기 가능 여부: 토큰 있거나 || 아직 시도할 order가 남았으면 표시
-  const hasMore = canLoadMore && videos.length < resultLimit && (
-    orderIdx < LOAD_ORDERS.length - 1 ||
-    (filter === "all" ? (!!pageTokenLong || !!pageTokenShorts) : !!pageToken)
-  );
+  // 더보기 가능 여부: resultLimit 미만이고 소진되지 않았으면 항상 표시
+  const hasMore = canLoadMore && videos.length < resultLimit && !exhausted;
 
   // 영상 수집: Pro/Business 전용 — CSV 다운로드 + 서버 저장
   const handleCollect = useCallback(async () => {

@@ -35,7 +35,7 @@ export const PLANS: Record<PlanKey, PlanConfig> = {
     priceId: null,
     dailySearchLimit: 3,
     monthlySearchLimit: null,
-    resultLimit: 20,
+    resultLimit: 30,
     canLoadMore: true,
     maxTeamSize: 1,
     canCollect: false,

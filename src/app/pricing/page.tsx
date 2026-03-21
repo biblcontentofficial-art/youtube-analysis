@@ -12,7 +12,7 @@ const PLANS = [
     badge: null,
     usage: [
       { text: "검색 3회/일" },
-      { text: "검색 결과 20건 + 더보기" },
+      { text: "검색 결과 30건 + 더보기" },
     ],
     features: [
       { text: "아웃라이어 · 반응도 확인" },
