@@ -33,13 +33,30 @@ export default async function TrendingPage() {
 
   return (
     <main className="min-h-screen bg-gray-950 text-white">
-      <div className="border-b border-gray-800 bg-gray-900/40 px-4 py-3">
-        <div className="max-w-screen-xl mx-auto flex items-center justify-between">
-          <div>
-            <h1 className="text-base font-bold text-white">📊 한국 트렌드 분석</h1>
-            <p className="text-xs text-gray-500 mt-0.5">YouTube 한국 인기 급상승 동영상 실시간 TOP 50</p>
+      <div className="border-b border-gray-800 bg-gray-900/40 px-4 py-4">
+        <div className="max-w-screen-xl mx-auto">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-base font-bold text-white">📊 한국 트렌드 분석</h1>
+              <p className="text-xs text-gray-500 mt-0.5">YouTube 한국 인기 급상승 동영상 실시간 TOP 50</p>
+            </div>
+            <span className="text-xs text-teal-600 bg-teal-950/50 border border-teal-900 px-2.5 py-1 rounded-full">🔄 매시간 자동 갱신</span>
           </div>
-          <span className="text-xs text-gray-600">매시간 자동 갱신</span>
+          {/* 기준 설명 배지 */}
+          <div className="flex flex-wrap gap-2 mt-3">
+            <span className="inline-flex items-center gap-1.5 text-[11px] text-gray-400 bg-gray-800/60 border border-gray-700 px-3 py-1.5 rounded-full">
+              <span className="text-teal-400">📍</span> YouTube 공식 인기급상승 기준
+            </span>
+            <span className="inline-flex items-center gap-1.5 text-[11px] text-gray-400 bg-gray-800/60 border border-gray-700 px-3 py-1.5 rounded-full">
+              <span className="text-blue-400">🌏</span> 한국(KR) 지역 한정
+            </span>
+            <span className="inline-flex items-center gap-1.5 text-[11px] text-gray-400 bg-gray-800/60 border border-gray-700 px-3 py-1.5 rounded-full">
+              <span className="text-yellow-400">⚡</span> 조회수·구독자 실시간 반영
+            </span>
+            <span className="inline-flex items-center gap-1.5 text-[11px] text-gray-400 bg-gray-800/60 border border-gray-700 px-3 py-1.5 rounded-full">
+              <span className="text-purple-400">🎯</span> Shorts / 일반 영상 구분 표시
+            </span>
+          </div>
         </div>
       </div>
 
