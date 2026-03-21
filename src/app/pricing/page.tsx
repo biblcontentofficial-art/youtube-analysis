@@ -1,4 +1,5 @@
 import PricingButton from "./_components/PricingButtons";
+import FaqAccordion from "./_components/FaqAccordion";
 
 type Feature = { text: string; disabled?: boolean; comingSoon?: boolean };
 
@@ -189,6 +190,9 @@ export default function PricingPage() {
           <p>모든 플랜은 카드 결제를 지원합니다.</p>
           <p>구독은 언제든지 취소 가능하며 남은 기간은 환불 처리됩니다.</p>
         </div>
+
+        {/* FAQ */}
+        <FaqAccordion />
       </div>
     </main>
   );
