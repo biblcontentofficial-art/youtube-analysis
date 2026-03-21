@@ -12,14 +12,16 @@ const PLANS = [
     color: "border-gray-800",
     badge: null,
     usage: [
-      { text: "검색 3회/일" },
+      { text: "영상 검색 3회/일" },
       { text: "검색 결과 30건 + 더보기" },
+      { text: "채널 검색 30회/월" },
     ],
     features: [
       { text: "아웃라이어 · 반응도 확인" },
       { text: "기본 필터 (전체/쇼츠)" },
       { text: "알고리즘 확률 확인", disabled: true },
       { text: "검색 기록 저장", disabled: true },
+      { text: "영상 수집 · 내보내기", disabled: true },
     ] as Feature[],
     cta: "무료로 시작",
     ctaStyle: "bg-gray-800 hover:bg-gray-700 text-white border border-gray-700",
@@ -33,8 +35,9 @@ const PLANS = [
     color: "border-gray-600",
     badge: null,
     usage: [
-      { text: "검색 200회/월 (일 최대 20회)" },
+      { text: "영상 검색 200회/월 (일 최대 20회)" },
       { text: "검색 결과 100건 + 더보기" },
+      { text: "채널 검색 100회/월" },
     ],
     features: [
       { text: "아웃라이어 · 반응도 확인" },
@@ -56,8 +59,9 @@ const PLANS = [
     color: "border-teal-500",
     badge: "추천",
     usage: [
-      { text: "검색 500회/월 (팀 최대 2명)" },
+      { text: "영상 검색 500회/월 (팀 최대 2명)" },
       { text: "검색 결과 500건 + 더보기" },
+      { text: "채널 검색 500회/월" },
     ],
     features: [
       { text: "아웃라이어 · 반응도 확인" },
@@ -80,8 +84,9 @@ const PLANS = [
     color: "border-purple-600",
     badge: null,
     usage: [
-      { text: "검색 무제한 (팀 최대 5명)" },
+      { text: "영상 검색 무제한 (팀 최대 5명)" },
       { text: "검색 결과 1,000건 + 더보기" },
+      { text: "채널 검색 무제한" },
     ],
     features: [
       { text: "Pro 모든 기능 포함" },

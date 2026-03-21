@@ -2,7 +2,8 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getSearchUsage } from "@/lib/searchLimit";
-import { getPayments } from "@/lib/db";
+import { getChannelUsage } from "@/lib/channelLimit";
+import { getPayments, getSubscription } from "@/lib/db";
 import LogoutButton from "./_components/LogoutButton";
 import RecentSearches from "./_components/RecentSearches";
 import CancelSubscriptionButton from "./_components/CancelSubscriptionButton";
@@ -24,7 +25,16 @@ export default async function MyPage({
     usage = await getSearchUsage();
   } catch {}
 
-  const payments = await getPayments(userId).catch(() => []);
+  let chUsage = { used: 0, limit: 30, unlimited: false };
+  try {
+    const cu = await getChannelUsage();
+    chUsage = { used: cu.used, limit: cu.limit, unlimited: cu.unlimited };
+  } catch {}
+
+  const [payments, subscription] = await Promise.all([
+    getPayments(userId).catch(() => []),
+    getSubscription(userId).catch(() => null),
+  ]);
 
   const planLabels: Record<string, string> = {
     free: "Free",
@@ -102,17 +112,17 @@ export default async function MyPage({
             </div>
           )}
 
-          {/* 사용량 */}
+          {/* 검색 사용량 */}
           <div className="bg-gray-800/50 rounded-xl p-4">
             <p className="text-gray-500 text-xs mb-2">
-              {usage.isMonthly ? "이번달 검색 사용량" : "오늘 검색 사용량"}
+              {usage.isMonthly ? "이번달 영상 검색" : "오늘 영상 검색"}
             </p>
             <div className="flex items-center justify-between mb-2">
               <span className="text-white font-bold text-lg">
                 {usage.unlimited ? `${usage.used}회 사용` : `${usage.used} / ${usage.limit}회`}
               </span>
               <span className="text-gray-600 text-xs">
-                {usage.unlimited ? "무제한" : usage.isMonthly ? "매월 1일 리셋" : "매일 오전 09:00 (KST) 리셋"}
+                {usage.unlimited ? "무제한" : usage.isMonthly ? "매월 1일 리셋" : "매일 09:00 (KST) 리셋"}
               </span>
             </div>
             {!usage.unlimited && (
@@ -124,6 +134,42 @@ export default async function MyPage({
               </div>
             )}
           </div>
+
+          {/* 채널 검색 사용량 */}
+          <div className="bg-gray-800/50 rounded-xl p-4">
+            <p className="text-gray-500 text-xs mb-2">이번달 채널 검색</p>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-white font-bold text-lg">
+                {chUsage.unlimited ? `${chUsage.used}회 사용` : `${chUsage.used} / ${chUsage.limit}회`}
+              </span>
+              <span className="text-gray-600 text-xs">
+                {chUsage.unlimited ? "무제한" : "매월 1일 리셋"}
+              </span>
+            </div>
+            {!chUsage.unlimited && (
+              <div className="w-full bg-gray-700 rounded-full h-1.5">
+                <div
+                  className="bg-purple-500 h-1.5 rounded-full transition-all"
+                  style={{ width: `${chUsage.limit > 0 ? Math.min((chUsage.used / chUsage.limit) * 100, 100) : 0}%` }}
+                />
+              </div>
+            )}
+          </div>
+
+          {/* 다음 결제일 */}
+          {subscription?.next_billing_at && plan !== "free" && (
+            <div className="bg-gray-800/50 rounded-xl p-4 flex items-center justify-between">
+              <div>
+                <p className="text-gray-500 text-xs mb-1">다음 결제일</p>
+                <p className="text-white font-semibold text-sm">
+                  {new Date(subscription.next_billing_at).toLocaleDateString("ko-KR", {
+                    year: "numeric", month: "long", day: "numeric",
+                  })}
+                </p>
+              </div>
+              <span className="text-xs text-gray-600">자동 갱신</span>
+            </div>
+          )}
 
           {/* 결제 내역 */}
           {payments.length > 0 && (

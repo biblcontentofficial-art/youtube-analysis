@@ -7,19 +7,66 @@ interface Props {
   initialVideos: SavedVideo[];
 }
 
+type SortOption = "saved_at_desc" | "saved_at_asc" | "view_count_desc" | "score";
+
 export default function SavedVideoList({ initialVideos }: Props) {
   const [videos, setVideos] = useState<SavedVideo[]>(initialVideos);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [filterQuery, setFilterQuery] = useState("");
+  const [sortBy, setSortBy] = useState<SortOption>("saved_at_desc");
 
   const uniqueQueries = [...new Set(videos.map((v) => v.query).filter(Boolean))] as string[];
 
-  const filtered = videos.filter((v) => {
-    const matchSearch = !search || v.title.toLowerCase().includes(search.toLowerCase()) || v.channel_title?.toLowerCase().includes(search.toLowerCase());
-    const matchQuery = !filterQuery || v.query === filterQuery;
-    return matchSearch && matchQuery;
-  });
+  const handleExportCsv = () => {
+    const rows = [
+      ["제목", "채널", "조회수", "구독자", "반응도", "업로드일", "검색키워드", "수집일", "YouTube URL"],
+      ...filtered.map((v) => [
+        `"${(v.title || "").replace(/"/g, '""')}"`,
+        `"${(v.channel_title || "").replace(/"/g, '""')}"`,
+        v.view_count ?? "",
+        v.subscriber_count ?? "",
+        v.score ?? "",
+        v.published_at?.slice(0, 10) ?? "",
+        `"${(v.query || "").replace(/"/g, '""')}"`,
+        v.saved_at?.slice(0, 10) ?? "",
+        `"https://youtube.com/watch?v=${v.video_id}"`,
+      ]),
+    ];
+    const csv = "\uFEFF" + rows.map((r) => r.join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `bibl_saved_videos_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const scoreOrder: Record<string, number> = { Good: 0, Normal: 1, Bad: 2 };
+
+  const filtered = videos
+    .filter((v) => {
+      const matchSearch = !search || v.title.toLowerCase().includes(search.toLowerCase()) || v.channel_title?.toLowerCase().includes(search.toLowerCase());
+      const matchQuery = !filterQuery || v.query === filterQuery;
+      return matchSearch && matchQuery;
+    })
+    .sort((a, b) => {
+      switch (sortBy) {
+        case "saved_at_asc":
+          return (a.saved_at ?? "").localeCompare(b.saved_at ?? "");
+        case "view_count_desc":
+          return (b.view_count ?? 0) - (a.view_count ?? 0);
+        case "score":
+          return (scoreOrder[a.score ?? ""] ?? 9) - (scoreOrder[b.score ?? ""] ?? 9);
+        default: // saved_at_desc
+          return (b.saved_at ?? "").localeCompare(a.saved_at ?? "");
+      }
+    });
+
+  // 통계
+  const totalViews = videos.reduce((sum, v) => sum + (v.view_count ?? 0), 0);
+  const goodCount = videos.filter((v) => v.score === "Good").length;
 
   const handleDelete = async (videoId: string) => {
     setDeleting(videoId);
@@ -63,6 +110,22 @@ export default function SavedVideoList({ initialVideos }: Props) {
 
   return (
     <div>
+      {/* 통계 요약 */}
+      <div className="grid grid-cols-3 gap-3 mb-5">
+        <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 text-center">
+          <p className="text-2xl font-bold text-white">{videos.length}</p>
+          <p className="text-xs text-gray-500 mt-1">수집된 영상</p>
+        </div>
+        <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 text-center">
+          <p className="text-2xl font-bold text-teal-400">{totalViews >= 1000000 ? `${(totalViews / 1000000).toFixed(1)}M` : totalViews >= 1000 ? `${(totalViews / 1000).toFixed(0)}K` : totalViews.toLocaleString()}</p>
+          <p className="text-xs text-gray-500 mt-1">총 조회수 합계</p>
+        </div>
+        <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 text-center">
+          <p className="text-2xl font-bold text-yellow-400">{goodCount}</p>
+          <p className="text-xs text-gray-500 mt-1">Good 반응도</p>
+        </div>
+      </div>
+
       {/* 필터 / 검색 바 */}
       <div className="flex flex-wrap items-center gap-3 mb-4">
         <input
@@ -84,7 +147,24 @@ export default function SavedVideoList({ initialVideos }: Props) {
             ))}
           </select>
         )}
+        <select
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value as SortOption)}
+          className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-teal-600 transition"
+        >
+          <option value="saved_at_desc">최신 수집순</option>
+          <option value="saved_at_asc">오래된 수집순</option>
+          <option value="view_count_desc">조회수 높은순</option>
+          <option value="score">반응도순</option>
+        </select>
         <span className="text-xs text-gray-500 ml-auto">총 {filtered.length}개</span>
+        <button
+          onClick={handleExportCsv}
+          disabled={filtered.length === 0}
+          className="text-xs border border-gray-700 hover:border-gray-500 text-gray-400 hover:text-white px-3 py-1.5 rounded-lg transition flex items-center gap-1 disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          ⬇ CSV 내보내기
+        </button>
         <button
           onClick={handleClearAll}
           className="text-xs text-red-500 hover:text-red-400 border border-red-900/50 hover:border-red-700 px-3 py-1.5 rounded-lg transition"

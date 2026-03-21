@@ -199,11 +199,11 @@ export default function Home() {
 
       {/* 기능 소개 */}
       <div className="bg-gray-900/30">
-        <div className="max-w-5xl mx-auto px-4 py-16 grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="max-w-5xl mx-auto px-4 py-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           <FeatureCard
             icon="📈"
             title="반응도 분석"
-            desc="영상의 조회수·구독자 비율로 실제 성과를 Good / Normal / Bad 로 즉시 판단합니다"
+            desc="조회수·구독자 비율로 실제 성과를 Good / Normal / Bad 로 즉시 판단합니다"
           />
           <FeatureCard
             icon="🔍"
@@ -211,9 +211,14 @@ export default function Home() {
             desc="검색 키워드의 최신 영상을 실시간으로 수집하여 트렌드를 빠르게 파악합니다"
           />
           <FeatureCard
+            icon="📺"
+            title="채널 찾기"
+            desc="주제·분야로 성장 중인 채널을 발견합니다. 구독자 급상승·신생 채널 필터 제공"
+          />
+          <FeatureCard
             icon="📋"
-            title="채널 인사이트"
-            desc="채널 평균 조회수 대비 반응도를 계산해 숨겨진 히트 채널을 발견합니다"
+            title="영상 수집"
+            desc="마음에 드는 영상을 수집하고 CSV로 내보내 벤치마킹·레퍼런스 관리에 활용하세요"
           />
         </div>
       </div>
@@ -233,7 +238,10 @@ export default function Home() {
       {/* 요금제 CTA */}
       <div className="border-t border-gray-800 bg-gradient-to-b from-gray-950 to-gray-900 py-16 px-4 text-center">
         <h2 className="text-2xl font-bold text-white mb-3">더 많이 분석하고 싶으신가요?</h2>
-        <p className="text-gray-400 mb-8 max-w-md mx-auto">로그인 후 무료 3회 검색 가능합니다. 더 많은 검색과 고급 기능은 유료 플랜에서 이용하세요.</p>
+        <p className="text-gray-400 mb-8 max-w-lg mx-auto">
+          무료로 시작하고, 필요할 때 업그레이드하세요.<br className="hidden sm:block" />
+          영상 검색 · 채널 찾기 · 영상 수집까지 — 크리에이터에게 필요한 모든 것
+        </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Link
             href="/pricing"
