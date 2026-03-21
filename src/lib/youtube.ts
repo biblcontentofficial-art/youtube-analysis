@@ -183,63 +183,75 @@ export async function searchChannels(query: string, isPaid = false): Promise<{
   items: ChannelResult[];
   error?: "quota_exceeded" | "api_error";
 }> {
+  if (!query) return { items: [] };
+
   let apiKeys: string[];
   try {
     apiKeys = getAllApiKeys(isPaid);
   } catch {
     return { items: [], error: "api_error" };
   }
-  if (!query) return { items: [] };
+
+  // Redis 캐시 확인 (24h TTL)
+  const { cacheGet, cacheSet, channelSearchCacheKey, TTL } = await import("./cache");
+  const cacheKey = channelSearchCacheKey(query);
+  const cached = await cacheGet<ChannelResult[]>(cacheKey);
+  if (cached) return { items: cached };
 
   let activeKeyIndex = 0;
 
-  try {
+  while (activeKeyIndex < apiKeys.length) {
     const apiKey = apiKeys[activeKeyIndex];
-    const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=id&q=${encodeURIComponent(query)}&type=channel&maxResults=20&key=${apiKey}`;
-    let searchRes = await fetch(searchUrl, { cache: "no-store" });
+    try {
+      const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=id&q=${encodeURIComponent(query)}&type=channel&maxResults=20&key=${apiKey}`;
+      const searchRes = await fetch(searchUrl, { cache: "no-store" });
 
-    if (!searchRes.ok) {
-      const errBody = await searchRes.json().catch(() => ({}));
-      const isQuota = searchRes.status === 403 && errBody?.error?.message?.includes("quota");
-      if (isQuota) return { items: [], error: "quota_exceeded" };
+      if (!searchRes.ok) {
+        const errBody = await searchRes.json().catch(() => ({}));
+        const isQuota = searchRes.status === 403 && errBody?.error?.message?.includes("quota");
+        if (isQuota && activeKeyIndex + 1 < apiKeys.length) { activeKeyIndex++; continue; }
+        if (isQuota) return { items: [], error: "quota_exceeded" };
+        return { items: [], error: "api_error" };
+      }
+
+      const searchData = await searchRes.json();
+      if (!searchData.items?.length) return { items: [] };
+
+      const channelIds = searchData.items.map((item: any) => item.id.channelId).join(",");
+      const channelUrl = `https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics&id=${channelIds}&key=${apiKey}`;
+      const channelRes = await fetch(channelUrl, { cache: "no-store" });
+      const channelData = await channelRes.json();
+      if (!channelData.items) return { items: [] };
+
+      const items: ChannelResult[] = channelData.items.map((ch: any) => {
+        const subCount = parseInt(ch.statistics?.subscriberCount || "0");
+        const videoCount = parseInt(ch.statistics?.videoCount || "0");
+        const totalViews = parseInt(ch.statistics?.viewCount || "0");
+        const avgViews = videoCount > 0 ? Math.floor(totalViews / videoCount) : 0;
+        return {
+          channelId: ch.id,
+          title: ch.snippet.title,
+          description: ch.snippet.description || "",
+          thumbnail: ch.snippet.thumbnails?.medium?.url || ch.snippet.thumbnails?.default?.url || "",
+          subscriberCount: subCount,
+          subscriberCountFormatted: formatCount(subCount),
+          videoCount,
+          viewCount: totalViews,
+          avgViewsPerVideo: avgViews,
+          avgViewsFormatted: formatCount(avgViews),
+          customUrl: ch.snippet.customUrl,
+          country: ch.snippet.country,
+        };
+      });
+
+      await cacheSet(cacheKey, items, TTL.CHANNEL);
+      return { items };
+    } catch {
       return { items: [], error: "api_error" };
     }
-
-    const searchData = await searchRes.json();
-    if (!searchData.items?.length) return { items: [] };
-
-    const channelIds = searchData.items.map((item: any) => item.id.channelId).join(",");
-    const channelUrl = `https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics&id=${channelIds}&key=${apiKeys[activeKeyIndex]}`;
-    const channelRes = await fetch(channelUrl, { cache: "no-store" });
-    const channelData = await channelRes.json();
-
-    if (!channelData.items) return { items: [] };
-
-    const items: ChannelResult[] = channelData.items.map((ch: any) => {
-      const subCount = parseInt(ch.statistics?.subscriberCount || "0");
-      const videoCount = parseInt(ch.statistics?.videoCount || "0");
-      const totalViews = parseInt(ch.statistics?.viewCount || "0");
-      const avgViews = videoCount > 0 ? Math.floor(totalViews / videoCount) : 0;
-      return {
-        channelId: ch.id,
-        title: ch.snippet.title,
-        description: ch.snippet.description || "",
-        thumbnail: ch.snippet.thumbnails?.medium?.url || ch.snippet.thumbnails?.default?.url || "",
-        subscriberCount: subCount,
-        subscriberCountFormatted: formatCount(subCount),
-        videoCount,
-        viewCount: totalViews,
-        avgViewsPerVideo: avgViews,
-        avgViewsFormatted: formatCount(avgViews),
-        customUrl: ch.snippet.customUrl,
-        country: ch.snippet.country,
-      };
-    });
-
-    return { items };
-  } catch {
-    return { items: [], error: "api_error" };
   }
+
+  return { items: [], error: "api_error" };
 }
 
 export interface TrendingVideo {
@@ -269,61 +281,73 @@ export async function getTrendingVideos(isPaid = false, maxResults = 50): Promis
     return { items: [], error: "api_error" };
   }
 
+  // Redis 캐시 확인 (1시간 TTL — 트렌드는 자주 변경)
+  const { cacheGet, cacheSet, trendingCacheKey, TTL } = await import("./cache");
+  const cacheKey = trendingCacheKey("KR", maxResults);
+  const cached = await cacheGet<TrendingVideo[]>(cacheKey);
+  if (cached) return { items: cached };
+
   let activeKeyIndex = 0;
 
-  try {
+  while (activeKeyIndex < apiKeys.length) {
     const apiKey = apiKeys[activeKeyIndex];
-    const url = `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics,contentDetails&chart=mostPopular&regionCode=KR&maxResults=${maxResults}&key=${apiKey}`;
-    const res = await fetch(url, { cache: "no-store", next: { revalidate: 3600 } });
+    try {
+      const url = `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics,contentDetails&chart=mostPopular&regionCode=KR&maxResults=${maxResults}&key=${apiKey}`;
+      const res = await fetch(url, { cache: "no-store" });
 
-    if (!res.ok) {
-      const errBody = await res.json().catch(() => ({}));
-      const isQuota = res.status === 403 && errBody?.error?.message?.includes("quota");
-      if (isQuota) return { items: [], error: "quota_exceeded" };
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({}));
+        const isQuota = res.status === 403 && errBody?.error?.message?.includes("quota");
+        if (isQuota && activeKeyIndex + 1 < apiKeys.length) { activeKeyIndex++; continue; }
+        if (isQuota) return { items: [], error: "quota_exceeded" };
+        return { items: [], error: "api_error" };
+      }
+
+      const data = await res.json();
+      if (!data.items?.length) return { items: [] };
+
+      // 채널 통계 조회 — 같은 키 사용
+      const channelIds = [...new Set(data.items.map((v: any) => v.snippet.channelId))].join(",");
+      const chUrl = `https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics&id=${channelIds}&key=${apiKey}`;
+      const chRes = await fetch(chUrl, { cache: "no-store" });
+      const chData = await chRes.json();
+      const channelMap: Record<string, { sub: number; thumb: string }> = {};
+      (chData.items || []).forEach((ch: any) => {
+        channelMap[ch.id] = {
+          sub: parseInt(ch.statistics?.subscriberCount || "0"),
+          thumb: ch.snippet?.thumbnails?.default?.url || "",
+        };
+      });
+
+      const items: TrendingVideo[] = data.items.map((item: any) => {
+        const viewCount = parseInt(item.statistics?.viewCount || "0");
+        const ch = channelMap[item.snippet.channelId] || { sub: 0, thumb: "" };
+        const durationSec = parseDuration(item.contentDetails?.duration || "");
+        return {
+          videoId: item.id,
+          title: item.snippet.title,
+          thumbnail: item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url || "",
+          channelTitle: item.snippet.channelTitle,
+          channelId: item.snippet.channelId,
+          channelThumbnail: ch.thumb,
+          viewCount,
+          viewCountFormatted: formatCount(viewCount) + "회",
+          subscriberCount: ch.sub,
+          subscriberCountFormatted: formatCount(ch.sub),
+          publishedAt: item.snippet.publishedAt?.split("T")[0] || "",
+          duration: formatDuration(durationSec),
+          durationSeconds: durationSec,
+        };
+      });
+
+      await cacheSet(cacheKey, items, TTL.TRENDING);
+      return { items };
+    } catch {
       return { items: [], error: "api_error" };
     }
-
-    const data = await res.json();
-    if (!data.items?.length) return { items: [] };
-
-    // Fetch channel stats
-    const channelIds = [...new Set(data.items.map((v: any) => v.snippet.channelId))].join(",");
-    const chUrl = `https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics&id=${channelIds}&key=${apiKeys[activeKeyIndex]}`;
-    const chRes = await fetch(chUrl, { cache: "no-store" });
-    const chData = await chRes.json();
-    const channelMap: Record<string, { sub: number; thumb: string }> = {};
-    (chData.items || []).forEach((ch: any) => {
-      channelMap[ch.id] = {
-        sub: parseInt(ch.statistics?.subscriberCount || "0"),
-        thumb: ch.snippet?.thumbnails?.default?.url || "",
-      };
-    });
-
-    const items: TrendingVideo[] = data.items.map((item: any) => {
-      const viewCount = parseInt(item.statistics?.viewCount || "0");
-      const ch = channelMap[item.snippet.channelId] || { sub: 0, thumb: "" };
-      const durationSec = parseDuration(item.contentDetails?.duration || "");
-      return {
-        videoId: item.id,
-        title: item.snippet.title,
-        thumbnail: item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url || "",
-        channelTitle: item.snippet.channelTitle,
-        channelId: item.snippet.channelId,
-        channelThumbnail: ch.thumb,
-        viewCount,
-        viewCountFormatted: formatCount(viewCount) + "회",
-        subscriberCount: ch.sub,
-        subscriberCountFormatted: formatCount(ch.sub),
-        publishedAt: item.snippet.publishedAt?.split("T")[0] || "",
-        duration: formatDuration(durationSec),
-        durationSeconds: durationSec,
-      };
-    });
-
-    return { items };
-  } catch {
-    return { items: [], error: "api_error" };
   }
+
+  return { items: [], error: "api_error" };
 }
 
 export async function searchVideos(query: string, filter?: string, pageToken?: string, isPaid: boolean = false, order: string = "relevance"): Promise<{

@@ -22,10 +22,11 @@ async function getRedis() {
 
 // TTL 상수 (초 단위)
 export const TTL = {
-  SEARCH:  60 * 60 * 6,  // 검색 결과: 6시간
-  VIDEO:   60 * 60 * 24, // 영상 상세: 24시간
-  CHANNEL: 60 * 60 * 24, // 채널 상세: 24시간
-  COMMENT: 60 * 60 * 12, // 댓글:      12시간
+  SEARCH:   60 * 60 * 24, // 검색 결과: 24시간 (API 쿼터 절감)
+  TRENDING: 60 * 60,      // 트렌드: 1시간 (시간별 갱신)
+  VIDEO:    60 * 60 * 24, // 영상 상세: 24시간
+  CHANNEL:  60 * 60 * 24, // 채널 상세: 24시간
+  COMMENT:  60 * 60 * 12, // 댓글: 12시간
 };
 
 export async function cacheGet<T>(key: string): Promise<T | null> {
@@ -62,6 +63,14 @@ export function videoCacheKey(videoId: string): string {
 
 export function channelCacheKey(channelId: string): string {
   return `yt:channel:${channelId}`;
+}
+
+export function channelSearchCacheKey(query: string): string {
+  return `yt:chsearch:${query.toLowerCase().trim()}`;
+}
+
+export function trendingCacheKey(regionCode = "KR", maxResults = 50): string {
+  return `yt:trending:${regionCode}:${maxResults}`;
 }
 
 export function commentCacheKey(videoId: string): string {

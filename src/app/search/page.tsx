@@ -58,15 +58,16 @@ export default async function SearchPage({ searchParams }: Props) {
   const canChannelReport = planData.canChannelReport;
   const isPaid = plan !== "free";
 
-  // 검색 횟수 기반 점진적 결과 수: 매 회차마다 50씩 누적 (50→100→150→200→...)
-  // 플랜 한도 내에서 계속 증가, 한도 도달 시 canSearchMore=false
+  // ⚠️ 핵심 비즈니스 로직 — 절대 변경 금지 ⚠️
+  // 고객이 검색 1회당 비용을 지불하는 구조. 같은 키워드 반복 검색 시
+  // 결과가 반드시 누적 증가해야 함: 1회=50개, 2회=100개, 3회=150개...
+  // 이 로직을 변경하면 고객 이탈로 직결됨. 검색 결과에 대한 명시적 요청 없이 수정 금지.
   const countBasedLimit = searchCount * 50;
   const resultLimit = Math.min(planData.resultLimit, countBasedLimit);
   const canSearchMore = resultLimit < planData.resultLimit;
 
-  // 쇼츠 필터링 후 페이지당 유효 영상 ~10개 기준으로 계산
-  // 예: resultLimit=50 → 5페이지 필요, resultLimit=100 → 10페이지 필요
-  // free도 최소 4페이지 시도 (쇼츠 필터링으로 인해 1페이지로는 결과가 너무 적음)
+  // 쇼츠 필터링 후 페이지당 유효 영상 ~10개 기준 → resultLimit 달성에 충분한 페이지 확보
+  // free: 4페이지 / paid: 최소 6페이지, resultLimit/10 비율로 최대 20페이지
   const pagesToFetch = plan === "free"
     ? 4
     : Math.max(6, Math.min(Math.ceil(resultLimit / 10), 20));
@@ -177,11 +178,22 @@ export default async function SearchPage({ searchParams }: Props) {
           )}
 
           {/* 검색 횟수 표시 */}
-          {query && (
-            <div className="text-xs text-gray-500 shrink-0">
-              오늘 {used}/{limit}회 사용
-            </div>
-          )}
+          {query && (() => {
+            const remaining = limit - used;
+            const colorClass = remaining <= 0
+              ? "text-red-400"
+              : remaining === 1
+                ? "text-amber-400"
+                : "text-gray-500";
+            const label = remaining <= 0
+              ? `오늘 한도 소진 (${used}/${limit})`
+              : remaining === 1
+                ? `⚠️ 마지막 검색 남음 (${used}/${limit})`
+                : `오늘 ${remaining}회 남음 (${used}/${limit})`;
+            return (
+              <div className={`text-xs shrink-0 ${colorClass}`}>{label}</div>
+            );
+          })()}
         </div>
       </div>
 

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import Link from "next/link";
 import VideoCard from "./VideoCard";
 import VideoModal from "./VideoModal";
 import ChannelReport from "./ChannelReport";
@@ -37,6 +38,8 @@ export default function SearchResultList({ initialData, query, filter, canAlgori
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
   const [checkedIds, setCheckedIds] = useState<Set<string>>(new Set());
   const [showChannelReport, setShowChannelReport] = useState(false);
+  const [collectToast, setCollectToast] = useState<{ count: number } | null>(null);
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // 상태 초기화는 page.tsx의 key={query-filter-count}가 변경될 때
   // 컴포넌트 리마운트로 처리됨 (useState 초기값이 자동 재설정)
@@ -142,6 +145,11 @@ export default function SearchResultList({ initialData, query, filter, canAlgori
     } catch {
       // 서버 저장 실패해도 CSV 다운로드는 성공했으므로 조용히 넘어감
     }
+
+    // 수집 완료 토스트
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    setCollectToast({ count: targets.length });
+    toastTimer.current = setTimeout(() => setCollectToast(null), 5000);
   }, [sortedVideos, checkedIds, canCollect, query]);
 
   // 채널 제거: 체크된 영상들의 채널ID를 블랙리스트로 추가해서 필터링
@@ -265,18 +273,56 @@ export default function SearchResultList({ initialData, query, filter, canAlgori
         </div>
       )}
 
-      {/* 플랜 한도 도달 — 업그레이드 유도 */}
-      {!canSearchMore && videos.length >= resultLimit && (
-        <div className="mt-6 p-4 bg-gray-900/60 border border-gray-800 rounded-xl text-center">
-          <p className="text-xs text-gray-500">
-            현재 플랜 최대 <span className="text-white font-semibold">{resultLimit}건</span> 표시 중.
-            <a href="/pricing" className="ml-2 text-teal-400 hover:text-teal-300 underline">플랜 업그레이드로 더 보기 →</a>
-          </p>
+      {/* 플랜 한도 도달 — 업그레이드 유도 (Free / Starter) */}
+      {!canSearchMore && videos.length >= resultLimit && resultLimit < 200 && (
+        <div className="mt-6 p-5 bg-gradient-to-r from-teal-950/60 to-gray-900/80 border border-teal-800/60 rounded-xl">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div>
+              {resultLimit === 50 ? (
+                <>
+                  <p className="text-sm font-semibold text-white">⚡ Starter 플랜으로 결과 2배 + 알고리즘 분석</p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    지금 50개 표시 중 → Starter (₩49,000/월)로 100개 + 알고리즘 확률 확인
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="text-sm font-semibold text-white">🚀 Pro 플랜으로 결과 200개 + 영상 수집 + 채널 리포트</p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    지금 100개 표시 중 → Pro (₩199,000/월)로 전문가급 분석과 CSV 수집까지
+                  </p>
+                </>
+              )}
+            </div>
+            <Link
+              href="/pricing"
+              className="shrink-0 bg-teal-600 hover:bg-teal-500 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition whitespace-nowrap"
+            >
+              업그레이드 →
+            </Link>
+          </div>
         </div>
       )}
 
       {selectedVideo && <VideoModal video={selectedVideo} onClose={() => setSelectedVideo(null)} />}
       {showChannelReport && <ChannelReport videos={videos} onClose={() => setShowChannelReport(false)} />}
+
+      {/* 수집 완료 토스트 (4순위: 이탈률 관리 — 데이터 누적 인식) */}
+      {collectToast && (
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-gray-900 border border-teal-700 rounded-xl px-4 py-3 shadow-xl animate-in slide-in-from-bottom-4">
+          <span className="text-xl">📥</span>
+          <div>
+            <p className="text-sm font-semibold text-white">{collectToast.count}개 수집 완료!</p>
+            <Link href="/saved" className="text-xs text-teal-400 hover:text-teal-300">
+              수집한 영상 보기 →
+            </Link>
+          </div>
+          <button
+            onClick={() => setCollectToast(null)}
+            className="ml-2 text-gray-600 hover:text-gray-400 text-xs"
+          >✕</button>
+        </div>
+      )}
     </div>
   );
 }
