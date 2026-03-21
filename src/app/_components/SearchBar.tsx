@@ -133,14 +133,18 @@ export default function SearchBar() {
 
     if (!await showConfirm(`"${trimmed}" 검색하시겠습니까?`)) return;
 
-    const count = saveToHistory(trimmed);
+    saveToHistory(trimmed);
+
+    // count는 history 상태 대신 URL에서 직접 읽어서 계산 (가장 신뢰할 수 있는 값)
+    // 같은 키워드 재검색 → count+1 (50→100→150→200...), 다른 키워드 → 1로 리셋
+    const currentQ = decodeURIComponent(searchParams.get("q") ?? "").normalize("NFC");
+    const prevCount = parseInt(searchParams.get("count") || "0");
+    const count = currentQ === trimmed ? prevCount + 1 : 1;
+
     const currentFilter = searchParams.get("filter");
     const filterParam = currentFilter ? `&filter=${currentFilter}` : "";
 
     showLoading("검색 중...");
-
-    // 같은 키워드 재검색 → count 증가로 더 많은 결과 (50→100→200)
-    // 현재 필터 탭 유지 (전체/쇼츠제외/쇼츠만)
     router.push(`/search?q=${encodeURIComponent(trimmed)}&count=${count}${filterParam}`);
   };
 
