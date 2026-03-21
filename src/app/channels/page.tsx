@@ -72,7 +72,7 @@ function EmptyState() {
       </p>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {[
-          { icon: "🔥", label: "요즘 뜨는 채널", desc: "구독자 대비 총 조회수 비율이 높은 채널. 콘텐츠 하나하나가 바이럴되는 채널을 찾아보세요." },
+          { icon: "🔥", label: "최근 조회수 높은 채널", desc: "구독자 대비 총 조회수 비율이 높은 채널. 콘텐츠 하나하나가 바이럴되는 채널을 찾아보세요." },
           { icon: "📈", label: "구독자 급상승", desc: "채널 나이 대비 구독자를 빠르게 모은 채널. 월 평균 구독자 증가량이 많은 순서로 보여드려요." },
           { icon: "🌱", label: "신생 고성장", desc: "최근 3년 이내 개설됐지만 영상당 조회수가 높은 채널. 막 시작한 분야에서 답을 찾아보세요." },
         ].map((c) => (
@@ -131,7 +131,7 @@ export default async function ChannelsPage({ searchParams }: Props) {
 
   // 컬럼 레이블
   const metricLabel: Record<SortMode, string> = {
-    trending: "바이럴 지수",
+    trending: "영상당 평균 조회",
     growth: "월 구독자 증가",
     new: "영상당 평균 조회",
   };
@@ -146,7 +146,7 @@ export default async function ChannelsPage({ searchParams }: Props) {
             <FilterTabs current={sort} query={query} />
             {query && channels.length > 0 && (
               <span className="text-xs text-gray-600 hidden md:block">
-                {sort === "trending" && "구독자 대비 총 조회수 비율 기준"}
+                {sort === "trending" && "영상당 평균 조회수 기준"}
                 {sort === "growth" && "채널 나이 대비 월 평균 구독자 증가량 기준"}
                 {sort === "new" && "3년 이내 개설 채널 우선 · 영상당 평균 조회수 기준"}
               </span>
