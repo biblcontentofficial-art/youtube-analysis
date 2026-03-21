@@ -177,6 +177,7 @@ export interface ChannelResult {
   avgViewsFormatted: string;
   customUrl?: string;
   country?: string;
+  publishedAt: string; // 채널 개설일
 }
 
 export async function searchChannels(query: string, isPaid = false): Promise<{
@@ -203,7 +204,7 @@ export async function searchChannels(query: string, isPaid = false): Promise<{
   while (activeKeyIndex < apiKeys.length) {
     const apiKey = apiKeys[activeKeyIndex];
     try {
-      const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=id&q=${encodeURIComponent(query)}&type=channel&maxResults=20&key=${apiKey}`;
+      const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=id&q=${encodeURIComponent(query)}&type=channel&maxResults=25&key=${apiKey}`;
       const searchRes = await fetch(searchUrl, { cache: "no-store" });
 
       if (!searchRes.ok) {
@@ -241,7 +242,7 @@ export async function searchChannels(query: string, isPaid = false): Promise<{
       if (!searchData.items?.length) return { items: [] };
 
       const channelIds = searchData.items.map((item: any) => item.id.channelId).join(",");
-      const channelUrl = `https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics&id=${channelIds}&key=${apiKey}`;
+      const channelUrl = `https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics,brandingSettings&id=${channelIds}&key=${apiKey}`;
       const channelRes = await fetch(channelUrl, { cache: "no-store" });
 
       if (!channelRes.ok) {
@@ -276,6 +277,7 @@ export async function searchChannels(query: string, isPaid = false): Promise<{
           avgViewsFormatted: formatCount(avgViews),
           customUrl: ch.snippet.customUrl,
           country: ch.snippet.country,
+          publishedAt: ch.snippet.publishedAt || "",
         };
       });
 
