@@ -192,7 +192,7 @@ export default function Home() {
           </div>
           <div>
             <p className="text-2xl font-bold text-teal-400">무료</p>
-            <p className="text-xs text-gray-500 mt-1">로그인 없이 2회 검색</p>
+            <p className="text-xs text-gray-500 mt-1">로그인 후 무료 3회 가능</p>
           </div>
         </div>
       </div>
