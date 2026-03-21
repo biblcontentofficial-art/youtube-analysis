@@ -25,18 +25,33 @@ function localHistoryKey(userId?: string) {
 }
 
 function loadLocalHistory(userId?: string): HistoryItem[] {
-  const saved = localStorage.getItem(localHistoryKey(userId));
-  if (!saved) return [];
   try {
+    const saved = localStorage.getItem(localHistoryKey(userId));
+    if (!saved) return [];
     const parsed = JSON.parse(saved);
     // 구버전 string[] 포맷 호환
     if (Array.isArray(parsed) && parsed.length > 0 && typeof parsed[0] === "string") {
       return parsed.map((term: string) => ({ term, count: 1 }));
     }
-    return parsed;
+    return Array.isArray(parsed) ? parsed : [];
   } catch {
     return [];
   }
+}
+
+// userId 스코핑 키 + 구버전 익명 키를 모두 읽어 병합 (데이터 유실 방지)
+function loadAllLocalHistory(userId?: string): HistoryItem[] {
+  const scoped = userId ? loadLocalHistory(userId) : [];
+  const anonymous = loadLocalHistory(); // 구버전 키 (userId 없음)
+
+  // 병합: userId 스코핑 우선, 익명 키에만 있는 항목은 추가
+  const merged = new Map<string, HistoryItem>();
+  for (const item of anonymous) merged.set(item.term, item);
+  for (const item of scoped) {
+    const ex = merged.get(item.term);
+    merged.set(item.term, { term: item.term, count: ex ? Math.max(item.count, ex.count) : item.count });
+  }
+  return Array.from(merged.values());
 }
 
 function saveLocalHistory(history: HistoryItem[], userId?: string) {
@@ -62,6 +77,12 @@ export default function SearchBar() {
   const plan = (user?.publicMetadata?.plan as string) ?? "free";
   const useServerHistory = ["starter", "pro", "business", "admin"].includes(plan);
 
+  // 플랜별 히스토리 표시 한도
+  const historyLimit =
+    plan === "free" ? 10 :
+    plan === "starter" ? 30 :
+    100; // pro, business, admin
+
   // URL에서 region 동기화
   useEffect(() => {
     const r = searchParams.get("region");
@@ -83,24 +104,41 @@ export default function SearchBar() {
   useEffect(() => {
     if (!isLoaded) return; // Clerk가 아직 유저 정보 로딩 중이면 실행하지 않음
     if (!user) {
-      // 비로그인: 공유 키 사용 (브라우저 익명)
-      setHistory(loadLocalHistory());
+      // 비로그인: 익명 localStorage
+      setHistory(loadAllLocalHistory().slice(0, 10));
       return;
     }
     if (useServerHistory) {
+      // 서버 히스토리 + localStorage 병합 (구버전 데이터 유실 방지)
       fetch("/api/search-history")
         .then((r) => r.json())
         .then((data) => {
-          if (data.items?.length) {
-            setHistory(data.items.map((it: { term: string; count: number }) => ({ term: it.term, count: it.count })));
-          } else {
-            setHistory(loadLocalHistory(user.id));
+          const serverItems: HistoryItem[] = data.items?.length
+            ? data.items.map((it: { term: string; count: number }) => ({ term: it.term, count: it.count }))
+            : [];
+
+          // localStorage에만 있는 항목 추가 (서버 미보유 구버전 데이터)
+          const localItems = loadAllLocalHistory(user.id);
+          const serverTerms = new Set(serverItems.map((i) => i.term));
+          const localOnly = localItems.filter((i) => !serverTerms.has(i.term));
+          const merged = [...serverItems, ...localOnly].slice(0, historyLimit);
+          setHistory(merged);
+
+          // localStorage 전용 항목을 서버에 마이그레이션 (fire-and-forget)
+          if (localOnly.length > 0) {
+            localOnly.slice(0, 20).forEach((item) => {
+              fetch("/api/search-history", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ term: item.term }),
+              }).catch(() => {});
+            });
           }
         })
-        .catch(() => setHistory(loadLocalHistory(user.id)));
+        .catch(() => setHistory(loadAllLocalHistory(user.id).slice(0, historyLimit)));
     } else {
-      // 로그인 상태 Free 플랜: userId 스코핑된 localStorage
-      setHistory(loadLocalHistory(user.id));
+      // Free 플랜: 모든 localStorage 소스 병합 후 10개 표시
+      setHistory(loadAllLocalHistory(user.id).slice(0, historyLimit));
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoaded, user?.id, useServerHistory]);
