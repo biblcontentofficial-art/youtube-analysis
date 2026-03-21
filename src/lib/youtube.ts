@@ -177,7 +177,42 @@ export interface ChannelResult {
   avgViewsFormatted: string;
   customUrl?: string;
   country?: string;
-  publishedAt: string; // 채널 개설일
+  publishedAt: string;
+  topicTags: string[]; // 카테고리 태그 (YouTube topicDetails)
+}
+
+// Wikipedia URL → 한국어 카테고리 태그 매핑
+const TOPIC_MAP: Record<string, string> = {
+  Sport: "스포츠", Golf: "골프", Football: "풋볼", Soccer: "축구",
+  Basketball: "농구", Baseball: "야구", Tennis: "테니스", Swimming: "수영",
+  Fitness: "피트니스", Physical_fitness: "운동/건강", Yoga: "요가",
+  Entertainment: "엔터테인먼트", Music: "음악", Film: "영화", Television_program: "TV/방송",
+  Comedy: "코미디", Animation: "애니메이션",
+  Gaming: "게임", Video_game_culture: "게임", Electronic_sports: "e스포츠",
+  Food: "음식", Cooking: "요리",
+  Travel: "여행", Tourism: "여행",
+  Technology: "테크", Consumer_electronics: "전자기기",
+  Fashion: "패션", Beauty: "뷰티", Lifestyle_sociology: "라이프스타일",
+  Pets: "반려동물", Knowledge: "지식/교육", Education: "교육",
+  Automotive: "자동차", Vehicle: "자동차",
+  Finance: "경제/투자", Business: "비즈니스", Entrepreneurship: "창업",
+  Health: "건강", Medicine: "의학",
+  Politics: "정치", Society: "사회", News: "뉴스",
+  Religion: "종교", Spirituality: "영성",
+  Art: "예술", Craft: "공예", DIY: "DIY",
+  Nature: "자연", Environment: "환경",
+};
+
+function parseTopicTags(topicCategories: string[] | undefined): string[] {
+  if (!topicCategories?.length) return [];
+  const tags: string[] = [];
+  for (const url of topicCategories) {
+    const slug = url.split("/wiki/").pop() ?? "";
+    const label = TOPIC_MAP[slug] ?? TOPIC_MAP[slug.replace(/_/g, "")] ?? null;
+    if (label && !tags.includes(label)) tags.push(label);
+    if (tags.length >= 3) break;
+  }
+  return tags;
 }
 
 export async function searchChannels(query: string, isPaid = false): Promise<{
@@ -242,7 +277,7 @@ export async function searchChannels(query: string, isPaid = false): Promise<{
       if (!searchData.items?.length) return { items: [] };
 
       const channelIds = searchData.items.map((item: any) => item.id.channelId).join(",");
-      const channelUrl = `https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics,brandingSettings&id=${channelIds}&key=${apiKey}`;
+      const channelUrl = `https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics,topicDetails&id=${channelIds}&key=${apiKey}`;
       const channelRes = await fetch(channelUrl, { cache: "no-store" });
 
       if (!channelRes.ok) {
@@ -278,6 +313,7 @@ export async function searchChannels(query: string, isPaid = false): Promise<{
           customUrl: ch.snippet.customUrl,
           country: ch.snippet.country,
           publishedAt: ch.snippet.publishedAt || "",
+          topicTags: parseTopicTags(ch.topicDetails?.topicCategories),
         };
       });
 
