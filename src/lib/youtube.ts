@@ -298,22 +298,23 @@ export async function getTrendingVideos(isPaid = false, maxResults = 50): Promis
 
       if (!res.ok) {
         const errBody = await res.json().catch(() => ({}));
-        console.error(`[trending] API error status=${res.status} key[${activeKeyIndex}] body=`, JSON.stringify(errBody).slice(0, 300));
+        const reason = errBody?.error?.errors?.[0]?.reason ?? "";
         const isQuota =
           res.status === 403 && (
             errBody?.error?.message?.toLowerCase().includes("quota") ||
-            errBody?.error?.errors?.[0]?.reason?.toLowerCase().includes("quota") ||
+            reason.toLowerCase().includes("quota") ||
             errBody?.error?.errors?.[0]?.domain?.toLowerCase().includes("quota") ||
-            errBody?.error?.errors?.[0]?.reason === "dailyLimitExceeded" ||
-            errBody?.error?.errors?.[0]?.reason === "quotaExceeded"
+            reason === "dailyLimitExceeded" ||
+            reason === "quotaExceeded"
           );
-        if (isQuota) {
-          lastError = "quota_exceeded";
-          activeKeyIndex++;
-          continue;
-        }
-        // 401 = 키 자체가 잘못됨 → 다음 키 시도
-        if (res.status === 401) { activeKeyIndex++; continue; }
+        const isBadKey =
+          res.status === 400 ||
+          res.status === 401 ||
+          reason === "badRequest" ||
+          reason === "keyInvalid" ||
+          (errBody?.error?.message ?? "").toLowerCase().includes("not valid");
+        if (isQuota) { lastError = "quota_exceeded"; activeKeyIndex++; continue; }
+        if (isBadKey) { activeKeyIndex++; continue; }  // 무효 키 → 다음 키로
         return { items: [], error: "api_error" };
       }
 
@@ -472,16 +473,26 @@ export async function searchVideos(query: string, filter?: string, pageToken?: s
       if (!searchRes.ok) {
         const errBody = await searchRes.json().catch(() => ({}));
         const errMsg = errBody?.error?.message || "";
-        const isQuotaError = searchRes.status === 403 && errMsg.includes("quota");
-        const isInvalidKey = searchRes.status === 400 || searchRes.status === 403;
-        if (isQuotaError || isInvalidKey) {
-          // 다음 키로 전환
+        const reason0 = errBody?.error?.errors?.[0]?.reason ?? "";
+        const domain0 = errBody?.error?.errors?.[0]?.domain ?? "";
+        // YouTube 쿼터 초과: 메시지보다 reason/domain 필드가 더 신뢰할 수 있음
+        const isQuotaError = searchRes.status === 403 && (
+          errMsg.toLowerCase().includes("quota") ||
+          reason0.toLowerCase().includes("quota") ||
+          domain0.toLowerCase().includes("quota") ||
+          reason0 === "quotaExceeded" ||
+          reason0 === "dailyLimitExceeded"
+        );
+        // 400 or 401 = 키 자체 문제, 403 = 권한/쿼터 문제 → 모두 다음 키로 시도
+        const isBadKey = searchRes.status === 400 || searchRes.status === 401 ||
+          reason0 === "badRequest" || reason0 === "keyInvalid" ||
+          errMsg.toLowerCase().includes("not valid");
+        if (isQuotaError || isBadKey) {
           const prevIndex = activeKeyIndex;
           activeKeyIndex++;
           if (activeKeyIndex < apiKeys.length) {
-            const reason = isQuotaError ? "쿼터 소진" : `에러 ${searchRes.status}`;
-            console.warn(`⚠️ 키 ${prevIndex + 1} ${reason} → 키 ${activeKeyIndex + 1}로 전환`);
-            continue; // 같은 attempt, 다음 키로 재시도
+            console.warn(`⚠️ 키 ${prevIndex + 1} (${isQuotaError ? "쿼터소진" : "키오류"}) → 키 ${activeKeyIndex + 1}로 전환`);
+            continue;
           }
           if (isQuotaError) {
             console.error("❌ 모든 YouTube API 키 쿼터 소진");
@@ -490,7 +501,13 @@ export async function searchVideos(query: string, filter?: string, pageToken?: s
           console.error("❌ 모든 YouTube API 키 유효하지 않음");
           return { items: [], error: "api_error" };
         }
-        console.error(`❌ YouTube API 에러 ${searchRes.status}:`, JSON.stringify(errMsg));
+        // 403 (쿼터 감지 못한 경우)도 다음 키 시도
+        if (searchRes.status === 403) {
+          activeKeyIndex++;
+          if (activeKeyIndex < apiKeys.length) continue;
+          return { items: [], error: "quota_exceeded" };
+        }
+        console.error(`❌ YouTube API 에러 ${searchRes.status}:`, errMsg.slice(0, 100));
         return { items: [], error: "api_error" };
       }
 

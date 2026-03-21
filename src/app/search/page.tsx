@@ -224,7 +224,7 @@ export default async function SearchPage({ searchParams }: Props) {
           <div className="mb-6 p-5 bg-orange-950/50 border border-orange-700 rounded-xl text-center">
             <p className="text-2xl mb-2">⚠️</p>
             <p className="text-orange-300 font-semibold mb-1">
-              YouTube API 일일 쿼터가 소진됐습니다
+              일일 검색 용량이 소진됐습니다
             </p>
             <p className="text-gray-400 text-sm">
               매일 한국 시간 오후 5시에 초기화됩니다. 잠시 후 다시 시도해주세요.
@@ -234,7 +234,7 @@ export default async function SearchPage({ searchParams }: Props) {
         {apiError === "api_error" && (
           <div className="mb-6 p-5 bg-red-950/50 border border-red-800 rounded-xl text-center">
             <p className="text-red-300 font-semibold mb-1">검색 중 오류가 발생했습니다</p>
-            <p className="text-gray-400 text-sm">잠시 후 다시 시도해주세요.</p>
+            <p className="text-gray-400 text-sm">잠시 후 다시 시도해주세요. 반복될 경우 고객센터로 문의해주세요.</p>
           </div>
         )}
 
