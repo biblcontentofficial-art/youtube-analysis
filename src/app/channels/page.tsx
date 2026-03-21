@@ -2,6 +2,7 @@ import { currentUser } from "@clerk/nextjs/server";
 import Link from "next/link";
 import { searchChannels, ChannelResult } from "@/lib/youtube";
 import { PLANS, PlanKey } from "@/lib/stripe";
+import { getChannelUsage, incrementChannelCount } from "@/lib/channelLimit";
 import ChannelSearchBar from "./_components/ChannelSearchBar";
 import FilterTabs, { SortMode } from "./_components/FilterTabs";
 
@@ -94,38 +95,34 @@ export default async function ChannelsPage({ searchParams }: Props) {
   const plan = (user?.publicMetadata?.plan as string) ?? "free";
   const planData = PLANS[plan as PlanKey] ?? PLANS.free;
 
-  if (!planData.canChannelSearch) {
-    return (
-      <main className="min-h-screen bg-gray-950 text-white flex items-center justify-center px-4">
-        <div className="text-center space-y-4 max-w-sm">
-          <div className="text-5xl">📺</div>
-          <h1 className="text-2xl font-bold">채널 찾기</h1>
-          <p className="text-gray-400 text-sm">Starter 플랜부터 사용 가능한 기능입니다.</p>
-          <Link href="/pricing" className="inline-block bg-teal-600 hover:bg-teal-500 text-white text-sm font-semibold px-6 py-2.5 rounded-lg transition">
-            플랜 업그레이드 →
-          </Link>
-        </div>
-      </main>
-    );
-  }
-
   const query = searchParams.q?.trim() || "";
   const rawSort = searchParams.sort ?? "trending";
   const sort: SortMode = (["trending", "growth", "new"] as SortMode[]).includes(rawSort as SortMode)
     ? (rawSort as SortMode)
     : "trending";
 
+  // 사용량 조회 (검색 전 항상 확인)
+  const usage = await getChannelUsage();
+
   let channels: ChannelResult[] = [];
   let apiError: string | null = null;
+  let limitError: string | null = null;
 
   if (query) {
-    const result = await searchChannels(query, plan !== "free");
-    if (result.error === "quota_exceeded") {
-      apiError = "YouTube API 일일 쿼터가 소진됐습니다. 잠시 후 다시 시도해주세요.";
-    } else if (result.error === "api_error") {
-      apiError = "검색 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
+    if (!usage.unlimited && usage.used >= usage.limit) {
+      // 한도 초과 — API 호출 없이 차단
+      limitError = "limit_exceeded";
     } else {
-      channels = sortChannels(result.items, sort);
+      // 카운트 증가 후 검색
+      await incrementChannelCount();
+      const result = await searchChannels(query, plan !== "free");
+      if (result.error === "quota_exceeded") {
+        apiError = "YouTube API 일일 쿼터가 소진됐습니다. 잠시 후 다시 시도해주세요.";
+      } else if (result.error === "api_error") {
+        apiError = "검색 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
+      } else {
+        channels = sortChannels(result.items, sort);
+      }
     }
   }
 
@@ -136,12 +133,39 @@ export default async function ChannelsPage({ searchParams }: Props) {
     new: "영상당 평균 조회",
   };
 
+  const remaining = usage.unlimited ? null : Math.max(0, usage.limit - usage.used);
+  const isLow = remaining !== null && remaining <= 5;
+  const isOut = remaining !== null && remaining === 0;
+
   return (
     <main className="min-h-screen bg-gray-950 text-white">
       {/* 상단 검색 + 필터 */}
       <div className="border-b border-gray-800 bg-gray-900/50 px-4 py-4">
         <div className="max-w-screen-xl mx-auto space-y-3">
-          <ChannelSearchBar initialQuery={query} />
+          <div className="flex items-center gap-3">
+            <ChannelSearchBar initialQuery={query} />
+            {/* 사용량 뱃지 */}
+            {usage.unlimited ? (
+              <span className="hidden sm:flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full border border-teal-800 bg-teal-950/40 text-teal-400 shrink-0">
+                ✨ 무제한
+              </span>
+            ) : (
+              <Link
+                href="/pricing"
+                className={`hidden sm:flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full border transition shrink-0 ${
+                  isOut
+                    ? "border-red-700 bg-red-950/50 text-red-400"
+                    : isLow
+                    ? "border-amber-700 bg-amber-950/50 text-amber-400"
+                    : "border-gray-700 bg-gray-900 text-gray-400"
+                }`}
+                title="이번 달 채널 검색 가능 횟수"
+              >
+                <span>{isOut ? "🚫" : isLow ? "⚠️" : "📺"}</span>
+                <span>{isOut ? "이번 달 한도 초과" : `${remaining}회 남음`}</span>
+              </Link>
+            )}
+          </div>
           <div className="flex items-center gap-3 flex-wrap">
             <FilterTabs current={sort} query={query} />
             {query && channels.length > 0 && (
@@ -156,7 +180,26 @@ export default async function ChannelsPage({ searchParams }: Props) {
       </div>
 
       <div className="max-w-screen-xl mx-auto px-4 py-6">
-        {/* 에러 */}
+        {/* 한도 초과 */}
+        {limitError === "limit_exceeded" && (
+          <div className="mb-6 p-6 bg-gray-900 border border-gray-700 rounded-xl text-center space-y-3">
+            <p className="text-2xl">🚫</p>
+            <p className="text-white font-semibold">이번 달 채널 검색 횟수를 모두 사용했어요</p>
+            <p className="text-gray-400 text-sm">
+              현재 플랜: <span className="font-medium text-gray-200">{usage.plan.charAt(0).toUpperCase() + usage.plan.slice(1)}</span>
+              &nbsp;·&nbsp; 사용: <span className="font-medium text-gray-200">{usage.used}/{usage.limit}회</span>
+            </p>
+            <p className="text-gray-500 text-xs">다음 달 1일에 횟수가 초기화되거나, 플랜을 업그레이드하면 더 많이 사용할 수 있어요.</p>
+            <Link
+              href="/pricing"
+              className="inline-block mt-2 bg-teal-600 hover:bg-teal-500 text-white text-sm font-semibold px-6 py-2.5 rounded-lg transition"
+            >
+              플랜 업그레이드 →
+            </Link>
+          </div>
+        )}
+
+        {/* API 에러 */}
         {apiError && (
           <div className="p-5 bg-orange-950/50 border border-orange-700 rounded-xl text-center mb-6">
             <p className="text-orange-300 font-semibold">{apiError}</p>

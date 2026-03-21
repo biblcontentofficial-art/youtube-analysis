@@ -24,6 +24,7 @@ if (hasClerk) {
     "/api/youtube/search(.*)",
     "/api/youtube/channels/suggest(.*)",
     "/api/usage(.*)",
+    "/api/channel-usage(.*)",
     // 결제 콜백: 외부 서버(Payple/Toss/Stripe)가 인증 없이 호출
     "/api/payple/confirm(.*)",
     "/api/toss/confirm(.*)",

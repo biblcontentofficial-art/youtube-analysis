@@ -12,9 +12,10 @@ export function getStripe(): Stripe {
 export type PlanConfig = {
   name: string;
   priceId: string | null | undefined;
-  dailySearchLimit: number | null;   // null = 일 한도 없음
-  monthlySearchLimit: number | null; // null = 무제한
-  resultLimit: number;               // 세션당 최대 결과 수 (더보기 포함)
+  dailySearchLimit: number | null;          // null = 일 한도 없음
+  monthlySearchLimit: number | null;        // null = 무제한
+  channelSearchMonthlyLimit: number | null; // null = 무제한 (채널 검색 월별 한도)
+  resultLimit: number;                      // 세션당 최대 결과 수 (더보기 포함)
   canLoadMore: boolean;
   maxTeamSize: number;
   canCollect: boolean;
@@ -34,13 +35,14 @@ export const PLANS: Record<PlanKey, PlanConfig> = {
     priceId: null,
     dailySearchLimit: 3,
     monthlySearchLimit: null,
+    channelSearchMonthlyLimit: 30,
     resultLimit: 30,
     canLoadMore: true,
     maxTeamSize: 1,
     canCollect: false,
     canAlgorithm: false,
     canChannelReport: false,
-    canChannelSearch: false,
+    canChannelSearch: true,
     canSavedVideos: false,
     canServerHistory: false,
     historyDays: 0,
@@ -50,6 +52,7 @@ export const PLANS: Record<PlanKey, PlanConfig> = {
     priceId: process.env.STRIPE_STARTER_PRICE_ID,
     dailySearchLimit: 20,
     monthlySearchLimit: 200,
+    channelSearchMonthlyLimit: 100,
     resultLimit: 100,
     canLoadMore: true,
     maxTeamSize: 1,
@@ -66,6 +69,7 @@ export const PLANS: Record<PlanKey, PlanConfig> = {
     priceId: process.env.STRIPE_PRO_PRICE_ID,
     dailySearchLimit: null,
     monthlySearchLimit: 500,
+    channelSearchMonthlyLimit: 500,
     resultLimit: 500,
     canLoadMore: true,
     maxTeamSize: 2,
@@ -82,6 +86,7 @@ export const PLANS: Record<PlanKey, PlanConfig> = {
     priceId: process.env.STRIPE_BUSINESS_PRICE_ID,
     dailySearchLimit: null,
     monthlySearchLimit: null,
+    channelSearchMonthlyLimit: null,
     resultLimit: 1000,
     canLoadMore: true,
     maxTeamSize: 5,
@@ -99,6 +104,7 @@ export const PLANS: Record<PlanKey, PlanConfig> = {
     priceId: null,
     dailySearchLimit: null,
     monthlySearchLimit: null,
+    channelSearchMonthlyLimit: null,
     resultLimit: 9999,
     canLoadMore: true,
     maxTeamSize: 999,
