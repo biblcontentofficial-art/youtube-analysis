@@ -28,7 +28,7 @@ interface Props {
 
 // 한 번의 검색에서 초기 로드할 결과 수 (더보기로 추가 가능)
 const INITIAL_RESULT_COUNT = 50;
-const MAX_INITIAL_PAGES = 3;
+const MAX_INITIAL_PAGES = 1; // 1페이지만 로드 → nextPageToken 보존 → 더보기 항상 가능
 
 export default async function SearchPage({ searchParams }: Props) {
   const query = searchParams.q || "";

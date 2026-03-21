@@ -344,8 +344,15 @@ export default function SearchResultList({
       )}
 
 
+      {/* YouTube 결과 소진 — 더 이상 가져올 데이터 없음 (limit 미만) */}
+      {canLoadMore && !hasMore && videos.length < resultLimit && videos.length > 0 && (
+        <div className="mt-6 flex justify-center">
+          <p className="text-xs text-gray-600">이 키워드의 검색 결과를 모두 불러왔습니다 ({videos.length}건)</p>
+        </div>
+      )}
+
       {/* 결과 한도 도달 — 플랜 업그레이드 유도 */}
-      {canLoadMore && !hasMore && videos.length >= resultLimit && resultLimit < 9999 && (
+      {canLoadMore && !hasMore && videos.length >= resultLimit && resultLimit < 1000 && (
         <div className="mt-6 p-5 bg-gradient-to-r from-teal-950/60 to-gray-900/80 border border-teal-800/60 rounded-xl">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div>
