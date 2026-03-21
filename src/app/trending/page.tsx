@@ -2,6 +2,8 @@ import { currentUser } from "@clerk/nextjs/server";
 import Link from "next/link";
 import { getTrendingVideos, TrendingVideo } from "@/lib/youtube";
 import { PLANS, PlanKey } from "@/lib/stripe";
+import { getTrendingRefreshUsage } from "@/lib/trendingLimit";
+import TrendingRefreshButton from "./_components/TrendingRefreshButton";
 
 // YouTube 공식 카테고리 (한국 기준)
 const CATEGORIES = [
@@ -62,10 +64,11 @@ export default async function TrendingPage({ searchParams }: Props) {
   const activeCategory = CATEGORIES.find(c => c.id === categoryId) ?? CATEGORIES[0];
   const activeType = TYPE_TABS.find(t => t.id === videoType) ?? TYPE_TABS[0];
 
+  // 새로고침 사용량 조회 (서버 사이드)
+  const refreshUsage = await getTrendingRefreshUsage().catch(() => null);
+
   // YouTube API에서 최대 50개 가져온 뒤 타입 필터링
-  // 쇼츠/일반이 섞여있으므로 충분한 수를 가져와서 필터
-  const fetchCount = videoType === "all" ? 50 : 50;
-  const { items: allVideos, error } = await getTrendingVideos(isPaid, fetchCount, categoryId);
+  const { items: allVideos, error } = await getTrendingVideos(isPaid, 50, categoryId);
 
   // 쇼츠 여부: durationSeconds <= 180 (또는 0 = 알 수 없음이면 쇼츠로 처리)
   const videos = videoType === "all"
@@ -90,13 +93,30 @@ export default async function TrendingPage({ searchParams }: Props) {
       {/* 헤더 */}
       <div className="border-b border-gray-800 bg-gray-900/40 px-4 py-4">
         <div className="max-w-screen-xl mx-auto">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-4 flex-wrap">
             <div>
               <h1 className="text-base font-bold text-white">📊 한국 트렌드 분석</h1>
               <p className="text-xs text-gray-500 mt-0.5">YouTube 한국 인기 급상승 동영상 실시간 TOP 50</p>
             </div>
-            <span className="text-xs text-teal-600 bg-teal-950/50 border border-teal-900 px-2.5 py-1 rounded-full">🔄 매시간 자동 갱신</span>
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className="text-xs text-teal-600 bg-teal-950/50 border border-teal-900 px-2.5 py-1 rounded-full">🔄 캐시 1시간 자동 갱신</span>
+              {/* 새로고침 버튼 (클라이언트 컴포넌트) */}
+              <TrendingRefreshButton categoryId={categoryId} videoType={videoType} />
+            </div>
           </div>
+
+          {/* 플랜별 새로고침 한도 안내 */}
+          {refreshUsage && !refreshUsage.unlimited && refreshUsage.limit !== null && (
+            <div className="mt-2 text-[11px] text-gray-600">
+              💡 캐시된 데이터는 무제한 조회 가능 · 강제 새로고침은 오늘 {refreshUsage.limit - refreshUsage.used}회 남음
+              {" "}
+              {refreshUsage.limit <= 3 && (
+                <Link href="/pricing" className="text-teal-600 hover:text-teal-400 underline">
+                  플랜 업그레이드 →
+                </Link>
+              )}
+            </div>
+          )}
           {/* 기준 설명 배지 */}
           <div className="flex flex-wrap gap-2 mt-3">
             <span className="inline-flex items-center gap-1.5 text-[11px] text-gray-400 bg-gray-800/60 border border-gray-700 px-3 py-1.5 rounded-full">

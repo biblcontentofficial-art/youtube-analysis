@@ -29,6 +29,7 @@ if (hasClerk) {
     "/api/toss/billing/confirm(.*)",
     "/api/stripe/webhook(.*)",
     "/api/debug-trending(.*)",
+    "/api/trending-usage(.*)",
   ]);
   middlewareHandler = clerkMiddleware(async (auth: any, req: NextRequest) => {
     if (!isPublicRoute(req)) {
