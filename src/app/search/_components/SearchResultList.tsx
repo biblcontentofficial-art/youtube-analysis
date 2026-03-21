@@ -310,17 +310,17 @@ export default function SearchResultList({
           구독자 {renderSortIcon("subscriberCountRaw")}
         </div>
         <ColHeader label="아웃라이어" sortable sortKeyName="performanceRatioRaw"
-          tip="해당 채널 평균 조회수보다 몇 배 조회수 높은 영상인가">
+          tip="해당 채널의 평균 조회수보다 몇 배 높은 영상인지를 수치로 나타냅니다">
           {renderSortIcon("performanceRatioRaw")}
         </ColHeader>
         <ColHeader label="반응도" sortable sortKeyName="scoreValue"
-          tip="지금 유튜브 전체에서 이 영상 성과가 어떤가">
+          tip="유튜브 전체에서 이 영상의 조회수 성과가 어떤가를 나타냅니다">
           {renderSortIcon("scoreValue")}
         </ColHeader>
         {/* 알고리즘 확률 — Starter 이상만 */}
         {canAlgorithm && (
           <ColHeader label="알고리즘 🔥" sortable sortKeyName="algorithmScore"
-            tip="지금 이 영상이 알고리즘을 탈 확률">
+            tip="지금 이 영상이 알고리즘을 타고 올라갈 확률입니다">
             {renderSortIcon("algorithmScore")}
           </ColHeader>
         )}
