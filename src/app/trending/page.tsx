@@ -28,6 +28,8 @@ export default async function TrendingPage() {
 
   const isPaid = plan !== "free";
   const { items: videos, error } = await getTrendingVideos(isPaid, 50);
+  // RSS 폴백으로 가져온 경우 조회수가 없음 (viewCount === 0)
+  const isRssFallback = !error && videos.length > 0 && videos.every(v => v.viewCount === 0);
 
   return (
     <main className="min-h-screen bg-gray-950 text-white">
@@ -42,22 +44,28 @@ export default async function TrendingPage() {
       </div>
 
       <div className="max-w-screen-xl mx-auto px-4 py-6">
-        {/* 에러 */}
-        {error === "quota_exceeded" && (
+        {/* 에러 — 데이터가 없을 때만 표시 */}
+        {error === "quota_exceeded" && videos.length === 0 && (
           <div className="mb-6 p-5 bg-orange-950/50 border border-orange-700 rounded-xl text-center">
             <p className="text-orange-300 font-semibold">YouTube API 일일 쿼터가 소진됐습니다</p>
             <p className="text-gray-400 text-sm mt-1">매일 한국 시간 오후 5시에 초기화됩니다.</p>
           </div>
         )}
-        {error === "api_error" && (
+        {error === "api_error" && videos.length === 0 && (
           <div className="mb-6 p-5 bg-red-950/50 border border-red-800 rounded-xl text-center">
             <p className="text-red-300 font-semibold">데이터를 불러오는 중 오류가 발생했습니다</p>
             <p className="text-gray-400 text-sm mt-1">잠시 후 다시 시도해주세요.</p>
           </div>
         )}
+        {/* RSS 폴백 안내 */}
+        {isRssFallback && (
+          <div className="mb-4 p-3 bg-gray-900 border border-gray-700 rounded-xl text-center">
+            <p className="text-gray-400 text-xs">📡 일부 데이터(조회수 등)는 현재 제공되지 않습니다. 매일 오후 5시 이후 정상화됩니다.</p>
+          </div>
+        )}
 
         {/* 결과 테이블 */}
-        {!error && videos.length > 0 && (
+        {videos.length > 0 && (
           <div className="overflow-x-auto">
             <table className="w-full text-sm border border-gray-800 rounded-xl overflow-hidden">
               <thead>

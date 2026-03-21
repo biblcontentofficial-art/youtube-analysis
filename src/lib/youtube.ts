@@ -363,7 +363,71 @@ export async function getTrendingVideos(isPaid = false, maxResults = 50): Promis
     }
   }
 
+  // 모든 API 키 실패 → YouTube RSS 폴백 시도
+  try {
+    const rssItems = await fetchTrendingViaRSS(maxResults);
+    if (rssItems.length > 0) {
+      // RSS 결과는 TTL 짧게 캐싱 (30분)
+      await cacheSet(cacheKey + ":rss", rssItems, 60 * 30);
+      return { items: rssItems };
+    }
+  } catch {
+    // RSS도 실패하면 마지막 에러 반환
+  }
+
   return { items: [], error: lastError };
+}
+
+/**
+ * YouTube RSS 피드로 트렌딩 영상 가져오기 (API 키 불필요)
+ * 조회수/구독자 수 정보는 없음
+ */
+async function fetchTrendingViaRSS(maxResults = 50): Promise<TrendingVideo[]> {
+  const url = `https://www.youtube.com/feeds/videos.xml?chart=mostpopular&gl=KR&hl=ko`;
+  const res = await fetch(url, {
+    cache: "no-store",
+    headers: { "Accept": "application/rss+xml, application/xml, text/xml" },
+    signal: AbortSignal.timeout(8000),
+  });
+
+  if (!res.ok) return [];
+
+  const xml = await res.text();
+
+  // XML 파싱 (정규식 기반 — 외부 패키지 불필요)
+  const entries: TrendingVideo[] = [];
+  const entryRegex = /<entry>([\s\S]*?)<\/entry>/g;
+  let match: RegExpExecArray | null;
+
+  // eslint-disable-next-line no-cond-assign
+  while ((match = entryRegex.exec(xml)) !== null && entries.length < maxResults) {
+    const block = match[1];
+    const videoId = (/<yt:videoId>(.*?)<\/yt:videoId>/.exec(block) || [])[1] ?? "";
+    const title = (/<title>(.*?)<\/title>/.exec(block) || [])[1] ?? "";
+    const channelTitle = (/<name>(.*?)<\/name>/.exec(block) || [])[1] ?? "";
+    const channelId = (/<yt:channelId>(.*?)<\/yt:channelId>/.exec(block) || [])[1] ?? "";
+    const publishedAt = (/<published>(.*?)<\/published>/.exec(block) || [])[1]?.split("T")[0] ?? "";
+
+    if (!videoId) continue;
+
+    entries.push({
+      videoId,
+      title: title.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'"),
+      thumbnail: `https://i.ytimg.com/vi/${videoId}/mqdefault.jpg`,
+      channelTitle: channelTitle.replace(/&amp;/g, "&"),
+      channelId,
+      channelThumbnail: "",
+      viewCount: 0,
+      viewCountFormatted: "- 회",
+      subscriberCount: 0,
+      subscriberCountFormatted: "-",
+      publishedAt,
+      duration: "",
+      durationSeconds: 9999,
+    });
+  }
+
+  return entries;
 }
 
 export async function searchVideos(query: string, filter?: string, pageToken?: string, isPaid: boolean = false, order: string = "relevance", regionCode: string = "KR"): Promise<{
