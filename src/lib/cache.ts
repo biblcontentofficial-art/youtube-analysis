@@ -53,8 +53,8 @@ export async function cacheSet(
   }
 }
 
-export function searchCacheKey(query: string, filter: string, pageToken?: string, order?: string): string {
-  return `yt:v2:${query.toLowerCase().trim()}:${filter || "all"}:${order || "relevance"}:${pageToken || "first"}`;
+export function searchCacheKey(query: string, filter: string, pageToken?: string, order?: string, regionCode?: string): string {
+  return `yt:v3:${query.toLowerCase().trim()}:${filter || "all"}:${order || "relevance"}:${pageToken || "first"}:${regionCode || "KR"}`;
 }
 
 export function videoCacheKey(videoId: string): string {

@@ -6,16 +6,21 @@ import VideoCard from "./VideoCard";
 import VideoModal from "./VideoModal";
 import ChannelReport from "./ChannelReport";
 import { Video } from "@/types";
+import { getMoreVideos } from "../actions";
 
 interface Props {
   initialData: Video[];
   query: string;
   filter: string;
+  region: string;
   canAlgorithm: boolean;
   canCollect: boolean;
   canChannelReport: boolean;
-  resultLimit: number;    // 플랜 최대치 (업그레이드 배너용)
-  canSearchMore: boolean; // 재검색 시 더 많은 결과 가능 여부
+  canLoadMore: boolean;
+  resultLimit: number;
+  nextPageToken?: string;
+  nextPageTokenLong?: string;
+  nextPageTokenShorts?: string;
 }
 
 // videoId 기준 중복 제거
@@ -31,7 +36,13 @@ function dedup(items: Video[]): Video[] {
 type SortKey = "viewCount" | "subscriberCountRaw" | "scoreValue" | "publishedAtRaw" | "performanceRatioRaw" | "algorithmScore" | null;
 type SortOrder = "asc" | "desc";
 
-export default function SearchResultList({ initialData, query, filter, canAlgorithm, canCollect, canChannelReport, resultLimit, canSearchMore }: Props) {
+export default function SearchResultList({
+  initialData, query, filter, region, canAlgorithm, canCollect, canChannelReport,
+  canLoadMore, resultLimit,
+  nextPageToken: initPageToken,
+  nextPageTokenLong: initPageTokenLong,
+  nextPageTokenShorts: initPageTokenShorts,
+}: Props) {
   const [videos, setVideos] = useState<Video[]>(() => dedup(initialData || []));
   const [sortKey, setSortKey] = useState<SortKey>(null);
   const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
@@ -41,8 +52,11 @@ export default function SearchResultList({ initialData, query, filter, canAlgori
   const [collectToast, setCollectToast] = useState<{ count: number } | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // 상태 초기화는 page.tsx의 key={query-filter-count}가 변경될 때
-  // 컴포넌트 리마운트로 처리됨 (useState 초기값이 자동 재설정)
+  // 더보기 상태
+  const [pageToken, setPageToken] = useState<string | undefined>(initPageToken);
+  const [pageTokenLong, setPageTokenLong] = useState<string | undefined>(initPageTokenLong);
+  const [pageTokenShorts, setPageTokenShorts] = useState<string | undefined>(initPageTokenShorts);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   const handleSort = (key: SortKey) => {
     if (sortKey === key) {
@@ -85,6 +99,45 @@ export default function SearchResultList({ initialData, query, filter, canAlgori
     else setCheckedIds(new Set(sortedVideos.map((v) => v.videoId)));
   };
 
+  // 더보기
+  const handleLoadMore = useCallback(async () => {
+    if (isLoadingMore) return;
+    if (videos.length >= resultLimit) return;
+    setIsLoadingMore(true);
+    try {
+      if (filter === "all") {
+        const [longRes, shortsRes] = await Promise.all([
+          pageTokenLong
+            ? getMoreVideos(query, "long", pageTokenLong, "relevance", region)
+            : Promise.resolve({ items: [], nextPageToken: undefined, error: null }),
+          pageTokenShorts
+            ? getMoreVideos(query, "shorts", pageTokenShorts, "relevance", region)
+            : Promise.resolve({ items: [], nextPageToken: undefined, error: null }),
+        ]);
+        const newItems = [...(longRes.items || []), ...(shortsRes.items || [])];
+        setVideos((prev) => dedup([...prev, ...newItems]));
+        setPageTokenLong(longRes.nextPageToken);
+        setPageTokenShorts(shortsRes.nextPageToken);
+      } else {
+        if (!pageToken) return;
+        const result = await getMoreVideos(query, filter, pageToken, "relevance", region);
+        setVideos((prev) => dedup([...prev, ...(result.items || [])]));
+        setPageToken(result.nextPageToken);
+      }
+    } catch {
+      // 로드 실패 시 조용히 무시
+    } finally {
+      setIsLoadingMore(false);
+    }
+  }, [filter, isLoadingMore, pageToken, pageTokenLong, pageTokenShorts, query, resultLimit, videos.length]);
+
+  // 더보기 가능 여부
+  const hasMore = canLoadMore && videos.length < resultLimit && (
+    filter === "all"
+      ? (!!pageTokenLong || !!pageTokenShorts)
+      : !!pageToken
+  );
+
   // 영상 수집: Pro/Business 전용 — CSV 다운로드 + 서버 저장
   const handleCollect = useCallback(async () => {
     if (!canCollect) {
@@ -107,7 +160,6 @@ export default function SearchResultList({ initialData, query, filter, canAlgori
         `https://youtube.com/watch?v=${v.videoId}`,
       ].join(",")
     );
-    // BOM(\uFEFF) 추가 — Excel 한글 깨짐 방지
     const csv = "\uFEFF" + [header, ...rows].join("\n");
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
@@ -146,7 +198,6 @@ export default function SearchResultList({ initialData, query, filter, canAlgori
       // 서버 저장 실패해도 CSV 다운로드는 성공했으므로 조용히 넘어감
     }
 
-    // 수집 완료 토스트
     if (toastTimer.current) clearTimeout(toastTimer.current);
     setCollectToast({ count: targets.length });
     toastTimer.current = setTimeout(() => setCollectToast(null), 5000);
@@ -264,35 +315,44 @@ export default function SearchResultList({ initialData, query, filter, canAlgori
         ))}
       </div>
 
-      {/* 재검색 힌트 — 같은 키워드 재검색으로 더 많은 결과 가능 */}
-      {canSearchMore && videos.length > 0 && (
-        <div className="mt-6 p-4 bg-gray-900/60 border border-gray-800 rounded-xl text-center">
-          <p className="text-xs text-gray-500">
-            같은 키워드로 다시 검색하면 더 많은 결과를 볼 수 있습니다.
-          </p>
+      {/* 더보기 버튼 */}
+      {hasMore && (
+        <div className="mt-6 flex justify-center">
+          <button
+            onClick={handleLoadMore}
+            disabled={isLoadingMore}
+            className="flex items-center gap-2 px-8 py-3 bg-gray-900 hover:bg-gray-800 border border-gray-700 hover:border-teal-600 text-gray-300 hover:text-white text-sm font-medium rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isLoadingMore ? (
+              <>
+                <svg className="animate-spin w-4 h-4 text-teal-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+                불러오는 중...
+              </>
+            ) : (
+              <>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                </svg>
+                더보기
+              </>
+            )}
+          </button>
         </div>
       )}
 
-      {/* 플랜 한도 도달 — 업그레이드 유도 (Free / Starter) */}
-      {!canSearchMore && videos.length >= resultLimit && resultLimit < 200 && (
+
+      {/* 결과 한도 도달 — 플랜 업그레이드 유도 */}
+      {canLoadMore && !hasMore && videos.length >= resultLimit && resultLimit < 9999 && (
         <div className="mt-6 p-5 bg-gradient-to-r from-teal-950/60 to-gray-900/80 border border-teal-800/60 rounded-xl">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div>
-              {resultLimit === 50 ? (
-                <>
-                  <p className="text-sm font-semibold text-white">⚡ Starter 플랜으로 결과 2배 + 알고리즘 분석</p>
-                  <p className="text-xs text-gray-400 mt-1">
-                    지금 50개 표시 중 → Starter (₩49,000/월)로 100개 + 알고리즘 확률 확인
-                  </p>
-                </>
-              ) : (
-                <>
-                  <p className="text-sm font-semibold text-white">🚀 Pro 플랜으로 결과 200개 + 영상 수집 + 채널 리포트</p>
-                  <p className="text-xs text-gray-400 mt-1">
-                    지금 100개 표시 중 → Pro (₩199,000/월)로 전문가급 분석과 CSV 수집까지
-                  </p>
-                </>
-              )}
+              <p className="text-sm font-semibold text-white">🚀 더 많은 결과가 필요하신가요?</p>
+              <p className="text-xs text-gray-400 mt-1">
+                상위 플랜으로 업그레이드하면 더 많은 결과를 볼 수 있습니다.
+              </p>
             </div>
             <Link
               href="/pricing"
@@ -307,7 +367,7 @@ export default function SearchResultList({ initialData, query, filter, canAlgori
       {selectedVideo && <VideoModal video={selectedVideo} onClose={() => setSelectedVideo(null)} />}
       {showChannelReport && <ChannelReport videos={videos} onClose={() => setShowChannelReport(false)} />}
 
-      {/* 수집 완료 토스트 (4순위: 이탈률 관리 — 데이터 누적 인식) */}
+      {/* 수집 완료 토스트 */}
       {collectToast && (
         <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-gray-900 border border-teal-700 rounded-xl px-4 py-3 shadow-xl animate-in slide-in-from-bottom-4">
           <span className="text-xl">📥</span>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useConfirm } from "./ConfirmDialog";
 import { useNavigationLoading } from "./NavigationLoader";
@@ -11,8 +11,21 @@ interface HistoryItem {
   count: number;
 }
 
-function loadLocalHistory(): HistoryItem[] {
-  const saved = localStorage.getItem("searchHistory");
+const REGIONS = [
+  { code: "KR", flag: "🇰🇷", label: "대한민국" },
+  { code: "US", flag: "🇺🇸", label: "미국" },
+  { code: "JP", flag: "🇯🇵", label: "일본" },
+  { code: "GB", flag: "🇬🇧", label: "영국" },
+  { code: "DE", flag: "🇩🇪", label: "독일" },
+] as const;
+
+// localStorage 키를 userId로 스코핑 — 계정 전환 시 타인 기록 노출 방지
+function localHistoryKey(userId?: string) {
+  return userId ? `searchHistory:${userId}` : "searchHistory";
+}
+
+function loadLocalHistory(userId?: string): HistoryItem[] {
+  const saved = localStorage.getItem(localHistoryKey(userId));
   if (!saved) return [];
   try {
     const parsed = JSON.parse(saved);
@@ -26,8 +39,8 @@ function loadLocalHistory(): HistoryItem[] {
   }
 }
 
-function saveLocalHistory(history: HistoryItem[]) {
-  localStorage.setItem("searchHistory", JSON.stringify(history));
+function saveLocalHistory(history: HistoryItem[], userId?: string) {
+  localStorage.setItem(localHistoryKey(userId), JSON.stringify(history));
 }
 
 export default function SearchBar() {
@@ -40,13 +53,36 @@ export default function SearchBar() {
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [isExpanded, setIsExpanded] = useState(true);
 
+  // 국가 필터
+  const [region, setRegion] = useState("KR");
+  const [showRegionMenu, setShowRegionMenu] = useState(false);
+  const regionMenuRef = useRef<HTMLDivElement>(null);
+
   // 플랜 확인 (publicMetadata.plan)
   const plan = (user?.publicMetadata?.plan as string) ?? "free";
   const useServerHistory = ["starter", "pro", "business", "admin"].includes(plan);
 
-  // 히스토리 로드
+  // URL에서 region 동기화
+  useEffect(() => {
+    const r = searchParams.get("region");
+    if (r && REGIONS.some((x) => x.code === r)) setRegion(r);
+  }, [searchParams]);
+
+  // 외부 클릭 시 국가 메뉴 닫기
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (regionMenuRef.current && !regionMenuRef.current.contains(e.target as Node)) {
+        setShowRegionMenu(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  // 히스토리 로드 — userId 스코핑으로 계정 전환 시 타인 기록 노출 방지
   useEffect(() => {
     if (!user) {
+      // 비로그인: 공유 키 사용 (브라우저 익명)
       setHistory(loadLocalHistory());
       return;
     }
@@ -57,12 +93,13 @@ export default function SearchBar() {
           if (data.items?.length) {
             setHistory(data.items.map((it: { term: string; count: number }) => ({ term: it.term, count: it.count })));
           } else {
-            setHistory(loadLocalHistory());
+            setHistory(loadLocalHistory(user.id));
           }
         })
-        .catch(() => setHistory(loadLocalHistory()));
+        .catch(() => setHistory(loadLocalHistory(user.id)));
     } else {
-      setHistory(loadLocalHistory());
+      // 로그인 상태 Free 플랜: userId 스코핑된 localStorage
+      setHistory(loadLocalHistory(user.id));
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id, useServerHistory]);
@@ -72,9 +109,8 @@ export default function SearchBar() {
     if (currentQ) setKeyword(decodeURIComponent(currentQ).normalize("NFC"));
   }, [searchParams]);
 
-  // count를 반환 (서버로 전달용)
   const saveToHistory = (term: string): number => {
-    const prev = useServerHistory ? history : loadLocalHistory();
+    const prev = useServerHistory ? history : loadLocalHistory(user?.id);
     const existing = prev.find((h) => h.term === term);
     let updated: HistoryItem[];
     let newCount: number;
@@ -91,14 +127,13 @@ export default function SearchBar() {
     setHistory(updated);
 
     if (useServerHistory) {
-      // 서버 저장 (fire-and-forget)
       fetch("/api/search-history", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ term }),
       }).catch(() => {});
     } else {
-      saveLocalHistory(updated);
+      saveLocalHistory(updated, user?.id);
     }
 
     if (!isExpanded) setIsExpanded(true);
@@ -112,7 +147,7 @@ export default function SearchBar() {
     if (useServerHistory) {
       fetch("/api/search-history", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({}) }).catch(() => {});
     } else {
-      localStorage.removeItem("searchHistory");
+      localStorage.removeItem(localHistoryKey(user?.id));
     }
   };
 
@@ -123,7 +158,7 @@ export default function SearchBar() {
     if (useServerHistory) {
       fetch("/api/search-history", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ term }) }).catch(() => {});
     } else {
-      saveLocalHistory(next);
+      saveLocalHistory(next, user?.id);
     }
   };
 
@@ -131,38 +166,37 @@ export default function SearchBar() {
     const trimmed = searchTerm.trim().normalize("NFC");
     if (!trimmed) return;
 
+    // v (버전) 계산 — await 이전에 처리해야 stale searchParams 방지
+    const currentQ = decodeURIComponent(searchParams.get("q") ?? "").normalize("NFC");
+    const prevV = parseInt(searchParams.get("v") || "0");
+    const v = currentQ === trimmed ? prevV + 1 : 1;
+    const currentFilter = searchParams.get("filter");
+    const filterParam = currentFilter ? `&filter=${currentFilter}` : "";
+
     if (!await showConfirm(`"${trimmed}" 검색하시겠습니까?`)) return;
 
     saveToHistory(trimmed);
 
-    // count는 history 상태 대신 URL에서 직접 읽어서 계산 (가장 신뢰할 수 있는 값)
-    // 같은 키워드 재검색 → count+1 (50→100→150→200...), 다른 키워드 → 1로 리셋
-    const currentQ = decodeURIComponent(searchParams.get("q") ?? "").normalize("NFC");
-    const prevCount = parseInt(searchParams.get("count") || "0");
-    const count = currentQ === trimmed ? prevCount + 1 : 1;
-
-    const currentFilter = searchParams.get("filter");
-    const filterParam = currentFilter ? `&filter=${currentFilter}` : "";
-
     showLoading("검색 중...");
-    router.push(`/search?q=${encodeURIComponent(trimmed)}&count=${count}${filterParam}`);
+    router.push(`/search?q=${encodeURIComponent(trimmed)}&v=${v}&region=${region}${filterParam}`);
   };
 
   // 최근 검색어 클릭: 카운트 증가 없이 기존 결과 보기
   const navigateFromHistory = (term: string) => {
     setKeyword(term);
     const currentQ = searchParams.get("q");
-    // 이미 같은 키워드 결과를 보고 있으면 그대로 유지
     if (currentQ && decodeURIComponent(currentQ).normalize("NFC") === term.normalize("NFC")) {
       return;
     }
-    router.push(`/search?q=${encodeURIComponent(term)}&fromHistory=1`);
+    router.push(`/search?q=${encodeURIComponent(term)}&fromHistory=1&region=${region}`);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     void executeSearch(keyword);
   };
+
+  const currentRegion = REGIONS.find((r) => r.code === region) ?? REGIONS[0];
 
   return (
     <div className="w-full flex flex-col gap-2 flex-1">
@@ -173,8 +207,50 @@ export default function SearchBar() {
           value={keyword}
           onChange={(e) => setKeyword(e.target.value)}
           placeholder="키워드를 입력하세요"
-          className="w-full pl-5 pr-12 py-3 rounded-xl bg-gray-900 text-white border border-gray-700 focus:border-teal-500 focus:outline-none placeholder-gray-600 text-sm transition-colors"
+          className="w-full pl-5 pr-28 py-3 rounded-xl bg-gray-900 text-white border border-gray-700 focus:border-teal-500 focus:outline-none placeholder-gray-600 text-sm transition-colors"
         />
+
+        {/* 국가 선택 버튼 */}
+        <div ref={regionMenuRef} className="absolute right-12 top-1/2 -translate-y-1/2">
+          <button
+            type="button"
+            onClick={() => setShowRegionMenu((v) => !v)}
+            className="flex items-center gap-1 px-2 py-1 rounded-lg text-sm hover:bg-gray-700 transition-colors text-gray-300 hover:text-white"
+            title="검색 국가 선택"
+          >
+            <span>{currentRegion.flag}</span>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="w-3 h-3 text-gray-500">
+              <path fillRule="evenodd" d="M4.22 6.22a.75.75 0 0 1 1.06 0L8 8.94l2.72-2.72a.75.75 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L4.22 7.28a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" />
+            </svg>
+          </button>
+
+          {/* 드롭다운 */}
+          {showRegionMenu && (
+            <div className="absolute right-0 top-full mt-1 w-36 bg-gray-900 border border-gray-700 rounded-xl shadow-xl z-50 overflow-hidden">
+              {REGIONS.map((r) => (
+                <button
+                  key={r.code}
+                  type="button"
+                  onClick={() => {
+                    setRegion(r.code);
+                    setShowRegionMenu(false);
+                  }}
+                  className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm transition-colors text-left ${
+                    region === r.code
+                      ? "bg-teal-900/50 text-teal-300"
+                      : "text-gray-300 hover:bg-gray-800 hover:text-white"
+                  }`}
+                >
+                  <span className="text-base">{r.flag}</span>
+                  <span>{r.label}</span>
+                  {region === r.code && <span className="ml-auto text-teal-400 text-xs">✓</span>}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* 검색 버튼 */}
         <button
           type="submit"
           className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
@@ -218,7 +294,6 @@ export default function SearchBar() {
                     key={index}
                     className="group flex items-center bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-teal-600 rounded-lg transition-all overflow-hidden"
                   >
-                    {/* 클릭 → 검색 영역 */}
                     <div
                       onClick={() => navigateFromHistory(item.term)}
                       className="flex items-center gap-1.5 px-2.5 py-1.5 cursor-pointer"
@@ -230,7 +305,6 @@ export default function SearchBar() {
                         </span>
                       )}
                     </div>
-                    {/* X 버튼 — 부모 onClick과 완전 분리 */}
                     <button
                       type="button"
                       onClick={() => void removeHistoryItem(item.term)}

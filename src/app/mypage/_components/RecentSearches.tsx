@@ -2,32 +2,64 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useUser } from "@clerk/nextjs";
 
 interface HistoryItem {
   term: string;
   count: number;
 }
 
+function localHistoryKey(userId: string) {
+  return `searchHistory:${userId}`;
+}
+
+function loadLocalHistory(userId: string): HistoryItem[] {
+  try {
+    const saved = localStorage.getItem(localHistoryKey(userId));
+    if (!saved) return [];
+    const parsed = JSON.parse(saved);
+    if (!Array.isArray(parsed) || parsed.length === 0) return [];
+    if (typeof parsed[0] === "string") {
+      return parsed.map((t: string) => ({ term: t, count: 1 }));
+    }
+    return parsed;
+  } catch {
+    return [];
+  }
+}
+
 export default function RecentSearches() {
   const router = useRouter();
+  const { user, isLoaded } = useUser();
   const [history, setHistory] = useState<HistoryItem[]>([]);
 
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem("searchHistory");
-      if (!saved) return;
-      const parsed = JSON.parse(saved);
-      if (!Array.isArray(parsed)) return;
-      // 구버전 string[] 포맷 호환
-      if (typeof parsed[0] === "string") {
-        setHistory(parsed.map((t: string) => ({ term: t, count: 1 })));
-      } else {
-        setHistory(parsed);
-      }
-    } catch {}
-  }, []);
+    if (!isLoaded) return;
+    if (!user) {
+      setHistory([]);
+      return;
+    }
 
-  if (history.length === 0) return null;
+    const plan = (user.publicMetadata?.plan as string) ?? "free";
+    const canServerHistory = ["starter", "pro", "business", "admin"].includes(plan);
+
+    if (canServerHistory) {
+      fetch("/api/search-history")
+        .then((r) => r.json())
+        .then((data) => {
+          if (data.items?.length) {
+            setHistory(data.items.map((it: { term: string; count: number }) => ({ term: it.term, count: it.count })));
+          } else {
+            setHistory(loadLocalHistory(user.id));
+          }
+        })
+        .catch(() => setHistory(loadLocalHistory(user.id)));
+    } else {
+      setHistory(loadLocalHistory(user.id));
+    }
+  }, [isLoaded, user]);
+
+  if (!isLoaded || !user || history.length === 0) return null;
 
   const top = history.slice(0, 8);
 

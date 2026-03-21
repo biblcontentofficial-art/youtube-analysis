@@ -11,8 +11,8 @@ const PLANS = [
     color: "border-gray-800",
     badge: null,
     usage: [
-      { text: "실시간 검색 2회/일" },
-      { text: "검색 결과 50건" },
+      { text: "검색 3회/일" },
+      { text: "검색 결과 20건 + 더보기" },
     ],
     features: [
       { text: "아웃라이어 · 성과도 확인" },
@@ -32,8 +32,8 @@ const PLANS = [
     color: "border-gray-600",
     badge: null,
     usage: [
-      { text: "실시간 검색 10회/일" },
-      { text: "검색 결과 100건" },
+      { text: "검색 200회/월 (일 최대 20회)" },
+      { text: "검색 결과 100건 + 더보기" },
     ],
     features: [
       { text: "아웃라이어 · 성과도 확인" },
@@ -55,8 +55,8 @@ const PLANS = [
     color: "border-teal-500",
     badge: "추천",
     usage: [
-      { text: "실시간 검색 50회/일" },
-      { text: "검색 결과 200건" },
+      { text: "검색 500회/월 (팀 최대 2명)" },
+      { text: "검색 결과 500건 + 더보기" },
     ],
     features: [
       { text: "아웃라이어 · 성과도 확인" },
@@ -79,8 +79,8 @@ const PLANS = [
     color: "border-purple-600",
     badge: null,
     usage: [
-      { text: "실시간 검색 무제한" },
-      { text: "검색 결과 200건" },
+      { text: "검색 무제한 (팀 최대 5명)" },
+      { text: "검색 결과 1,000건 + 더보기" },
     ],
     features: [
       { text: "Pro 모든 기능 포함" },

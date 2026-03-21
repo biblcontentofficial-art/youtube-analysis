@@ -9,26 +9,52 @@ export function getStripe(): Stripe {
   });
 }
 
-export const PLANS = {
+export type PlanConfig = {
+  name: string;
+  priceId: string | null | undefined;
+  dailySearchLimit: number | null;   // null = 일 한도 없음
+  monthlySearchLimit: number | null; // null = 무제한
+  resultLimit: number;               // 세션당 최대 결과 수 (더보기 포함)
+  canLoadMore: boolean;
+  maxTeamSize: number;
+  canCollect: boolean;
+  canAlgorithm: boolean;
+  canChannelReport: boolean;
+  canChannelSearch: boolean;
+  canTrending: boolean;
+  canSavedVideos: boolean;
+  canServerHistory: boolean;
+  historyDays: number;
+};
+
+export type PlanKey = "free" | "starter" | "pro" | "business" | "admin";
+
+export const PLANS: Record<PlanKey, PlanConfig> = {
   free: {
     name: "Free",
     priceId: null,
-    searchLimit: 2,
-    resultLimit: 50,
+    dailySearchLimit: 3,
+    monthlySearchLimit: null,
+    resultLimit: 20,
+    canLoadMore: true,
+    maxTeamSize: 1,
     canCollect: false,
     canAlgorithm: false,
     canChannelReport: false,
-    canChannelSearch: false,  // 채널 찾기
-    canTrending: false,       // 트렌드 분석
-    canSavedVideos: false,    // 수집한 영상
-    canServerHistory: false,  // 서버 검색 기록 저장
-    historyDays: 0,           // 0 = localStorage만
+    canChannelSearch: false,
+    canTrending: false,
+    canSavedVideos: false,
+    canServerHistory: false,
+    historyDays: 0,
   },
   starter: {
     name: "Starter",
     priceId: process.env.STRIPE_STARTER_PRICE_ID,
-    searchLimit: 10,
+    dailySearchLimit: 20,
+    monthlySearchLimit: 200,
     resultLimit: 100,
+    canLoadMore: true,
+    maxTeamSize: 1,
     canCollect: false,
     canAlgorithm: true,
     canChannelReport: false,
@@ -41,8 +67,11 @@ export const PLANS = {
   pro: {
     name: "Pro",
     priceId: process.env.STRIPE_PRO_PRICE_ID,
-    searchLimit: 50,
-    resultLimit: 200,
+    dailySearchLimit: null,
+    monthlySearchLimit: 500,
+    resultLimit: 500,
+    canLoadMore: true,
+    maxTeamSize: 2,
     canCollect: true,
     canAlgorithm: true,
     canChannelReport: true,
@@ -50,13 +79,16 @@ export const PLANS = {
     canTrending: true,
     canSavedVideos: true,
     canServerHistory: true,
-    historyDays: 9999,        // 무제한
+    historyDays: 9999,
   },
   business: {
     name: "Business",
     priceId: process.env.STRIPE_BUSINESS_PRICE_ID,
-    searchLimit: 9999,
-    resultLimit: 200,
+    dailySearchLimit: null,
+    monthlySearchLimit: null,
+    resultLimit: 1000,
+    canLoadMore: true,
+    maxTeamSize: 5,
     canCollect: true,
     canAlgorithm: true,
     canChannelReport: true,
@@ -70,8 +102,11 @@ export const PLANS = {
   admin: {
     name: "Admin",
     priceId: null,
-    searchLimit: 999,
+    dailySearchLimit: null,
+    monthlySearchLimit: null,
     resultLimit: 9999,
+    canLoadMore: true,
+    maxTeamSize: 999,
     canCollect: true,
     canAlgorithm: true,
     canChannelReport: true,
@@ -81,6 +116,5 @@ export const PLANS = {
     canServerHistory: true,
     historyDays: 9999,
   },
-} as const;
+};
 
-export type PlanKey = keyof typeof PLANS;

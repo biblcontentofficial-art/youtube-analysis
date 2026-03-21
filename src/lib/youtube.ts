@@ -350,7 +350,7 @@ export async function getTrendingVideos(isPaid = false, maxResults = 50): Promis
   return { items: [], error: "api_error" };
 }
 
-export async function searchVideos(query: string, filter?: string, pageToken?: string, isPaid: boolean = false, order: string = "relevance"): Promise<{
+export async function searchVideos(query: string, filter?: string, pageToken?: string, isPaid: boolean = false, order: string = "relevance", regionCode: string = "KR"): Promise<{
   items: any[];
   nextPageToken?: string;
   error?: "quota_exceeded" | "api_error";
@@ -366,7 +366,7 @@ export async function searchVideos(query: string, filter?: string, pageToken?: s
 
   // 캐시 확인
   const { cacheGet, cacheSet, searchCacheKey } = await import("./cache");
-  const cacheKey = searchCacheKey(query, filter || "", pageToken, order);
+  const cacheKey = searchCacheKey(query, filter || "", pageToken, order, regionCode);
   const cached = await cacheGet<{ items: any[]; nextPageToken?: string }>(cacheKey);
   if (cached) {
     console.log(`✅ 캐시 히트: ${cacheKey}`);
@@ -385,7 +385,7 @@ export async function searchVideos(query: string, filter?: string, pageToken?: s
 
     while (foundItems.length === 0 && attempt < maxAttempts) {
       const apiKey = apiKeys[activeKeyIndex];
-      let searchUrl = `https://www.googleapis.com/youtube/v3/search?part=id&q=${encodeURIComponent(query)}&key=${apiKey}&type=video&maxResults=50&order=${order}`;
+      let searchUrl = `https://www.googleapis.com/youtube/v3/search?part=id&q=${encodeURIComponent(query)}&key=${apiKey}&type=video&maxResults=50&order=${order}&regionCode=${regionCode}`;
       if (currentToken) searchUrl += `&pageToken=${currentToken}`;
 
       const searchRes = await fetch(searchUrl, { cache: 'no-store' });

@@ -21,33 +21,45 @@ interface Props {
     filter?: string;
     fromHistory?: string;
     upgraded?: string;
-    count?: string; // 같은 키워드 반복 검색 횟수 (localStorage → URL)
+    v?: string;      // 검색 버전 (같은 키워드 재검색 시 증가)
+    region?: string; // 검색 국가 (기본: KR)
   };
 }
 
+// 한 번의 검색에서 초기 로드할 결과 수 (더보기로 추가 가능)
+const INITIAL_RESULT_COUNT = 50;
+const MAX_INITIAL_PAGES = 3;
+
 export default async function SearchPage({ searchParams }: Props) {
   const query = searchParams.q || "";
-  // 기본 필터: 전체 (all). 명시적으로 filter 파라미터를 줄 때만 변경
   const filter = searchParams.filter ?? "all";
   const fromHistory = searchParams.fromHistory === "1";
   const upgraded = searchParams.upgraded === "1";
-  // 같은 키워드를 몇 번 검색했는지 (1부터 시작)
-  const searchCount = Math.max(parseInt(searchParams.count || "1"), 1);
+  const searchVersion = searchParams.v || "1";
+  const region = searchParams.region || "KR";
 
   let videos: any[] = [];
-  let nextPageToken: string | undefined;
   let limitExceeded = false;
   let apiError: "quota_exceeded" | "api_error" | null = null;
 
+  // 더보기용 nextPageToken
+  let nextPageToken: string | undefined;
+  let nextPageTokenLong: string | undefined;
+  let nextPageTokenShorts: string | undefined;
+
   let used = 0;
-  let limit = 2;
-  let plan: string = "free";
+  let limit = 3;
+  let plan: PlanKey = "free";
+  let isMonthly = false;
+  let unlimited = false;
 
   try {
     const usage = await getSearchUsage();
     used = usage.used;
     limit = usage.limit;
     plan = usage.plan;
+    isMonthly = usage.isMonthly;
+    unlimited = usage.unlimited;
   } catch {
     // getSearchUsage 실패해도 기본값 사용
   }
@@ -56,38 +68,24 @@ export default async function SearchPage({ searchParams }: Props) {
   const canCollect = planData.canCollect;
   const canAlgorithm = planData.canAlgorithm;
   const canChannelReport = planData.canChannelReport;
+  const canLoadMore = planData.canLoadMore;
+  const resultLimit = planData.resultLimit;
   const isPaid = plan !== "free";
-
-  // ⚠️ 핵심 비즈니스 로직 — 절대 변경 금지 ⚠️
-  // 고객이 검색 1회당 비용을 지불하는 구조. 같은 키워드 반복 검색 시
-  // 결과가 반드시 누적 증가해야 함: 1회=50개, 2회=100개, 3회=150개...
-  // 이 로직을 변경하면 고객 이탈로 직결됨. 검색 결과에 대한 명시적 요청 없이 수정 금지.
-  const countBasedLimit = searchCount * 50;
-  const resultLimit = Math.min(planData.resultLimit, countBasedLimit);
-  const canSearchMore = resultLimit < planData.resultLimit;
-
-  // 쇼츠 필터링 후 페이지당 유효 영상 ~10개 기준 → resultLimit 달성에 충분한 페이지 확보
-  // free: 4페이지 / paid: 최소 6페이지, resultLimit/10 비율로 최대 20페이지
-  const pagesToFetch = plan === "free"
-    ? 4
-    : Math.max(6, Math.min(Math.ceil(resultLimit / 10), 20));
 
   if (query) {
     try {
       // fromHistory=1: 필터 탭 전환 또는 히스토리 재방문
       // cache hit → API 비용 0 → 카운트 면제
-      // cache miss → 실제 YouTube API 호출 발생 → 카운트 차감 (quota 보호)
       let skipCount = false;
       if (fromHistory) {
         if (filter === "all") {
-          // all = long + shorts 병렬 fetch → 각각 캐시 확인
           const [cLong, cShorts] = await Promise.all([
-            cacheGet(searchCacheKey(query, "long", undefined, "relevance")),
-            cacheGet(searchCacheKey(query, "shorts", undefined, "relevance")),
+            cacheGet(searchCacheKey(query, "long", undefined, "relevance", region)),
+            cacheGet(searchCacheKey(query, "shorts", undefined, "relevance", region)),
           ]);
           skipCount = cLong !== null && cShorts !== null;
         } else {
-          const isCached = (await cacheGet(searchCacheKey(query, filter, undefined, "relevance"))) !== null;
+          const isCached = (await cacheGet(searchCacheKey(query, filter, undefined, "relevance", region))) !== null;
           skipCount = isCached;
         }
       }
@@ -96,55 +94,61 @@ export default async function SearchPage({ searchParams }: Props) {
       if (!ok) {
         limitExceeded = true;
       } else if (filter === "all") {
-        // 전체 = 쇼츠 제외 50% + 쇼츠 50% 병렬 fetch
-        const half = Math.ceil(resultLimit / 2);
+        // 전체 = 쇼츠 제외 + 쇼츠 병렬 fetch, 각 절반 목표 (플랜 결과 한도 기준)
+        const initialTarget = Math.min(INITIAL_RESULT_COUNT, resultLimit);
+        const half = Math.ceil(initialTarget / 2);
 
-        const fetchHalf = async (f: "long" | "shorts", limit: number) => {
+        const fetchHalf = async (f: "long" | "shorts", target: number) => {
           const items: any[] = [];
           let token: string | undefined;
           let pages = 0;
+          let lastToken: string | undefined;
           let err: "quota_exceeded" | "api_error" | null = null;
-          while (items.length < limit && pages < pagesToFetch) {
-            const res = await searchVideos(query, f, token, isPaid);
+          while (items.length < target && pages < MAX_INITIAL_PAGES) {
+            const res = await searchVideos(query, f, token, isPaid, "relevance", region);
             if (res.error) { err = res.error; break; }
             const seen = new Set(items.map((v: any) => v.videoId));
             items.push(...res.items.filter((v: any) => !seen.has(v.videoId)));
+            lastToken = res.nextPageToken;
             token = res.nextPageToken;
             pages++;
             if (!token) break;
           }
-          return { items: items.slice(0, limit), error: err };
+          return { items: items.slice(0, target), nextPageToken: lastToken, error: err };
         };
 
         const [longRes, shortsRes] = await Promise.all([
           fetchHalf("long", half),
-          fetchHalf("shorts", resultLimit - half),
+          fetchHalf("shorts", initialTarget - half),
         ]);
 
         if (longRes.error && shortsRes.error) {
           apiError = longRes.error;
         } else {
           videos = [...longRes.items, ...shortsRes.items];
+          nextPageTokenLong = longRes.nextPageToken;
+          nextPageTokenShorts = shortsRes.nextPageToken;
         }
       } else {
-        const first = await searchVideos(query, filter, undefined, isPaid);
+        // 특정 필터: 최대 INITIAL_RESULT_COUNT개 로드
+        const first = await searchVideos(query, filter, undefined, isPaid, "relevance", region);
         if (first.error) {
           apiError = first.error;
         } else {
           videos = first.items;
           nextPageToken = first.nextPageToken;
 
+          const initialTarget = Math.min(INITIAL_RESULT_COUNT, resultLimit);
           let pagesLoaded = 1;
-          while (videos.length < resultLimit && nextPageToken && pagesLoaded < pagesToFetch) {
-            const more = await searchVideos(query, filter, nextPageToken, isPaid);
+          while (videos.length < initialTarget && nextPageToken && pagesLoaded < MAX_INITIAL_PAGES) {
+            const more = await searchVideos(query, filter, nextPageToken, isPaid, "relevance", region);
             if (more.error) break;
             const existingIds = new Set(videos.map((v: any) => v.videoId));
-            const newItems = more.items.filter((item: any) => !existingIds.has(item.videoId));
-            videos = [...videos, ...newItems];
+            videos = [...videos, ...more.items.filter((item: any) => !existingIds.has(item.videoId))];
             nextPageToken = more.nextPageToken;
             pagesLoaded++;
           }
-          videos = videos.slice(0, resultLimit);
+          videos = videos.slice(0, initialTarget);
         }
       }
     } catch (e) {
@@ -154,13 +158,16 @@ export default async function SearchPage({ searchParams }: Props) {
   }
 
   const encodedQuery = encodeURIComponent(query);
-  // 필터 탭: 검색 횟수 차감 없이 이동 + 현재 count 유지 (결과 수 동일)
-  const filterBase = `q=${encodedQuery}&fromHistory=1&count=${searchCount}`;
+  // 필터 탭: 검색 횟수 차감 없이 이동 + 현재 버전 유지
+  const filterBase = `q=${encodedQuery}&fromHistory=1&v=${searchVersion}&region=${region}`;
+
+  // 한도 표시 레이블
+  const periodLabel = isMonthly ? "이번달" : "오늘";
 
   return (
     <main className="min-h-screen bg-gray-950 text-white">
       {/* 검색마다 key가 바뀌어 강제 리마운트 → hideLoading() 반드시 실행 */}
-      <PageLoadedSignal key={`signal-${query}-${filter}-${searchCount}`} />
+      <PageLoadedSignal key={`signal-${query}-${filter}-${searchVersion}`} />
       <LimitModal show={limitExceeded} limit={limit} />
       <KakaoChannelBanner />
       {/* 검색 바 영역 */}
@@ -179,6 +186,9 @@ export default async function SearchPage({ searchParams }: Props) {
 
           {/* 검색 횟수 표시 */}
           {query && (() => {
+            if (unlimited) {
+              return <div className="text-xs shrink-0 text-gray-600">{periodLabel} {used}회 사용</div>;
+            }
             const remaining = limit - used;
             const colorClass = remaining <= 0
               ? "text-red-400"
@@ -186,10 +196,10 @@ export default async function SearchPage({ searchParams }: Props) {
                 ? "text-amber-400"
                 : "text-gray-500";
             const label = remaining <= 0
-              ? `오늘 한도 소진 (${used}/${limit})`
+              ? `${periodLabel} 한도 소진 (${used}/${limit})`
               : remaining === 1
                 ? `⚠️ 마지막 검색 남음 (${used}/${limit})`
-                : `오늘 ${remaining}회 남음 (${used}/${limit})`;
+                : `${periodLabel} ${remaining}회 남음 (${used}/${limit})`;
             return (
               <div className={`text-xs shrink-0 ${colorClass}`}>{label}</div>
             );
@@ -232,10 +242,10 @@ export default async function SearchPage({ searchParams }: Props) {
         {limitExceeded && (
           <div className="mb-6 p-4 bg-amber-950/50 border border-amber-700 rounded-xl text-center">
             <p className="text-amber-300 font-semibold mb-1">
-              오늘 검색 한도({limit}회)를 모두 사용했습니다
+              {periodLabel} 검색 한도({limit}회)를 모두 사용했습니다
             </p>
             <p className="text-gray-400 text-sm mb-3">
-              내일 자정에 초기화되거나, 플랜을 업그레이드하세요.
+              {isMonthly ? "다음달에 초기화되거나" : "내일 자정에 초기화되거나"}, 플랜을 업그레이드하세요.
             </p>
             <Link
               href="/pricing"
@@ -299,7 +309,7 @@ export default async function SearchPage({ searchParams }: Props) {
             {!isPaid && !limitExceeded && videos.length > 0 && (
               <div className="mb-4 p-4 bg-gradient-to-r from-teal-950/50 to-gray-900 border border-teal-800/50 rounded-xl flex items-center justify-between gap-4">
                 <div>
-                  <p className="text-sm font-semibold text-teal-300">⚡ Starter 플랜으로 하루 10회 검색</p>
+                  <p className="text-sm font-semibold text-teal-300">⚡ Starter 플랜으로 월 200회 검색 + 더보기</p>
                   <p className="text-xs text-gray-500 mt-0.5">지금 월 ₩49,000 — 언제든지 취소 가능</p>
                 </div>
                 <Link href="/pricing" className="shrink-0 bg-teal-600 hover:bg-teal-500 text-white text-xs font-semibold px-4 py-2 rounded-lg transition">
@@ -309,15 +319,19 @@ export default async function SearchPage({ searchParams }: Props) {
             )}
             <Suspense fallback={<SearchSkeleton />}>
               <SearchResultList
-                key={`${query}-${filter}-${searchCount}`}
+                key={`${query}-${filter}-${searchVersion}`}
                 initialData={videos}
                 query={query}
                 filter={filter}
+                region={region}
                 canAlgorithm={canAlgorithm}
                 canCollect={canCollect}
                 canChannelReport={canChannelReport}
-                resultLimit={planData.resultLimit}
-                canSearchMore={canSearchMore}
+                canLoadMore={canLoadMore}
+                resultLimit={resultLimit}
+                nextPageToken={nextPageToken}
+                nextPageTokenLong={nextPageTokenLong}
+                nextPageTokenShorts={nextPageTokenShorts}
               />
             </Suspense>
           </>

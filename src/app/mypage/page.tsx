@@ -16,7 +16,7 @@ export default async function MyPage({
   const user = await currentUser();
   const plan = (user?.publicMetadata?.plan as string) || "free";
 
-  let usage = { used: 0, limit: 2 };
+  let usage = { used: 0, limit: 3, isMonthly: false, unlimited: false };
   try {
     usage = await getSearchUsage();
   } catch {}
@@ -91,25 +91,33 @@ export default async function MyPage({
           </div>
           {plan !== "free" && (
             <div className="text-xs text-gray-600 mt-1">
-              {plan === 'starter' && '하루 10회 검색 · 결과 100건'}
-              {plan === 'pro' && '하루 50회 검색 · 결과 200건'}
-              {plan === 'business' && '무제한 검색 · 결과 200건'}
+              {plan === 'starter' && '월 200회 검색 (일 최대 20회) · 결과 200건'}
+              {plan === 'pro' && '월 500회 검색 · 결과 500건'}
+              {plan === 'business' && '무제한 검색 · 결과 무제한'}
             </div>
           )}
 
-          {/* 오늘 사용량 */}
+          {/* 사용량 */}
           <div className="bg-gray-800/50 rounded-xl p-4">
-            <p className="text-gray-500 text-xs mb-2">오늘 검색 사용량</p>
+            <p className="text-gray-500 text-xs mb-2">
+              {usage.isMonthly ? "이번달 검색 사용량" : "오늘 검색 사용량"}
+            </p>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-white font-bold text-lg">{usage.used} / {usage.limit}회</span>
-              <span className="text-gray-600 text-xs">매일 오전 09:00 (KST) 리셋</span>
+              <span className="text-white font-bold text-lg">
+                {usage.unlimited ? `${usage.used}회 사용` : `${usage.used} / ${usage.limit}회`}
+              </span>
+              <span className="text-gray-600 text-xs">
+                {usage.unlimited ? "무제한" : usage.isMonthly ? "매월 1일 리셋" : "매일 오전 09:00 (KST) 리셋"}
+              </span>
             </div>
-            <div className="w-full bg-gray-700 rounded-full h-1.5">
-              <div
-                className="bg-teal-500 h-1.5 rounded-full transition-all"
-                style={{ width: `${usage.limit > 0 ? Math.min((usage.used / usage.limit) * 100, 100) : 0}%` }}
-              />
-            </div>
+            {!usage.unlimited && (
+              <div className="w-full bg-gray-700 rounded-full h-1.5">
+                <div
+                  className="bg-teal-500 h-1.5 rounded-full transition-all"
+                  style={{ width: `${usage.limit > 0 ? Math.min((usage.used / usage.limit) * 100, 100) : 0}%` }}
+                />
+              </div>
+            )}
           </div>
 
           {/* 최근 검색 키워드 */}

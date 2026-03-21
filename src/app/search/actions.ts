@@ -12,10 +12,10 @@ import {
 } from "@/lib/cache";
 
 // 1. 더보기 기능 (pageToken 없으면 새 order로 첫 페이지부터)
-export async function getMoreVideos(query: string, filter: string | undefined, pageToken: string | undefined, order?: string) {
+export async function getMoreVideos(query: string, filter: string | undefined, pageToken: string | undefined, order?: string, regionCode?: string) {
   const plan = await getUserPlan();
   const isPaid = plan !== "free";
-  return await searchVideos(query, filter, pageToken, isPaid, order || "relevance");
+  return await searchVideos(query, filter, pageToken, isPaid, order || "relevance", regionCode || "KR");
 }
 
 type VideoDetail = {
