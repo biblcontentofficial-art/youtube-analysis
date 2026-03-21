@@ -21,8 +21,6 @@ export type PlanConfig = {
   canAlgorithm: boolean;
   canChannelReport: boolean;
   canChannelSearch: boolean;
-  canTrending: boolean;
-  trendingRefreshLimit: number | null; // 일 강제새로고침 횟수. null = 무제한
   canSavedVideos: boolean;
   canServerHistory: boolean;
   historyDays: number;
@@ -43,8 +41,6 @@ export const PLANS: Record<PlanKey, PlanConfig> = {
     canAlgorithm: false,
     canChannelReport: false,
     canChannelSearch: false,
-    canTrending: false,
-    trendingRefreshLimit: 0,
     canSavedVideos: false,
     canServerHistory: false,
     historyDays: 0,
@@ -61,8 +57,6 @@ export const PLANS: Record<PlanKey, PlanConfig> = {
     canAlgorithm: true,
     canChannelReport: false,
     canChannelSearch: true,
-    canTrending: true,
-    trendingRefreshLimit: 3,   // 일 3회 강제 새로고침
     canSavedVideos: false,
     canServerHistory: true,
     historyDays: 30,
@@ -79,8 +73,6 @@ export const PLANS: Record<PlanKey, PlanConfig> = {
     canAlgorithm: true,
     canChannelReport: true,
     canChannelSearch: true,
-    canTrending: true,
-    trendingRefreshLimit: 10,  // 일 10회 강제 새로고침
     canSavedVideos: true,
     canServerHistory: true,
     historyDays: 9999,
@@ -97,8 +89,6 @@ export const PLANS: Record<PlanKey, PlanConfig> = {
     canAlgorithm: true,
     canChannelReport: true,
     canChannelSearch: true,
-    canTrending: true,
-    trendingRefreshLimit: null, // 무제한
     canSavedVideos: true,
     canServerHistory: true,
     historyDays: 9999,
@@ -116,11 +106,8 @@ export const PLANS: Record<PlanKey, PlanConfig> = {
     canAlgorithm: true,
     canChannelReport: true,
     canChannelSearch: true,
-    canTrending: true,
-    trendingRefreshLimit: null, // 무제한
     canSavedVideos: true,
     canServerHistory: true,
     historyDays: 9999,
   },
 };
-

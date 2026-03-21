@@ -104,7 +104,6 @@ export default async function RootLayout({
               <div className="hidden md:flex items-center gap-1 text-sm">
                 <NavTab href="/search" icon="🎬" label="영상 찾기" />
                 <NavTab href="/channels" icon="📺" label="채널 찾기" soon={!isStarterPlus} />
-                <NavTab href="/trending" icon="📊" label="트렌드 분석" soon={!isStarterPlus} />
                 <NavTab href="/saved" icon="🔖" label="수집한 영상" soon={!isProPlus} />
                 <NavTab href="/pricing" icon="💳" label="요금제" />
               </div>
