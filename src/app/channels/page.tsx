@@ -17,13 +17,13 @@ function channelAgeMonths(publishedAt: string): number {
   return Math.max(1, (Date.now() - new Date(publishedAt).getTime()) / (1000 * 60 * 60 * 24 * 30));
 }
 
-function formatAge(publishedAt: string): string {
+function formatOpenDate(publishedAt: string): string {
   if (!publishedAt) return "-";
-  const m = channelAgeMonths(publishedAt);
-  if (m < 12) return `${Math.round(m)}개월`;
-  const y = Math.floor(m / 12);
-  const r = Math.round(m % 12);
-  return r > 0 ? `${y}년 ${r}개월` : `${y}년`;
+  const d = new Date(publishedAt);
+  const y = d.getFullYear();
+  const m = d.getMonth() + 1;
+  const day = d.getDate();
+  return `${y}. ${m}. ${day}.`;
 }
 
 function fmtNum(n: number): string {
@@ -255,7 +255,7 @@ export default async function ChannelsPage({ searchParams }: Props) {
                     영상 수
                   </th>
                   <th className="px-4 py-3 text-right font-normal whitespace-nowrap hidden md:table-cell">
-                    채널 나이
+                    채널 개설일
                   </th>
                   <th className="px-4 py-3 text-left font-normal hidden lg:table-cell">
                     설명
@@ -369,10 +369,10 @@ export default async function ChannelsPage({ searchParams }: Props) {
                         {ch.videoCount.toLocaleString()}개
                       </td>
 
-                      {/* 채널 나이 */}
+                      {/* 채널 개설일 */}
                       <td className="px-4 py-4 text-right whitespace-nowrap hidden md:table-cell align-middle">
-                        <span className={`text-xs ${isNew ? "text-green-400" : "text-gray-500"}`}>
-                          {formatAge(ch.publishedAt)}
+                        <span className={`text-xs tabular-nums ${isNew ? "text-green-400" : "text-gray-500"}`}>
+                          {formatOpenDate(ch.publishedAt)}
                         </span>
                       </td>
 
