@@ -259,8 +259,33 @@ export default function SearchResultList({
 
   const allChecked = checkedIds.size === sortedVideos.length && sortedVideos.length > 0;
 
+  // 툴팁이 있는 컬럼 헤더
+  const ColHeader = ({
+    label, tip, sortable, sortKeyName, children,
+  }: {
+    label: string; tip: string; sortable?: boolean; sortKeyName?: SortKey; children?: React.ReactNode;
+  }) => (
+    <div
+      className="relative group flex items-center justify-center gap-0.5 cursor-default"
+      onClick={sortable && sortKeyName ? () => handleSort(sortKeyName) : undefined}
+      style={sortable ? { cursor: "pointer" } : undefined}
+    >
+      <span className={sortable ? "hover:text-white" : ""}>{label}</span>
+      {children}
+      {/* 툴팁 */}
+      <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-50
+                      w-52 px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 shadow-xl
+                      text-[11px] text-gray-300 leading-relaxed text-left whitespace-normal
+                      opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+        {tip}
+        <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-700" />
+      </div>
+    </div>
+  );
+
   return (
     <div className="w-full mt-4 pb-12">
+
 
       {/* 테이블 헤더 */}
       <div
@@ -278,30 +303,35 @@ export default function SearchResultList({
         <div className="text-center">구분</div>
         <div className="text-center">썸네일 ({sortedVideos.length})</div>
         <div className="pl-1">제목</div>
-        <div onClick={() => handleSort("viewCount")} className="cursor-pointer hover:text-white flex items-center justify-center">
-          조회수 {renderSortIcon("viewCount")}
-        </div>
-        <div onClick={() => handleSort("subscriberCountRaw")} className="cursor-pointer hover:text-white flex items-center justify-center">
-          구독자 {renderSortIcon("subscriberCountRaw")}
-        </div>
-        <div onClick={() => handleSort("performanceRatioRaw")} className="cursor-pointer hover:text-white flex items-center justify-center">
-          아웃라이어 {renderSortIcon("performanceRatioRaw")}
-        </div>
-        <div onClick={() => handleSort("scoreValue")} className="cursor-pointer hover:text-white flex items-center justify-center">
-          반응도 {renderSortIcon("scoreValue")}
-        </div>
+        <ColHeader label="조회수" sortable sortKeyName="viewCount"
+          tip="해당 영상의 누적 총 조회수입니다.">
+          {renderSortIcon("viewCount")}
+        </ColHeader>
+        <ColHeader label="구독자" sortable sortKeyName="subscriberCountRaw"
+          tip="영상을 올린 채널의 현재 구독자 수입니다.">
+          {renderSortIcon("subscriberCountRaw")}
+        </ColHeader>
+        <ColHeader label="아웃라이어" sortable sortKeyName="performanceRatioRaw"
+          tip={"이 영상 조회수 ÷ 채널 평균 조회수\n채널 평균 대비 얼마나 더 터진 영상인지 나타냅니다.\n예) 3.0x = 채널 평균의 3배"}>
+          {renderSortIcon("performanceRatioRaw")}
+        </ColHeader>
+        <ColHeader label="반응도" sortable sortKeyName="scoreValue"
+          tip={"시간당 조회수·구독자 대비 조회 비율·최신성을 합산한 등급\nGood: 지금 빠르게 퍼지는 중\nNormal: 보통 수준\nBad: 현재 반응 적음"}>
+          {renderSortIcon("scoreValue")}
+        </ColHeader>
         {/* 알고리즘 확률 — Starter 이상만 */}
         {canAlgorithm && (
-          <div onClick={() => handleSort("algorithmScore")} className="cursor-pointer hover:text-white flex items-center justify-center">
-            알고리즘 🔥 {renderSortIcon("algorithmScore")}
-          </div>
+          <ColHeader label="알고리즘 🔥" sortable sortKeyName="algorithmScore"
+            tip={"업로드 이후 현재까지 유튜브 알고리즘에 올라탈 확률\n시간당 조회수·구독자 비율·업로드 경과일 기반\n70% 이상 = 현재 급격히 성장 중"}>
+            {renderSortIcon("algorithmScore")}
+          </ColHeader>
         )}
-        <div className="flex items-center justify-center">
-          트렌드
-        </div>
-        <div onClick={() => handleSort("publishedAtRaw")} className="cursor-pointer hover:text-white flex items-center justify-center">
-          게시일 {renderSortIcon("publishedAtRaw")}
-        </div>
+        <ColHeader label="트렌드"
+          tip={"업로드 시점부터 현재까지의 조회수 성장 패턴\n📈 우상향 급경사: 지금 알고리즘 타는 중\n〜 완만한 S커브: 꾸준한 성장\n→ 초반 후 평탄: 과거 인기, 현재 둔화"} />
+        <ColHeader label="게시일" sortable sortKeyName="publishedAtRaw"
+          tip="영상이 유튜브에 업로드된 날짜입니다.">
+          {renderSortIcon("publishedAtRaw")}
+        </ColHeader>
       </div>
 
       {/* 리스트 */}
