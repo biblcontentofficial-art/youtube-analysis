@@ -7,6 +7,7 @@ interface UsageData {
   used: number;
   limit: number;
   plan: string;
+  unlimited: boolean;
 }
 
 export default function SearchUsageBadge() {
@@ -20,6 +21,20 @@ export default function SearchUsageBadge() {
   }, []);
 
   if (!usage) return null;
+
+  // Business/Admin: 무제한 표시
+  if (usage.unlimited) {
+    return (
+      <Link
+        href="/mypage"
+        className="hidden sm:flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full border border-teal-800 bg-teal-950/40 text-teal-400 transition hover:border-teal-600"
+        title="무제한 검색"
+      >
+        <span>✨</span>
+        <span>무제한</span>
+      </Link>
+    );
+  }
 
   const remaining = Math.max(0, usage.limit - usage.used);
   const isLow = remaining <= 1;

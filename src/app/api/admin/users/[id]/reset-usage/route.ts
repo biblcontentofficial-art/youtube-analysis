@@ -6,7 +6,7 @@
 import { currentUser } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
-const ADMIN_EMAILS = ["bibl.content.official@gmail.com"];
+import { isAdminEmail } from "@/lib/adminAuth";
 
 function todayKey(userId: string) {
   return `search:${userId}:${new Date().toISOString().slice(0, 10)}`;
@@ -20,7 +20,7 @@ export async function POST(
   if (!admin) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const email = admin.emailAddresses?.[0]?.emailAddress ?? "";
-  if (!ADMIN_EMAILS.includes(email)) {
+  if (!isAdminEmail(email)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

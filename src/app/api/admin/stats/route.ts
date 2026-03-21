@@ -1,7 +1,7 @@
 import { currentUser } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
-const ADMIN_EMAILS = ["bibl.content.official@gmail.com"];
+import { isAdminEmail } from "@/lib/adminAuth";
 
 const PLAN_PRICE: Record<string, number> = {
   free: 0,
@@ -21,7 +21,7 @@ export async function GET() {
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const email = user.emailAddresses?.[0]?.emailAddress ?? "";
-  if (!ADMIN_EMAILS.includes(email)) {
+  if (!isAdminEmail(email)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

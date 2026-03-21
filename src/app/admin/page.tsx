@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import AdminDashboard from "./_components/AdminDashboard";
 
-const ADMIN_EMAILS = ["bibl.content.official@gmail.com"];
+import { isAdminEmail } from "@/lib/adminAuth";
 
 export default async function AdminPage() {
   const user = await currentUser();
@@ -13,7 +13,7 @@ export default async function AdminPage() {
   }
 
   const email = user.emailAddresses?.[0]?.emailAddress ?? "";
-  if (!ADMIN_EMAILS.includes(email)) {
+  if (!isAdminEmail(email)) {
     redirect("/");
   }
 

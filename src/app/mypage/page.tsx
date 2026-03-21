@@ -2,6 +2,7 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getSearchUsage } from "@/lib/searchLimit";
+import { getPayments } from "@/lib/db";
 import LogoutButton from "./_components/LogoutButton";
 import RecentSearches from "./_components/RecentSearches";
 
@@ -20,6 +21,8 @@ export default async function MyPage({
   try {
     usage = await getSearchUsage();
   } catch {}
+
+  const payments = await getPayments(userId).catch(() => []);
 
   const planLabels: Record<string, string> = {
     free: "Free",
@@ -119,6 +122,33 @@ export default async function MyPage({
               </div>
             )}
           </div>
+
+          {/* 결제 내역 */}
+          {payments.length > 0 && (
+            <div className="bg-gray-800/50 rounded-xl p-4">
+              <p className="text-gray-500 text-xs mb-3">결제 내역</p>
+              <div className="space-y-2">
+                {payments.slice(0, 5).map((p) => (
+                  <div key={p.id} className="flex items-center justify-between text-sm">
+                    <div>
+                      <span className="text-gray-300 capitalize">{p.plan}</span>
+                      <span className="text-gray-600 text-xs ml-2">{p.paid_at?.slice(0, 10)}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-white font-medium">₩{p.amount.toLocaleString()}</span>
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${
+                        p.status === "success" ? "bg-teal-900/50 text-teal-400" :
+                        p.status === "cancelled" ? "bg-gray-800 text-gray-500" :
+                        "bg-red-900/50 text-red-400"
+                      }`}>
+                        {p.status === "success" ? "완료" : p.status === "cancelled" ? "취소" : "실패"}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* 최근 검색 키워드 */}
           <RecentSearches />
