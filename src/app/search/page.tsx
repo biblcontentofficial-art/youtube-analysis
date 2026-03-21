@@ -64,9 +64,12 @@ export default async function SearchPage({ searchParams }: Props) {
   const resultLimit = Math.min(planData.resultLimit, countBasedLimit);
   const canSearchMore = resultLimit < planData.resultLimit;
 
-  // resultLimit에 비례해서 페이지 수 결정 (페이지당 유효 영상 ~30개 기준)
-  // 쇼츠 필터링으로 인해 목표치보다 더 많은 페이지가 필요할 수 있음
-  const pagesToFetch = plan === "free" ? 1 : Math.max(2, Math.min(Math.ceil(resultLimit / 25), 20));
+  // 쇼츠 필터링 후 페이지당 유효 영상 ~10개 기준으로 계산
+  // 예: resultLimit=50 → 5페이지 필요, resultLimit=100 → 10페이지 필요
+  // free도 최소 4페이지 시도 (쇼츠 필터링으로 인해 1페이지로는 결과가 너무 적음)
+  const pagesToFetch = plan === "free"
+    ? 4
+    : Math.max(6, Math.min(Math.ceil(resultLimit / 10), 20));
 
   if (query) {
     try {
