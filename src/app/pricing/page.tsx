@@ -99,7 +99,7 @@ const PLANS = [
 
 export default function PricingPage() {
   return (
-    <main className="min-h-screen bg-gray-950 text-white py-16 px-4">
+    <main className="min-h-screen bg-gray-950 text-white py-16 px-4 pb-24">
       <div className="max-w-6xl mx-auto">
 
         {/* 헤더 */}
