@@ -15,14 +15,14 @@ const CATEGORIES = [
   { id: "17", label: "스포츠",      emoji: "⚽", unsupported: false },
   { id: "25", label: "뉴스/정치",   emoji: "📰", unsupported: false },
   { id: "28", label: "과학/기술",   emoji: "🔬", unsupported: false },
-  { id: "27", label: "교육",        emoji: "📚", unsupported: true  }, // KR 미지원
+  // { id: "27", label: "교육", emoji: "📚" }, // KR 미지원 — 탭 제외
   { id: "1",  label: "영화/애니",   emoji: "🎬", unsupported: false },
   { id: "22", label: "인물/블로그", emoji: "👤", unsupported: false },
   { id: "23", label: "코미디",      emoji: "😄", unsupported: false },
   { id: "26", label: "뷰티/스타일", emoji: "💄", unsupported: false },
   { id: "2",  label: "자동차",      emoji: "🚗", unsupported: false },
   { id: "15", label: "동물",        emoji: "🐾", unsupported: false },
-  { id: "19", label: "여행",        emoji: "✈️", unsupported: true  }, // KR 미지원
+  // { id: "19", label: "여행", emoji: "✈️" }, // KR 미지원 — 탭 제외
 ];
 
 const TYPE_TABS = [
