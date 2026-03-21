@@ -147,7 +147,7 @@ export default function SearchResultList({
     const targets = checkedIds.size > 0
       ? sortedVideos.filter((v) => checkedIds.has(v.videoId))
       : sortedVideos;
-    const header = "제목,채널,조회수,구독자,성과도,아웃라이어,게시일,URL";
+    const header = "제목,채널,조회수,구독자,반응도,아웃라이어,게시일,URL";
     const rows = targets.map((v) =>
       [
         `"${v.title?.replace(/"/g, '""') ?? ''}"`,
@@ -288,7 +288,7 @@ export default function SearchResultList({
           아웃라이어 {renderSortIcon("performanceRatioRaw")}
         </div>
         <div onClick={() => handleSort("scoreValue")} className="cursor-pointer hover:text-white flex items-center justify-center">
-          성과도 {renderSortIcon("scoreValue")}
+          반응도 {renderSortIcon("scoreValue")}
         </div>
         {/* 알고리즘 확률 — Starter 이상만 */}
         {canAlgorithm && (

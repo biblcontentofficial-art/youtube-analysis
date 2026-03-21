@@ -101,7 +101,7 @@ export default function SavedVideoList({ initialVideos }: Props) {
               <th className="px-3 py-3 text-left">영상</th>
               <th className="px-3 py-3 text-right">조회수</th>
               <th className="px-3 py-3 text-right hidden md:table-cell">구독자</th>
-              <th className="px-3 py-3 text-center hidden md:table-cell">성과도</th>
+              <th className="px-3 py-3 text-center hidden md:table-cell">반응도</th>
               <th className="px-3 py-3 text-center hidden lg:table-cell">검색 키워드</th>
               <th className="px-3 py-3 text-center hidden lg:table-cell">수집일</th>
               <th className="px-3 py-3 text-center w-10"></th>

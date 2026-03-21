@@ -133,7 +133,7 @@ export default function Home() {
               <span className="text-teal-400">트렌드를 선점</span>하세요
             </h1>
             <p className="text-gray-400 text-lg max-w-xl mx-auto leading-relaxed">
-              조회수·구독자·성과도를 한눈에 분석해<br className="hidden sm:block" />
+              조회수·구독자·반응도를 한눈에 분석해<br className="hidden sm:block" />
               경쟁력 있는 콘텐츠 주제를 찾아드립니다
             </p>
           </div>
@@ -202,7 +202,7 @@ export default function Home() {
         <div className="max-w-5xl mx-auto px-4 py-16 grid grid-cols-1 md:grid-cols-3 gap-8">
           <FeatureCard
             icon="📈"
-            title="성과도 분석"
+            title="반응도 분석"
             desc="영상의 조회수·구독자 비율로 실제 성과를 Good / Normal / Bad 로 즉시 판단합니다"
           />
           <FeatureCard
@@ -225,7 +225,7 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
             <StepCard step={1} title="키워드 입력" desc="분석하고 싶은 유튜브 키워드를 검색창에 입력하세요" />
             <StepCard step={2} title="실시간 분석" desc="YouTube API로 최신 영상 데이터를 수집·분석합니다" />
-            <StepCard step={3} title="인사이트 확인" desc="성과도·조회수·채널 분석 결과로 전략을 세우세요" />
+            <StepCard step={3} title="인사이트 확인" desc="반응도·조회수·채널 분석 결과로 전략을 세우세요" />
           </div>
         </div>
       </div>

@@ -125,7 +125,7 @@ export default function VideoCard({ video, checked, onCheck, onClick, canAlgorit
           <span className={`text-sm font-bold ${video.performanceColor}`}>{video.performanceRatio}</span>
         </div>
 
-        {/* 성과도 */}
+        {/* 반응도 */}
         <div className="flex justify-center">
           <ScoreBadge score={video.score} />
         </div>

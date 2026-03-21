@@ -50,7 +50,7 @@ export default function SignInForm() {
           <div className="space-y-2 mb-6">
             {[
               { icon: "🔍", text: "하루 3회 무료 검색" },
-              { icon: "📈", text: "조회수·성과도 실시간 분석" },
+              { icon: "📈", text: "조회수·반응도 실시간 분석" },
             ].map((b) => (
               <div key={b.text} className="flex items-center gap-2.5 text-sm text-gray-400">
                 <span className="text-base">{b.icon}</span>

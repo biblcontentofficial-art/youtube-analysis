@@ -148,12 +148,12 @@ export default async function Image() {
             display: "flex",
           }}
         >
-          조회수 · 구독자 · 성과도를 한눈에 분석
+          조회수 · 구독자 · 반응도를 한눈에 분석
         </div>
 
         {/* 하단 필 태그 */}
         <div style={{ display: "flex", gap: 14 }}>
-          {["성과도 분석", "키워드 트렌드", "채널 인사이트"].map((tag) => (
+          {["반응도 분석", "키워드 트렌드", "채널 인사이트"].map((tag) => (
             <div
               key={tag}
               style={{

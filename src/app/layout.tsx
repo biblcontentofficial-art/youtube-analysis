@@ -18,8 +18,8 @@ export const metadata: Metadata = {
     default: "bibl lab - 유튜브 키워드 분석 도구",
     template: "%s | bibl lab",
   },
-  description: "유튜브 키워드로 트렌드를 선점하세요. 조회수·구독자·성과도를 한눈에 분석해 경쟁력 있는 콘텐츠 주제를 찾아드립니다. 유튜버·크리에이터를 위한 데이터 분석 도구.",
-  keywords: ["유튜브 분석", "유튜브 키워드", "유튜브 트렌드", "크리에이터 도구", "유튜브 성과도", "유튜브 조회수 분석", "콘텐츠 전략", "유튜브 SEO", "bibl lab"],
+  description: "유튜브 키워드로 트렌드를 선점하세요. 조회수·구독자·반응도를 한눈에 분석해 경쟁력 있는 콘텐츠 주제를 찾아드립니다. 유튜버·크리에이터를 위한 데이터 분석 도구.",
+  keywords: ["유튜브 분석", "유튜브 키워드", "유튜브 트렌드", "크리에이터 도구", "유튜브 반응도", "유튜브 조회수 분석", "콘텐츠 전략", "유튜브 SEO", "bibl lab"],
   authors: [{ name: "bibl lab" }],
   creator: "bibl lab",
   openGraph: {
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     url: "https://bibllab.com",
     siteName: "bibl lab",
     title: "bibl lab - 유튜브 키워드 분석 도구",
-    description: "유튜브 키워드로 트렌드를 선점하세요. 조회수·구독자·성과도를 한눈에 분석.",
+    description: "유튜브 키워드로 트렌드를 선점하세요. 조회수·구독자·반응도를 한눈에 분석.",
   },
   twitter: {
     card: "summary_large_image",

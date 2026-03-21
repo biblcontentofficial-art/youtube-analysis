@@ -37,7 +37,7 @@ export default function TermsPage() {
             <p>회사는 다음과 같은 서비스를 제공합니다.</p>
             <ul className="list-disc list-inside mt-3 space-y-1 pl-2">
               <li>유튜브 키워드 검색 및 영상 분석</li>
-              <li>아웃라이어 점수 및 성과도 분석</li>
+              <li>아웃라이어 점수 및 반응도 분석</li>
               <li>알고리즘 확률 분석</li>
               <li>검색 기록 저장 및 관리</li>
               <li>기타 회사가 추가 개발하거나 다른 회사와의 제휴 계약 등을 통해 이용자에게 제공하는 일체의 서비스</li>
