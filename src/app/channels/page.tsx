@@ -1,5 +1,4 @@
-import { auth } from "@clerk/nextjs/server";
-import { redirect } from "next/navigation";
+import { currentUser } from "@clerk/nextjs/server";
 import Link from "next/link";
 import { searchChannels, ChannelResult } from "@/lib/youtube";
 import { PLANS, PlanKey } from "@/lib/stripe";
@@ -10,8 +9,8 @@ interface Props {
 }
 
 export default async function ChannelsPage({ searchParams }: Props) {
-  const { sessionClaims } = await auth();
-  const plan = (sessionClaims?.publicMetadata as Record<string, string> | undefined)?.plan ?? "free";
+  const user = await currentUser();
+  const plan = (user?.publicMetadata?.plan as string) ?? "free";
   const planData = PLANS[plan as PlanKey] ?? PLANS.free;
 
   if (!planData.canChannelSearch) {
