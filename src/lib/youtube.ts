@@ -208,9 +208,32 @@ export async function searchChannels(query: string, isPaid = false): Promise<{
 
       if (!searchRes.ok) {
         const errBody = await searchRes.json().catch(() => ({}));
-        const isQuota = searchRes.status === 403 && errBody?.error?.message?.includes("quota");
-        if (isQuota && activeKeyIndex + 1 < apiKeys.length) { activeKeyIndex++; continue; }
-        if (isQuota) return { items: [], error: "quota_exceeded" };
+        const errMsg = errBody?.error?.message || "";
+        const reason0 = errBody?.error?.errors?.[0]?.reason ?? "";
+        const domain0 = errBody?.error?.errors?.[0]?.domain ?? "";
+
+        const isQuotaError = searchRes.status === 403 && (
+          errMsg.toLowerCase().includes("quota") ||
+          reason0.toLowerCase().includes("quota") ||
+          domain0.toLowerCase().includes("quota") ||
+          reason0 === "quotaExceeded" ||
+          reason0 === "dailyLimitExceeded"
+        );
+        const isBadKey = searchRes.status === 400 || searchRes.status === 401 ||
+          reason0 === "badRequest" || reason0 === "keyInvalid" ||
+          errMsg.toLowerCase().includes("not valid");
+
+        if (isQuotaError || isBadKey) {
+          activeKeyIndex++;
+          if (activeKeyIndex < apiKeys.length) continue;
+          return { items: [], error: isQuotaError ? "quota_exceeded" : "api_error" };
+        }
+        // 403 (쿼터 감지 못한 경우)도 다음 키 시도
+        if (searchRes.status === 403) {
+          activeKeyIndex++;
+          if (activeKeyIndex < apiKeys.length) continue;
+          return { items: [], error: "quota_exceeded" };
+        }
         return { items: [], error: "api_error" };
       }
 
@@ -220,6 +243,18 @@ export async function searchChannels(query: string, isPaid = false): Promise<{
       const channelIds = searchData.items.map((item: any) => item.id.channelId).join(",");
       const channelUrl = `https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics&id=${channelIds}&key=${apiKey}`;
       const channelRes = await fetch(channelUrl, { cache: "no-store" });
+
+      if (!channelRes.ok) {
+        const errBody = await channelRes.json().catch(() => ({}));
+        const reason0 = errBody?.error?.errors?.[0]?.reason ?? "";
+        const isBadKey = channelRes.status === 400 || channelRes.status === 401 || reason0 === "keyInvalid";
+        if (isBadKey || channelRes.status === 403) {
+          activeKeyIndex++;
+          if (activeKeyIndex < apiKeys.length) continue;
+        }
+        return { items: [], error: "api_error" };
+      }
+
       const channelData = await channelRes.json();
       if (!channelData.items) return { items: [] };
 
@@ -247,6 +282,9 @@ export async function searchChannels(query: string, isPaid = false): Promise<{
       await cacheSet(cacheKey, items, TTL.CHANNEL);
       return { items };
     } catch {
+      // 예외 발생 시 다음 키로 시도
+      activeKeyIndex++;
+      if (activeKeyIndex < apiKeys.length) continue;
       return { items: [], error: "api_error" };
     }
   }
