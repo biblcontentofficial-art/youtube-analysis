@@ -22,9 +22,12 @@ import { PLANS, PlanKey } from "@/lib/stripe";
 import { getChannelUsage, incrementChannelCount } from "@/lib/channelLimit";
 import ChannelSearchBar from "./_components/ChannelSearchBar";
 import FilterTabs, { SortMode } from "./_components/FilterTabs";
+import DateSortToggle from "./_components/DateSortToggle";
+
+type DateOrder = "asc" | "desc" | null;
 
 interface Props {
-  searchParams: { q?: string; sort?: string };
+  searchParams: { q?: string; sort?: string; dateOrder?: string };
 }
 
 // ─── 유틸 ─────────────────────────────────────────────────────────────────────
@@ -50,24 +53,44 @@ function fmtNum(n: number): string {
   return n.toLocaleString();
 }
 
-function sortChannels(items: ChannelResult[], sort: SortMode): ChannelResult[] {
+function sortChannels(
+  items: ChannelResult[],
+  sort: SortMode,
+  dateOrder: DateOrder = null
+): ChannelResult[] {
   const list = [...items];
+
   if (sort === "trending")
-    return list.sort((a, b) =>
-      b.viewCount / Math.max(b.subscriberCount, 1) - a.viewCount / Math.max(a.subscriberCount, 1)
+    return list.sort(
+      (a, b) =>
+        b.viewCount / Math.max(b.subscriberCount, 1) -
+        a.viewCount / Math.max(a.subscriberCount, 1)
     );
+
   if (sort === "growth")
-    return list.sort((a, b) =>
-      b.subscriberCount / channelAgeMonths(b.publishedAt) -
-      a.subscriberCount / channelAgeMonths(a.publishedAt)
+    return list.sort(
+      (a, b) =>
+        b.subscriberCount / channelAgeMonths(b.publishedAt) -
+        a.subscriberCount / channelAgeMonths(a.publishedAt)
     );
+
   if (sort === "new") {
+    // 개설일 정렬 필터가 활성화된 경우
+    if (dateOrder) {
+      return list.sort((a, b) => {
+        const ta = new Date(a.publishedAt || 0).getTime();
+        const tb = new Date(b.publishedAt || 0).getTime();
+        return dateOrder === "asc" ? ta - tb : tb - ta;
+      });
+    }
+    // 기본: 신생(3년 이내) 채널 우선 → 영상당 평균 조회수 순
     const isNew = (c: ChannelResult) => channelAgeMonths(c.publishedAt) <= 36;
     return [
       ...list.filter(isNew).sort((a, b) => b.avgViewsPerVideo - a.avgViewsPerVideo),
       ...list.filter((c) => !isNew(c)).sort((a, b) => b.avgViewsPerVideo - a.avgViewsPerVideo),
     ];
   }
+
   return list;
 }
 
@@ -117,6 +140,9 @@ export default async function ChannelsPage({ searchParams }: Props) {
   const sort: SortMode = (["trending", "growth", "new"] as SortMode[]).includes(rawSort as SortMode)
     ? (rawSort as SortMode)
     : "trending";
+  const rawDateOrder = searchParams.dateOrder;
+  const dateOrder: DateOrder =
+    rawDateOrder === "asc" || rawDateOrder === "desc" ? rawDateOrder : null;
 
   // 사용량 조회 (검색 전 항상 확인)
   const usage = await getChannelUsage();
@@ -138,7 +164,7 @@ export default async function ChannelsPage({ searchParams }: Props) {
       } else if (result.error === "api_error") {
         apiError = "검색 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
       } else {
-        channels = sortChannels(result.items, sort);
+        channels = sortChannels(result.items, sort, dateOrder);
       }
     }
   }
@@ -185,11 +211,19 @@ export default async function ChannelsPage({ searchParams }: Props) {
           </div>
           <div className="flex items-center gap-3 flex-wrap">
             <FilterTabs current={sort} query={query} />
+
+            {/* 신생 고성장 탭 전용: 채널 개설일 정렬 토글 */}
+            {sort === "new" && (
+              <DateSortToggle query={query} dateOrder={dateOrder} />
+            )}
+
             {query && channels.length > 0 && (
               <span className="text-xs text-gray-600 hidden md:block">
                 {sort === "trending" && "영상당 평균 조회수 기준"}
                 {sort === "growth" && "채널 나이 대비 월 평균 구독자 증가량 기준"}
-                {sort === "new" && "3년 이내 개설 채널 우선 · 영상당 평균 조회수 기준"}
+                {sort === "new" && !dateOrder && "3년 이내 개설 채널 우선 · 영상당 평균 조회수 기준"}
+                {sort === "new" && dateOrder === "desc" && "채널 개설일 최신순"}
+                {sort === "new" && dateOrder === "asc" && "채널 개설일 오래된순"}
               </span>
             )}
           </div>
@@ -236,6 +270,15 @@ export default async function ChannelsPage({ searchParams }: Props) {
 
         {/* 신생 고성장 안내 */}
         {sort === "new" && channels.length > 0 && (() => {
+          if (dateOrder) {
+            return (
+              <p className="text-xs mb-4 text-teal-500">
+                {dateOrder === "desc"
+                  ? "📅 채널 개설일 최신순으로 정렬됩니다"
+                  : "📅 채널 개설일 오래된순으로 정렬됩니다"}
+              </p>
+            );
+          }
           const n = channels.filter((ch) => channelAgeMonths(ch.publishedAt) <= 36).length;
           return (
             <p className={`text-xs mb-4 ${n > 0 ? "text-green-500" : "text-gray-500"}`}>
