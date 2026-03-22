@@ -188,65 +188,6 @@ export default function StudioPage() {
         </div>
       </section>
 
-      {/* ── 4가지 특징 ───────────────────────────────────────────────── */}
-      <section id="features">
-        {FEATURES.map((feat, i) => (
-          <div key={feat.num} className={`border-b border-gray-800 ${i % 2 === 0 ? "bg-gray-950" : "bg-gray-900/30"}`}>
-            <div className="max-w-screen-xl mx-auto px-4 py-0">
-              <div className={`grid md:grid-cols-2 min-h-[480px] md:min-h-[560px] ${feat.imgRight ? "" : "md:[direction:rtl]"}`}>
-
-                {/* 텍스트 */}
-                <div className={`flex flex-col justify-center py-16 md:py-20 px-0 md:px-12 ${feat.imgRight ? "" : "md:[direction:ltr]"}`}>
-                  <span className="text-6xl md:text-8xl font-black text-gray-800 leading-none mb-6 select-none">
-                    {feat.num}
-                  </span>
-                  <h2 className="text-2xl md:text-3xl font-bold mb-5 leading-tight">
-                    {feat.title}
-                  </h2>
-                  <p className="text-gray-400 text-base leading-relaxed whitespace-pre-line">
-                    {feat.desc}
-                  </p>
-                </div>
-
-                {/* 이미지 */}
-                <div className={`relative min-h-64 md:min-h-0 ${feat.imgRight ? "" : "md:[direction:ltr]"}`}>
-                  <Image
-                    src={feat.img}
-                    alt={feat.imgAlt}
-                    fill
-                    className="object-cover"
-                    unoptimized
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-r from-gray-950/60 via-transparent to-transparent" />
-                </div>
-
-              </div>
-            </div>
-          </div>
-        ))}
-      </section>
-
-      {/* ── CTA 중간 배너 ────────────────────────────────────────────── */}
-      <section className="border-b border-gray-800 bg-teal-900/20">
-        <div className="max-w-screen-xl mx-auto px-4 py-16 text-center">
-          <h2 className="text-2xl md:text-4xl font-bold mb-4">
-            여러분의 채널이<br className="md:hidden" /> 성공 가능성이 있는지<br />
-            <span className="text-teal-400">무료 진단을 받아보세요</span>
-          </h2>
-          <p className="text-gray-400 mb-8 text-sm md:text-base">
-            채널 URL만 보내주시면 즉시 무료 진단을 시작합니다.
-          </p>
-          <a
-            href="http://pf.kakao.com/_xoGexgG/chat"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-10 py-4 bg-teal-500 hover:bg-teal-400 text-white font-bold rounded-xl transition text-base"
-          >
-            무료 상담 받기 →
-          </a>
-        </div>
-      </section>
-
       {/* ── 운영 채널 포트폴리오 ─────────────────────────────────────── */}
       <section className="border-b border-gray-800">
         <div className="max-w-screen-xl mx-auto px-4 py-20">
@@ -307,6 +248,65 @@ export default function StudioPage() {
               </a>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* ── 4가지 특징 ───────────────────────────────────────────────── */}
+      <section id="features">
+        {FEATURES.map((feat, i) => (
+          <div key={feat.num} className={`border-b border-gray-800 ${i % 2 === 0 ? "bg-gray-950" : "bg-gray-900/30"}`}>
+            <div className="max-w-screen-xl mx-auto px-4 py-0">
+              <div className={`grid md:grid-cols-2 min-h-[480px] md:min-h-[560px] ${feat.imgRight ? "" : "md:[direction:rtl]"}`}>
+
+                {/* 텍스트 */}
+                <div className={`flex flex-col justify-center py-16 md:py-20 px-0 md:px-12 ${feat.imgRight ? "" : "md:[direction:ltr]"}`}>
+                  <span className="text-6xl md:text-8xl font-black text-gray-800 leading-none mb-6 select-none">
+                    {feat.num}
+                  </span>
+                  <h2 className="text-2xl md:text-3xl font-bold mb-5 leading-tight">
+                    {feat.title}
+                  </h2>
+                  <p className="text-gray-400 text-base leading-relaxed whitespace-pre-line">
+                    {feat.desc}
+                  </p>
+                </div>
+
+                {/* 이미지 */}
+                <div className={`relative min-h-64 md:min-h-0 ${feat.imgRight ? "" : "md:[direction:ltr]"}`}>
+                  <Image
+                    src={feat.img}
+                    alt={feat.imgAlt}
+                    fill
+                    className="object-cover"
+                    unoptimized
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-r from-gray-950/60 via-transparent to-transparent" />
+                </div>
+
+              </div>
+            </div>
+          </div>
+        ))}
+      </section>
+
+      {/* ── CTA 중간 배너 ────────────────────────────────────────────── */}
+      <section className="border-b border-gray-800 bg-teal-900/20">
+        <div className="max-w-screen-xl mx-auto px-4 py-16 text-center">
+          <h2 className="text-2xl md:text-4xl font-bold mb-4">
+            여러분의 채널이<br className="md:hidden" /> 성공 가능성이 있는지<br />
+            <span className="text-teal-400">무료 진단을 받아보세요</span>
+          </h2>
+          <p className="text-gray-400 mb-8 text-sm md:text-base">
+            채널 URL만 보내주시면 즉시 무료 진단을 시작합니다.
+          </p>
+          <a
+            href="http://pf.kakao.com/_xoGexgG/chat"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-10 py-4 bg-teal-500 hover:bg-teal-400 text-white font-bold rounded-xl transition text-base"
+          >
+            무료 상담 받기 →
+          </a>
         </div>
       </section>
 
