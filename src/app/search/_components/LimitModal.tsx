@@ -44,14 +44,14 @@ export default function LimitModal({ show, limit }: { show: boolean; limit: numb
               오늘 검색 {limit}회를 모두 사용했습니다
             </h2>
             <p className="text-gray-400 text-sm mb-1">
-              Starter 플랜으로 <span className="text-teal-400 font-semibold">월 200회 검색</span>이 가능합니다
+              Starter 플랜으로 <span className="text-teal-400 font-semibold">월 50회 검색</span>이 가능합니다
             </p>
             <p className="text-gray-600 text-xs mb-6">내일 자정 초기화 · Starter ₩49,000/월부터</p>
 
             {/* 혜택 요약 */}
             <div className="bg-gray-800/60 border border-gray-700 rounded-xl px-4 py-3 mb-6 text-left space-y-2">
               {[
-                { plan: "Starter", color: "text-teal-400", desc: "월 200회 · 알고리즘 확률 · 채널 찾기" },
+                { plan: "Starter", color: "text-teal-400", desc: "월 50회 · 알고리즘 확률 · 채널 찾기" },
                 { plan: "Pro", color: "text-purple-400",  desc: "월 500회 · 영상 수집 · CSV 내보내기" },
               ].map(({ plan, color, desc }) => (
                 <div key={plan} className="flex items-center gap-2">
@@ -96,9 +96,9 @@ export default function LimitModal({ show, limit }: { show: boolean; limit: numb
           무료 검색 {limit}회를 다 쓰셨어요
         </h2>
         <p className="text-gray-400 text-sm mb-1">
-          가입하면 하루 <span className="text-teal-400 font-semibold">3회 무료 검색</span>이 계속됩니다
+          가입하면 하루 <span className="text-teal-400 font-semibold">2회 무료 검색</span>이 계속됩니다
         </p>
-        <p className="text-gray-600 text-xs mb-7">1분 만에 가입 · Starter 플랜으로 월 200회 검색 가능</p>
+        <p className="text-gray-600 text-xs mb-7">1분 만에 가입 · Starter 플랜으로 월 50회 검색 가능</p>
 
         {/* 카카오 버튼 */}
         <button

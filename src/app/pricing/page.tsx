@@ -29,9 +29,9 @@ const PLANS = [
     color: "border-gray-800",
     badge: null,
     usage: [
-      { text: "영상 검색 3회/일" },
+      { text: "영상 검색 2회/일" },
       { text: "검색 결과 30건 + 더보기" },
-      { text: "채널 검색 30회/월" },
+      { text: "채널 검색 1회/일" },
     ],
     features: [
       { text: "아웃라이어 · 반응도 확인" },
@@ -52,9 +52,9 @@ const PLANS = [
     color: "border-gray-600",
     badge: null,
     usage: [
-      { text: "영상 검색 200회/월 (일 최대 20회)" },
+      { text: "영상 검색 50회/월" },
       { text: "검색 결과 100건 + 더보기" },
-      { text: "채널 검색 100회/월" },
+      { text: "채널 검색 30회/월" },
     ],
     features: [
       { text: "아웃라이어 · 반응도 확인" },

@@ -278,7 +278,7 @@ export default async function SearchPage({ searchParams }: Props) {
                 {periodLabel} 검색 {limit}회를 모두 사용했습니다
               </h2>
               <p className="text-gray-400 text-sm mb-1">
-                Starter 플랜으로 업그레이드하면 <span className="text-teal-400 font-semibold">월 200회 검색</span>이 가능합니다
+                Starter 플랜으로 업그레이드하면 <span className="text-teal-400 font-semibold">월 50회 검색</span>이 가능합니다
               </p>
               <p className="text-gray-600 text-xs mb-6">
                 {isMonthly ? "또는 다음달 초기화까지 기다리세요" : "또는 내일 자정 초기화까지 기다리세요"} · Starter ₩49,000/월부터
@@ -287,7 +287,7 @@ export default async function SearchPage({ searchParams }: Props) {
               {/* 플랜 혜택 비교 */}
               <div className="bg-gray-800/60 border border-gray-700 rounded-xl px-5 py-4 mb-6 text-left space-y-2.5">
                 {[
-                  { plan: "Starter", color: "text-teal-400", perks: "월 200회 검색 · 알고리즘 탑승 확률 · 채널 찾기" },
+                  { plan: "Starter", color: "text-teal-400", perks: "월 50회 검색 · 알고리즘 탑승 확률 · 채널 찾기" },
                   { plan: "Pro", color: "text-purple-400", perks: "월 500회 + 영상 수집 · CSV 내보내기 · 채널 리포트" },
                 ].map(({ plan, color, perks }) => (
                   <div key={plan} className="flex items-start gap-2.5">
@@ -372,7 +372,7 @@ export default async function SearchPage({ searchParams }: Props) {
                     </svg>
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-teal-300">Starter 플랜으로 월 200회 검색 + 알고리즘 확률</p>
+                    <p className="text-sm font-semibold text-teal-300">Starter 플랜으로 월 50회 검색 + 알고리즘 확률</p>
                     <p className="text-xs text-gray-500 mt-0.5">월 ₩49,000 · 언제든지 취소 · 즉시 적용</p>
                   </div>
                 </div>

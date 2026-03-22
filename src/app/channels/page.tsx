@@ -202,7 +202,7 @@ export default async function ChannelsPage({ searchParams }: Props) {
                     ? "border-amber-700 bg-amber-950/50 text-amber-400"
                     : "border-gray-700 bg-gray-900 text-gray-400"
                 }`}
-                title="이번 달 채널 검색 가능 횟수"
+                title={usage.isDaily ? "오늘 채널 검색 가능 횟수" : "이번 달 채널 검색 가능 횟수"}
               >
                 <span>{isOut ? "🚫" : isLow ? "⚠️" : "📺"}</span>
                 <span>{isOut ? "이번 달 한도 초과" : `${remaining}회 남음`}</span>
@@ -235,12 +235,12 @@ export default async function ChannelsPage({ searchParams }: Props) {
         {limitError === "limit_exceeded" && (
           <div className="mb-6 p-6 bg-gray-900 border border-gray-700 rounded-xl text-center space-y-3">
             <p className="text-2xl">🚫</p>
-            <p className="text-white font-semibold">이번 달 채널 검색 횟수를 모두 사용했어요</p>
+            <p className="text-white font-semibold">{usage.isDaily ? "오늘 채널 검색 횟수를 모두 사용했어요" : "이번 달 채널 검색 횟수를 모두 사용했어요"}</p>
             <p className="text-gray-400 text-sm">
               현재 플랜: <span className="font-medium text-gray-200">{usage.plan.charAt(0).toUpperCase() + usage.plan.slice(1)}</span>
               &nbsp;·&nbsp; 사용: <span className="font-medium text-gray-200">{usage.used}/{usage.limit}회</span>
             </p>
-            <p className="text-gray-500 text-xs">다음 달 1일에 횟수가 초기화되거나, 플랜을 업그레이드하면 더 많이 사용할 수 있어요.</p>
+            <p className="text-gray-500 text-xs">{usage.isDaily ? "내일 자정에 횟수가 초기화되거나, 플랜을 업그레이드하면 더 많이 사용할 수 있어요." : "다음 달 1일에 횟수가 초기화되거나, 플랜을 업그레이드하면 더 많이 사용할 수 있어요."}</p>
             <Link
               href="/pricing"
               className="inline-block mt-2 bg-teal-600 hover:bg-teal-500 text-white text-sm font-semibold px-6 py-2.5 rounded-lg transition"

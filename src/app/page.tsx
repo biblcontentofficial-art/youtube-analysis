@@ -91,7 +91,7 @@ export default function Home() {
               <span className="text-teal-400 font-medium">&ldquo;{pendingKeyword}&rdquo;</span> 검색을 시작하려면<br />
               로그인 또는 회원가입을 해주세요.
             </p>
-            <p className="text-xs text-gray-600 mb-7">가입 후 하루 3회 무료 검색 · 1분 만에 시작</p>
+            <p className="text-xs text-gray-600 mb-7">가입 후 하루 2회 무료 검색 · 1분 만에 시작</p>
 
             <div className="flex flex-col gap-3">
               <Link
@@ -192,7 +192,7 @@ export default function Home() {
           </div>
           <div>
             <p className="text-2xl font-bold text-teal-400">무료</p>
-            <p className="text-xs text-gray-500 mt-1">로그인 후 무료 3회 가능</p>
+            <p className="text-xs text-gray-500 mt-1">로그인 후 무료 2회 가능</p>
           </div>
         </div>
       </div>

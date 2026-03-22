@@ -1,7 +1,8 @@
 /**
- * 채널 검색 횟수 제한 (월별)
- * Redis 키: chsearch:m:{userId}:{YYYY-MM}
- * 비로그인: 쿠키 기반 (월별 리셋)
+ * 채널 검색 횟수 제한
+ * - Free: 일별 (chsearch:d:{userId}:{YYYY-MM-DD})
+ * - 그 외: 월별 (chsearch:m:{userId}:{YYYY-MM})
+ * - 비로그인: 쿠키 기반
  */
 
 import { auth, currentUser } from "@clerk/nextjs/server";
@@ -9,7 +10,7 @@ import { cookies } from "next/headers";
 import { PLANS, PlanKey } from "./stripe";
 
 const COOKIE_COUNT = "bibl_ch_count";
-const COOKIE_MONTH = "bibl_ch_month";
+const COOKIE_PERIOD = "bibl_ch_period"; // YYYY-MM or YYYY-MM-DD
 
 let redis: import("@upstash/redis").Redis | null = null;
 
@@ -24,15 +25,31 @@ async function getRedis() {
 
 const mem = new Map<string, number>();
 
+function dailyKey(userId: string): string {
+  return `chsearch:d:${userId}:${new Date().toISOString().slice(0, 10)}`;
+}
+
 function monthKey(userId: string): string {
   const now = new Date();
   const ym = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, "0")}`;
   return `chsearch:m:${userId}:${ym}`;
 }
 
+function todayString(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
 function currentMonth(): string {
   const now = new Date();
   return `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, "0")}`;
+}
+
+function secondsUntilMidnight(): number {
+  const now = new Date();
+  const midnight = new Date(now);
+  midnight.setUTCDate(midnight.getUTCDate() + 1);
+  midnight.setUTCHours(0, 0, 0, 0);
+  return Math.max(Math.floor((midnight.getTime() - now.getTime()) / 1000), 1);
 }
 
 function secondsUntilNextMonth(): number {
@@ -41,11 +58,6 @@ function secondsUntilNextMonth(): number {
   return Math.max(Math.floor((next.getTime() - now.getTime()) / 1000), 1);
 }
 
-/**
- * Redis Lua 스크립트로 원자적 체크 + 증가
- * current >= limit → { ok: false, used: current }
- * current <  limit → { ok: true,  used: newval  }
- */
 async function atomicIncrIfUnder(
   key: string,
   limit: number,
@@ -74,12 +86,14 @@ async function getCount(key: string): Promise<number> {
   return mem.get(key) ?? 0;
 }
 
-function getCookieCount(): number {
+// 비로그인 쿠키 — Free 일별
+function getCookieCount(isDaily: boolean): number {
   try {
     const jar = cookies();
-    const month = jar.get(COOKIE_MONTH)?.value;
+    const period = jar.get(COOKIE_PERIOD)?.value;
     const count = jar.get(COOKIE_COUNT)?.value;
-    if (month !== currentMonth()) return 0;
+    const expected = isDaily ? todayString() : currentMonth();
+    if (period !== expected) return 0;
     return parseInt(count || "0");
   } catch { return 0; }
 }
@@ -89,89 +103,135 @@ export type ChannelUsageResult = {
   limit: number;
   plan: PlanKey;
   unlimited: boolean;
+  isDaily: boolean;
 };
 
 export async function getChannelUsage(): Promise<ChannelUsageResult> {
   let userId: string | null = null;
   try { const a = await auth(); userId = a.userId; } catch {}
 
-  if (!userId) {
-    const used = getCookieCount();
-    return { used, limit: PLANS.free.channelSearchMonthlyLimit!, plan: "free", unlimited: false };
-  }
-
   let plan: PlanKey = "free";
-  try {
-    const user = await currentUser();
-    const p = user?.publicMetadata?.plan as PlanKey;
-    plan = p in PLANS ? p : "free";
-  } catch {}
+  if (userId) {
+    try {
+      const user = await currentUser();
+      const p = user?.publicMetadata?.plan as PlanKey;
+      plan = p in PLANS ? p : "free";
+    } catch {}
+  }
 
   const planData = PLANS[plan];
-  const limit = planData.channelSearchMonthlyLimit;
 
-  if (limit === null) {
-    const used = await getCount(monthKey(userId));
-    return { used, limit: 9999, plan, unlimited: true };
+  // Free: 일별 채널 검색 한도
+  if (plan === "free" && planData.dailyChannelSearchLimit !== null) {
+    const limit = planData.dailyChannelSearchLimit;
+    if (!userId) {
+      const used = getCookieCount(true);
+      return { used, limit, plan, unlimited: false, isDaily: true };
+    }
+    const used = await getCount(dailyKey(userId));
+    return { used, limit, plan, unlimited: false, isDaily: true };
   }
 
+  // 무제한
+  if (planData.channelSearchMonthlyLimit === null) {
+    const used = userId ? await getCount(monthKey(userId)) : 0;
+    return { used, limit: 9999, plan, unlimited: true, isDaily: false };
+  }
+
+  // 월별 한도
+  const limit = planData.channelSearchMonthlyLimit;
+  if (!userId) {
+    const used = getCookieCount(false);
+    return { used, limit, plan, unlimited: false, isDaily: false };
+  }
   const used = await getCount(monthKey(userId));
-  return { used, limit, plan, unlimited: false };
+  return { used, limit, plan, unlimited: false, isDaily: false };
 }
 
 export async function incrementChannelCount(): Promise<{ ok: boolean; used: number; limit: number }> {
   let userId: string | null = null;
   try { const a = await auth(); userId = a.userId; } catch {}
 
+  let plan: PlanKey = "free";
+  if (userId) {
+    try {
+      const user = await currentUser();
+      const p = user?.publicMetadata?.plan as PlanKey;
+      plan = p in PLANS ? p : "free";
+    } catch {}
+  }
+
+  const planData = PLANS[plan];
+
+  // ── Free: 일별 채널 검색 한도 ─────────────────────────────────────────────
+  if (plan === "free" && planData.dailyChannelSearchLimit !== null) {
+    const limit = planData.dailyChannelSearchLimit;
+
+    if (!userId) {
+      const current = getCookieCount(true);
+      if (current >= limit) return { ok: false, used: current, limit };
+      const newCount = current + 1;
+      try {
+        const jar = cookies();
+        jar.set(COOKIE_COUNT, String(newCount), { path: "/", maxAge: 86400 });
+        jar.set(COOKIE_PERIOD, todayString(), { path: "/", maxAge: 86400 });
+      } catch {}
+      return { ok: true, used: newCount, limit };
+    }
+
+    const key = dailyKey(userId);
+    const r = await getRedis();
+    if (r) {
+      try {
+        const result = await atomicIncrIfUnder(key, limit, secondsUntilMidnight(), r);
+        return { ok: result.ok, used: result.used, limit };
+      } catch (e) { console.error("[channelLimit] daily atomicIncrIfUnder error:", e); }
+    }
+    // 폴백
+    const current = await getCount(key);
+    if (current >= limit) return { ok: false, used: current, limit };
+    const used = (mem.get(key) ?? 0) + 1;
+    mem.set(key, used);
+    return { ok: true, used, limit };
+  }
+
+  // ── 무제한 (카운트만 기록) ────────────────────────────────────────────────
+  if (planData.channelSearchMonthlyLimit === null) {
+    if (userId) {
+      const key = monthKey(userId);
+      const r = await getRedis();
+      if (r) { try { await r.incr(key); } catch {} }
+      else { mem.set(key, (mem.get(key) ?? 0) + 1); }
+    }
+    return { ok: true, used: 0, limit: 9999 };
+  }
+
+  // ── 월별 한도 ─────────────────────────────────────────────────────────────
+  const limit = planData.channelSearchMonthlyLimit;
+
   if (!userId) {
-    const limit = PLANS.free.channelSearchMonthlyLimit!;
-    const current = getCookieCount();
+    const current = getCookieCount(false);
     if (current >= limit) return { ok: false, used: current, limit };
     const newCount = current + 1;
     try {
       const jar = cookies();
       jar.set(COOKIE_COUNT, String(newCount), { path: "/", maxAge: 60 * 60 * 24 * 32 });
-      jar.set(COOKIE_MONTH, currentMonth(), { path: "/", maxAge: 60 * 60 * 24 * 32 });
+      jar.set(COOKIE_PERIOD, currentMonth(), { path: "/", maxAge: 60 * 60 * 24 * 32 });
     } catch {}
     return { ok: true, used: newCount, limit };
-  }
-
-  let plan: PlanKey = "free";
-  try {
-    const user = await currentUser();
-    const p = user?.publicMetadata?.plan as PlanKey;
-    plan = p in PLANS ? p : "free";
-  } catch {}
-
-  const planData = PLANS[plan];
-  const limit = planData.channelSearchMonthlyLimit;
-
-  // 무제한
-  if (limit === null) {
-    const key = monthKey(userId);
-    const r = await getRedis();
-    if (r) {
-      try { await r.incr(key); } catch {}
-    } else {
-      mem.set(key, (mem.get(key) ?? 0) + 1);
-    }
-    return { ok: true, used: 0, limit: 9999 };
   }
 
   const key = monthKey(userId);
   const r = await getRedis();
 
-  // ── 원자적 체크+증가 (Redis Lua) ───────────────────────────────────────
   if (r) {
     try {
       const result = await atomicIncrIfUnder(key, limit, secondsUntilNextMonth(), r);
       return { ok: result.ok, used: result.used, limit };
-    } catch (e) {
-      console.error("[channelLimit] atomicIncrIfUnder error:", e);
-    }
+    } catch (e) { console.error("[channelLimit] monthly atomicIncrIfUnder error:", e); }
   }
 
-  // ── 폴백: 비원자적 방식 (Redis 없음 or Lua 실패) ───────────────────────
+  // 폴백
   const current = await getCount(key);
   if (current >= limit) return { ok: false, used: current, limit };
   const used = (mem.get(key) ?? 0) + 1;

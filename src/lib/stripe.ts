@@ -12,10 +12,11 @@ export function getStripe(): Stripe {
 export type PlanConfig = {
   name: string;
   priceId: string | null | undefined;
-  dailySearchLimit: number | null;          // null = 일 한도 없음
-  monthlySearchLimit: number | null;        // null = 무제한
-  channelSearchMonthlyLimit: number | null; // null = 무제한 (채널 검색 월별 한도)
-  resultLimit: number;                      // 세션당 최대 결과 수 (더보기 포함)
+  dailySearchLimit: number | null;           // null = 일 한도 없음
+  monthlySearchLimit: number | null;         // null = 무제한
+  dailyChannelSearchLimit: number | null;    // null = 일 한도 없음 (채널 검색 일별 한도)
+  channelSearchMonthlyLimit: number | null;  // null = 무제한 (채널 검색 월별 한도)
+  resultLimit: number;                       // 세션당 최대 결과 수 (더보기 포함)
   canLoadMore: boolean;
   maxTeamSize: number;
   canCollect: boolean;
@@ -33,9 +34,10 @@ export const PLANS: Record<PlanKey, PlanConfig> = {
   free: {
     name: "Free",
     priceId: null,
-    dailySearchLimit: 3,
+    dailySearchLimit: 2,
     monthlySearchLimit: null,
-    channelSearchMonthlyLimit: 30,
+    dailyChannelSearchLimit: 1,
+    channelSearchMonthlyLimit: null,
     resultLimit: 30,
     canLoadMore: true,
     maxTeamSize: 1,
@@ -50,9 +52,10 @@ export const PLANS: Record<PlanKey, PlanConfig> = {
   starter: {
     name: "Starter",
     priceId: process.env.STRIPE_STARTER_PRICE_ID,
-    dailySearchLimit: 20,
-    monthlySearchLimit: 200,
-    channelSearchMonthlyLimit: 100,
+    dailySearchLimit: null,
+    monthlySearchLimit: 50,
+    dailyChannelSearchLimit: null,
+    channelSearchMonthlyLimit: 30,
     resultLimit: 100,
     canLoadMore: true,
     maxTeamSize: 1,
@@ -69,6 +72,7 @@ export const PLANS: Record<PlanKey, PlanConfig> = {
     priceId: process.env.STRIPE_PRO_PRICE_ID,
     dailySearchLimit: null,
     monthlySearchLimit: 500,
+    dailyChannelSearchLimit: null,
     channelSearchMonthlyLimit: 500,
     resultLimit: 500,
     canLoadMore: true,
@@ -86,6 +90,7 @@ export const PLANS: Record<PlanKey, PlanConfig> = {
     priceId: process.env.STRIPE_BUSINESS_PRICE_ID,
     dailySearchLimit: null,
     monthlySearchLimit: null,
+    dailyChannelSearchLimit: null,
     channelSearchMonthlyLimit: null,
     resultLimit: 1000,
     canLoadMore: true,
@@ -104,6 +109,7 @@ export const PLANS: Record<PlanKey, PlanConfig> = {
     priceId: null,
     dailySearchLimit: null,
     monthlySearchLimit: null,
+    dailyChannelSearchLimit: null,
     channelSearchMonthlyLimit: null,
     resultLimit: 9999,
     canLoadMore: true,

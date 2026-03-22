@@ -25,10 +25,10 @@ export default async function MyPage({
     usage = await getSearchUsage();
   } catch {}
 
-  let chUsage = { used: 0, limit: 30, unlimited: false };
+  let chUsage = { used: 0, limit: 1, unlimited: false, isDaily: true };
   try {
     const cu = await getChannelUsage();
-    chUsage = { used: cu.used, limit: cu.limit, unlimited: cu.unlimited };
+    chUsage = { used: cu.used, limit: cu.limit, unlimited: cu.unlimited, isDaily: cu.isDaily };
   } catch {}
 
   const [payments, subscription] = await Promise.all([
@@ -106,7 +106,7 @@ export default async function MyPage({
           </div>
           {plan !== "free" && (
             <div className="text-xs text-gray-600 mt-1">
-              {plan === 'starter' && '월 200회 검색 (일 최대 20회) · 결과 100건'}
+              {plan === 'starter' && '월 50회 검색 · 결과 100건'}
               {plan === 'pro' && '월 500회 검색 · 결과 500건'}
               {plan === 'business' && '무제한 검색 · 결과 무제한'}
             </div>
@@ -137,13 +137,13 @@ export default async function MyPage({
 
           {/* 채널 검색 사용량 */}
           <div className="bg-gray-800/50 rounded-xl p-4">
-            <p className="text-gray-500 text-xs mb-2">이번달 채널 검색</p>
+            <p className="text-gray-500 text-xs mb-2">{chUsage.isDaily ? "오늘 채널 검색" : "이번달 채널 검색"}</p>
             <div className="flex items-center justify-between mb-2">
               <span className="text-white font-bold text-lg">
                 {chUsage.unlimited ? `${chUsage.used}회 사용` : `${chUsage.used} / ${chUsage.limit}회`}
               </span>
               <span className="text-gray-600 text-xs">
-                {chUsage.unlimited ? "무제한" : "매월 1일 리셋"}
+                {chUsage.unlimited ? "무제한" : chUsage.isDaily ? "매일 자정 리셋" : "매월 1일 리셋"}
               </span>
             </div>
             {!chUsage.unlimited && (

@@ -49,7 +49,7 @@ export default function SignInForm() {
           {/* 혜택 */}
           <div className="space-y-2 mb-6">
             {[
-              "하루 3회 무료 검색",
+              "하루 2회 무료 검색",
               "조회수·반응도 실시간 분석",
             ].map((text) => (
               <div key={text} className="flex items-center gap-2.5 text-sm text-gray-400">
