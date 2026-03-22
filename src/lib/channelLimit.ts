@@ -38,12 +38,15 @@ function currentMonth(): string {
 function secondsUntilNextMonth(): number {
   const now = new Date();
   const next = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
-  return Math.max(Math.floor((next.getTime() - now.getTime()) / 1000) + 86400, 1);
+  return Math.max(Math.floor((next.getTime() - now.getTime()) / 1000), 1);
 }
 
 async function getCount(key: string): Promise<number> {
   const r = await getRedis();
-  if (r) { try { return (await r.get<number>(key)) ?? 0; } catch {} }
+  if (r) {
+    try { return (await r.get<number>(key)) ?? 0; }
+    catch (e) { console.error("[channelLimit] Redis getCount error:", e); }
+  }
   return mem.get(key) ?? 0;
 }
 
@@ -54,7 +57,9 @@ async function incrCount(key: string): Promise<number> {
       const val = await r.incr(key);
       if (val === 1) await r.expire(key, secondsUntilNextMonth());
       return val;
-    } catch {}
+    } catch (e) {
+      console.error("[channelLimit] Redis incrCount error:", e);
+    }
   }
   const val = (mem.get(key) ?? 0) + 1;
   mem.set(key, val);

@@ -30,14 +30,14 @@ export async function POST(req: NextRequest) {
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     if (!user.canSavedVideos) return NextResponse.json({ error: "Pro 플랜 이상 필요" }, { status: 403 });
 
-    const body = await req.json();
-    const { videos } = body; // array of video objects
+    const body = await req.json().catch(() => ({ videos: [] }));
+    const { videos } = body;
 
     if (!videos || !Array.isArray(videos)) {
       return NextResponse.json({ error: "Invalid body" }, { status: 400 });
     }
 
-    await Promise.all(
+    const results = await Promise.allSettled(
       videos.map((v: any) =>
         upsertSavedVideo({
           userId: user.userId,
@@ -57,7 +57,12 @@ export async function POST(req: NextRequest) {
       )
     );
 
-    return NextResponse.json({ ok: true });
+    const failed = results.filter((r) => r.status === "rejected").length;
+    if (failed > 0) {
+      console.error(`[saved-videos] ${failed}/${videos.length} 영상 저장 실패`);
+    }
+
+    return NextResponse.json({ ok: true, saved: videos.length - failed, failed });
   } catch {
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }

@@ -11,11 +11,16 @@ export async function GET(req: NextRequest) {
   const amount = req.nextUrl.searchParams.get("amount");
   const plan = req.nextUrl.searchParams.get("plan") as TossPlanKey;
 
-  if (!paymentKey || !orderId || !amount || !plan || !userId) {
+  const amountNum = parseInt(amount ?? "0");
+  if (!paymentKey || !orderId || !amount || isNaN(amountNum) || !plan || !userId) {
     return NextResponse.redirect(new URL("/pricing?error=payment", req.url));
   }
 
   const secretKey = process.env.TOSS_SECRET_KEY || "";
+  if (!secretKey) {
+    console.error("TOSS_SECRET_KEY not set");
+    return NextResponse.redirect(new URL("/pricing?error=payment", req.url));
+  }
   const base64 = Buffer.from(`${secretKey}:`).toString("base64");
 
   try {
@@ -28,7 +33,7 @@ export async function GET(req: NextRequest) {
           Authorization: `Basic ${base64}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ paymentKey, orderId, amount: parseInt(amount) }),
+        body: JSON.stringify({ paymentKey, orderId, amount: amountNum }),
       }
     );
 

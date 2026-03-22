@@ -100,7 +100,7 @@ function secondsUntilMidnight(): number {
 function secondsUntilNextMonth(): number {
   const now = new Date();
   const next = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
-  return Math.max(Math.floor((next.getTime() - now.getTime()) / 1000) + 86400, 1);
+  return Math.max(Math.floor((next.getTime() - now.getTime()) / 1000), 1);
 }
 
 export async function getUserPlan(): Promise<PlanKey> {

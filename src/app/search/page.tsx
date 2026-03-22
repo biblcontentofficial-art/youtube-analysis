@@ -77,8 +77,8 @@ export default async function SearchPage({ searchParams }: Props) {
     plan = usage.plan;
     isMonthly = usage.isMonthly;
     unlimited = usage.unlimited;
-  } catch {
-    // getSearchUsage 실패해도 기본값 사용
+  } catch (e) {
+    console.error("[search] getSearchUsage 실패, 기본값 사용:", e);
   }
 
   const planData = PLANS[plan as PlanKey] ?? PLANS.free;

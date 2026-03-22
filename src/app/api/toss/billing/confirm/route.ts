@@ -10,7 +10,7 @@
  * 5. /search?upgraded=1 로 리다이렉트
  */
 
-import { auth, clerkClient } from "@clerk/nextjs/server";
+import { auth, clerkClient, currentUser } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 import { TOSS_PLANS, TossPlanKey } from "@/lib/toss";
 import { upsertSubscription, insertPayment } from "@/lib/db";
@@ -34,6 +34,10 @@ export async function GET(req: NextRequest) {
 
   const base64 = Buffer.from(`${secretKey}:`).toString("base64");
   const planData = TOSS_PLANS[plan];
+
+  // 이메일 조회 (결제 영수증용)
+  const clerkUser = await currentUser().catch(() => null);
+  const customerEmail = clerkUser?.emailAddresses?.[0]?.emailAddress ?? "";
 
   try {
     // ── Step 1: authKey → billingKey 발급 ────────────────────────────
@@ -73,7 +77,7 @@ export async function GET(req: NextRequest) {
           amount: planData.amount,
           orderId,
           orderName: planData.orderName,
-          customerEmail: "",  // Clerk에서 이메일 가져오기 어려워 빈값 허용
+          customerEmail,
         }),
       }
     );
