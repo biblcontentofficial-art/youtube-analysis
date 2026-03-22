@@ -52,11 +52,43 @@ function todayString() {
 
 function pruneMemoryStore() {
   const today = todayString();
+  const now = new Date();
+  const currentYM = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, "0")}`;
   for (const key of memoryStore.keys()) {
+    // 일별 키: 오늘이 아니면 삭제
     if (key.startsWith("search:d:") && !key.endsWith(`:${today}`)) {
       memoryStore.delete(key);
     }
+    // 월별 키: 이번 달이 아니면 삭제
+    if (key.startsWith("search:m:") && !key.includes(`:${currentYM}`)) {
+      memoryStore.delete(key);
+    }
   }
+}
+
+/**
+ * Redis Lua 스크립트로 원자적 체크 + 증가
+ * current >= limit → 증가하지 않고 { ok: false, used: current } 반환
+ * current <  limit → 증가하고  { ok: true,  used: newval  } 반환
+ * TTL이 없으면(키 신규) ttlSeconds 설정
+ */
+async function atomicIncrIfUnder(
+  key: string,
+  limit: number,
+  ttlSeconds: number,
+  r: NonNullable<typeof redis>
+): Promise<{ ok: boolean; used: number }> {
+  const script = `
+local cur = tonumber(redis.call('GET', KEYS[1])) or 0
+if cur >= tonumber(ARGV[1]) then return {0, cur} end
+local nv = redis.call('INCR', KEYS[1])
+if redis.call('TTL', KEYS[1]) == -1 then
+  redis.call('EXPIRE', KEYS[1], tonumber(ARGV[2]))
+end
+return {1, nv}`;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const res = await r.eval(script, [key], [String(limit), String(ttlSeconds)]) as any;
+  return { ok: Number(res[0]) === 1, used: Number(res[1]) };
 }
 
 async function getCount(key: string, r: typeof redis): Promise<number> {
@@ -196,24 +228,60 @@ export async function incrementSearchCount(): Promise<{ ok: boolean; used: numbe
   const planData = PLANS[plan];
   const r = await getRedis();
 
-  // Free: 일별 제한
+  // ── Free: 일별 제한 ──────────────────────────────────────────────────────
   if (plan === "free") {
     const key = dailyKey(userId);
     const limit = planData.dailySearchLimit!;
-    const current = await getCount(key, r);
+
+    if (r) {
+      try {
+        const result = await atomicIncrIfUnder(key, limit, secondsUntilMidnight(), r);
+        return { ok: result.ok, used: result.used, limit };
+      } catch { /* Lua 실패 → 메모리 폴백 */ }
+    }
+
+    // 메모리 폴백 (개발환경 / Redis 장애)
+    pruneMemoryStore();
+    const current = memoryStore.get(key) ?? 0;
     if (current >= limit) return { ok: false, used: current, limit };
-    const used = await incrWithTtl(key, secondsUntilMidnight(), r);
-    return { ok: used <= limit, used, limit };
+    const used = current + 1;
+    memoryStore.set(key, used);
+    return { ok: true, used, limit };
   }
 
-  // Business/Admin: 무제한 (카운트만 기록)
+  // ── Business/Admin: 무제한 (카운트만 기록) ───────────────────────────────
   if (planData.monthlySearchLimit === null && planData.dailySearchLimit === null) {
     const key = monthlyKey(userId);
     await incrWithTtl(key, secondsUntilNextMonth(), r);
     return { ok: true, used: 0, limit: 9999 };
   }
 
-  // Starter: 일별 상한 먼저 체크
+  // ── Starter/Pro: 원자적 처리 (Redis 사용 시) ─────────────────────────────
+  if (r) {
+    try {
+      // Starter: 일별 상한 원자적 체크+증가 먼저
+      if (planData.dailySearchLimit !== null) {
+        const dKey = dailyKey(userId);
+        const dailyResult = await atomicIncrIfUnder(
+          dKey, planData.dailySearchLimit, secondsUntilMidnight(), r
+        );
+        if (!dailyResult.ok) {
+          return { ok: false, used: dailyResult.used, limit: planData.dailySearchLimit };
+        }
+      }
+
+      // 월별 상한 원자적 체크+증가
+      const mKey = monthlyKey(userId);
+      const monthlyLimit = planData.monthlySearchLimit!;
+      const monthlyResult = await atomicIncrIfUnder(
+        mKey, monthlyLimit, secondsUntilNextMonth(), r
+      );
+      // 월별 실패 시: 이미 증가된 일별 카운트는 그대로 둠 (허용 오차)
+      return { ok: monthlyResult.ok, used: monthlyResult.used, limit: monthlyLimit };
+    } catch { /* Lua 실패 → 폴백 */ }
+  }
+
+  // ── 폴백: 기존 비원자적 방식 (Redis 없음 or Lua 실패) ──────────────────
   if (planData.dailySearchLimit !== null) {
     const dKey = dailyKey(userId);
     const dailyUsed = await getCount(dKey, r);
@@ -222,7 +290,6 @@ export async function incrementSearchCount(): Promise<{ ok: boolean; used: numbe
     }
   }
 
-  // Starter/Pro: 월별 상한 체크 후 증가
   const mKey = monthlyKey(userId);
   const monthlyLimit = planData.monthlySearchLimit!;
   const monthlyUsed = await getCount(mKey, r);
@@ -232,7 +299,6 @@ export async function incrementSearchCount(): Promise<{ ok: boolean; used: numbe
 
   const newMonthly = await incrWithTtl(mKey, secondsUntilNextMonth(), r);
 
-  // Starter: 일별 카운트도 증가
   if (planData.dailySearchLimit !== null) {
     const dKey = dailyKey(userId);
     await incrWithTtl(dKey, secondsUntilMidnight(), r);

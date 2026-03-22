@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useUser } from "@clerk/nextjs";
@@ -91,7 +91,7 @@ export default function Home() {
               <span className="text-teal-400 font-medium">&ldquo;{pendingKeyword}&rdquo;</span> 검색을 시작하려면<br />
               로그인 또는 회원가입을 해주세요.
             </p>
-            <p className="text-xs text-gray-600 mb-7">가입 후 하루 2회 무료 검색 · 1분 만에 시작</p>
+            <p className="text-xs text-gray-600 mb-7">가입 후 하루 3회 무료 검색 · 1분 만에 시작</p>
 
             <div className="flex flex-col gap-3">
               <Link
@@ -201,22 +201,38 @@ export default function Home() {
       <div className="bg-gray-900/30">
         <div className="max-w-5xl mx-auto px-4 py-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           <FeatureCard
-            icon="📈"
+            icon={
+              <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5 text-teal-400" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941" />
+              </svg>
+            }
             title="반응도 분석"
             desc="조회수·구독자 비율로 실제 성과를 Good / Normal / Bad 로 즉시 판단합니다"
           />
           <FeatureCard
-            icon="🔍"
+            icon={
+              <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5 text-teal-400" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 15.803a7.5 7.5 0 0010.607 0z" />
+              </svg>
+            }
             title="키워드 트렌드"
             desc="검색 키워드의 최신 영상을 실시간으로 수집하여 트렌드를 빠르게 파악합니다"
           />
           <FeatureCard
-            icon="📺"
+            icon={
+              <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5 text-teal-400" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+              </svg>
+            }
             title="채널 찾기"
             desc="주제·분야로 성장 중인 채널을 발견합니다. 구독자 급상승·신생 채널 필터 제공"
           />
           <FeatureCard
-            icon="📋"
+            icon={
+              <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5 text-teal-400" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+              </svg>
+            }
             title="영상 수집"
             desc="마음에 드는 영상을 수집하고 CSV로 내보내 벤치마킹·레퍼런스 관리에 활용하세요"
           />
@@ -261,10 +277,10 @@ export default function Home() {
   );
 }
 
-function FeatureCard({ icon, title, desc }: { icon: string; title: string; desc: string }) {
+function FeatureCard({ icon, title, desc }: { icon: React.ReactNode; title: string; desc: string }) {
   return (
     <div className="flex flex-col gap-3">
-      <div className="w-10 h-10 bg-gray-800 rounded-xl flex items-center justify-center text-xl">
+      <div className="w-10 h-10 bg-teal-950/60 border border-teal-800/50 rounded-xl flex items-center justify-center">
         {icon}
       </div>
       <h3 className="font-semibold text-white">{title}</h3>

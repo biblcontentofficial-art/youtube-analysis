@@ -30,7 +30,6 @@ export default function SearchUsageBadge() {
         className="hidden sm:flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full border border-teal-800 bg-teal-950/40 text-teal-400 transition hover:border-teal-600"
         title="무제한 검색"
       >
-        <span>✨</span>
         <span>무제한</span>
       </Link>
     );
@@ -45,16 +44,15 @@ export default function SearchUsageBadge() {
       href="/pricing"
       className={`hidden sm:flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full border transition ${
         isOut
-          ? "border-red-700 bg-red-950/50 text-red-400"
+          ? "border-red-700 bg-red-950/50 text-red-400 font-semibold"
           : isLow
-          ? "border-amber-700 bg-amber-950/50 text-amber-400"
+          ? "border-amber-700 bg-amber-950/50 text-amber-400 font-semibold"
           : "border-gray-700 bg-gray-900 text-gray-400"
       }`}
-      title="검색 가능 횟수"
+      title={isOut ? "한도 초과 · 업그레이드" : isLow ? "마지막 검색 남음" : "검색 가능 횟수"}
     >
-      <span>{isOut ? "🚫" : isLow ? "⚠️" : "🔍"}</span>
       <span>
-        {isOut ? "한도 초과" : `${remaining}회 남음`}
+        {isOut ? "한도 초과 · 업그레이드" : isLow ? "검색 1회 남음" : `${remaining}회 남음`}
       </span>
     </Link>
   );

@@ -354,7 +354,7 @@ export async function searchChannels(query: string, isPaid = false): Promise<{
           };
         });
 
-      await cacheSet(cacheKey, items, TTL.CHANNEL);
+      await cacheSet(cacheKey, items, TTL.CHANNEL_SEARCH);
       return { items };
     } catch {
       // 예외 발생 시 다음 키로 시도
@@ -844,7 +844,7 @@ export async function getChannelDetail(channelId: string, isPaid = false): Promi
           .filter((k: string) => k.length > 0) ?? [],
       };
 
-      await cacheSet(cacheKey, channel, TTL.CHANNEL);
+      await cacheSet(cacheKey, channel, TTL.CHANNEL_DETAIL);
       return { channel };
     } catch {
       activeKeyIndex++;
@@ -932,7 +932,7 @@ export async function getChannelRecentVideos(channelId: string, isPaid = false):
         durationSec:  parseDuration(v.contentDetails?.duration || ""),
       }));
 
-      await cacheSet(cacheKey, videos, TTL.VIDEO);
+      await cacheSet(cacheKey, videos, TTL.CHANNEL_VIDEOS);
       return { videos };
     } catch {
       activeKeyIndex++;

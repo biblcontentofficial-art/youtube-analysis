@@ -62,7 +62,8 @@ export async function GET(req: NextRequest) {
     const { billingKey } = await issueRes.json();
 
     // ── Step 2: billingKey로 즉시 결제 ───────────────────────────────
-    const orderId = `billing_${userId}_${plan}_${Date.now()}`;
+    // authKey는 토스에서 단 1회만 발급 → 동일 orderId 보장 → 중복 결제 자동 방지
+    const orderId = `billing_${userId}_${plan}_${authKey.slice(-16)}`;
 
     const chargeRes = await fetch(
       `https://api.tosspayments.com/v1/billing/${billingKey}`,

@@ -177,6 +177,8 @@ export default async function RootLayout({
                 <NavTab href="/channels" label="채널 찾기" requiredPlan={!isStarterPlus ? "Starter" : undefined} />
                 <NavTab href="/saved" label="수집한 영상" requiredPlan={!isProPlus ? "Pro" : undefined} />
                 <NavTab href="/pricing" label="요금제" />
+                <div className="w-px h-4 bg-gray-700 mx-1" />
+                <NavTab href="/studio" label="TMK 스튜디오" isStudio />
               </div>
             </div>
 
@@ -265,10 +267,12 @@ function NavTab({
   href,
   label,
   requiredPlan,
+  isStudio,
 }: {
   href: string;
   label: string;
   requiredPlan?: "Starter" | "Pro";
+  isStudio?: boolean;
 }) {
   const locked = !!requiredPlan;
 
@@ -276,6 +280,17 @@ function NavTab({
     Starter: "bg-amber-950/60 text-amber-400 border border-amber-800/70",
     Pro:     "bg-purple-950/60 text-purple-400 border border-purple-800/70",
   };
+
+  if (isStudio) {
+    return (
+      <a
+        href={href}
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm transition text-teal-400 hover:text-teal-300 hover:bg-teal-950/40 font-medium"
+      >
+        {label}
+      </a>
+    );
+  }
 
   return (
     <a

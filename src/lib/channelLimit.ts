@@ -41,6 +41,30 @@ function secondsUntilNextMonth(): number {
   return Math.max(Math.floor((next.getTime() - now.getTime()) / 1000), 1);
 }
 
+/**
+ * Redis Lua 스크립트로 원자적 체크 + 증가
+ * current >= limit → { ok: false, used: current }
+ * current <  limit → { ok: true,  used: newval  }
+ */
+async function atomicIncrIfUnder(
+  key: string,
+  limit: number,
+  ttlSeconds: number,
+  r: NonNullable<typeof redis>
+): Promise<{ ok: boolean; used: number }> {
+  const script = `
+local cur = tonumber(redis.call('GET', KEYS[1])) or 0
+if cur >= tonumber(ARGV[1]) then return {0, cur} end
+local nv = redis.call('INCR', KEYS[1])
+if redis.call('TTL', KEYS[1]) == -1 then
+  redis.call('EXPIRE', KEYS[1], tonumber(ARGV[2]))
+end
+return {1, nv}`;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const res = await r.eval(script, [key], [String(limit), String(ttlSeconds)]) as any;
+  return { ok: Number(res[0]) === 1, used: Number(res[1]) };
+}
+
 async function getCount(key: string): Promise<number> {
   const r = await getRedis();
   if (r) {
@@ -48,22 +72,6 @@ async function getCount(key: string): Promise<number> {
     catch (e) { console.error("[channelLimit] Redis getCount error:", e); }
   }
   return mem.get(key) ?? 0;
-}
-
-async function incrCount(key: string): Promise<number> {
-  const r = await getRedis();
-  if (r) {
-    try {
-      const val = await r.incr(key);
-      if (val === 1) await r.expire(key, secondsUntilNextMonth());
-      return val;
-    } catch (e) {
-      console.error("[channelLimit] Redis incrCount error:", e);
-    }
-  }
-  const val = (mem.get(key) ?? 0) + 1;
-  mem.set(key, val);
-  return val;
 }
 
 function getCookieCount(): number {
@@ -140,14 +148,33 @@ export async function incrementChannelCount(): Promise<{ ok: boolean; used: numb
 
   // 무제한
   if (limit === null) {
-    await incrCount(monthKey(userId));
+    const key = monthKey(userId);
+    const r = await getRedis();
+    if (r) {
+      try { await r.incr(key); } catch {}
+    } else {
+      mem.set(key, (mem.get(key) ?? 0) + 1);
+    }
     return { ok: true, used: 0, limit: 9999 };
   }
 
   const key = monthKey(userId);
+  const r = await getRedis();
+
+  // ── 원자적 체크+증가 (Redis Lua) ───────────────────────────────────────
+  if (r) {
+    try {
+      const result = await atomicIncrIfUnder(key, limit, secondsUntilNextMonth(), r);
+      return { ok: result.ok, used: result.used, limit };
+    } catch (e) {
+      console.error("[channelLimit] atomicIncrIfUnder error:", e);
+    }
+  }
+
+  // ── 폴백: 비원자적 방식 (Redis 없음 or Lua 실패) ───────────────────────
   const current = await getCount(key);
   if (current >= limit) return { ok: false, used: current, limit };
-
-  const used = await incrCount(key);
-  return { ok: used <= limit, used, limit };
+  const used = (mem.get(key) ?? 0) + 1;
+  mem.set(key, used);
+  return { ok: true, used, limit };
 }

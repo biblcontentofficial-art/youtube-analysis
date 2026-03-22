@@ -1,10 +1,13 @@
 "use client";
 
 import { useSignIn } from "@clerk/nextjs";
+import { useUser } from "@clerk/nextjs";
 import { useState } from "react";
+import Link from "next/link";
 
 export default function LimitModal({ show, limit }: { show: boolean; limit: number }) {
   const { signIn, isLoaded } = useSignIn();
+  const { isSignedIn } = useUser();
   const [loading, setLoading] = useState<"kakao" | "google" | null>(null);
 
   if (!show) return null;
@@ -24,21 +27,78 @@ export default function LimitModal({ show, limit }: { show: boolean; limit: numb
     }
   };
 
+  // ─── 로그인된 유저 → 업그레이드 유도 ───────────────────────────────────────
+  if (isSignedIn) {
+    return (
+      <div className="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center px-4 pb-6 sm:pb-0">
+        <div className="bg-gray-900 border border-gray-700 rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden">
+          <div className="h-1 bg-gradient-to-r from-teal-500 via-teal-400 to-teal-600" />
+          <div className="p-7 text-center">
+            <div className="w-14 h-14 bg-teal-950/60 border border-teal-800 rounded-2xl flex items-center justify-center mx-auto mb-5">
+              <svg viewBox="0 0 24 24" fill="none" className="w-7 h-7 text-teal-400" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 15.803a7.5 7.5 0 0010.607 0z" />
+              </svg>
+            </div>
+
+            <h2 className="text-xl font-bold text-white mb-2">
+              오늘 검색 {limit}회를 모두 사용했습니다
+            </h2>
+            <p className="text-gray-400 text-sm mb-1">
+              Starter 플랜으로 <span className="text-teal-400 font-semibold">월 200회 검색</span>이 가능합니다
+            </p>
+            <p className="text-gray-600 text-xs mb-6">내일 자정 초기화 · Starter ₩49,000/월부터</p>
+
+            {/* 혜택 요약 */}
+            <div className="bg-gray-800/60 border border-gray-700 rounded-xl px-4 py-3 mb-6 text-left space-y-2">
+              {[
+                { plan: "Starter", color: "text-teal-400", desc: "월 200회 · 알고리즘 확률 · 채널 찾기" },
+                { plan: "Pro", color: "text-purple-400",  desc: "월 500회 · 영상 수집 · CSV 내보내기" },
+              ].map(({ plan, color, desc }) => (
+                <div key={plan} className="flex items-center gap-2">
+                  <svg viewBox="0 0 24 24" fill="none" className="w-3.5 h-3.5 shrink-0 text-teal-500" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                  </svg>
+                  <span className="text-xs text-gray-400">
+                    <span className={`font-semibold ${color}`}>{plan}</span>
+                    <span className="text-gray-600 mx-1">—</span>
+                    {desc}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            <Link
+              href="/pricing"
+              className="block w-full py-3 bg-teal-600 hover:bg-teal-500 text-white font-bold rounded-xl transition text-sm mb-3"
+            >
+              플랜 업그레이드 →
+            </Link>
+
+            <p className="text-xs text-gray-600">언제든지 취소 가능 · 카드 등록 후 즉시 적용</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── 비로그인 유저 → 가입 유도 ────────────────────────────────────────────
   return (
     <div className="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center px-4 pb-6 sm:pb-0">
       <div className="bg-gray-900 border border-gray-700 rounded-2xl p-7 w-full max-w-sm text-center shadow-2xl">
         {/* 아이콘 */}
-        <div className="w-14 h-14 bg-amber-950/50 border border-amber-800 rounded-2xl flex items-center justify-center mx-auto mb-5">
-          <span className="text-2xl">🔍</span>
+        <div className="w-14 h-14 bg-teal-950/60 border border-teal-800 rounded-2xl flex items-center justify-center mx-auto mb-5">
+          <svg viewBox="0 0 24 24" fill="none" className="w-7 h-7 text-teal-400" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+          </svg>
         </div>
 
         <h2 className="text-xl font-bold text-white mb-2">
           무료 검색 {limit}회를 다 쓰셨어요
         </h2>
         <p className="text-gray-400 text-sm mb-1">
-          가입 후 <span className="text-teal-400 font-semibold">Starter 플랜</span>으로 월 200회 검색이 가능합니다
+          가입하면 하루 <span className="text-teal-400 font-semibold">3회 무료 검색</span>이 계속됩니다
         </p>
-        <p className="text-gray-600 text-xs mb-7">1분 만에 가입 · Starter ₩49,000/월부터</p>
+        <p className="text-gray-600 text-xs mb-7">1분 만에 가입 · Starter 플랜으로 월 200회 검색 가능</p>
 
         {/* 카카오 버튼 */}
         <button

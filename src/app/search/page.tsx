@@ -196,7 +196,7 @@ export default async function SearchPage({ searchParams }: Props) {
           {query && (
             <div className="flex items-center gap-2 shrink-0">
               <span className="flex items-center gap-1.5 px-3 py-1.5 bg-teal-900/50 border border-teal-700 rounded-full text-sm text-teal-300">
-                🔍 {query}
+                {query}
               </span>
             </div>
           )}
@@ -215,10 +215,18 @@ export default async function SearchPage({ searchParams }: Props) {
             const label = remaining <= 0
               ? `${periodLabel} 한도 소진 (${used}/${limit})`
               : remaining === 1
-                ? `⚠️ 마지막 검색 남음 (${used}/${limit})`
+                ? `마지막 검색 남음 (${used}/${limit})`
                 : `${periodLabel} ${remaining}회 남음 (${used}/${limit})`;
             return (
-              <div className={`text-xs shrink-0 ${colorClass}`}>{label}</div>
+              <div className={`text-xs shrink-0 font-medium ${colorClass}`}>
+                {remaining === 1 && (
+                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-amber-400 mr-1.5 animate-pulse align-middle" />
+                )}
+                {label}
+                {remaining === 1 && (
+                  <Link href="/pricing" className="ml-2 underline underline-offset-2 text-amber-400 hover:text-amber-300">업그레이드</Link>
+                )}
+              </div>
             );
           })()}
         </div>
@@ -257,19 +265,51 @@ export default async function SearchPage({ searchParams }: Props) {
 
         {/* 한도 초과 안내 */}
         {limitExceeded && (
-          <div className="mb-6 p-4 bg-amber-950/50 border border-amber-700 rounded-xl text-center">
-            <p className="text-amber-300 font-semibold mb-1">
-              {periodLabel} 검색 한도({limit}회)를 모두 사용했습니다
-            </p>
-            <p className="text-gray-400 text-sm mb-3">
-              {isMonthly ? "다음달에 초기화되거나" : "내일 자정에 초기화되거나"}, 플랜을 업그레이드하세요.
-            </p>
-            <Link
-              href="/pricing"
-              className="inline-block bg-teal-600 hover:bg-teal-500 text-white text-sm font-semibold px-5 py-2 rounded-lg transition"
-            >
-              플랜 업그레이드 →
-            </Link>
+          <div className="mb-6 bg-gray-900 border border-gray-700 rounded-2xl overflow-hidden">
+            {/* 상단 강조 바 */}
+            <div className="h-1 bg-gradient-to-r from-teal-500 via-teal-400 to-teal-600" />
+            <div className="p-7 text-center">
+              <div className="w-14 h-14 bg-teal-950/60 border border-teal-800 rounded-2xl flex items-center justify-center mx-auto mb-5">
+                <svg viewBox="0 0 24 24" fill="none" className="w-7 h-7 text-teal-400" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 15.803a7.5 7.5 0 0010.607 0z" />
+                </svg>
+              </div>
+              <h2 className="text-xl font-bold text-white mb-2">
+                {periodLabel} 검색 {limit}회를 모두 사용했습니다
+              </h2>
+              <p className="text-gray-400 text-sm mb-1">
+                Starter 플랜으로 업그레이드하면 <span className="text-teal-400 font-semibold">월 200회 검색</span>이 가능합니다
+              </p>
+              <p className="text-gray-600 text-xs mb-6">
+                {isMonthly ? "또는 다음달 초기화까지 기다리세요" : "또는 내일 자정 초기화까지 기다리세요"} · Starter ₩49,000/월부터
+              </p>
+
+              {/* 플랜 혜택 비교 */}
+              <div className="bg-gray-800/60 border border-gray-700 rounded-xl px-5 py-4 mb-6 text-left space-y-2.5">
+                {[
+                  { plan: "Starter", color: "text-teal-400", perks: "월 200회 검색 · 알고리즘 탑승 확률 · 채널 찾기" },
+                  { plan: "Pro", color: "text-purple-400", perks: "월 500회 + 영상 수집 · CSV 내보내기 · 채널 리포트" },
+                ].map(({ plan, color, perks }) => (
+                  <div key={plan} className="flex items-start gap-2.5">
+                    <svg viewBox="0 0 24 24" fill="none" className="w-4 h-4 mt-0.5 shrink-0 text-teal-500" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                    </svg>
+                    <span className="text-xs text-gray-400">
+                      <span className={`font-semibold ${color}`}>{plan}</span>
+                      <span className="text-gray-600 mx-1">—</span>
+                      {perks}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              <Link
+                href="/pricing"
+                className="inline-block w-full max-w-xs bg-teal-600 hover:bg-teal-500 text-white text-sm font-bold px-6 py-3 rounded-xl transition"
+              >
+                플랜 업그레이드 →
+              </Link>
+            </div>
           </div>
         )}
 
@@ -324,13 +364,20 @@ export default async function SearchPage({ searchParams }: Props) {
           <>
             {/* 무료 유저 업그레이드 유도 */}
             {!isPaid && !limitExceeded && videos.length > 0 && (
-              <div className="mb-4 p-4 bg-gradient-to-r from-teal-950/50 to-gray-900 border border-teal-800/50 rounded-xl flex items-center justify-between gap-4">
-                <div>
-                  <p className="text-sm font-semibold text-teal-300">⚡ Starter 플랜으로 월 200회 검색 + 더보기</p>
-                  <p className="text-xs text-gray-500 mt-0.5">지금 월 ₩49,000 — 언제든지 취소 가능</p>
+              <div className="mb-4 p-4 bg-gradient-to-r from-teal-950/60 to-gray-900 border border-teal-800/60 rounded-xl flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 shrink-0 bg-teal-900/60 border border-teal-700 rounded-lg flex items-center justify-center">
+                    <svg viewBox="0 0 24 24" fill="none" className="w-4 h-4 text-teal-400" stroke="currentColor" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-teal-300">Starter 플랜으로 월 200회 검색 + 알고리즘 확률</p>
+                    <p className="text-xs text-gray-500 mt-0.5">월 ₩49,000 · 언제든지 취소 · 즉시 적용</p>
+                  </div>
                 </div>
-                <Link href="/pricing" className="shrink-0 bg-teal-600 hover:bg-teal-500 text-white text-xs font-semibold px-4 py-2 rounded-lg transition">
-                  업그레이드
+                <Link href="/pricing" className="shrink-0 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold px-4 py-2 rounded-lg transition whitespace-nowrap">
+                  업그레이드 →
                 </Link>
               </div>
             )}

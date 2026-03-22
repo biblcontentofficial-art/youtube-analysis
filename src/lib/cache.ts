@@ -22,11 +22,14 @@ async function getRedis() {
 
 // TTL 상수 (초 단위)
 export const TTL = {
-  SEARCH:   60 * 60 * 24, // 검색 결과: 24시간 (API 쿼터 절감)
-  TRENDING: 60 * 60,      // 트렌드: 1시간 (시간별 갱신)
-  VIDEO:    60 * 60 * 24, // 영상 상세: 24시간
-  CHANNEL:  60 * 60 * 24, // 채널 상세: 24시간
-  COMMENT:  60 * 60 * 12, // 댓글: 12시간
+  SEARCH:          60 * 60 * 24,      // 검색 결과: 24시간 (API 쿼터 절감)
+  TRENDING:        60 * 60,            // 트렌드: 1시간 (시간별 갱신)
+  VIDEO:           60 * 60 * 24,      // 영상 상세: 24시간
+  CHANNEL:         60 * 60 * 24,      // 채널 기본: 24시간
+  CHANNEL_SEARCH:  60 * 60 * 48,      // 채널 검색 결과: 48시간 (반복 검색 쿼터 절감)
+  CHANNEL_DETAIL:  60 * 60 * 72,      // 채널 상세 (구독자·통계): 72시간 (거의 안 변함)
+  CHANNEL_VIDEOS:  60 * 60 * 6,       // 채널 최근 영상: 6시간 (새 업로드 반영)
+  COMMENT:         60 * 60 * 12,      // 댓글: 12시간
 };
 
 export async function cacheGet<T>(key: string): Promise<T | null> {
