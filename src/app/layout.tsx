@@ -189,7 +189,7 @@ export default async function RootLayout({
                 className="md:hidden text-xs text-gray-400 hover:text-white px-2 py-1 rounded-md transition"
                 title="요금제"
               >
-                💳
+                요금제
               </a>
               {NavUser ? (
                 <NavUser />
@@ -271,7 +271,6 @@ function NavTab({ href, icon, label, soon }: { href: string; icon: string; label
           : "text-gray-400 hover:text-white hover:bg-gray-800"
       }`}
     >
-      <span className="text-xs">{icon}</span>
       {label}
       {soon && (
         <span className="text-[10px] bg-gray-800 text-gray-500 px-1.5 py-0.5 rounded-full">
