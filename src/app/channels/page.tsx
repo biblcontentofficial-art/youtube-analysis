@@ -113,9 +113,9 @@ function EmptyState() {
       </p>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {[
-          { icon: "🔥", label: "최근 조회수 높은 채널", desc: "구독자 대비 총 조회수 비율이 높은 채널. 콘텐츠 하나하나가 바이럴되는 채널을 찾아보세요." },
-          { icon: "📈", label: "구독자 급상승", desc: "채널 나이 대비 구독자를 빠르게 모은 채널. 월 평균 구독자 증가량이 많은 순서로 보여드려요." },
-          { icon: "🌱", label: "신생 고성장", desc: "최근 3년 이내 개설됐지만 영상당 조회수가 높은 채널. 막 시작한 분야에서 답을 찾아보세요." },
+          { icon: "🔥", label: "영상 평균 조회수 순", desc: "채널 전체 영상의 영상당 평균 조회수가 높은 순으로 정렬합니다. 콘텐츠 하나하나가 잘 터지는 채널을 찾아보세요." },
+          { icon: "📈", label: "월 구독자 증가량 순", desc: "구독자 수 ÷ 채널 개설 월수로 계산한 월평균 구독자 증가량이 많은 순으로 정렬합니다." },
+          { icon: "🌱", label: "신생 채널 · 평균 조회수 순", desc: "개설 3년 이내 채널을 우선으로, 영상당 평균 조회수 높은 순으로 정렬합니다." },
         ].map((c) => (
           <div key={c.label} className="bg-gray-900 border border-gray-800 rounded-xl p-5">
             <div className="text-3xl mb-3">{c.icon}</div>

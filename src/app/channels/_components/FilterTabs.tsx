@@ -5,9 +5,9 @@ import { useRouter } from "next/navigation";
 export type SortMode = "trending" | "growth" | "new";
 
 const TABS: { key: SortMode; icon: string; label: string }[] = [
-  { key: "trending", icon: "🔥", label: "최근 조회수 높은 채널" },
-  { key: "growth",  icon: "📈", label: "구독자 급상승" },
-  { key: "new",     icon: "🌱", label: "신생 고성장" },
+  { key: "trending", icon: "🔥", label: "영상 평균 조회수 순" },
+  { key: "growth",  icon: "📈", label: "월 구독자 증가량 순" },
+  { key: "new",     icon: "🌱", label: "신생 채널 · 평균 조회수 순" },
 ];
 
 interface Props {
