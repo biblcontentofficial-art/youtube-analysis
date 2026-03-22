@@ -1,6 +1,6 @@
 // 조회수 성장 트렌드 그래프
-// algorithmScore 구간별로 수학적으로 완전히 다른 곡선 사용 → 직관적 구분
-// 색상은 AlgorithmBadge와 완전 동기화
+// Catmull-Rom → cubic bezier 부드러운 곡선 + 그라디언트 면적 채움
+// 실제 유튜브 조회수 성장 패턴에 맞는 곡선 형태 사용
 
 // videoId 기반 결정론적 시드 난수 (같은 영상 = 항상 같은 곡선)
 function seededRand(n: number): number {
@@ -8,58 +8,75 @@ function seededRand(n: number): number {
   return x - Math.floor(x);
 }
 
-// ─────────────────────────────────────────────
-// 4개 구간별 완전히 다른 곡선 함수
+// ─────────────────────────────────────────────────────────────────────────────
+// 실제 유튜브 조회수 성장 패턴
 //
-//  ≥70 (🔥 orange): 하키스틱 — 대부분 낮다가 끝에서 수직상승
-//                   y = t^(3.5~5)   → 지금 알고리즘 급탑승 중
+//  ≥70 (🔥 orange): 지수 성장형 — 초반부터 가파르게 오르며 끝까지 상승 중
+//                   exp(kt) 형태, 알고리즘에 탑승해 현재도 오르는 중
 //
-//  ≥50 (⚡ yellow): 가속 성장 — 위쪽으로 꾸준히 가속
-//                   y = t^(1.8~2.5) → 성장 중
+//  ≥50 (⚡ yellow): 가속 상승형 — 꾸준히 상승, 약간 가속되는 패턴
+//                   t^0.65 형태, 성장 진행 중
 //
-//  ≥30 (teal):      완만한 S커브 — 중간 지점 변곡, 이후 안정
-//                   logistic(mid=0.45~0.55) → 꾸준하지만 둔화
+//  ≥30 (teal):      로그 성장형 — 초반 빠른 상승 후 완만하게 둔화
+//                   log(1+kt) 형태, 일반적인 유튜브 패턴
 //
-//   <30 (gray):     로그 정체 — 초반 빠른 상승 후 평탄
-//                   y = sqrt(t) or log → 과거 인기, 현재 정체
-// ─────────────────────────────────────────────
+//   <30 (gray):     빠른 정체형 — 초반 급상승 후 거의 평탄
+//                   t^0.18 형태, 현재 정체 상태
+// ─────────────────────────────────────────────────────────────────────────────
 function generateCurve(algorithmScore: number, seed: number): number[] {
-  const POINTS = 24;
-  // 시드로 구간 내 미세 변형 (0~1)
+  const POINTS = 32;
   const variation = seededRand(seed * 3 + 7);
-
   const pts: number[] = [];
+
   for (let i = 0; i < POINTS; i++) {
     const t = i / (POINTS - 1);
     let y: number;
 
     if (algorithmScore >= 70) {
-      // 🔥 하키스틱: 끝에서 급상승 (power 3.5~5.5)
-      const power = 3.5 + variation * 2.0;
-      y = Math.pow(t, power);
+      // 🔥 지수 성장형: 초반부터 급격히 상승 → 끝까지 가파르게 오름
+      // 현재 알고리즘에 탑승해 계속 오르는 영상의 패턴
+      const k = 2.2 + variation * 0.8;
+      y = (Math.exp(k * t) - 1) / (Math.exp(k) - 1);
     } else if (algorithmScore >= 50) {
-      // ⚡ 가속 성장: t^1.8~2.6 (아래로 볼록 — 점점 빨라짐)
-      const power = 1.8 + variation * 0.8;
+      // ⚡ 가속 상승형: t^0.65 근사 — 꾸준히 오르되 선형보다 초반이 빠름
+      const power = 0.60 + variation * 0.15;
       y = Math.pow(t, power);
     } else if (algorithmScore >= 30) {
-      // 🟢 완만한 S커브: logistic, 변곡점 0.40~0.55 사이
-      const mid = 0.40 + variation * 0.15;
-      const k = 7.0;
-      const f = (x: number) => 1 / (1 + Math.exp(-k * (x - mid)));
-      const f0 = f(0), f1 = f(1);
-      y = (f(t) - f0) / (f1 - f0 || 1);
+      // 🟢 로그 성장형: 초반 빠른 상승 후 점차 둔화 — 가장 일반적인 패턴
+      const k = 7 + variation * 5;
+      y = Math.log(1 + k * t) / Math.log(1 + k);
     } else {
-      // ⚫ 로그 정체: 초반 빠른 상승 → 급격히 평탄 (sqrt ~ log 사이)
-      // power 0.25~0.45: 값이 낮을수록 더 빨리 정체
-      const power = 0.25 + variation * 0.20;
+      // ⚫ 빠른 정체형: 초반에 거의 다 오른 후 평탄 — 현재 정체 중
+      const power = 0.14 + variation * 0.08;
       y = Math.pow(t, power);
     }
 
-    // 자연스러운 미세 노이즈 (±2%) — 전체 형태는 유지
-    const noise = (seededRand(seed + i * 11 + 3) - 0.5) * 0.04;
+    // 자연스러운 미세 노이즈 (±1.5%) — 전체 형태는 유지
+    const noise = (seededRand(seed + i * 11 + 3) - 0.5) * 0.03;
     pts.push(Math.max(0, Math.min(1, y + noise)));
   }
   return pts;
+}
+
+// Catmull-Rom 스플라인 → cubic bezier 변환 (부드러운 곡선)
+function buildSmoothPath(
+  coords: { x: number; y: number }[],
+  tension = 0.35
+): string {
+  if (coords.length < 2) return "";
+  let d = `M ${coords[0].x.toFixed(2)},${coords[0].y.toFixed(2)}`;
+  for (let i = 0; i < coords.length - 1; i++) {
+    const p0 = coords[Math.max(i - 1, 0)];
+    const p1 = coords[i];
+    const p2 = coords[i + 1];
+    const p3 = coords[Math.min(i + 2, coords.length - 1)];
+    const cp1x = p1.x + (p2.x - p0.x) * tension;
+    const cp1y = p1.y + (p2.y - p0.y) * tension;
+    const cp2x = p2.x - (p3.x - p1.x) * tension;
+    const cp2y = p2.y - (p3.y - p1.y) * tension;
+    d += ` C ${cp1x.toFixed(2)},${cp1y.toFixed(2)} ${cp2x.toFixed(2)},${cp2y.toFixed(2)} ${p2.x.toFixed(2)},${p2.y.toFixed(2)}`;
+  }
+  return d;
 }
 
 interface Props {
@@ -69,26 +86,49 @@ interface Props {
   height?: number;
 }
 
-export default function ViewTrendGraph({ algorithmScore, videoId, width = 80, height = 38 }: Props) {
-  const seed = videoId.split("").reduce((acc, ch, i) => acc + ch.charCodeAt(0) * (i + 1), 0);
+export default function ViewTrendGraph({
+  algorithmScore,
+  videoId,
+  width = 80,
+  height = 38,
+}: Props) {
+  const seed = videoId
+    .split("")
+    .reduce((acc, ch, i) => acc + ch.charCodeAt(0) * (i + 1), 0);
   const points = generateCurve(algorithmScore, seed);
 
-  const W = width, H = height;
-  const padX = 2, padY = 3;
+  const W = width;
+  const H = height;
+  const padX = 2;
+  const padY = 3;
 
-  // AlgorithmBadge 색상과 완전 동기화
-  // >= 70: orange-500  / >= 50: yellow-500  / >= 30: teal-500  / <30: gray-500
+  // AlgorithmBadge 색상과 동기화
   const color =
-    algorithmScore >= 70 ? "#f97316"   // orange-500 (🔥)
-    : algorithmScore >= 50 ? "#eab308" // yellow-500 (⚡)
-    : algorithmScore >= 30 ? "#14b8a6" // teal-500
-    : "#6b7280";                       // gray-500
+    algorithmScore >= 70
+      ? "#f97316"   // orange-500
+      : algorithmScore >= 50
+      ? "#eab308"   // yellow-500
+      : algorithmScore >= 30
+      ? "#14b8a6"   // teal-500
+      : "#6b7280";  // gray-500
 
-  const coords = points.map((y, i) => {
-    const x = padX + (i / (points.length - 1)) * (W - padX * 2);
-    const svgY = H - padY - y * (H - padY * 2);
-    return `${x.toFixed(1)},${svgY.toFixed(1)}`;
-  });
+  // 좌표 계산
+  const coords = points.map((y, i) => ({
+    x: padX + (i / (points.length - 1)) * (W - padX * 2),
+    y: H - padY - y * (H - padY * 2),
+  }));
+
+  // 부드러운 선 경로
+  const linePath = buildSmoothPath(coords);
+
+  // 면적 채움 경로 (선 + 바닥 닫기)
+  const areaPath =
+    linePath +
+    ` L ${coords[coords.length - 1].x.toFixed(2)},${(H - padY).toFixed(2)}` +
+    ` L ${coords[0].x.toFixed(2)},${(H - padY).toFixed(2)} Z`;
+
+  // 그라디언트 ID (seed 기반 고유값 — 동일 영상은 항상 동일)
+  const gradId = `tg${(seed % 999983).toString(36)}`;
 
   return (
     <svg
@@ -98,8 +138,19 @@ export default function ViewTrendGraph({ algorithmScore, videoId, width = 80, he
       className="overflow-visible"
       aria-hidden="true"
     >
-      <polyline
-        points={coords.join(" ")}
+      <defs>
+        <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity="0.28" />
+          <stop offset="100%" stopColor={color} stopOpacity="0.02" />
+        </linearGradient>
+      </defs>
+
+      {/* 그라디언트 면적 */}
+      <path d={areaPath} fill={`url(#${gradId})`} />
+
+      {/* 부드러운 선 */}
+      <path
+        d={linePath}
         fill="none"
         stroke={color}
         strokeWidth="1.5"
