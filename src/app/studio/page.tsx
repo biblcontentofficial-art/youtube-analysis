@@ -185,10 +185,10 @@ export default function StudioPage() {
                 href={ch.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group rounded-2xl overflow-hidden bg-gray-900 border border-gray-800 hover:border-teal-700/50 transition"
+                className="group rounded-2xl bg-gray-900 border border-gray-800 hover:border-teal-700/50 transition"
               >
                 {/* 배너 이미지 */}
-                <div className="relative h-20 overflow-hidden">
+                <div className="relative h-20 overflow-hidden rounded-t-2xl">
                   <Image
                     src={ch.banner}
                     alt={`${ch.name} 채널 배너`}
@@ -458,10 +458,10 @@ export default function StudioPage() {
               href="https://www.youtube.com/@bibl_youtube"
               target="_blank"
               rel="noopener noreferrer"
-              className="group rounded-2xl overflow-hidden border border-gray-800 hover:border-teal-700/50 transition"
+              className="group rounded-2xl border border-gray-800 hover:border-teal-700/50 transition"
             >
               {/* 배너 높이 충분히 확보 */}
-              <div className="relative h-52 overflow-hidden">
+              <div className="relative h-52 overflow-hidden rounded-t-2xl">
                 <Image
                   src={CHANNELS[3].banner}
                   alt="비블 bibl 채널 배너"
