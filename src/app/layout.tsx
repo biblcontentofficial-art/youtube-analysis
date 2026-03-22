@@ -173,10 +173,10 @@ export default async function RootLayout({
               </a>
 
               <div className="hidden md:flex items-center gap-1 text-sm">
-                <NavTab href="/search" icon="🎬" label="영상 찾기" />
-                <NavTab href="/channels" icon="📺" label="채널 찾기" soon={!isStarterPlus} />
-                <NavTab href="/saved" icon="🔖" label="수집한 영상" soon={!isProPlus} />
-                <NavTab href="/pricing" icon="💳" label="요금제" />
+                <NavTab href="/search" label="영상 찾기" />
+                <NavTab href="/channels" label="채널 찾기" requiredPlan={!isStarterPlus ? "Starter" : undefined} />
+                <NavTab href="/saved" label="수집한 영상" requiredPlan={!isProPlus ? "Pro" : undefined} />
+                <NavTab href="/pricing" label="요금제" />
               </div>
             </div>
 
@@ -261,20 +261,37 @@ export default async function RootLayout({
   return content;
 }
 
-function NavTab({ href, icon, label, soon }: { href: string; icon: string; label: string; soon?: boolean }) {
+function NavTab({
+  href,
+  label,
+  requiredPlan,
+}: {
+  href: string;
+  label: string;
+  requiredPlan?: "Starter" | "Pro";
+}) {
+  const locked = !!requiredPlan;
+
+  const planStyle: Record<string, string> = {
+    Starter: "bg-amber-950/60 text-amber-400 border border-amber-800/70",
+    Pro:     "bg-purple-950/60 text-purple-400 border border-purple-800/70",
+  };
+
   return (
     <a
-      href={soon ? "#" : href}
-      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm transition ${
-        soon
-          ? "text-gray-600 cursor-default"
+      href={locked ? "/pricing" : href}
+      title={locked ? `${requiredPlan} 플랜 이상에서 이용 가능` : undefined}
+      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm transition group ${
+        locked
+          ? "text-gray-500 hover:text-gray-300 hover:bg-gray-800/50"
           : "text-gray-400 hover:text-white hover:bg-gray-800"
       }`}
     >
+      {locked && <span className="text-[11px]">🔒</span>}
       {label}
-      {soon && (
-        <span className="text-[10px] bg-gray-800 text-gray-500 px-1.5 py-0.5 rounded-full">
-          준비중
+      {locked && requiredPlan && (
+        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full leading-none ${planStyle[requiredPlan]}`}>
+          {requiredPlan}+
         </span>
       )}
     </a>
