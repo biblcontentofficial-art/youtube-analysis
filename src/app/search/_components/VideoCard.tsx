@@ -190,7 +190,7 @@ export default function VideoCard({ video, checked, onCheck, onClick, canAlgorit
         className={`hidden md:grid items-center gap-2 px-3 py-3 transition-colors group ${
           checked ? "bg-teal-950/20" : "hover:bg-gray-900/60"
         }`}
-        style={{ gridTemplateColumns: "32px 36px 110px 1fr 90px 140px 80px 80px 90px 90px 90px" }}
+        style={{ gridTemplateColumns: "32px 36px 110px 1fr 90px 140px 80px 90px 90px" }}
       >
         {/* 체크박스 */}
         <div className="flex justify-center" onClick={(e) => e.stopPropagation()}>
@@ -242,11 +242,6 @@ export default function VideoCard({ video, checked, onCheck, onClick, canAlgorit
           <span className={`text-sm font-bold ${video.performanceColor}`}>{video.performanceRatio}</span>
         </div>
 
-        {/* 반응도 */}
-        <div className="flex justify-center">
-          <ScoreBadge score={video.score} />
-        </div>
-
         {/* 알고리즘 확률 — 항상 컬럼 렌더링, 플랜에 따라 내용 다름 */}
         <div className="flex justify-center">
           {canAlgorithm ? (
@@ -257,11 +252,6 @@ export default function VideoCard({ video, checked, onCheck, onClick, canAlgorit
               onClickLock={() => setShowUpgradeModal(true)}
             />
           )}
-        </div>
-
-        {/* 조회수 그래프 */}
-        <div className="flex justify-center items-center">
-          <ViewTrendGraph algorithmScore={video.algorithmScore} videoId={video.videoId} />
         </div>
 
         {/* 게시일 */}

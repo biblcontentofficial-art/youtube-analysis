@@ -337,7 +337,7 @@ export default function SearchResultList({
       {/* 테이블 헤더 */}
       <div
         className="hidden md:grid items-center gap-2 px-3 py-2.5 bg-gray-900 border border-gray-800 text-[11px] text-gray-500 font-medium rounded-t-lg select-none"
-        style={{ gridTemplateColumns: "32px 36px 110px 1fr 90px 140px 80px 80px 90px 90px 90px" }}
+        style={{ gridTemplateColumns: "32px 36px 110px 1fr 90px 140px 80px 90px 90px" }}
       >
         <div className="flex justify-center">
           <input
@@ -360,10 +360,6 @@ export default function SearchResultList({
           tip="해당 채널의 평균 조회수보다 몇 배 높은 영상인지를 수치로 나타냅니다">
           {renderSortIcon("performanceRatioRaw")}
         </ColHeader>
-        <ColHeader label="반응도" sortable sortKeyName="scoreValue"
-          tip="유튜브 전체에서 이 영상의 조회수 성과가 어떤가를 나타냅니다">
-          {renderSortIcon("scoreValue")}
-        </ColHeader>
         {/* 알고리즘 확률 — 항상 표시, 잠금 여부만 다름 */}
         {canAlgorithm ? (
           <ColHeader label="알고리즘 🔥" sortable sortKeyName="algorithmScore"
@@ -375,9 +371,6 @@ export default function SearchResultList({
             알고리즘 🔒
           </div>
         )}
-        <div className="flex items-center justify-center">
-          트렌드
-        </div>
         <div onClick={() => handleSort("publishedAtRaw")} className="cursor-pointer hover:text-white flex items-center justify-center">
           게시일 {renderSortIcon("publishedAtRaw")}
         </div>
