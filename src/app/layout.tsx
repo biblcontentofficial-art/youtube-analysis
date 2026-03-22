@@ -178,7 +178,7 @@ export default async function RootLayout({
                 <NavTab href="/saved" label="수집한 영상" requiredPlan={!isProPlus ? "Pro" : undefined} />
                 <NavTab href="/pricing" label="요금제" />
                 <div className="w-px h-4 bg-gray-700 mx-1" />
-                <NavTab href="/studio" label="TMK 스튜디오" isStudio />
+                <NavTab href="/studio" label="유튜브 채널 대행" isStudio />
               </div>
             </div>
 
