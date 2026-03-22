@@ -347,10 +347,8 @@ export default async function ChannelsPage({ searchParams }: Props) {
 
                       {/* 채널 정보 */}
                       <td className="px-4 py-4 align-middle">
-                        <a
-                          href={`https://youtube.com/channel/${ch.channelId}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
+                        <Link
+                          href={`/channels/${ch.channelId}?from=${encodeURIComponent(`/channels?q=${encodeURIComponent(query)}&sort=${sort}${dateOrder ? `&dateOrder=${dateOrder}` : ""}`)}`}
                           className="flex items-center gap-4 hover:opacity-80 transition-opacity"
                         >
                           {/* 썸네일 */}
@@ -395,7 +393,7 @@ export default async function ChannelsPage({ searchParams }: Props) {
                               </div>
                             )}
                           </div>
-                        </a>
+                        </Link>
                       </td>
 
                       {/* 구독자 */}

@@ -744,3 +744,201 @@ export async function searchVideos(query: string, filter?: string, pageToken?: s
     return { items: [], nextPageToken: undefined };
   }
 }
+
+// ─── 채널 상세 대시보드용 ────────────────────────────────────────────────────────
+
+export interface ChannelDetail extends ChannelResult {
+  bannerUrl?: string;
+  keywords?: string[];
+}
+
+export interface ChannelVideo {
+  videoId: string;
+  title: string;
+  thumbnail: string;
+  publishedAt: string;
+  viewCount: number;
+  likeCount: number;
+  commentCount: number;
+  durationSec: number;
+}
+
+function isQuotaErr(status: number, errBody: any): boolean {
+  const msg = errBody?.error?.message?.toLowerCase() ?? "";
+  const reason = errBody?.error?.errors?.[0]?.reason ?? "";
+  return status === 403 && (
+    msg.includes("quota") || reason.includes("quota") ||
+    reason === "quotaExceeded" || reason === "dailyLimitExceeded"
+  );
+}
+
+export async function getChannelDetail(channelId: string, isPaid = false): Promise<{
+  channel: ChannelDetail | null;
+  error?: "quota_exceeded" | "api_error" | "not_found";
+}> {
+  if (!channelId) return { channel: null, error: "not_found" };
+
+  let apiKeys: string[];
+  try { apiKeys = getAllApiKeys(isPaid); }
+  catch { return { channel: null, error: "api_error" }; }
+
+  const { cacheGet, cacheSet, channelDetailCacheKey, TTL } = await import("./cache");
+  const cacheKey = channelDetailCacheKey(channelId);
+  const cached = await cacheGet<ChannelDetail>(cacheKey);
+  if (cached) return { channel: cached };
+
+  let activeKeyIndex = 0;
+  while (activeKeyIndex < apiKeys.length) {
+    const apiKey = apiKeys[activeKeyIndex];
+    try {
+      const url =
+        `https://www.googleapis.com/youtube/v3/channels` +
+        `?part=snippet,statistics,topicDetails,brandingSettings` +
+        `&id=${channelId}&key=${apiKey}`;
+      const res = await fetch(url, { cache: "no-store" });
+
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({}));
+        if (isQuotaErr(res.status, errBody)) {
+          activeKeyIndex++;
+          if (activeKeyIndex < apiKeys.length) continue;
+          return { channel: null, error: "quota_exceeded" };
+        }
+        if (res.status === 400 || res.status === 401) {
+          activeKeyIndex++;
+          if (activeKeyIndex < apiKeys.length) continue;
+        }
+        return { channel: null, error: "api_error" };
+      }
+
+      const data = await res.json();
+      const ch = data.items?.[0];
+      if (!ch) return { channel: null, error: "not_found" };
+
+      const subCount  = parseInt(ch.statistics?.subscriberCount || "0");
+      const videoCount = parseInt(ch.statistics?.videoCount || "0");
+      const totalViews = parseInt(ch.statistics?.viewCount || "0");
+      const avgViews   = videoCount > 0 ? Math.floor(totalViews / videoCount) : 0;
+
+      const channel: ChannelDetail = {
+        channelId: ch.id,
+        title:       ch.snippet.title,
+        description: ch.snippet.description || "",
+        thumbnail:
+          ch.snippet.thumbnails?.high?.url ||
+          ch.snippet.thumbnails?.medium?.url ||
+          ch.snippet.thumbnails?.default?.url || "",
+        subscriberCount: subCount,
+        subscriberCountFormatted: formatCount(subCount),
+        videoCount,
+        viewCount: totalViews,
+        avgViewsPerVideo: avgViews,
+        avgViewsFormatted: formatCount(avgViews),
+        customUrl:   ch.snippet.customUrl,
+        country:     ch.snippet.country,
+        publishedAt: ch.snippet.publishedAt || "",
+        topicTags:   parseTopicTags(ch.topicDetails?.topicCategories),
+        bannerUrl:   ch.brandingSettings?.image?.bannerExternalUrl,
+        keywords:    ch.brandingSettings?.channel?.keywords
+          ?.split(/\s+/)
+          .filter((k: string) => k.length > 0) ?? [],
+      };
+
+      await cacheSet(cacheKey, channel, TTL.CHANNEL);
+      return { channel };
+    } catch {
+      activeKeyIndex++;
+      if (activeKeyIndex < apiKeys.length) continue;
+      return { channel: null, error: "api_error" };
+    }
+  }
+  return { channel: null, error: "api_error" };
+}
+
+export async function getChannelRecentVideos(channelId: string, isPaid = false): Promise<{
+  videos: ChannelVideo[];
+  error?: "quota_exceeded" | "api_error";
+}> {
+  if (!channelId) return { videos: [] };
+
+  let apiKeys: string[];
+  try { apiKeys = getAllApiKeys(isPaid); }
+  catch { return { videos: [], error: "api_error" }; }
+
+  const { cacheGet, cacheSet, channelVideosCacheKey, TTL } = await import("./cache");
+  const cacheKey = channelVideosCacheKey(channelId);
+  const cached = await cacheGet<ChannelVideo[]>(cacheKey);
+  if (cached) return { videos: cached };
+
+  // uploads 재생목록 ID = "UU" + channelId[2:]  (UC→UU)
+  const uploadsId = "UU" + channelId.slice(2);
+
+  let activeKeyIndex = 0;
+  while (activeKeyIndex < apiKeys.length) {
+    const apiKey = apiKeys[activeKeyIndex];
+    try {
+      // Step 1: uploads 재생목록에서 최신 영상 ID 획득 (1 unit)
+      const plUrl =
+        `https://www.googleapis.com/youtube/v3/playlistItems` +
+        `?part=contentDetails&playlistId=${uploadsId}&maxResults=12&key=${apiKey}`;
+      const plRes = await fetch(plUrl, { cache: "no-store" });
+
+      if (!plRes.ok) {
+        const errBody = await plRes.json().catch(() => ({}));
+        if (isQuotaErr(plRes.status, errBody)) {
+          activeKeyIndex++;
+          if (activeKeyIndex < apiKeys.length) continue;
+          return { videos: [], error: "quota_exceeded" };
+        }
+        if (plRes.status === 400 || plRes.status === 401 || plRes.status === 403) {
+          activeKeyIndex++;
+          if (activeKeyIndex < apiKeys.length) continue;
+        }
+        return { videos: [], error: "api_error" };
+      }
+
+      const plData = await plRes.json();
+      const videoIds: string[] = (plData.items ?? [])
+        .map((item: any) => item.contentDetails?.videoId)
+        .filter(Boolean);
+      if (!videoIds.length) return { videos: [] };
+
+      // Step 2: 영상 상세 (snippet + statistics + contentDetails)  (~1 unit/video)
+      const vUrl =
+        `https://www.googleapis.com/youtube/v3/videos` +
+        `?part=snippet,statistics,contentDetails` +
+        `&id=${videoIds.join(",")}&key=${apiKey}`;
+      const vRes = await fetch(vUrl, { cache: "no-store" });
+
+      if (!vRes.ok) {
+        const errBody = await vRes.json().catch(() => ({}));
+        if (isQuotaErr(vRes.status, errBody)) {
+          activeKeyIndex++;
+          if (activeKeyIndex < apiKeys.length) continue;
+          return { videos: [], error: "quota_exceeded" };
+        }
+        return { videos: [], error: "api_error" };
+      }
+
+      const vData = await vRes.json();
+      const videos: ChannelVideo[] = (vData.items ?? []).map((v: any) => ({
+        videoId:      v.id,
+        title:        v.snippet.title,
+        thumbnail:    v.snippet.thumbnails?.medium?.url || v.snippet.thumbnails?.default?.url || "",
+        publishedAt:  v.snippet.publishedAt,
+        viewCount:    parseInt(v.statistics?.viewCount || "0"),
+        likeCount:    parseInt(v.statistics?.likeCount || "0"),
+        commentCount: parseInt(v.statistics?.commentCount || "0"),
+        durationSec:  parseDuration(v.contentDetails?.duration || ""),
+      }));
+
+      await cacheSet(cacheKey, videos, TTL.VIDEO);
+      return { videos };
+    } catch {
+      activeKeyIndex++;
+      if (activeKeyIndex < apiKeys.length) continue;
+      return { videos: [], error: "api_error" };
+    }
+  }
+  return { videos: [], error: "api_error" };
+}

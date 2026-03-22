@@ -69,6 +69,14 @@ export function channelSearchCacheKey(query: string): string {
   return `yt:chsearch:v2:${query.toLowerCase().trim()}`;
 }
 
+export function channelDetailCacheKey(channelId: string): string {
+  return `yt:chdetail:${channelId}`;
+}
+
+export function channelVideosCacheKey(channelId: string): string {
+  return `yt:chvideos:${channelId}`;
+}
+
 export function trendingCacheKey(regionCode = "KR", maxResults = 50, categoryId = ""): string {
   return `yt:trending:${regionCode}:${maxResults}:${categoryId || "all"}`;
 }
