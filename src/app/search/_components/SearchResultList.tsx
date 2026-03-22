@@ -337,7 +337,7 @@ export default function SearchResultList({
       {/* 테이블 헤더 */}
       <div
         className="hidden md:grid items-center gap-2 px-3 py-2.5 bg-gray-900 border border-gray-800 text-[11px] text-gray-500 font-medium rounded-t-lg select-none"
-        style={{ gridTemplateColumns: canAlgorithm ? "32px 36px 110px 1fr 90px 140px 80px 80px 90px 90px 90px" : "32px 36px 110px 1fr 90px 140px 80px 80px 90px 90px" }}
+        style={{ gridTemplateColumns: "32px 36px 110px 1fr 90px 140px 80px 80px 90px 90px 90px" }}
       >
         <div className="flex justify-center">
           <input
@@ -364,12 +364,16 @@ export default function SearchResultList({
           tip="유튜브 전체에서 이 영상의 조회수 성과가 어떤가를 나타냅니다">
           {renderSortIcon("scoreValue")}
         </ColHeader>
-        {/* 알고리즘 확률 — Starter 이상만 */}
-        {canAlgorithm && (
+        {/* 알고리즘 확률 — 항상 표시, 잠금 여부만 다름 */}
+        {canAlgorithm ? (
           <ColHeader label="알고리즘 🔥" sortable sortKeyName="algorithmScore"
             tip="지금 이 영상이 알고리즘을 타고 올라갈 확률입니다">
             {renderSortIcon("algorithmScore")}
           </ColHeader>
+        ) : (
+          <div className="flex items-center justify-center gap-1 text-gray-600 cursor-default" title="Starter 플랜 이상에서 사용 가능">
+            알고리즘 🔒
+          </div>
         )}
         <div className="flex items-center justify-center">
           트렌드

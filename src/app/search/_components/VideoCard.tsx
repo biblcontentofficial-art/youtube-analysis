@@ -1,5 +1,7 @@
+"use client";
 // next/image 대신 <img> 사용 — Vercel Image Optimization 비용 절감
 // YouTube 썸네일은 YouTube CDN이 이미 최적화해서 제공하므로 재최적화 불필요
+import { useState } from "react";
 import { Video } from "@/types";
 import ViewTrendGraph from "./ViewTrendGraph";
 
@@ -63,17 +65,132 @@ function AlgorithmBadge({ score }: { score: number }) {
   );
 }
 
+// ─── 잠금 뱃지 (프리 플랜) ──────────────────────────────────────────────────
+function LockedAlgorithmBadge({
+  score,
+  onClickLock,
+}: {
+  score: number;
+  onClickLock: () => void;
+}) {
+  // 실제 수치를 블러로 흐리게 → 존재감은 보이지만 읽을 수 없음
+  const barColor =
+    score >= 70 ? "bg-orange-500"
+    : score >= 50 ? "bg-yellow-500"
+    : score >= 30 ? "bg-teal-500"
+    : "bg-gray-600";
+
+  return (
+    <button
+      onClick={(e) => { e.stopPropagation(); onClickLock(); }}
+      className="relative group flex flex-col items-center gap-1 cursor-pointer"
+      title="Starter 플랜 이상에서 확인 가능"
+    >
+      {/* 블러 처리된 실제 수치 */}
+      <div className="flex flex-col items-center gap-1" style={{ filter: "blur(4px)" }}>
+        <span className="text-xs font-bold text-teal-400">{score}%</span>
+        <div className="w-12 h-1 bg-gray-800 rounded-full overflow-hidden">
+          <div className={`h-full rounded-full ${barColor}`} style={{ width: `${score}%` }} />
+        </div>
+      </div>
+      {/* 자물쇠 오버레이 */}
+      <span className="absolute inset-0 flex items-center justify-center text-[13px] group-hover:scale-110 transition-transform">
+        🔒
+      </span>
+    </button>
+  );
+}
+
+// ─── 업그레이드 유도 모달 ─────────────────────────────────────────────────────
+function UpgradeModal({ onClose }: { onClose: () => void }) {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        className="bg-[#161b27] border border-gray-700 rounded-2xl p-7 w-[340px] space-y-5 shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* 아이콘 */}
+        <div className="flex flex-col items-center gap-2 text-center">
+          <div className="text-4xl">🔥</div>
+          <h2 className="text-white text-base font-bold leading-snug">
+            알고리즘 탑승 확률
+          </h2>
+          <p className="text-gray-400 text-sm leading-relaxed">
+            지금 이 영상이 알고리즘을 타고<br />
+            조회수가 폭발할 확률을 분석해 드려요.
+          </p>
+        </div>
+
+        {/* 예시 뱃지 미리보기 */}
+        <div className="flex justify-center gap-4">
+          {[{ label: "🔥 78%", color: "text-orange-400" }, { label: "⚡ 55%", color: "text-yellow-400" }, { label: "32%", color: "text-teal-400" }].map((b) => (
+            <div key={b.label} className="flex flex-col items-center gap-1.5">
+              <span className={`text-xs font-bold ${b.color}`}>{b.label}</span>
+              <div className="w-10 h-1 bg-gray-700 rounded-full overflow-hidden">
+                <div
+                  className={`h-full rounded-full ${
+                    b.color.includes("orange") ? "bg-orange-500"
+                    : b.color.includes("yellow") ? "bg-yellow-500"
+                    : "bg-teal-500"
+                  }`}
+                  style={{ width: b.label.includes("78") ? "78%" : b.label.includes("55") ? "55%" : "32%" }}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* 플랜 안내 */}
+        <div className="bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 text-xs text-gray-400 space-y-1.5">
+          <p className="flex items-center gap-2">
+            <span className="text-teal-400 font-semibold">Starter</span>
+            <span>이상부터 알고리즘 탑승 확률 확인</span>
+          </p>
+          <p className="flex items-center gap-2">
+            <span className="text-purple-400 font-semibold">Pro</span>
+            <span>+ 수집한 영상 저장 · CSV 내보내기</span>
+          </p>
+        </div>
+
+        {/* 버튼 */}
+        <div className="flex flex-col gap-2">
+          <a
+            href="/pricing"
+            className="block w-full py-2.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white text-sm font-semibold text-center transition"
+          >
+            플랜 업그레이드 →
+          </a>
+          <button
+            onClick={onClose}
+            className="w-full py-2 rounded-xl text-gray-500 hover:text-gray-300 text-sm transition"
+          >
+            닫기
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── VideoCard ────────────────────────────────────────────────────────────────
+
 export default function VideoCard({ video, checked, onCheck, onClick, canAlgorithm }: Props) {
   const isShorts = (video.durationSeconds ?? 9999) <= 180;
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   return (
     <>
+      {showUpgradeModal && <UpgradeModal onClose={() => setShowUpgradeModal(false)} />}
+
       {/* ───── 데스크탑 레이아웃 ───── */}
       <div
         className={`hidden md:grid items-center gap-2 px-3 py-3 transition-colors group ${
           checked ? "bg-teal-950/20" : "hover:bg-gray-900/60"
         }`}
-        style={{ gridTemplateColumns: canAlgorithm ? "32px 36px 110px 1fr 90px 140px 80px 80px 90px 90px 90px" : "32px 36px 110px 1fr 90px 140px 80px 80px 90px 90px" }}
+        style={{ gridTemplateColumns: "32px 36px 110px 1fr 90px 140px 80px 80px 90px 90px 90px" }}
       >
         {/* 체크박스 */}
         <div className="flex justify-center" onClick={(e) => e.stopPropagation()}>
@@ -130,12 +247,17 @@ export default function VideoCard({ video, checked, onCheck, onClick, canAlgorit
           <ScoreBadge score={video.score} />
         </div>
 
-        {/* 알고리즘 확률 — Starter 이상만 */}
-        {canAlgorithm && (
-          <div className="flex justify-center">
+        {/* 알고리즘 확률 — 항상 컬럼 렌더링, 플랜에 따라 내용 다름 */}
+        <div className="flex justify-center">
+          {canAlgorithm ? (
             <AlgorithmBadge score={video.algorithmScore} />
-          </div>
-        )}
+          ) : (
+            <LockedAlgorithmBadge
+              score={video.algorithmScore}
+              onClickLock={() => setShowUpgradeModal(true)}
+            />
+          )}
+        </div>
 
         {/* 조회수 그래프 */}
         <div className="flex justify-center items-center">
@@ -198,7 +320,14 @@ export default function VideoCard({ video, checked, onCheck, onClick, canAlgorit
             <span className="text-xs font-bold text-white">{video.viewCountFormatted}</span>
             <span className={`text-xs font-bold ${video.performanceColor}`}>{video.performanceRatio}</span>
             <ScoreBadge score={video.score} />
-            {canAlgorithm && <AlgorithmBadge score={video.algorithmScore} />}
+            {canAlgorithm ? (
+              <AlgorithmBadge score={video.algorithmScore} />
+            ) : (
+              <LockedAlgorithmBadge
+                score={video.algorithmScore}
+                onClickLock={() => setShowUpgradeModal(true)}
+              />
+            )}
           </div>
 
           {/* 게시일 */}
