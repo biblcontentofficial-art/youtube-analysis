@@ -239,23 +239,34 @@ export async function searchChannels(query: string, isPaid = false): Promise<{
   while (activeKeyIndex < apiKeys.length) {
     const apiKey = apiKeys[activeKeyIndex];
     try {
-      const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=id&q=${encodeURIComponent(query)}&type=channel&maxResults=25&key=${apiKey}`;
-      const searchRes = await fetch(searchUrl, { cache: "no-store" });
+      // ── Step 1: 키워드 관련 영상 검색 (type=video) ──────────────────────────
+      // 채널명 매칭이 아닌, 해당 주제의 영상을 만드는 채널을 찾기 위해
+      // video 검색 후 channelId를 추출합니다.
+      const videoSearchUrl =
+        `https://www.googleapis.com/youtube/v3/search` +
+        `?part=snippet` +
+        `&q=${encodeURIComponent(query)}` +
+        `&type=video` +
+        `&maxResults=50` +
+        `&relevanceLanguage=ko` +
+        `&key=${apiKey}`;
+      const videoRes = await fetch(videoSearchUrl, { cache: "no-store" });
 
-      if (!searchRes.ok) {
-        const errBody = await searchRes.json().catch(() => ({}));
+      if (!videoRes.ok) {
+        const errBody = await videoRes.json().catch(() => ({}));
         const errMsg = errBody?.error?.message || "";
         const reason0 = errBody?.error?.errors?.[0]?.reason ?? "";
         const domain0 = errBody?.error?.errors?.[0]?.domain ?? "";
 
-        const isQuotaError = searchRes.status === 403 && (
+        const isQuotaError = videoRes.status === 403 && (
           errMsg.toLowerCase().includes("quota") ||
           reason0.toLowerCase().includes("quota") ||
           domain0.toLowerCase().includes("quota") ||
           reason0 === "quotaExceeded" ||
           reason0 === "dailyLimitExceeded"
         );
-        const isBadKey = searchRes.status === 400 || searchRes.status === 401 ||
+        const isBadKey =
+          videoRes.status === 400 || videoRes.status === 401 ||
           reason0 === "badRequest" || reason0 === "keyInvalid" ||
           errMsg.toLowerCase().includes("not valid");
 
@@ -264,8 +275,7 @@ export async function searchChannels(query: string, isPaid = false): Promise<{
           if (activeKeyIndex < apiKeys.length) continue;
           return { items: [], error: isQuotaError ? "quota_exceeded" : "api_error" };
         }
-        // 403 (쿼터 감지 못한 경우)도 다음 키 시도
-        if (searchRes.status === 403) {
+        if (videoRes.status === 403) {
           activeKeyIndex++;
           if (activeKeyIndex < apiKeys.length) continue;
           return { items: [], error: "quota_exceeded" };
@@ -273,17 +283,34 @@ export async function searchChannels(query: string, isPaid = false): Promise<{
         return { items: [], error: "api_error" };
       }
 
-      const searchData = await searchRes.json();
-      if (!searchData.items?.length) return { items: [] };
+      const videoData = await videoRes.json();
+      if (!videoData.items?.length) return { items: [] };
 
-      const channelIds = searchData.items.map((item: any) => item.id.channelId).join(",");
-      const channelUrl = `https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics,topicDetails&id=${channelIds}&key=${apiKey}`;
+      // ── Step 2: 채널 ID 빈도 집계 (많이 나올수록 해당 주제 전문 채널) ──────
+      const channelFreq = new Map<string, number>();
+      for (const item of videoData.items) {
+        const cid = item.snippet?.channelId;
+        if (cid) channelFreq.set(cid, (channelFreq.get(cid) ?? 0) + 1);
+      }
+      // 빈도 내림차순 정렬 후 상위 25개 채널 ID만 사용
+      const sortedChannelIds = [...channelFreq.entries()]
+        .sort((a, b) => b[1] - a[1])
+        .map(([id]) => id)
+        .slice(0, 25);
+
+      // ── Step 3: 채널 상세 정보 조회 ─────────────────────────────────────────
+      const channelUrl =
+        `https://www.googleapis.com/youtube/v3/channels` +
+        `?part=snippet,statistics,topicDetails` +
+        `&id=${sortedChannelIds.join(",")}` +
+        `&key=${apiKey}`;
       const channelRes = await fetch(channelUrl, { cache: "no-store" });
 
       if (!channelRes.ok) {
         const errBody = await channelRes.json().catch(() => ({}));
         const reason0 = errBody?.error?.errors?.[0]?.reason ?? "";
-        const isBadKey = channelRes.status === 400 || channelRes.status === 401 || reason0 === "keyInvalid";
+        const isBadKey =
+          channelRes.status === 400 || channelRes.status === 401 || reason0 === "keyInvalid";
         if (isBadKey || channelRes.status === 403) {
           activeKeyIndex++;
           if (activeKeyIndex < apiKeys.length) continue;
@@ -294,28 +321,38 @@ export async function searchChannels(query: string, isPaid = false): Promise<{
       const channelData = await channelRes.json();
       if (!channelData.items) return { items: [] };
 
-      const items: ChannelResult[] = channelData.items.map((ch: any) => {
-        const subCount = parseInt(ch.statistics?.subscriberCount || "0");
-        const videoCount = parseInt(ch.statistics?.videoCount || "0");
-        const totalViews = parseInt(ch.statistics?.viewCount || "0");
-        const avgViews = videoCount > 0 ? Math.floor(totalViews / videoCount) : 0;
-        return {
-          channelId: ch.id,
-          title: ch.snippet.title,
-          description: ch.snippet.description || "",
-          thumbnail: ch.snippet.thumbnails?.medium?.url || ch.snippet.thumbnails?.default?.url || "",
-          subscriberCount: subCount,
-          subscriberCountFormatted: formatCount(subCount),
-          videoCount,
-          viewCount: totalViews,
-          avgViewsPerVideo: avgViews,
-          avgViewsFormatted: formatCount(avgViews),
-          customUrl: ch.snippet.customUrl,
-          country: ch.snippet.country,
-          publishedAt: ch.snippet.publishedAt || "",
-          topicTags: parseTopicTags(ch.topicDetails?.topicCategories),
-        };
-      });
+      // ── Step 4: 빈도 순서 유지하며 ChannelResult 매핑 ───────────────────────
+      const channelMap = new Map<string, any>();
+      for (const ch of channelData.items) channelMap.set(ch.id, ch);
+
+      const items: ChannelResult[] = sortedChannelIds
+        .map((id) => channelMap.get(id))
+        .filter(Boolean)
+        .map((ch: any) => {
+          const subCount = parseInt(ch.statistics?.subscriberCount || "0");
+          const videoCount = parseInt(ch.statistics?.videoCount || "0");
+          const totalViews = parseInt(ch.statistics?.viewCount || "0");
+          const avgViews = videoCount > 0 ? Math.floor(totalViews / videoCount) : 0;
+          return {
+            channelId: ch.id,
+            title: ch.snippet.title,
+            description: ch.snippet.description || "",
+            thumbnail:
+              ch.snippet.thumbnails?.medium?.url ||
+              ch.snippet.thumbnails?.default?.url ||
+              "",
+            subscriberCount: subCount,
+            subscriberCountFormatted: formatCount(subCount),
+            videoCount,
+            viewCount: totalViews,
+            avgViewsPerVideo: avgViews,
+            avgViewsFormatted: formatCount(avgViews),
+            customUrl: ch.snippet.customUrl,
+            country: ch.snippet.country,
+            publishedAt: ch.snippet.publishedAt || "",
+            topicTags: parseTopicTags(ch.topicDetails?.topicCategories),
+          };
+        });
 
       await cacheSet(cacheKey, items, TTL.CHANNEL);
       return { items };
