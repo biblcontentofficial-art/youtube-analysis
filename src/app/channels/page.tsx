@@ -1,6 +1,23 @@
 import { currentUser } from "@clerk/nextjs/server";
 import Link from "next/link";
+import type { Metadata } from "next";
 import { searchChannels, ChannelResult } from "@/lib/youtube";
+
+export const metadata: Metadata = {
+  title: "유튜브 채널 찾기 · 성장 채널 발견",
+  description:
+    "비블랩 채널 찾기 — 주제·분야 키워드로 구독자 급상승·신생 고성장 유튜브 채널을 발굴하세요. 협업 채널, 벤치마킹 채널을 빠르게 찾습니다.",
+  keywords: [
+    "비블랩 채널찾기", "유튜브 채널 분석", "유튜브 채널 찾기", "구독자 급상승 채널",
+    "신생 유튜브 채널", "유튜브 채널 발굴", "성장 채널 탐색", "유튜브 협업 채널",
+  ],
+  alternates: { canonical: "https://bibllab.com/channels" },
+  openGraph: {
+    title: "유튜브 채널 찾기 · 성장 채널 발견 | 비블랩",
+    description: "키워드로 구독자 급상승·신생 채널을 찾아보세요.",
+    url: "https://bibllab.com/channels",
+  },
+};
 import { PLANS, PlanKey } from "@/lib/stripe";
 import { getChannelUsage, incrementChannelCount } from "@/lib/channelLimit";
 import ChannelSearchBar from "./_components/ChannelSearchBar";

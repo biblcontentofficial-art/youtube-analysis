@@ -1,5 +1,22 @@
+import type { Metadata } from "next";
 import PricingButton from "./_components/PricingButtons";
 import FaqAccordion from "./_components/FaqAccordion";
+
+export const metadata: Metadata = {
+  title: "요금제 · 플랜 안내",
+  description:
+    "비블랩(bibl lab) 요금제 안내. 무료 Free 플랜부터 Starter·Pro·Business까지. 유튜브 영상 검색, 채널 찾기, 영상 수집·내보내기 기능을 합리적인 가격에 이용하세요.",
+  keywords: [
+    "비블랩 요금제", "비블 가격", "유튜브 분석 도구 가격", "bibl lab 플랜",
+    "유튜브 분석 무료", "크리에이터 도구 요금제",
+  ],
+  alternates: { canonical: "https://bibllab.com/pricing" },
+  openGraph: {
+    title: "요금제 · 플랜 안내 | 비블랩",
+    description: "비블랩 무료~비즈니스 플랜. 유튜브 분석·채널 찾기·영상 수집.",
+    url: "https://bibllab.com/pricing",
+  },
+};
 
 type Feature = { text: string; disabled?: boolean; comingSoon?: boolean };
 

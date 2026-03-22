@@ -14,26 +14,49 @@ const hasClerk =
   process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY !== "pk_test_placeholder";
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://bibllab.com"),
   title: {
-    default: "bibl lab - 유튜브 키워드 분석 도구",
-    template: "%s | bibl lab",
+    default: "비블랩 (bibl lab) - 유튜브 키워드·채널 분석 도구",
+    template: "%s | 비블랩 (bibl lab)",
   },
-  description: "유튜브 키워드로 트렌드를 선점하세요. 조회수·구독자·반응도를 한눈에 분석해 경쟁력 있는 콘텐츠 주제를 찾아드립니다. 유튜버·크리에이터를 위한 데이터 분석 도구.",
-  keywords: ["유튜브 분석", "유튜브 키워드", "유튜브 트렌드", "크리에이터 도구", "유튜브 반응도", "유튜브 조회수 분석", "콘텐츠 전략", "유튜브 SEO", "bibl lab"],
-  authors: [{ name: "bibl lab" }],
+  description:
+    "비블, 비블랩(bibl lab) — 유튜브 키워드로 트렌드를 선점하세요. 조회수·구독자·반응도를 한눈에 분석하고, 성장하는 채널을 발견합니다. 유튜버·크리에이터를 위한 무료 데이터 분석 도구.",
+  keywords: [
+    "비블", "비블랩", "비블 랩", "bibl lab", "bibllab",
+    "유튜브 분석", "유튜브 키워드 분석", "유튜브 트렌드", "유튜브 채널 찾기",
+    "유튜브 반응도", "유튜브 조회수 분석", "유튜브 영상 검색", "유튜브 아웃라이어",
+    "크리에이터 도구", "유튜브 콘텐츠 전략", "유튜브 SEO", "구독자 분석",
+    "유튜브 채널 분석", "유튜브 영상 수집", "콘텐츠 마케팅 도구",
+  ],
+  authors: [{ name: "bibl lab", url: "https://bibllab.com" }],
   creator: "bibl lab",
+  publisher: "bibl lab",
+  category: "technology",
   openGraph: {
     type: "website",
     locale: "ko_KR",
     url: "https://bibllab.com",
-    siteName: "bibl lab",
-    title: "bibl lab - 유튜브 키워드 분석 도구",
-    description: "유튜브 키워드로 트렌드를 선점하세요. 조회수·구독자·반응도를 한눈에 분석.",
+    siteName: "비블랩 (bibl lab)",
+    title: "비블랩 (bibl lab) - 유튜브 키워드·채널 분석 도구",
+    description:
+      "비블랩 — 유튜브 키워드 트렌드 분석, 채널 찾기, 영상 수집. 크리에이터를 위한 데이터 인사이트.",
+    images: [
+      {
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "비블랩 - 유튜브 키워드·채널 분석 도구",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "bibl lab - 유튜브 키워드 분석 도구",
-    description: "유튜브 키워드로 트렌드를 선점하세요.",
+    title: "비블랩 (bibl lab) - 유튜브 키워드·채널 분석 도구",
+    description: "유튜브 키워드·채널 분석, 영상 수집. 크리에이터를 위한 무료 도구.",
+    images: ["/opengraph-image"],
+  },
+  alternates: {
+    canonical: "https://bibllab.com",
   },
   robots: {
     index: true,
@@ -41,6 +64,9 @@ export const metadata: Metadata = {
     googleBot: {
       index: true,
       follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
     },
   },
   verification: {
@@ -80,9 +106,51 @@ export default async function RootLayout({
     } catch { /* auth 실패 시 기본값 false */ }
   }
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    name: "비블랩 (bibl lab)",
+    alternateName: ["비블", "비블 랩", "bibl lab", "bibllab"],
+    url: "https://bibllab.com",
+    description:
+      "유튜브 키워드 트렌드 분석, 채널 찾기, 영상 수집 도구. 크리에이터를 위한 데이터 인사이트.",
+    applicationCategory: "BusinessApplication",
+    operatingSystem: "Web",
+    inLanguage: "ko-KR",
+    offers: {
+      "@type": "AggregateOffer",
+      priceCurrency: "KRW",
+      lowPrice: "0",
+      offerCount: "4",
+    },
+    provider: {
+      "@type": "Organization",
+      name: "세모골프",
+      url: "https://bibllab.com",
+      contactPoint: {
+        "@type": "ContactPoint",
+        email: "bibl.content.official@gmail.com",
+        contactType: "customer support",
+        availableLanguage: "Korean",
+      },
+    },
+    featureList: [
+      "유튜브 키워드 분석",
+      "유튜브 채널 찾기",
+      "영상 반응도 분석",
+      "조회수 아웃라이어 탐지",
+      "영상 수집 및 CSV 내보내기",
+      "알고리즘 상승 확률 분석",
+    ],
+  };
+
   const content = (
     <html lang="ko">
       <body className={`${inter.className} bg-gray-950 text-white`}>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
         <NavigationLoader>
         <ConfirmProvider>
         <nav className="border-b border-gray-800 bg-gray-950 sticky top-0 z-50">

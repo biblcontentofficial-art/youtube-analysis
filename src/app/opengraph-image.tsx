@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 
 export const runtime = "edge";
-export const alt = "bibl lab - 유튜브 키워드 분석 도구";
+export const alt = "비블랩 (bibl lab) - 유튜브 키워드·채널 분석 도구";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -153,7 +153,7 @@ export default async function Image() {
 
         {/* 하단 필 태그 */}
         <div style={{ display: "flex", gap: 14 }}>
-          {["반응도 분석", "키워드 트렌드", "채널 인사이트"].map((tag) => (
+          {["반응도 분석", "채널 찾기", "영상 수집"].map((tag) => (
             <div
               key={tag}
               style={{

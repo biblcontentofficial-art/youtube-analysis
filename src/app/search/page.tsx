@@ -1,6 +1,23 @@
 import { Suspense } from "react";
 import Link from "next/link";
+import type { Metadata } from "next";
 import { searchVideos } from "@/lib/youtube";
+
+export const metadata: Metadata = {
+  title: "유튜브 영상 찾기 · 키워드 트렌드 분석",
+  description:
+    "비블랩 영상 찾기 — 유튜브 키워드로 최신 트렌드 영상을 검색하고 조회수·반응도·아웃라이어를 분석합니다. 경쟁력 있는 콘텐츠 주제를 발견하세요.",
+  keywords: [
+    "비블랩 영상검색", "유튜브 키워드 분석", "유튜브 트렌드 영상", "유튜브 반응도",
+    "유튜브 아웃라이어", "유튜브 조회수 분석", "콘텐츠 주제 발굴", "유튜브 알고리즘 분석",
+  ],
+  alternates: { canonical: "https://bibllab.com/search" },
+  openGraph: {
+    title: "유튜브 영상 찾기 · 키워드 트렌드 분석 | 비블랩",
+    description: "유튜브 키워드로 트렌드 영상을 검색하고 조회수·반응도를 분석하세요.",
+    url: "https://bibllab.com/search",
+  },
+};
 import SearchResultList from "./_components/SearchResultList";
 import SearchSkeleton from "./_components/SearchSkeleton";
 import SearchBar from "../_components/SearchBar";
