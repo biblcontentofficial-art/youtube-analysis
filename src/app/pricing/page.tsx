@@ -30,7 +30,6 @@ const PLANS = [
     badge: null,
     usage: [
       { text: "영상 검색 2회/일" },
-      { text: "검색 결과 30건 + 더보기" },
       { text: "채널 검색 1회/일" },
     ],
     features: [
@@ -53,7 +52,6 @@ const PLANS = [
     badge: null,
     usage: [
       { text: "영상 검색 50회/월" },
-      { text: "검색 결과 100건 + 더보기" },
       { text: "채널 검색 30회/월" },
     ],
     features: [
@@ -77,7 +75,6 @@ const PLANS = [
     badge: "추천",
     usage: [
       { text: "영상 검색 500회/월 (팀 최대 2명)" },
-      { text: "검색 결과 500건 + 더보기" },
       { text: "채널 검색 500회/월" },
     ],
     features: [
@@ -102,7 +99,6 @@ const PLANS = [
     badge: null,
     usage: [
       { text: "영상 검색 무제한 (팀 최대 5명)" },
-      { text: "검색 결과 1,000건 + 더보기" },
       { text: "채널 검색 무제한" },
     ],
     features: [
