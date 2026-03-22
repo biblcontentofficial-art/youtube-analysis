@@ -3,13 +3,13 @@ import Link from "next/link";
 import Image from "next/image";
 
 export const metadata: Metadata = {
-  title: "TMK STUDIO — 유튜브 채널 대행·강의·컨설팅",
+  title: "유튜브 채널 대행 — 비블 TMK STUDIO",
   description:
-    "총 65만 구독자 채널을 운영 및 공동기획한 비블이 여러분의 채널 성장을 함께 합니다. " +
-    "1:1 컨설팅·강의·채널 대행 — 말이 아닌 실전으로 증명합니다.",
+    "총 65만 구독자 채널을 운영한 비블이 여러분의 채널을 직접 운영합니다. " +
+    "기획·촬영·편집·업로드·분석까지 전 과정 채널 대행.",
 };
 
-// ─── 운영 및 공동기획 채널 데이터 (YouTube에서 수집) ─────────────────
+// ─── 운영 및 공동기획 채널 데이터 ─────────────────────────────────────
 const CHANNELS = [
   {
     name: "세계유명 골프정보",
@@ -90,46 +90,47 @@ const CHANNELS = [
   },
 ];
 
-// ─── 채널 대행 프로세스 블록 — 스톡 이미지 활용 ──────────────────────
-const PROCESS_BLOCKS = [
+// ─── 4가지 핵심 차별점 ─────────────────────────────────────────────────
+const FEATURES = [
   {
-    steps: ["01 브랜드 정체성 기획", "02 콘텐츠 기획"],
-    title: "채널 방향과 콘텐츠 전략 수립",
-    desc: "채널의 핵심 가치와 타겟 시청자를 정의하고, 키워드 리서치로 알고리즘에 최적화된 콘텐츠 아이디어를 도출합니다.",
-    img: "https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&q=80",
-    imgAlt: "콘텐츠 전략 기획 미팅",
-    imgLeft: false,
+    num: "1",
+    title: "전략적인 콘텐츠 기획",
+    desc: "시청자의 관심사와 행동 패턴을 분석한 콘텐츠 전략을 제공합니다.\n전 세계 콘텐츠를 분석하여 채널 방향성을 명확히 제시합니다.",
+    img: "https://images.unsplash.com/photo-1552664730-d307ca884978?w=1200&q=85",
+    imgAlt: "콘텐츠 전략 기획",
+    imgRight: true,
   },
   {
-    steps: ["03 대본 구성안 전달", "04 촬영 및 편집"],
-    title: "전문 제작팀이 직접 만드는 콘텐츠",
-    desc: "도입부 3초 훅부터 CTA까지 최적화된 원고를 작성하고, 전문 편집팀이 시청 지속률 높은 영상을 제작합니다.",
-    img: "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=800&q=80",
-    imgAlt: "영상 촬영 및 편집",
-    imgLeft: true,
+    num: "2",
+    title: "대본 기획 작성",
+    desc: "시청자가 원하는 정보를 담은 대본을 함께 기획합니다.\n높은 신뢰를 확보하면서 시청자에게 유익한 정보를 전달합니다.",
+    img: "https://images.unsplash.com/photo-1517842645767-c639042777db?w=1200&q=85",
+    imgAlt: "대본 기획 작성",
+    imgRight: false,
   },
   {
-    steps: ["05 업로드 & SEO 최적화", "06 데이터 분석"],
-    title: "알고리즘 최적화 & 월간 성과 리포트",
-    desc: "제목·썸네일·설명란을 SEO에 맞게 최적화하고, 매달 채널 데이터를 분석해 개선 포인트를 피드백합니다.",
-    img: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&q=80",
+    num: "3",
+    title: "유튜브에 적합한 고퀄리티 편집",
+    desc: "유튜브 알고리즘에 최적화된 편집을 진행합니다.\n도입부 3초 훅부터 CTA까지 시청 지속률을 극대화하는 편집으로 일반 대비 2~3배 높은 조회수를 달성합니다.",
+    img: "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=1200&q=85",
+    imgAlt: "고퀄리티 영상 편집",
+    imgRight: true,
+  },
+  {
+    num: "4",
+    title: "데이터 분석 & 채널 성장 관리",
+    desc: "매달 채널 데이터를 분석해 개선 포인트를 피드백합니다.\n제목·썸네일·SEO를 지속 최적화하고 조회수를 실제 비즈니스 매출로 연결하는 전략을 함께 설계합니다.",
+    img: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&q=85",
     imgAlt: "데이터 분석 대시보드",
-    imgLeft: false,
-  },
-  {
-    steps: ["07 비즈니스 성과 연계", "08 1:1 비블 컨설팅"],
-    title: "조회수를 매출로 연결하는 전략",
-    desc: "수익화와 비즈니스 전환 전략을 설계하고, 비블이 직접 진행하는 1:1 맞춤 컨설팅으로 성과를 끌어냅니다.",
-    img: "https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=800&q=80",
-    imgAlt: "비즈니스 컨설팅",
-    imgLeft: true,
+    imgRight: false,
   },
 ];
 
+// ─── 후기 ─────────────────────────────────────────────────────────────
 const REVIEWS = [
-  { name: "체육&채널 운영 대표님", text: "썸네일·제목만 바꿨더니 영상 노출이 폭발했습니다. 올릴 때마다 조회 그래프가 눈에 띄게 올라갑니다." },
+  { name: "체육 채널 운영 대표님", text: "썸네일·제목만 바꿨더니 영상 노출이 폭발했습니다. 올릴 때마다 조회 그래프가 눈에 띄게 올라갑니다." },
   { name: "사업자 대표님", text: "막막했던 홍보가 유튜브를 통해 체계화되며 월 매출이 2천만 원 이상 증가했습니다." },
-  { name: "학원 원장님", text: "강의 적용 후 전년 동월 대비 매출이 200% 성장했습니다. 유튜브 덕분에 신규 원생이 줄을 서고 있습니다." },
+  { name: "학원 원장님", text: "적용 후 전년 동월 대비 매출이 200% 성장했습니다. 신규 원생이 줄을 서고 있습니다." },
   { name: "피부관리샵 대표님", text: "인스타그램 영상이 20만 회를 돌파하며 신규 고객이 늘었고, 결국 직원을 추가 채용했습니다." },
   { name: "돈가스 매장 대표님", text: "작년 대비 매출이 40% 상승했습니다. 이제는 홍보 걱정이 아니라 손님 응대 인력을 추가 고민하고 있습니다." },
   { name: "쇼핑몰 운영자", text: "스토리텔링 콘텐츠 전략을 적용하니 상품 문의가 3배 증가했습니다. 단순 조회수가 아니라 매출로 이어지는 게 놀랍습니다." },
@@ -139,45 +140,124 @@ export default function StudioPage() {
   return (
     <main className="min-h-screen bg-gray-950 text-white">
 
-      {/* ── Hero ─────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden border-b border-gray-800">
-        <div className="absolute inset-0 bg-gradient-to-br from-teal-950/40 via-gray-950 to-gray-950 pointer-events-none" />
-        <div className="relative max-w-screen-xl mx-auto px-4 py-20 md:py-28">
-          <div className="max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-900/40 border border-teal-800/60 text-teal-400 text-xs font-medium mb-6">
-              <span className="w-1.5 h-1.5 rounded-full bg-teal-400 animate-pulse" />
-              TMK STUDIO — 실전으로 증명합니다
-            </div>
-            <h1 className="text-3xl md:text-5xl font-bold leading-tight tracking-tight mb-6">
-              65만 구독자를<br />
-              직접 키운 유튜버 비블이<br />
-              <span className="text-teal-400">채널 성장을 함께 합니다</span>
-            </h1>
-            <p className="text-gray-400 text-lg mb-8 leading-relaxed">
-              수억 원의 매출을 만든 실전 경험을 그대로 나눕니다.<br />
-              채널 대행·1:1 컨설팅·강의 — 데이터로 증명하는 성장 전략.
-            </p>
-            <div className="flex flex-wrap gap-3">
-              <Link href="/studio/consulting" className="px-6 py-3 bg-teal-600 hover:bg-teal-500 rounded-xl font-semibold transition text-sm">
-                무료 상담 신청
-              </Link>
-              <Link href="/studio/class" className="px-6 py-3 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-xl font-semibold transition text-sm">
-                강의 보러가기
-              </Link>
-            </div>
+      {/* ── HERO ─────────────────────────────────────────────────────── */}
+      <section className="border-b border-gray-800">
+        <div className="max-w-screen-xl mx-auto px-4 py-24 md:py-36">
+          <p className="text-teal-400 text-sm font-medium tracking-widest uppercase mb-6">
+            유튜브 채널 대행
+          </p>
+          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold leading-[1.1] tracking-tight mb-8 max-w-4xl">
+            비블은 타 대행사와<br />
+            비교할 수 없는<br />
+            <span className="text-teal-400">4가지를 전달합니다</span>
+          </h1>
+          <p className="text-gray-400 text-lg md:text-xl mb-12 max-w-xl leading-relaxed">
+            총 65만 구독자를 직접 키운 비블이<br />
+            여러분의 채널을 처음부터 끝까지 운영합니다.
+          </p>
+          <div className="flex flex-wrap gap-4">
+            <a
+              href="http://pf.kakao.com/_xoGexgG/chat"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-8 py-4 bg-teal-500 hover:bg-teal-400 text-white font-bold rounded-xl transition text-base"
+            >
+              무료 상담 받기
+            </a>
+            <a
+              href="#features"
+              className="px-8 py-4 border border-gray-700 hover:border-gray-500 text-gray-300 hover:text-white font-semibold rounded-xl transition text-base"
+            >
+              서비스 알아보기
+            </a>
+          </div>
+
+          {/* 통계 */}
+          <div className="flex flex-wrap gap-12 mt-20 pt-12 border-t border-gray-800">
+            {[
+              { val: "65만+", label: "총 구독자" },
+              { val: "7개", label: "운영·공동기획 채널" },
+              { val: "1억+", label: "누적 조회수" },
+            ].map((s) => (
+              <div key={s.label}>
+                <div className="text-3xl md:text-4xl font-bold text-white">{s.val}</div>
+                <div className="text-sm text-gray-500 mt-1">{s.label}</div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* ── 운영 및 공동기획 채널 ─────────────────────────────── */}
-      <section className="border-b border-gray-800">
-        <div className="max-w-screen-xl mx-auto px-4 py-14">
-          <p className="text-xs text-gray-500 uppercase tracking-widest mb-2">운영 및 공동기획 하고 있는 채널</p>
-          <h2 className="text-xl md:text-2xl font-bold mb-8">
-            총 <span className="text-teal-400">65만+ 구독자</span>를 함께 키웠습니다
-          </h2>
+      {/* ── 4가지 특징 ───────────────────────────────────────────────── */}
+      <section id="features">
+        {FEATURES.map((feat, i) => (
+          <div key={feat.num} className={`border-b border-gray-800 ${i % 2 === 0 ? "bg-gray-950" : "bg-gray-900/30"}`}>
+            <div className="max-w-screen-xl mx-auto px-4 py-0">
+              <div className={`grid md:grid-cols-2 min-h-[480px] md:min-h-[560px] ${feat.imgRight ? "" : "md:[direction:rtl]"}`}>
 
-          {/* YouTube 스타일 채널 카드 — 4열 기준, 7개이므로 2줄 */}
+                {/* 텍스트 */}
+                <div className={`flex flex-col justify-center py-16 md:py-20 px-0 md:px-12 ${feat.imgRight ? "" : "md:[direction:ltr]"}`}>
+                  <span className="text-6xl md:text-8xl font-black text-gray-800 leading-none mb-6 select-none">
+                    {feat.num}
+                  </span>
+                  <h2 className="text-2xl md:text-3xl font-bold mb-5 leading-tight">
+                    {feat.title}
+                  </h2>
+                  <p className="text-gray-400 text-base leading-relaxed whitespace-pre-line">
+                    {feat.desc}
+                  </p>
+                </div>
+
+                {/* 이미지 */}
+                <div className={`relative min-h-64 md:min-h-0 ${feat.imgRight ? "" : "md:[direction:ltr]"}`}>
+                  <Image
+                    src={feat.img}
+                    alt={feat.imgAlt}
+                    fill
+                    className="object-cover"
+                    unoptimized
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-r from-gray-950/60 via-transparent to-transparent" />
+                </div>
+
+              </div>
+            </div>
+          </div>
+        ))}
+      </section>
+
+      {/* ── CTA 중간 배너 ────────────────────────────────────────────── */}
+      <section className="border-b border-gray-800 bg-teal-900/20">
+        <div className="max-w-screen-xl mx-auto px-4 py-16 text-center">
+          <h2 className="text-2xl md:text-4xl font-bold mb-4">
+            여러분의 채널이<br className="md:hidden" /> 성공 가능성이 있는지<br />
+            <span className="text-teal-400">무료 진단을 받아보세요</span>
+          </h2>
+          <p className="text-gray-400 mb-8 text-sm md:text-base">
+            채널 URL만 보내주시면 즉시 무료 진단을 시작합니다.
+          </p>
+          <a
+            href="http://pf.kakao.com/_xoGexgG/chat"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-10 py-4 bg-teal-500 hover:bg-teal-400 text-white font-bold rounded-xl transition text-base"
+          >
+            무료 상담 받기 →
+          </a>
+        </div>
+      </section>
+
+      {/* ── 운영 채널 포트폴리오 ─────────────────────────────────────── */}
+      <section className="border-b border-gray-800">
+        <div className="max-w-screen-xl mx-auto px-4 py-20">
+          <p className="text-xs text-gray-500 uppercase tracking-widest mb-3">포트폴리오</p>
+          <h2 className="text-2xl md:text-4xl font-bold mb-3">
+            운영 및 공동기획 하고 있는 채널
+          </h2>
+          <p className="text-gray-400 mb-12 text-sm md:text-base">
+            총 <span className="text-teal-400 font-semibold">65만+ 구독자</span>를 함께 키웠습니다
+          </p>
+
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {CHANNELS.map((ch) => (
               <a
@@ -187,7 +267,6 @@ export default function StudioPage() {
                 rel="noopener noreferrer"
                 className="group rounded-2xl bg-gray-900 border border-gray-800 hover:border-teal-700/50 transition"
               >
-                {/* 배너 이미지 */}
                 <div className="relative h-20 overflow-hidden rounded-t-2xl">
                   <Image
                     src={ch.banner}
@@ -198,10 +277,7 @@ export default function StudioPage() {
                   />
                   <div className={`absolute inset-0 bg-gradient-to-t ${ch.color} to-transparent`} />
                 </div>
-
-                {/* 아바타 + 정보 */}
                 <div className="px-4 pt-0 pb-4">
-                  {/* 아바타 — 배너에서 절반 겹치게 */}
                   <div className="relative -mt-5 mb-2">
                     <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-gray-900">
                       <Image
@@ -214,7 +290,6 @@ export default function StudioPage() {
                       />
                     </div>
                   </div>
-
                   <div className="space-y-0.5">
                     <div className="font-semibold text-xs text-white group-hover:text-teal-400 transition leading-tight">
                       {ch.name}
@@ -232,219 +307,45 @@ export default function StudioPage() {
               </a>
             ))}
           </div>
-
-          {/* 합계 통계 */}
-          <div className="grid grid-cols-3 gap-6 mt-10 text-center border-t border-gray-800 pt-8">
-            {[
-              { val: "65만+", label: "총 구독자" },
-              { val: "1억+", label: "누적 조회수" },
-              { val: "7개", label: "운영·기획 채널" },
-            ].map((s) => (
-              <div key={s.label}>
-                <div className="text-2xl md:text-3xl font-bold text-white">{s.val}</div>
-                <div className="text-xs text-gray-500 mt-1">{s.label}</div>
-              </div>
-            ))}
-          </div>
         </div>
       </section>
 
-      {/* ── TMK 철학 ─────────────────────────────────────────── */}
+      {/* ── 고객 후기 ─────────────────────────────────────────────────── */}
       <section className="border-b border-gray-800">
-        <div className="max-w-screen-xl mx-auto px-4 py-14">
-          <h2 className="text-2xl md:text-3xl font-bold mb-3">
-            TMK STUDIO는 <span className="text-teal-400">다릅니다</span>
+        <div className="max-w-screen-xl mx-auto px-4 py-20">
+          <p className="text-xs text-gray-500 uppercase tracking-widest mb-3">후기</p>
+          <h2 className="text-2xl md:text-4xl font-bold mb-12">
+            실제로 변화한 채널들
           </h2>
-          <p className="text-gray-400 mb-10 max-w-xl text-sm">
-            강의하는 사람이 직접 채널을 운영하고, 성과를 투명하게 공개합니다.
-          </p>
-          <div className="grid md:grid-cols-3 gap-5">
-            {[
-              { title: "진실성", desc: "강의하는 사람이 직접 채널을 운영하고, 성과를 투명하게 공개합니다. 신뢰의 원칙." },
-              { title: "실전성", desc: "수많은 시행착오 속에서 검증된 방법만 전합니다. 누구나 따라 할 수 있는 구조로 바꾸었습니다." },
-              { title: "성장과 영향력", desc: "숫자에 머물지 않습니다. 브랜드를 성장시키고, 개인의 가치를 영향력으로 확장하는 길을 제시합니다." },
-            ].map((item) => (
-              <div key={item.title} className="rounded-xl bg-gray-900 border border-gray-800 p-6">
-                <div className="w-2 h-2 rounded-full bg-teal-400 mb-4" />
-                <h3 className="font-semibold text-white mb-2">{item.title}</h3>
-                <p className="text-sm text-gray-400 leading-relaxed">{item.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── 서비스 선택: 채널 대행만 ─────────────────────────── */}
-      <section className="border-b border-gray-800">
-        <div className="max-w-screen-xl mx-auto px-4 py-14">
-          <h2 className="text-2xl md:text-3xl font-bold mb-3">서비스 선택</h2>
-          <p className="text-gray-400 mb-10 text-sm">채널 전체를 맡기고 싶다면 — TMK STUDIO가 처음부터 끝까지 책임집니다</p>
-
-          {/* 채널 대행 — 풀 피처드 카드 */}
-          <div className="rounded-2xl bg-gray-900 border border-gray-800 overflow-hidden">
-            <div className="grid md:grid-cols-2 gap-0">
-              {/* 좌측: 채널 배너 콜라주 */}
-              <div className="relative min-h-64 md:min-h-80 overflow-hidden bg-gray-800">
-                <div className="grid grid-cols-2 h-full">
-                  {CHANNELS.slice(0, 4).map((ch) => (
-                    <div key={ch.handle} className="relative overflow-hidden">
-                      <Image
-                        src={ch.banner}
-                        alt={ch.name}
-                        fill
-                        className="object-cover"
-                        unoptimized
-                      />
-                      <div className="absolute inset-0 bg-black/40" />
-                      <div className="absolute bottom-2 left-2 flex items-center gap-1.5">
-                        <Image src={ch.avatar} alt={ch.name} width={20} height={20} className="rounded-full object-cover" unoptimized />
-                        <span className="text-[10px] text-white font-medium drop-shadow">{ch.subsNum}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <div className="bg-black/60 backdrop-blur-sm px-4 py-2 rounded-xl text-center">
-                    <div className="text-teal-400 font-bold text-lg">65만+ 구독자</div>
-                    <div className="text-gray-300 text-xs">운영 및 공동기획 채널들</div>
-                  </div>
-                </div>
-              </div>
-
-              {/* 우측: 서비스 설명 */}
-              <div className="p-8 flex flex-col justify-between">
-                <div>
-                  <span className="inline-block px-2 py-0.5 rounded-md text-[10px] font-bold bg-teal-600 text-white mb-4">
-                    맞춤형 풀매니지먼트
-                  </span>
-                  <h3 className="text-xl md:text-2xl font-bold mb-3 leading-tight">
-                    유튜브 채널 대행
-                  </h3>
-                  <p className="text-gray-400 text-sm leading-relaxed mb-6">
-                    브랜드 기획부터 촬영·편집·업로드·데이터 분석·비즈니스 연계까지
-                    8단계 전 과정을 TMK STUDIO가 직접 운영합니다.
-                  </p>
-                  <ul className="space-y-2 mb-8">
-                    {[
-                      "브랜드 정체성 기획부터 시작",
-                      "전문 편집팀 촬영·편집",
-                      "월간 데이터 리포트 제공",
-                      "비즈니스 성과 연계 컨설팅",
-                      "1:1 비블 직접 컨설팅 포함",
-                    ].map((f) => (
-                      <li key={f} className="flex items-center gap-2 text-sm text-gray-300">
-                        <span className="text-teal-400 shrink-0">✓</span> {f}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Link
-                    href="/studio/consulting"
-                    className="flex-1 py-3 text-center bg-teal-600 hover:bg-teal-500 rounded-xl font-semibold transition text-sm"
-                  >
-                    무료 상담 신청
-                  </Link>
-                  <div className="text-right shrink-0">
-                    <div className="text-teal-400 font-bold">가격문의</div>
-                    <div className="text-xs text-gray-500">상담 후 안내</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── 채널 대행 진행 과정: 스톡이미지 + 글 교대 레이아웃 ─ */}
-      <section className="border-b border-gray-800">
-        <div className="max-w-screen-xl mx-auto px-4 py-14">
-          <h2 className="text-2xl md:text-3xl font-bold mb-3">채널 대행 진행 과정</h2>
-          <p className="text-gray-400 mb-12 text-sm">브랜딩부터 비즈니스 연계까지 8단계 전 과정을 책임집니다</p>
-
-          <div className="space-y-16">
-            {PROCESS_BLOCKS.map((block, i) => (
-              <div
-                key={i}
-                className={`grid md:grid-cols-2 gap-8 md:gap-12 items-center`}
-              >
-                {/* 텍스트 영역 */}
-                <div className={block.imgLeft ? "order-2 md:order-2" : "order-2 md:order-1"}>
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {block.steps.map((s) => (
-                      <span key={s} className="px-2 py-0.5 rounded-md bg-teal-900/40 border border-teal-800/60 text-teal-400 text-[10px] font-mono">
-                        {s}
-                      </span>
-                    ))}
-                  </div>
-                  <h3 className="text-xl font-bold mb-3">{block.title}</h3>
-                  <p className="text-gray-400 leading-relaxed text-sm">{block.desc}</p>
-                </div>
-
-                {/* 스톡 이미지 */}
-                <div className={`rounded-2xl overflow-hidden border border-gray-800 ${block.imgLeft ? "order-1 md:order-1" : "order-1 md:order-2"}`}>
-                  <div className="relative h-56 md:h-64">
-                    <Image
-                      src={block.img}
-                      alt={block.imgAlt}
-                      fill
-                      className="object-cover"
-                      unoptimized
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-gray-950/60 to-transparent" />
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-12 text-center">
-            <Link
-              href="/studio/consulting"
-              className="inline-flex items-center gap-2 px-8 py-3.5 bg-teal-600 hover:bg-teal-500 rounded-xl font-semibold transition"
-            >
-              무료 상담 받기
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* ── 수강생 후기 ───────────────────────────────────────── */}
-      <section className="border-b border-gray-800">
-        <div className="max-w-screen-xl mx-auto px-4 py-14">
-          <h2 className="text-2xl md:text-3xl font-bold mb-3">실제 변화한 수강생들</h2>
-          <p className="text-gray-400 mb-10 text-sm">숫자가 아닌 매출로, 조회수가 아닌 비즈니스로 증명합니다</p>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
             {REVIEWS.map((r) => (
-              <div key={r.name} className="rounded-xl bg-gray-900 border border-gray-800 p-5">
-                <div className="flex gap-0.5 text-amber-400 text-xs mb-3">★★★★★</div>
-                <p className="text-sm text-gray-300 leading-relaxed mb-4">&ldquo;{r.text}&rdquo;</p>
-                <div className="text-xs text-gray-500 font-medium">{r.name}</div>
+              <div key={r.name} className="rounded-2xl bg-gray-900 border border-gray-800 p-6">
+                <div className="flex gap-0.5 text-amber-400 text-sm mb-4">★★★★★</div>
+                <p className="text-sm text-gray-300 leading-relaxed mb-5">&ldquo;{r.text}&rdquo;</p>
+                <div className="text-xs text-gray-500 font-medium border-t border-gray-800 pt-4">{r.name}</div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── 강사 소개 ─────────────────────────────────────────── */}
+      {/* ── 강사 소개 ─────────────────────────────────────────────────── */}
       <section className="border-b border-gray-800">
-        <div className="max-w-screen-xl mx-auto px-4 py-14">
-          <div className="grid md:grid-cols-2 gap-10 items-center">
-            {/* 텍스트 */}
+        <div className="max-w-screen-xl mx-auto px-4 py-20">
+          <div className="grid md:grid-cols-2 gap-16 items-center">
             <div>
-              <p className="text-xs text-gray-500 uppercase tracking-widest mb-4">강사 소개</p>
-              <h2 className="text-2xl md:text-3xl font-bold mb-2 leading-tight">비블 (김태민)</h2>
-              <h3 className="text-xl text-teal-400 font-bold mb-6">TMK STUDIO 대표</h3>
-              <p className="text-gray-400 leading-relaxed mb-8 text-sm">
-                총 65만 구독자 채널 운영 및 공동기획 · TMK STUDIO 대표<br />
-                세계유명 골프정보(24.8만), 영어키위새(23.5만), 스윔클래스(8.26만), 비블(3.52만) 등
-                다양한 분야 채널을 직접 운영하며 수억 원의 매출을 만든 실전 전문가
+              <p className="text-xs text-gray-500 uppercase tracking-widest mb-4">운영자 소개</p>
+              <h2 className="text-3xl md:text-4xl font-bold mb-2">비블 (김태민)</h2>
+              <p className="text-teal-400 font-semibold text-lg mb-8">TMK STUDIO 대표</p>
+              <p className="text-gray-400 leading-relaxed mb-8 text-sm md:text-base">
+                세계유명 골프정보(24.8만), 영어키위새(23.5만), 스윔클래스(8.26만), 비블(3.52만) 등<br />
+                다양한 분야의 채널을 직접 운영하며 수억 원의 매출을 만든 실전 전문가입니다.
               </p>
               <a
                 href="https://www.youtube.com/@bibl_youtube"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-5 py-2.5 bg-red-600/20 hover:bg-red-600/30 border border-red-700/50 rounded-lg text-sm text-red-400 transition"
+                className="inline-flex items-center gap-2 px-5 py-3 bg-red-600/20 hover:bg-red-600/30 border border-red-700/50 rounded-xl text-sm text-red-400 transition font-medium"
               >
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
@@ -453,14 +354,12 @@ export default function StudioPage() {
               </a>
             </div>
 
-            {/* 비블 채널 카드 — 아바타 안 잘리게 충분한 높이 확보 */}
             <a
               href="https://www.youtube.com/@bibl_youtube"
               target="_blank"
               rel="noopener noreferrer"
-              className="group rounded-2xl border border-gray-800 hover:border-teal-700/50 transition"
+              className="group rounded-2xl border border-gray-800 hover:border-teal-700/50 transition overflow-visible"
             >
-              {/* 배너 높이 충분히 확보 */}
               <div className="relative h-52 overflow-hidden rounded-t-2xl">
                 <Image
                   src={CHANNELS[3].banner}
@@ -471,8 +370,7 @@ export default function StudioPage() {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-teal-900/70 to-transparent" />
               </div>
-              {/* 아바타 + 채널 정보 */}
-              <div className="bg-gray-900 px-5 pb-5">
+              <div className="bg-gray-900 rounded-b-2xl px-5 pb-5">
                 <div className="flex items-center gap-3 -mt-7 mb-3">
                   <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-gray-900 shrink-0 shadow-lg">
                     <Image
@@ -500,19 +398,25 @@ export default function StudioPage() {
         </div>
       </section>
 
-      {/* ── 하단 CTA ─────────────────────────────────────────── */}
+      {/* ── 하단 CTA ──────────────────────────────────────────────────── */}
       <section>
-        <div className="max-w-screen-xl mx-auto px-4 py-20 text-center">
-          <h2 className="text-2xl md:text-3xl font-bold mb-4">지금 시작할 준비가 됐나요?</h2>
-          <p className="text-gray-400 mb-8 text-sm">무료 상담으로 채널 현황을 진단받고, 맞는 서비스를 선택하세요.</p>
-          <div className="flex flex-wrap gap-3 justify-center">
-            <Link href="/studio/consulting" className="px-8 py-3.5 bg-teal-600 hover:bg-teal-500 rounded-xl font-semibold transition">
-              무료 상담 신청
-            </Link>
-            <Link href="/studio/class" className="px-8 py-3.5 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-xl font-semibold transition">
-              강의 목록 보기
-            </Link>
-          </div>
+        <div className="max-w-screen-xl mx-auto px-4 py-28 text-center">
+          <h2 className="text-3xl md:text-5xl font-bold mb-6 leading-tight">
+            채널 성장 가능성이 있는지<br />
+            <span className="text-teal-400">지금 바로 확인하세요</span>
+          </h2>
+          <p className="text-gray-400 mb-10 text-base md:text-lg">
+            평일 9시~18시 내 응답 보장 · 채널 URL만 보내주시면 무료 진단 시작
+          </p>
+          <a
+            href="http://pf.kakao.com/_xoGexgG/chat"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-12 py-5 bg-teal-500 hover:bg-teal-400 text-white font-bold rounded-2xl transition text-lg"
+          >
+            무료 상담 받기
+          </a>
+          <p className="text-xs text-gray-600 mt-5">비공개 채팅 · 스팸 없음 · 무료</p>
         </div>
       </section>
 
