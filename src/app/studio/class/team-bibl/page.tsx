@@ -148,10 +148,10 @@ export default function TeamBiblPage() {
           <div className="lg:col-span-2">
             <div className="rounded-2xl overflow-hidden mb-6">
               <Image
-                src="/studio/team-bibl/01.png"
+                src="/studio/team-bibl/hero-thumbnail.png"
                 alt="팀비블 유튜브 프로젝트"
-                width={1200}
-                height={630}
+                width={900}
+                height={505}
                 className="w-full h-auto"
                 priority
               />
