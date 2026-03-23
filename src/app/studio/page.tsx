@@ -21,6 +21,22 @@ export const metadata: Metadata = {
   description:
     "총 65만 구독자 채널을 운영한 비블이 여러분의 채널을 직접 운영합니다. " +
     "기획·촬영·편집·업로드·분석까지 전 과정 올인원 채널 대행.",
+  openGraph: {
+    title: "유튜브 채널 대행 — 비블 TMK STUDIO",
+    description:
+      "총 65만 구독자 채널을 운영한 비블이 여러분의 채널을 직접 운영합니다. 기획·촬영·편집·업로드·분석까지 전 과정 올인원 채널 대행.",
+    url: "https://bibllab.com/studio",
+    images: [
+      {
+        url: "https://bibllab.com/studio/silver-play-button.jpg",
+        width: 1200,
+        height: 630,
+        alt: "비블 TMK STUDIO 유튜브 채널 대행",
+      },
+    ],
+    locale: "ko_KR",
+    type: "website",
+  },
 };
 
 const CHANNELS = [

@@ -92,3 +92,22 @@ CREATE INDEX IF NOT EXISTS idx_saved_videos_user_id ON saved_videos(user_id);
 CREATE INDEX IF NOT EXISTS idx_saved_videos_saved_at ON saved_videos(saved_at DESC);
 
 ALTER TABLE saved_videos DISABLE ROW LEVEL SECURITY;
+
+-- 8. 상담 신청 테이블 (TMK STUDIO 채널 대행 폼)
+CREATE TABLE IF NOT EXISTS consulting_submissions (
+  id          UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  name        TEXT NOT NULL,
+  phone       TEXT NOT NULL,
+  email       TEXT,
+  channel_url TEXT,
+  source      TEXT,
+  service     TEXT NOT NULL,
+  goal        TEXT NOT NULL,
+  budget      TEXT NOT NULL,
+  message     TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_consulting_submissions_created_at ON consulting_submissions(created_at DESC);
+
+ALTER TABLE consulting_submissions DISABLE ROW LEVEL SECURITY;

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import nodemailer from "nodemailer";
+import { getSupabase } from "@/lib/supabase";
 
 export async function POST(req: NextRequest) {
   let body: Record<string, string>;
@@ -14,6 +15,24 @@ export async function POST(req: NextRequest) {
     if (!body[field]) {
       return NextResponse.json({ error: `${field} is required` }, { status: 400 });
     }
+  }
+
+  // ── Supabase DB 저장 ──
+  const supabase = getSupabase();
+  if (supabase) {
+    await supabase.from("consulting_submissions").insert({
+      name: body.name,
+      phone: body.phone,
+      email: body.email || null,
+      channel_url: body.channelUrl || null,
+      source: body.source || null,
+      service: body.service,
+      goal: body.goal,
+      budget: body.budget,
+      message: body.message || null,
+    }).then(({ error }) => {
+      if (error) console.error("[supabase] 상담 저장 실패:", error.message);
+    });
   }
 
   // ── 이메일 알림 (GMAIL_USER + GMAIL_APP_PASSWORD 설정 시 동작) ──
