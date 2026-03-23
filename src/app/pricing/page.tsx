@@ -105,11 +105,9 @@ const PLANS = [
     ],
     features: [
       { text: "Pro 모든 기능 포함" },
-      { text: "팀원 5명 공유", comingSoon: true },
-      { text: "주간 트렌드 리포트 이메일", comingSoon: true },
       { text: "채널 심화 분석 리포트" },
-      { text: "API 접근", comingSoon: true },
-      { text: "전용 고객 지원" },
+      { text: "1:1 비블 월 1회 1시간 컨설팅" },
+      { text: "유튜브 학습 VOD 제공" },
     ] as Feature[],
     cta: "Business 시작하기",
     ctaStyle: "bg-purple-600 hover:bg-purple-500 text-white",
