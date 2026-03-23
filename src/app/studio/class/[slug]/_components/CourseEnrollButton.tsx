@@ -28,7 +28,7 @@ export default function CourseEnrollButton({ courseSlug, courseTitle, price, pri
   if (price === 0) {
     return (
       <a
-        href="http://pf.kakao.com/_xoGexgG/chat"
+        href="http://pf.kakao.com/_beBNn/chat"
         target="_blank"
         rel="noopener noreferrer"
         className="block w-full py-3 bg-yellow-500 hover:bg-yellow-400 text-black rounded-xl font-semibold transition text-sm text-center"

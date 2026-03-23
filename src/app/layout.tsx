@@ -5,6 +5,7 @@ import NavigationLoader from "./_components/NavigationLoader";
 import { ConfirmProvider } from "./_components/ConfirmDialog";
 import "./globals.css";
 
+
 const inter = Inter({ subsets: ["latin"] });
 
 // Clerk은 실제 키가 있을 때만 로드
@@ -86,6 +87,12 @@ export default async function RootLayout({
   let NavUser: React.ComponentType | null = null;
   let isStarterPlus = false;
   let isProPlus = false;
+
+  // dev 환경에서만 DevToolbar 로드 (프로덕션 번들에 포함되지 않음)
+  let DevToolbar: React.ComponentType | null = null;
+  if (process.env.NODE_ENV === "development") {
+    DevToolbar = (await import("./_components/DevToolbar")).default;
+  }
 
   if (hasClerk) {
     const clerkModule = await import("@clerk/nextjs");
@@ -207,6 +214,7 @@ export default async function RootLayout({
           </div>
         </nav>
         {children}
+        {DevToolbar && <DevToolbar />}
         <footer className="border-t border-gray-800 bg-gray-950 mt-16">
 
           <div className="max-w-screen-xl mx-auto px-4 py-10">

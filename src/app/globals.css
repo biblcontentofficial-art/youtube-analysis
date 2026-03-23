@@ -81,3 +81,77 @@ body {
 .duration-300 {
   --tw-duration: 0.3s;
 }
+
+/* ─── Studio Page 스크롤 애니메이션 ─────────────────────────────── */
+
+/* 기본: 보이지 않는 상태 */
+[data-animate] {
+  opacity: 0;
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+[data-animate="up"]    { transform: translateY(32px); }
+[data-animate="left"]  { transform: translateX(-40px); }
+[data-animate="right"] { transform: translateX(40px); }
+[data-animate="scale"] { transform: scale(0.94); }
+[data-animate="fade"]  { transform: none; }
+
+/* 뷰포트 진입 시 */
+[data-animate].in-view {
+  opacity: 1;
+  transform: none;
+}
+
+/* 텍스트 하이라이트 언더라인 애니메이션 */
+.highlight-draw {
+  position: relative;
+  display: inline-block;
+}
+.highlight-draw::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -4px;
+  height: 3px;
+  width: 0;
+  background: linear-gradient(90deg, #14b8a6, #06b6d4);
+  border-radius: 2px;
+  transition: width 1s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.highlight-draw.in-view::after {
+  width: 100%;
+}
+
+/* 숫자 카운터 강조 */
+.stat-num {
+  display: inline-block;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 채널 카드 호버 리프트 */
+.channel-card {
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.35s ease,
+              border-color 0.35s ease;
+}
+.channel-card:hover {
+  transform: translateY(-6px) scale(1.02);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(20, 184, 166, 0.3);
+}
+
+/* 후기 카드 호버 */
+.review-card {
+  transition: transform 0.3s ease, border-color 0.3s ease;
+}
+.review-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(20, 184, 166, 0.3);
+}
+
+/* Feature 이미지 줌 */
+.feat-img {
+  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.feat-img:hover {
+  transform: scale(1.04);
+}

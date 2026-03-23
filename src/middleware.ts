@@ -34,6 +34,10 @@ if (hasClerk) {
     "/api/youtube/channels/suggest(.*)",
     "/api/usage(.*)",
     "/api/channel-usage(.*)",
+    // Dev only API (로컬 개발 편집기)
+    "/api/dev(.*)",
+    // 상담 신청 폼 (비로그인 가능)
+    "/api/studio/contact(.*)",
     // 결제 콜백: 외부 서버가 인증 없이 호출
     "/api/payple/confirm(.*)",
     "/api/toss/confirm(.*)",
