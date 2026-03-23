@@ -367,7 +367,7 @@ function PriceCard() {
         <p className="text-3xl font-black text-white mb-1">월 390,000원</p>
         <div className="flex items-center gap-2 mb-5">
           <span className="text-xs text-gray-500">권장 소비자 가격</span>
-          <span className="text-sm text-gray-500 line-through">3,900,000원</span>
+          <span className="text-sm text-gray-500 line-through">990,000원</span>
         </div>
 
         <a
@@ -387,7 +387,7 @@ function PriceCard() {
 
         <div className="mt-5 pt-5 border-t border-gray-800 space-y-2">
           {[
-            { icon: "👥", label: "모집 정원", value: "무제한" },
+            { icon: "👥", label: "모집 정원", value: "50명 한정" },
             { icon: "📅", label: "수강 기한", value: "1000일" },
             { icon: "🎬", label: "동영상", value: "36개 (총 8시간 38분)" },
           ].map((item) => (
