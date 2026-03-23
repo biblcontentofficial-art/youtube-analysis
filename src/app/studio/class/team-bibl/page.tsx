@@ -142,7 +142,7 @@ export default function TeamBiblPage() {
 
       {/* 전체 2열 레이아웃 */}
       <div className="max-w-screen-xl mx-auto px-4">
-        <div className="grid lg:grid-cols-3 gap-8 items-start">
+        <div className="grid lg:grid-cols-3 gap-8">
 
           {/* ── 좌측 콘텐츠 열 ── */}
           <div className="lg:col-span-2">
@@ -336,10 +336,8 @@ export default function TeamBiblPage() {
           </div>{/* 좌측 col-span-2 끝 */}
 
           {/* ── 우측 sticky 카드 (데스크탑) ── */}
-          <div className="hidden lg:block lg:col-span-1">
-            <div className="sticky top-24 pt-4">
-              <PriceCard />
-            </div>
+          <div className="hidden lg:block lg:col-span-1 self-start sticky top-24 pt-4">
+            <PriceCard />
           </div>
 
         </div>
