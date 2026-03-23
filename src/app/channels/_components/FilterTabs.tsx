@@ -9,19 +9,19 @@ const TABS: { key: SortMode; icon: string; label: string; tooltip: string }[] = 
     key: "trending",
     icon: "🔥",
     label: "영상 평균 조회수 순",
-    tooltip: "채널 전체 영상의 평균 조회수가 높은 순으로 정렬\n영상 하나하나가 꾸준히 잘 터지는 채널을 찾을 때 사용하세요",
+    tooltip: "영상 하나하나가 꾸준히 잘 터지는 채널을 찾을 때",
   },
   {
     key: "growth",
     icon: "📈",
     label: "월 구독자 증가량 순",
-    tooltip: "구독자 수 ÷ 채널 개설 월수로 계산한\n월평균 구독자 증가량이 많은 순으로 정렬",
+    tooltip: "월 평균 구독자 증가가 많은 채널을 찾을 때",
   },
   {
     key: "new",
     icon: "🌱",
     label: "신생 채널 · 평균 조회수 순",
-    tooltip: "개설 3년 이내 채널을 우선으로\n그 안에서 영상 평균 조회수 높은 순으로 정렬\n막 성장 중인 분야의 채널을 발굴할 때 유용해요",
+    tooltip: "분야에서 막 성장 중인 채널 발굴을 원할 때",
   },
 ];
 
