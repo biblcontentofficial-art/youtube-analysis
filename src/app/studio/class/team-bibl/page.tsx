@@ -370,7 +370,7 @@ export default function TeamBiblPage() {
       {/* 모바일 하단 고정 CTA */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-gray-950/95 backdrop-blur border-t border-gray-800 p-4">
         <a
-          href="https://bibllab.com/pricing"
+          href="https://www.latpeed.com/memberships/6969983ba5c296323a6eb78c/pay/BUXQC"
           className="block w-full py-4 rounded-xl bg-teal-500 hover:bg-teal-400 text-black font-bold text-center text-base transition"
         >
           수강신청 하기
@@ -393,7 +393,7 @@ function PriceCard() {
         </div>
 
         <a
-          href="https://bibllab.com/pricing"
+          href="https://www.latpeed.com/memberships/6969983ba5c296323a6eb78c/pay/BUXQC"
           className="block w-full py-3.5 rounded-xl bg-teal-500 hover:bg-teal-400 text-black font-bold text-center text-sm transition mb-3"
         >
           수강신청 하기
