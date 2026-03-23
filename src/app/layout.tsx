@@ -186,6 +186,7 @@ export default async function RootLayout({
                 <NavTab href="/pricing" label="요금제" />
                 <div className="w-px h-4 bg-gray-700 mx-1" />
                 <NavTab href="/studio" label="유튜브 채널 대행" isStudio />
+                <NavTab href="/studio/class" label="유튜브 교육 (팀비블)" isStudio />
               </div>
             </div>
 
