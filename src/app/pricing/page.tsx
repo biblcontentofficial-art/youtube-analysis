@@ -106,7 +106,7 @@ const PLANS = [
     features: [
       { text: "Pro 모든 기능 포함" },
       { text: "채널 심화 분석 리포트" },
-      { text: "총 65만+ 유튜버 비블 월 1회 1시간 컨설팅" },
+      { text: "65만+ 유튜버 비블 월 1회 1시간 미팅" },
       { text: "유튜브 학습 VOD 제공" },
     ] as Feature[],
     cta: "Business 시작하기",
