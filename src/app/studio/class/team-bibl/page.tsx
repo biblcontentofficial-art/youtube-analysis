@@ -134,19 +134,21 @@ export default function TeamBiblPage() {
 
   return (
     <main className="min-h-screen bg-gray-950 text-white">
-      {/* 브레드크럼 */}
-      <div className="max-w-screen-xl mx-auto px-4 pt-6">
+      <div className="max-w-screen-xl mx-auto px-4 pt-6 pb-2">
         <Link href="/studio/class" className="text-xs text-gray-500 hover:text-gray-300 transition inline-flex items-center gap-1">
           ← 강의 목록
         </Link>
       </div>
 
-      {/* 히어로 */}
-      <div className="max-w-screen-xl mx-auto px-4 py-6">
+      {/* 전체 2열 레이아웃 */}
+      <div className="max-w-screen-xl mx-auto px-4">
         <div className="grid lg:grid-cols-3 gap-8 items-start">
-          {/* 좌측: 썸네일 + 기본 정보 */}
+
+          {/* ── 좌측 콘텐츠 열 ── */}
           <div className="lg:col-span-2">
-            <div className="rounded-2xl overflow-hidden mb-6">
+
+            {/* 히어로 썸네일 */}
+            <div className="rounded-2xl overflow-hidden mb-5 mt-4">
               <Image
                 src="/studio/team-bibl/hero-thumbnail.png"
                 alt="팀비블 유튜브 프로젝트"
@@ -156,54 +158,45 @@ export default function TeamBiblPage() {
                 priority
               />
             </div>
-            <div className="flex items-center gap-3 mb-2">
-              <div className="flex items-center gap-1 text-amber-400 text-sm">
-                {"★★★★★"}
-                <span className="text-white font-bold ml-1">5.0</span>
-                <span className="text-gray-500 ml-1">({REVIEWS.length + 4}개의 리뷰)</span>
+
+            {/* 제목 & 메타 */}
+            <div className="mb-4">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="flex items-center gap-1 text-amber-400 text-sm">
+                  {"★★★★★"}
+                  <span className="text-white font-bold ml-1">5.0</span>
+                  <span className="text-gray-500 ml-1">({REVIEWS.length + 4}개의 리뷰)</span>
+                </div>
+                <span className="w-px h-4 bg-gray-700" />
+                <span className="text-xs text-gray-500">동영상 36개 · 총 8시간 38분</span>
               </div>
-              <span className="w-px h-4 bg-gray-700" />
-              <span className="text-xs text-gray-500">동영상 36개 · 총 8시간 38분</span>
+              <h1 className="text-2xl md:text-3xl font-bold leading-tight mb-1">
+                팀비블 : 10개월간 유튜브 강의와 실행을 책임지는 관리형 프로젝트
+              </h1>
+              <p className="text-gray-400 text-sm">비블 | 김태민 · 입문 이상</p>
             </div>
-            <h1 className="text-2xl md:text-3xl font-bold leading-tight mb-2">
-              팀비블 : 10개월간 유튜브 강의와 실행을 책임지는 관리형 프로젝트
-            </h1>
-            <p className="text-gray-400 text-sm">비블 | 김태민 · 입문 이상</p>
-          </div>
 
-          {/* 우측: 가격 카드 (데스크탑) */}
-          <div className="hidden lg:block lg:col-span-1">
-            <PriceCard />
-          </div>
-        </div>
-      </div>
+            {/* 스티키 탭 내비 */}
+            <div ref={navRef} className={`border-b border-gray-800 bg-gray-950 -mx-4 px-4 ${stickyNav ? "sticky top-16 z-30" : ""}`}>
+              <div className="flex gap-0 overflow-x-auto scrollbar-hide">
+                {TABS.map((tab) => (
+                  <button
+                    key={tab}
+                    onClick={() => scrollToSection(tab)}
+                    className={`px-5 py-4 text-sm font-medium whitespace-nowrap border-b-2 transition ${
+                      activeTab === tab
+                        ? "border-teal-400 text-teal-400"
+                        : "border-transparent text-gray-400 hover:text-white"
+                    }`}
+                  >
+                    {tab}
+                  </button>
+                ))}
+              </div>
+            </div>
 
-      {/* 스티키 탭 내비 */}
-      <div ref={navRef} className={`border-b border-gray-800 bg-gray-950 ${stickyNav ? "sticky top-16 z-30" : ""}`}>
-        <div className="max-w-screen-xl mx-auto px-4">
-          <div className="flex gap-0 overflow-x-auto scrollbar-hide">
-            {TABS.map((tab) => (
-              <button
-                key={tab}
-                onClick={() => scrollToSection(tab)}
-                className={`px-5 py-4 text-sm font-medium whitespace-nowrap border-b-2 transition ${
-                  activeTab === tab
-                    ? "border-teal-400 text-teal-400"
-                    : "border-transparent text-gray-400 hover:text-white"
-                }`}
-              >
-                {tab}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* 본문 + 우측 카드 */}
-      <div className="max-w-screen-xl mx-auto px-4 py-8">
-        <div className="grid lg:grid-cols-3 gap-8 items-start">
-          {/* 좌측: 섹션들 */}
-          <div className="lg:col-span-2 space-y-12">
+            {/* 콘텐츠 섹션들 */}
+            <div className="space-y-12 pt-8">
 
             {/* 클래스 소개 */}
             <section ref={(el) => { sectionRefs.current["클래스 소개"] = el; }}>
@@ -339,14 +332,16 @@ export default function TeamBiblPage() {
               </div>
             </section>
 
-          </div>
+            </div>{/* space-y-12 끝 */}
+          </div>{/* 좌측 col-span-2 끝 */}
 
-          {/* 우측: 가격 카드 (데스크탑 sticky) */}
+          {/* ── 우측 sticky 카드 (데스크탑) ── */}
           <div className="hidden lg:block lg:col-span-1">
-            <div className="sticky top-24">
+            <div className="sticky top-24 pt-4">
               <PriceCard />
             </div>
           </div>
+
         </div>
       </div>
 
