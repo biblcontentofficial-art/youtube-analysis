@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 
+export const dynamic = "force-static";
+
 export const metadata: Metadata = {
   title: "유튜브 채널 대행 — 비블 TMK STUDIO",
   description:

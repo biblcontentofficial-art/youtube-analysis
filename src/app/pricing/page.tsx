@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import PricingButton from "./_components/PricingButtons";
 import FaqAccordion from "./_components/FaqAccordion";
 
+export const dynamic = "force-static";
+
 export const metadata: Metadata = {
   title: "요금제 · 플랜 안내",
   description:

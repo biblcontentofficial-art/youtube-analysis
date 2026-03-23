@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+export const dynamic = "force-static";
+
 export const metadata: Metadata = {
   title: "무료 상담 신청 — TMK STUDIO",
   description: "비블과 1:1 채널 진단 상담을 신청하세요. 채널 현황 분석부터 맞춤 전략까지 무료로 안내해 드립니다.",

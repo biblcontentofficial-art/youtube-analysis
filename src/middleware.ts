@@ -11,6 +11,7 @@ let middlewareHandler: (req: NextRequest) => Response | Promise<Response>;
 
 if (hasClerk) {
   const { clerkMiddleware, createRouteMatcher } = require("@clerk/nextjs/server");
+
   const isPublicRoute = createRouteMatcher([
     "/",
     "/search(.*)",
@@ -21,16 +22,25 @@ if (hasClerk) {
     "/sign-in(.*)",
     "/sign-up(.*)",
     "/sso-callback(.*)",
+    // 완전 공개 페이지 (인증 불필요)
+    "/studio",
+    "/studio/consulting",
+    "/studio/class(.*)",
+    "/channels(.*)",
+    "/sitemap.xml",
+    "/robots.txt",
+    // API
     "/api/youtube/search(.*)",
     "/api/youtube/channels/suggest(.*)",
     "/api/usage(.*)",
     "/api/channel-usage(.*)",
-    // 결제 콜백: 외부 서버(Payple/Toss/Stripe)가 인증 없이 호출
+    // 결제 콜백: 외부 서버가 인증 없이 호출
     "/api/payple/confirm(.*)",
     "/api/toss/confirm(.*)",
     "/api/toss/billing/confirm(.*)",
     "/api/stripe/webhook(.*)",
   ]);
+
   middlewareHandler = clerkMiddleware(async (auth: any, req: NextRequest) => {
     if (!isPublicRoute(req)) {
       await auth().protect();
@@ -43,8 +53,10 @@ if (hasClerk) {
 export default middlewareHandler;
 
 export const config = {
+  // 정적 파일, 이미지, 폰트 등은 미들웨어 완전 제외
+  // studio·pricing·channels 같은 공개 HTML 페이지도 Edge 호출 최소화
   matcher: [
-    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
+    "/((?!_next/static|_next/image|favicon\\.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js|woff2?|ttf)).*)",
     "/(api|trpc)(.*)",
   ],
 };
