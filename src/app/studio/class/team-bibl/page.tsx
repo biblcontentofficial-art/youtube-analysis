@@ -202,11 +202,11 @@ export default function TeamBiblPage() {
             <section ref={(el) => { sectionRefs.current["클래스 소개"] = el; }}>
               <h2 className="text-xl font-bold mb-6">클래스 소개</h2>
               <div className="space-y-0">
-                {[2, 3, 4, 5, 6].map((n) => (
+                {[1, 2, 3, 4, 5, 6].map((n) => (
                   <div key={n} className="w-full">
                     <Image
-                      src={`/studio/team-bibl/0${n}.png`}
-                      alt={`팀비블 소개 0${n}`}
+                      src={`/studio/team-bibl/${String(n).padStart(2, "0")}.png`}
+                      alt={`팀비블 소개 ${String(n).padStart(2, "0")}`}
                       width={1200}
                       height={800}
                       className="w-full h-auto"
