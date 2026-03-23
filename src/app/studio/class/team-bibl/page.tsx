@@ -410,7 +410,7 @@ function PriceCard() {
         <div className="mt-5 pt-5 border-t border-gray-800 space-y-2">
           {[
             { icon: "👥", label: "모집 정원", value: "50명 한정" },
-            { icon: "📅", label: "수강 기한", value: "1000일" },
+            { icon: "📅", label: "수강 기한", value: "365일" },
             { icon: "🎬", label: "동영상", value: "36개 (총 8시간 38분)" },
           ].map((item) => (
             <div key={item.label} className="flex items-center justify-between text-sm">
