@@ -81,22 +81,46 @@ const CURRICULUM = [
 
 const REVIEWS = [
   {
-    name: "박**",
-    rating: 5,
-    date: "3주 전",
-    text: "'뭐라도 해야 하는데'라는 마음은 누구나 갖고 있지만, 실행할 수 있게 만드는 강의라고 생각합니다. 아무것도 모르는 초보도 적용하고 실행할 수 있도록 강의가 구성되어 있습니다. 비블님과 함께 하나하나 실행하고 개선하며 성장할 수 있을 거라 확신합니다.",
-  },
-  {
     name: "장**",
     rating: 5,
     date: "3주 전",
-    text: "유튜브 시작함에 있어서 너무 막막하고 많은 고민이 있었는데 강의 들으면서 하나하나 시작하게 되었어요. 아직은 이러한 과정이 쉽진 않지만 꾸준히 노력해서 유튜브를 키워보고 싶어요!",
+    text: "유튜브시작함에있어서 너무막막하고 많은고민이 있었는데 강의들으면서 하나하나 시작하게 되었어요 아직은 이러한 과정이 쉽진 않지만 꾸준히 노력해서 유튜브를 키워보고싶어요!",
   },
   {
-    name: "벤더사 대표님",
+    name: "박**",
+    rating: 5,
+    date: "3주 전",
+    text: "'뭐라도 해야 하는데' 라는 마음은 누구나 갖고 있지만, 실행할 수 있게 만드는 강의라고 생각합니다. 이제 5주차 강의를 듣고 있으며, 아무것도 모르는 초보도 적용하고 실행할 수 있도록 강의가 구성되어 있습니다. 최근 다양한 짧은 강의가 수 없이 많지만, 비블님 강의는 꾸준하게 성과를 끌어낼 수 있는 기간으로 세팅한 점도 매력적이라고 생각됩니다.",
+  },
+  {
+    name: "허**",
     rating: 5,
     date: "4주 전",
-    text: "대표님을 만난 후로 유튜브는 띄엄띄엄하다가 이제 다시 편집하고 있지만, 지금의 대표님이 성장하시고 다른 라인으로 확장하시는 게 진짜 너무 자랑스럽습니다! 11월 26일부터 지금까지 약 470건 판매되었어요. 다 선생님 덕분입니다.",
+    text: ".",
+  },
+  {
+    name: "서***",
+    rating: 5,
+    date: "1개월 전",
+    text: "항상 새로운 관점과 새로운 방법을 실행을 하면서 배우니 주입으로 끝나는 것이 아니라 '내가 했었던 이 방법을 이렇게 적용하면 더 나은 결과가 나올 수 있구나' 라는 깨달음과 함께 공부할 수 있어 너무 좋습니다.\n\n이번 AI 활용과 썸네일 제작 관련해서도 여러 번 복습하면서 내 것으로 만들겠습니다.",
+  },
+  {
+    name: "서************",
+    rating: 5,
+    date: "1개월 전",
+    text: "초보 유튜버에게 기본부터 차근차근 알려주셔서 너무 감사합니다. 강의보고 실행하며 꾸준히 성장하고 싶습니다🥰",
+  },
+  {
+    name: "전**",
+    rating: 5,
+    date: "1개월 전",
+    text: "현재까지 대부분 알고 있던 내용들이었으나 도움되거나 다시한번 리마인드하면서 배워가는게 너무 좋습니다.\n\n앞으로 어떤걸 어떻게 알려주실지 너무나 기대가 됩니다 ㅎㅎ",
+  },
+  {
+    name: "마***",
+    rating: 5,
+    date: "1개월 전",
+    text: "너무너무 좋고 유익한 정보들만 쏙쏙 뽑아서 먹여주는 숟가락 같은 역할을 대표님이 강의를 통해서 해 주시네요 넘너무 너무 좋아요 감사합니다",
   },
 ];
 
@@ -165,7 +189,7 @@ export default function TeamBiblPage() {
                 <div className="flex items-center gap-1 text-amber-400 text-sm">
                   {"★★★★★"}
                   <span className="text-white font-bold ml-1">5.0</span>
-                  <span className="text-gray-500 ml-1">({REVIEWS.length + 4}개의 리뷰)</span>
+                  <span className="text-gray-500 ml-1">({REVIEWS.length}개의 리뷰)</span>
                 </div>
                 <span className="w-px h-4 bg-gray-700" />
                 <span className="text-xs text-gray-500">동영상 36개 · 총 8시간 38분</span>
@@ -224,7 +248,7 @@ export default function TeamBiblPage() {
                   {"★★★★★"}
                   <span className="text-white font-bold ml-1">5.0</span>
                 </div>
-                <span className="text-gray-500 text-sm">{REVIEWS.length + 4}개의 리뷰</span>
+                <span className="text-gray-500 text-sm">{REVIEWS.length}개의 리뷰</span>
               </div>
               <div className="space-y-4">
                 {REVIEWS.map((r, i) => (
@@ -241,7 +265,7 @@ export default function TeamBiblPage() {
                       </div>
                       <div className="text-amber-400 text-sm">{"★".repeat(r.rating)}</div>
                     </div>
-                    <p className="text-sm text-gray-300 leading-relaxed">{r.text}</p>
+                    <p className="text-sm text-gray-300 leading-relaxed whitespace-pre-line">{r.text}</p>
                   </div>
                 ))}
               </div>
