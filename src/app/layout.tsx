@@ -184,9 +184,13 @@ export default async function RootLayout({
                 <NavTab href="/channels" label="채널 찾기" requiredPlan={!isStarterPlus ? "Starter" : undefined} />
                 <NavTab href="/saved" label="수집한 영상" requiredPlan={!isProPlus ? "Pro" : undefined} />
                 <NavTab href="/pricing" label="요금제" />
-                <div className="w-px h-4 bg-gray-700 mx-1" />
-                <NavTab href="/studio" label="유튜브 채널 대행" isStudio />
-                <NavTab href="/studio/class" label="유튜브 교육 (팀비블)" isStudio />
+                {process.env.NODE_ENV === "development" && (
+                  <>
+                    <div className="w-px h-4 bg-gray-700 mx-1" />
+                    <NavTab href="/studio" label="유튜브 채널 대행" isStudio />
+                    <NavTab href="/studio/class" label="유튜브 교육 (팀비블)" isStudio />
+                  </>
+                )}
               </div>
             </div>
 
