@@ -4,10 +4,25 @@ import { useRouter } from "next/navigation";
 
 export type SortMode = "trending" | "growth" | "new";
 
-const TABS: { key: SortMode; icon: string; label: string }[] = [
-  { key: "trending", icon: "🔥", label: "영상 평균 조회수 순" },
-  { key: "growth",  icon: "📈", label: "월 구독자 증가량 순" },
-  { key: "new",     icon: "🌱", label: "신생 채널 · 평균 조회수 순" },
+const TABS: { key: SortMode; icon: string; label: string; tooltip: string }[] = [
+  {
+    key: "trending",
+    icon: "🔥",
+    label: "영상 평균 조회수 순",
+    tooltip: "채널 전체 영상의 평균 조회수가 높은 순으로 정렬\n영상 하나하나가 꾸준히 잘 터지는 채널을 찾을 때 사용하세요",
+  },
+  {
+    key: "growth",
+    icon: "📈",
+    label: "월 구독자 증가량 순",
+    tooltip: "구독자 수 ÷ 채널 개설 월수로 계산한\n월평균 구독자 증가량이 많은 순으로 정렬",
+  },
+  {
+    key: "new",
+    icon: "🌱",
+    label: "신생 채널 · 평균 조회수 순",
+    tooltip: "개설 3년 이내 채널을 우선으로\n그 안에서 영상 평균 조회수 높은 순으로 정렬\n막 성장 중인 분야의 채널을 발굴할 때 유용해요",
+  },
 ];
 
 interface Props {
@@ -28,19 +43,36 @@ export default function FilterTabs({ current, query }: Props) {
       {TABS.map((tab) => {
         const active = current === tab.key;
         return (
-          <button
-            key={tab.key}
-            onClick={() => handleChange(tab.key)}
-            disabled={!query}
-            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium transition-all whitespace-nowrap
-              ${active
-                ? "bg-teal-600 text-white shadow-sm"
-                : "text-gray-400 hover:text-gray-200 disabled:opacity-40 disabled:cursor-not-allowed"
-              }`}
-          >
-            <span className="text-xs">{tab.icon}</span>
-            <span>{tab.label}</span>
-          </button>
+          <div key={tab.key} className="relative group/tab">
+            <button
+              onClick={() => handleChange(tab.key)}
+              disabled={!query}
+              className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium transition-all whitespace-nowrap
+                ${active
+                  ? "bg-teal-600 text-white shadow-sm"
+                  : "text-gray-400 hover:text-gray-200 disabled:opacity-40 disabled:cursor-not-allowed"
+                }`}
+            >
+              <span className="text-xs">{tab.icon}</span>
+              <span>{tab.label}</span>
+            </button>
+
+            {/* 툴팁 */}
+            <div className="pointer-events-none absolute left-1/2 -translate-x-1/2 top-full mt-2 z-50
+              opacity-0 group-hover/tab:opacity-100 transition-opacity duration-150">
+              <div className="bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 shadow-xl w-64 text-left">
+                <p className="text-xs font-semibold text-white mb-1.5 flex items-center gap-1.5">
+                  <span>{tab.icon}</span>
+                  <span>{tab.label}</span>
+                </p>
+                {tab.tooltip.split("\n").map((line, i) => (
+                  <p key={i} className="text-xs text-gray-400 leading-relaxed">{line}</p>
+                ))}
+              </div>
+              {/* 말풍선 꼭지 */}
+              <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-gray-800 border-l border-t border-gray-700 rotate-45" />
+            </div>
+          </div>
         );
       })}
     </div>
