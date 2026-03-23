@@ -28,8 +28,9 @@ export async function GET() {
   const plan = getPlan(userId, (sessionClaims?.publicMetadata ?? {}) as Record<string, unknown>);
   if (!PLANS[plan].canServerHistory) return NextResponse.json({ items: [] });
 
-  const limit = PLANS[plan].historyDays >= 9999 ? 100 : 30;
-  const items = await getSearchHistory(userId, limit);
+  const historyDays = PLANS[plan].historyDays;
+  const limit = historyDays >= 9999 ? 100 : 30;
+  const items = await getSearchHistory(userId, limit, historyDays);
   return NextResponse.json({ items });
 }
 

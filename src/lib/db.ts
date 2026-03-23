@@ -217,18 +217,30 @@ export async function upsertSearchHistory(userId: string, term: string): Promise
   }
 }
 
-/** 검색 기록 조회 (최신순) */
-export async function getSearchHistory(userId: string, limit = 30): Promise<SearchHistoryItem[]> {
+/** 검색 기록 조회 (최신순, 날짜 필터 옵션) */
+export async function getSearchHistory(
+  userId: string,
+  limit = 30,
+  historyDays?: number
+): Promise<SearchHistoryItem[]> {
   const db = getSupabase();
   if (!db) return [];
 
-  const { data, error } = await db
+  let query = db
     .from("search_history")
     .select("term, count, searched_at")
     .eq("user_id", userId)
     .order("searched_at", { ascending: false })
     .limit(limit);
 
+  // historyDays가 지정된 경우 날짜 필터 적용 (9999 이상은 무제한)
+  if (historyDays && historyDays < 9999) {
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - historyDays);
+    query = query.gte("searched_at", cutoff.toISOString());
+  }
+
+  const { data, error } = await query;
   if (error) return [];
   return data as SearchHistoryItem[];
 }
