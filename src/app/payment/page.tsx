@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { PLANS, PlanKey } from '@/lib/payple'
 import PaypleWidget from './_components/PaypleWidget'
 import TossBillingButton from './_components/TossBillingButton'
+import PortoneButton from './_components/PortoneButton'
 
 export default async function PaymentPage({
   searchParams,
@@ -21,6 +22,8 @@ export default async function PaymentPage({
       ? '카드 등록에 실패했습니다. 다시 시도해 주세요.'
       : searchParams.error === 'payment'
       ? '결제에 실패했습니다. 다시 시도해 주세요.'
+      : searchParams.error === 'portone'
+      ? '포트원 결제에 실패했습니다. 다시 시도해 주세요.'
       : null
 
   return (
@@ -53,6 +56,20 @@ export default async function PaymentPage({
 
           {/* 토스 빌링 결제 (메인) */}
           <TossBillingButton plan={plan} amount={PLANS[plan].amount} userId={userId} />
+
+          {/* 구분선 */}
+          <div className="flex items-center gap-3 my-4">
+            <div className="flex-1 border-t border-gray-800" />
+            <span className="text-xs text-gray-600">또는</span>
+            <div className="flex-1 border-t border-gray-800" />
+          </div>
+
+          {/* 포트원 결제 (카카오페이·네이버페이·카드) */}
+          <PortoneButton
+            plan={plan}
+            userId={userId}
+            userEmail={user?.emailAddresses[0]?.emailAddress || ''}
+          />
 
           {/* 구분선 */}
           <div className="flex items-center gap-3 my-4">
