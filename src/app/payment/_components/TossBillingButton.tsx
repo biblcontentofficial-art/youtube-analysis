@@ -86,7 +86,7 @@ export default function TossBillingButton({ plan, amount, userId }: TossBillingB
     <button
       onClick={handleClick}
       disabled={loading}
-      className="w-full py-3 bg-white hover:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed text-gray-900 font-semibold rounded-xl transition text-sm flex items-center justify-center gap-2"
+      className="w-full py-3 bg-[#3182F6] hover:bg-[#1B64DA] disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold rounded-xl transition text-sm flex items-center justify-center gap-2"
     >
       {loading ? (
         <>

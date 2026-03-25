@@ -14,12 +14,14 @@ type PayOption = {
   label: string;
   method: "EASY_PAY" | "CARD";
   provider?: "KAKAOPAY" | "NAVERPAY";
+  bg: string;
+  text: string;
 };
 
 const PAY_OPTIONS: PayOption[] = [
-  { key: "KAKAOPAY", label: "카카오페이", method: "EASY_PAY", provider: "KAKAOPAY" },
-  { key: "NAVERPAY", label: "네이버페이", method: "EASY_PAY", provider: "NAVERPAY" },
-  { key: "CARD",     label: "신용카드",   method: "CARD" },
+  { key: "KAKAOPAY", label: "카카오페이", method: "EASY_PAY", provider: "KAKAOPAY", bg: "bg-[#FEE500] hover:bg-[#F0D900]", text: "text-black" },
+  { key: "NAVERPAY", label: "네이버페이", method: "EASY_PAY", provider: "NAVERPAY", bg: "bg-[#03C75A] hover:bg-[#02B050]", text: "text-white" },
+  { key: "CARD",     label: "신용카드",   method: "CARD",                           bg: "bg-gray-800 hover:bg-gray-700 border border-gray-700", text: "text-gray-200" },
 ];
 
 export default function PortoneButton({ plan, userId, userEmail }: PortoneButtonProps) {
@@ -90,7 +92,7 @@ export default function PortoneButton({ plan, userId, userEmail }: PortoneButton
           key={option.key}
           onClick={() => handlePay(option)}
           disabled={loading !== null}
-          className="w-full py-3 rounded-xl text-sm font-medium text-gray-200 bg-gray-800 hover:bg-gray-700 border border-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+          className={`w-full py-3 rounded-xl text-sm font-semibold ${option.bg} ${option.text} disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2`}
         >
           {loading === option.key ? (
             <span className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
