@@ -4,6 +4,7 @@ import { PLANS, PlanKey } from '@/lib/payple'
 import PaypleWidget from './_components/PaypleWidget'
 import TossBillingButton from './_components/TossBillingButton'
 import PortoneButton from './_components/PortoneButton'
+import InicisButton from './_components/InicisButton'
 
 export default async function PaymentPage({
   searchParams,
@@ -69,6 +70,14 @@ export default async function PaymentPage({
             plan={plan}
             userId={userId}
             userEmail={user?.emailAddresses[0]?.emailAddress || ''}
+          />
+
+          {/* KG이니시스 정기결제 */}
+          <InicisButton
+            plan={plan}
+            userId={userId}
+            userEmail={user?.emailAddresses[0]?.emailAddress || ''}
+            userName={`${user?.firstName || ''} ${user?.lastName || ''}`.trim()}
           />
 
           {/* 구분선 */}
