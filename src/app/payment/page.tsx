@@ -5,6 +5,7 @@ import PaypleWidget from './_components/PaypleWidget'
 import TossBillingButton from './_components/TossBillingButton'
 import PortoneButton from './_components/PortoneButton'
 import InicisButton from './_components/InicisButton'
+import KcpButton from './_components/KcpButton'
 
 export default async function PaymentPage({
   searchParams,
@@ -74,6 +75,14 @@ export default async function PaymentPage({
 
           {/* KG이니시스 정기결제 */}
           <InicisButton
+            plan={plan}
+            userId={userId}
+            userEmail={user?.emailAddresses[0]?.emailAddress || ''}
+            userName={`${user?.firstName || ''} ${user?.lastName || ''}`.trim()}
+          />
+
+          {/* NHN KCP 정기결제 */}
+          <KcpButton
             plan={plan}
             userId={userId}
             userEmail={user?.emailAddresses[0]?.emailAddress || ''}
