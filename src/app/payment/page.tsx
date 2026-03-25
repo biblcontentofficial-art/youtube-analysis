@@ -1,11 +1,8 @@
 import { auth, currentUser } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import { PLANS, PlanKey } from '@/lib/payple'
-import PaypleWidget from './_components/PaypleWidget'
 import TossBillingButton from './_components/TossBillingButton'
 import PortoneButton from './_components/PortoneButton'
-import InicisButton from './_components/InicisButton'
-import KcpButton from './_components/KcpButton'
 
 export default async function PaymentPage({
   searchParams,
@@ -20,13 +17,10 @@ export default async function PaymentPage({
 
   const user = await currentUser()
   const errorMsg =
-    searchParams.error === 'billing'
-      ? '카드 등록에 실패했습니다. 다시 시도해 주세요.'
-      : searchParams.error === 'payment'
-      ? '결제에 실패했습니다. 다시 시도해 주세요.'
-      : searchParams.error === 'portone'
-      ? '포트원 결제에 실패했습니다. 다시 시도해 주세요.'
-      : null
+    searchParams.error === 'billing'  ? '카드 등록에 실패했습니다. 다시 시도해 주세요.' :
+    searchParams.error === 'payment'  ? '결제에 실패했습니다. 다시 시도해 주세요.' :
+    searchParams.error === 'portone'  ? '결제에 실패했습니다. 다시 시도해 주세요.' :
+    null
 
   return (
     <div className="min-h-screen bg-gray-950 flex items-center justify-center p-4">
@@ -44,7 +38,8 @@ export default async function PaymentPage({
                 <p className="text-gray-500 text-xs mt-0.5">매월 자동 결제 · 언제든 취소 가능</p>
               </div>
               <span className="text-white font-bold text-lg">
-                ₩{PLANS[plan].amount.toLocaleString()}<span className="text-gray-500 text-sm font-normal">/월</span>
+                ₩{PLANS[plan].amount.toLocaleString()}
+                <span className="text-gray-500 text-sm font-normal">/월</span>
               </span>
             </div>
           </div>
@@ -56,59 +51,19 @@ export default async function PaymentPage({
             </div>
           )}
 
-          {/* 토스 빌링 결제 (메인) */}
-          <TossBillingButton plan={plan} amount={PLANS[plan].amount} userId={userId} />
-
-          {/* 구분선 */}
-          <div className="flex items-center gap-3 my-4">
-            <div className="flex-1 border-t border-gray-800" />
-            <span className="text-xs text-gray-600">또는</span>
-            <div className="flex-1 border-t border-gray-800" />
+          {/* 결제수단 */}
+          <div className="space-y-2">
+            <TossBillingButton plan={plan} amount={PLANS[plan].amount} userId={userId} />
+            <PortoneButton
+              plan={plan}
+              userId={userId}
+              userEmail={user?.emailAddresses[0]?.emailAddress || ''}
+            />
           </div>
-
-          {/* 포트원 결제 (카카오페이·네이버페이·카드) */}
-          <PortoneButton
-            plan={plan}
-            userId={userId}
-            userEmail={user?.emailAddresses[0]?.emailAddress || ''}
-          />
-
-          {/* KG이니시스 정기결제 */}
-          <InicisButton
-            plan={plan}
-            userId={userId}
-            userEmail={user?.emailAddresses[0]?.emailAddress || ''}
-            userName={`${user?.firstName || ''} ${user?.lastName || ''}`.trim()}
-          />
-
-          {/* NHN KCP 정기결제 */}
-          <KcpButton
-            plan={plan}
-            userId={userId}
-            userEmail={user?.emailAddresses[0]?.emailAddress || ''}
-            userName={`${user?.firstName || ''} ${user?.lastName || ''}`.trim()}
-          />
-
-          {/* 구분선 */}
-          <div className="flex items-center gap-3 my-4">
-            <div className="flex-1 border-t border-gray-800" />
-            <span className="text-xs text-gray-600">또는</span>
-            <div className="flex-1 border-t border-gray-800" />
-          </div>
-
-          {/* 페이플 결제 (서브) */}
-          <PaypleWidget
-            plan={plan}
-            userId={userId}
-            userEmail={user?.emailAddresses[0]?.emailAddress || ''}
-            userName={`${user?.firstName || ''} ${user?.lastName || ''}`.trim()}
-            amount={PLANS[plan].amount}
-            planName={PLANS[plan].name}
-          />
 
           {/* 안내 */}
-          <div className="mt-5 space-y-1 text-xs text-gray-600 text-center">
-            <p>SSL 암호화 보안 결제 · 개인정보 안전 보호</p>
+          <div className="mt-6 space-y-1 text-xs text-gray-600 text-center">
+            <p>카드 등록 후 매월 자동 결제됩니다. 언제든지 취소 가능합니다.</p>
             <p>
               결제 전{' '}
               <a href="/refund" className="text-gray-500 underline hover:text-gray-400" target="_blank">

@@ -86,37 +86,14 @@ export default function TossBillingButton({ plan, amount, userId }: TossBillingB
     <button
       onClick={handleClick}
       disabled={loading}
-      className="w-full py-4 bg-[#3182F6] hover:bg-[#1B64DA] disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold rounded-xl transition text-base flex items-center justify-center gap-2"
+      className="w-full py-3 bg-white hover:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed text-gray-900 font-semibold rounded-xl transition text-sm flex items-center justify-center gap-2"
     >
       {loading ? (
         <>
           <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
           결제창 여는 중...
         </>
-      ) : (
-        <>
-          <TossIcon />
-          토스 정기결제 카드 등록 &nbsp;₩{amount.toLocaleString()}
-        </>
-      )}
+      ) : "토스페이먼츠 정기결제"}
     </button>
-  );
-}
-
-function TossIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="100" cy="100" r="100" fill="white" fillOpacity="0.15" />
-      <path
-        d="M62 100 C62 78.5 79.5 61 101 61 C114 61 125.5 67.5 133 77.5"
-        stroke="white" strokeWidth="16" strokeLinecap="round" fill="none"
-      />
-      <path
-        d="M140 100 C140 121.5 122.5 139 101 139 C88 139 76.5 132.5 69 122.5"
-        stroke="white" strokeWidth="16" strokeLinecap="round" fill="none"
-      />
-      <circle cx="135" cy="65" r="13" fill="white" />
-      <circle cx="67" cy="135" r="13" fill="white" />
-    </svg>
   );
 }
