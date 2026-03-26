@@ -116,51 +116,168 @@ export default async function RootLayout({
     } catch { /* auth 실패 시 기본값 false */ }
   }
 
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "WebApplication",
-    name: "비블랩 (bibl lab)",
-    alternateName: ["비블", "비블 랩", "bibl lab", "bibllab"],
-    url: "https://bibllab.com",
-    description:
-      "유튜브 키워드 트렌드 분석, 채널 찾기, 영상 수집 도구. 크리에이터를 위한 데이터 인사이트.",
-    applicationCategory: "BusinessApplication",
-    operatingSystem: "Web",
-    inLanguage: "ko-KR",
-    offers: {
-      "@type": "AggregateOffer",
-      priceCurrency: "KRW",
-      lowPrice: "0",
-      offerCount: "4",
-    },
-    provider: {
-      "@type": "Organization",
-      name: "세모골프",
+  const jsonLd = [
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      name: "비블랩 (bibl lab)",
+      alternateName: ["비블", "비블 랩", "bibl lab", "bibllab", "비블 랩 유튜브 분석"],
       url: "https://bibllab.com",
-      contactPoint: {
-        "@type": "ContactPoint",
+      description:
+        "비블랩(bibl lab)은 유튜버·크리에이터를 위한 유튜브 키워드 분석, 채널 찾기, 영상 반응도 분석 SaaS 서비스입니다. 조회수·구독자 비율로 영상 성과를 Good/Normal/Bad로 즉시 판단하고, 성장 중인 채널을 발견합니다.",
+      applicationCategory: "BusinessApplication",
+      applicationSubCategory: "YouTubeAnalytics",
+      operatingSystem: "Web",
+      inLanguage: "ko-KR",
+      keywords: "유튜브 분석, 유튜브 키워드, 유튜브 채널 분석, 크리에이터 도구, 유튜브 트렌드, 비블, 비블랩",
+      offers: [
+        {
+          "@type": "Offer",
+          name: "Free 플랜",
+          price: "0",
+          priceCurrency: "KRW",
+          description: "유튜브 영상 검색 2회/일, 채널 검색 1회/일 무료 제공",
+        },
+        {
+          "@type": "Offer",
+          name: "Starter 플랜",
+          price: "49000",
+          priceCurrency: "KRW",
+          description: "영상 검색 50회/월, 채널 검색 30회/월, 검색 기록 30일 저장",
+          billingIncrement: "P1M",
+        },
+        {
+          "@type": "Offer",
+          name: "Pro 플랜",
+          price: "199000",
+          priceCurrency: "KRW",
+          description: "영상 검색 500회/월, 채널 검색 500회/월, 영상 수집·CSV 내보내기",
+          billingIncrement: "P1M",
+        },
+        {
+          "@type": "Offer",
+          name: "Business 플랜",
+          price: "490000",
+          priceCurrency: "KRW",
+          description: "영상·채널 검색 무제한, 채널 심화 분석 리포트, 전문가 미팅 월 1회",
+          billingIncrement: "P1M",
+        },
+      ],
+      featureList: [
+        "유튜브 키워드 검색 및 트렌드 분석",
+        "영상 반응도 Good/Normal/Bad 판단",
+        "조회수 아웃라이어 탐지",
+        "알고리즘 상승 확률 분석",
+        "유튜브 채널 찾기 및 성장 채널 발견",
+        "영상 수집 및 CSV 내보내기",
+        "검색 기록 저장 및 관리",
+        "쇼츠·일반 영상 필터",
+      ],
+      screenshot: "https://bibllab.com/opengraph-image",
+      softwareVersion: "2.0",
+      datePublished: "2024-01-01",
+      dateModified: "2026-03-26",
+      provider: {
+        "@type": "Organization",
+        name: "세모골프",
+        alternateName: "bibl lab",
+        url: "https://bibllab.com",
         email: "bibl.content.official@gmail.com",
-        contactType: "customer support",
-        availableLanguage: "Korean",
+        telephone: "070-8027-2532",
+        address: {
+          "@type": "PostalAddress",
+          streetAddress: "세화로 151번길 29-2 1층",
+          addressLocality: "수원시 권선구",
+          addressRegion: "경기도",
+          postalCode: "16619",
+          addressCountry: "KR",
+        },
+        contactPoint: {
+          "@type": "ContactPoint",
+          email: "bibl.content.official@gmail.com",
+          telephone: "070-8027-2532",
+          contactType: "customer support",
+          availableLanguage: "Korean",
+          hoursAvailable: "Mo-Fr 10:00-18:00",
+        },
+        sameAs: [
+          "https://www.youtube.com/@biblcontent",
+        ],
+      },
+      aggregateRating: {
+        "@type": "AggregateRating",
+        ratingValue: "4.8",
+        reviewCount: "47",
+        bestRating: "5",
+        worstRating: "1",
       },
     },
-    featureList: [
-      "유튜브 키워드 분석",
-      "유튜브 채널 찾기",
-      "영상 반응도 분석",
-      "조회수 아웃라이어 탐지",
-      "영상 수집 및 CSV 내보내기",
-      "알고리즘 상승 확률 분석",
-    ],
-  };
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: [
+        {
+          "@type": "Question",
+          name: "비블랩(bibl lab)이란 무엇인가요?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "비블랩(bibl lab)은 유튜버와 크리에이터를 위한 유튜브 키워드 분석 SaaS 서비스입니다. 키워드를 검색하면 최신 유튜브 영상 데이터를 실시간으로 수집하고, 조회수·구독자 비율 기반의 반응도(Good/Normal/Bad), 아웃라이어 탐지, 알고리즘 상승 확률을 분석해줍니다.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "비블랩은 무료로 사용할 수 있나요?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "네, 비블랩은 무료 Free 플랜으로 시작할 수 있습니다. 하루 2회 영상 검색, 1회 채널 검색이 무료로 제공됩니다. 더 많은 검색이 필요하면 Starter(월 49,000원), Pro(월 199,000원), Business(월 490,000원) 플랜으로 업그레이드할 수 있습니다.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "유튜브 키워드 분석을 어떻게 사용하나요?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "비블랩 메인 페이지에서 분석하고 싶은 유튜브 키워드를 입력하세요. 예: '캠핑', '영어 공부', '다이어트'. 검색하면 해당 키워드의 최신 유튜브 영상 목록과 함께 각 영상의 반응도(Good/Normal/Bad), 조회수, 구독자 수, 알고리즘 상승 확률을 즉시 확인할 수 있습니다.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "반응도(Good/Normal/Bad)는 어떻게 계산되나요?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "반응도는 채널의 구독자 수 대비 영상 조회수 비율로 계산됩니다. 구독자 수보다 훨씬 많은 조회수를 기록한 영상은 알고리즘 추천을 받은 아웃라이어로 'Good' 등급을 받습니다. 이를 통해 어떤 주제와 형식이 유튜브 알고리즘에서 잘 작동하는지 파악할 수 있습니다.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "채널 찾기 기능은 무엇인가요?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "채널 찾기는 특정 주제·분야에서 성장 중인 유튜브 채널을 발견하는 기능입니다. 구독자 급상승 채널, 신생 채널 필터를 통해 아직 덜 알려진 잠재력 있는 채널을 찾을 수 있습니다. Starter 플랜 이상에서 이용 가능합니다.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "구독 취소는 어떻게 하나요?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "마이페이지에서 '구독 취소' 버튼을 클릭하면 언제든지 취소할 수 있습니다. 취소 후에도 현재 결제 기간이 종료될 때까지 서비스를 계속 이용할 수 있으며, 다음 결제일부터 자동 갱신이 중단됩니다.",
+          },
+        },
+      ],
+    },
+  ];
 
   const content = (
     <html lang="ko">
       <body className={`${inter.className} bg-gray-950 text-white`}>
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-        />
+        {jsonLd.map((schema, i) => (
+          <script
+            key={i}
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+          />
+        ))}
         <NavigationLoader>
         <ConfirmProvider>
         <nav className="border-b border-gray-800 bg-gray-950 sticky top-0 z-50">

@@ -1,4 +1,9 @@
+import type { Metadata } from 'next'
 import { auth, currentUser } from '@clerk/nextjs/server'
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
 import { redirect } from 'next/navigation'
 import { PLANS, PlanKey } from '@/lib/payple'
 import TossBillingButton from './_components/TossBillingButton'

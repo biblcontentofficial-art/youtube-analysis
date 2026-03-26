@@ -1,48 +1,56 @@
 import { MetadataRoute } from 'next'
 
 export default function sitemap(): MetadataRoute.Sitemap {
+  const baseUrl = 'https://bibllab.com'
+
   return [
     {
-      url: 'https://bibllab.com',
-      lastModified: new Date(),
+      url: baseUrl,
+      lastModified: new Date('2026-03-26'),
       changeFrequency: 'daily',
       priority: 1,
     },
     {
-      url: 'https://bibllab.com/search',
-      lastModified: new Date(),
+      url: `${baseUrl}/search`,
+      lastModified: new Date('2026-03-26'),
       changeFrequency: 'daily',
       priority: 0.9,
     },
     {
-      url: 'https://bibllab.com/channels',
-      lastModified: new Date(),
+      url: `${baseUrl}/channels`,
+      lastModified: new Date('2026-03-26'),
       changeFrequency: 'daily',
       priority: 0.9,
     },
     {
-      url: 'https://bibllab.com/pricing',
-      lastModified: new Date(),
+      url: `${baseUrl}/pricing`,
+      lastModified: new Date('2026-03-26'),
       changeFrequency: 'weekly',
       priority: 0.8,
     },
     {
-      url: 'https://bibllab.com/terms',
-      lastModified: new Date(),
+      url: `${baseUrl}/about`,
+      lastModified: new Date('2026-03-26'),
       changeFrequency: 'monthly',
-      priority: 0.5,
+      priority: 0.7,
     },
     {
-      url: 'https://bibllab.com/privacy',
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.5,
-    },
-    {
-      url: 'https://bibllab.com/refund',
-      lastModified: new Date(),
+      url: `${baseUrl}/terms`,
+      lastModified: new Date('2026-03-19'),
       changeFrequency: 'monthly',
       priority: 0.4,
+    },
+    {
+      url: `${baseUrl}/privacy`,
+      lastModified: new Date('2026-03-19'),
+      changeFrequency: 'monthly',
+      priority: 0.4,
+    },
+    {
+      url: `${baseUrl}/refund`,
+      lastModified: new Date('2026-03-19'),
+      changeFrequency: 'monthly',
+      priority: 0.3,
     },
   ]
 }

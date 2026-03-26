@@ -1,4 +1,9 @@
+import type { Metadata } from "next";
 import SignInForm from "../../sign-in/_components/SignInForm";
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
 
 const hasClerk =
   !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY &&
