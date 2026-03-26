@@ -12,10 +12,33 @@ import {
 } from "@/lib/cache";
 
 // 1. 더보기 기능 (pageToken 없으면 새 order로 첫 페이지부터)
+// 필터링 후 결과가 MIN_RESULTS 미만이면 다음 페이지를 자동으로 이어서 호출 (최대 MAX_RETRIES회)
+const MIN_RESULTS = 5;
+const MAX_RETRIES = 3;
+
 export async function getMoreVideos(query: string, filter: string | undefined, pageToken: string | undefined, order?: string, regionCode?: string) {
   const plan = await getUserPlan();
   const isPaid = plan !== "free";
-  return await searchVideos(query, filter, pageToken, isPaid, order || "relevance", regionCode || "KR");
+  const resolvedOrder = order || "relevance";
+  const resolvedRegion = regionCode || "KR";
+
+  let allItems: Awaited<ReturnType<typeof searchVideos>>["items"] = [];
+  let currentToken = pageToken;
+  let lastNextPageToken: string | undefined;
+
+  for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+    const result = await searchVideos(query, filter, currentToken, isPaid, resolvedOrder, resolvedRegion);
+    allItems = [...allItems, ...(result.items || [])];
+    lastNextPageToken = result.nextPageToken;
+
+    // 충분한 결과가 모였거나 다음 페이지가 없으면 중단
+    if (allItems.length >= MIN_RESULTS || !result.nextPageToken) break;
+
+    // 아직 MIN_RESULTS 미만 → 다음 페이지 이어서 호출
+    currentToken = result.nextPageToken;
+  }
+
+  return { items: allItems, nextPageToken: lastNextPageToken, error: null };
 }
 
 type VideoDetail = {
