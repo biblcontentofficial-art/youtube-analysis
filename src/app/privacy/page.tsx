@@ -39,7 +39,7 @@ export default function PrivacyPage() {
             <ul className="list-disc list-inside mt-3 space-y-1 pl-2">
               <li>필수항목: 이메일 주소, 이름 (Google 계정 연동 시 제공되는 정보)</li>
               <li>서비스 이용 과정에서 자동 생성·수집되는 정보: IP 주소, 쿠키, 서비스 이용 기록, 접속 로그</li>
-              <li>결제 시 수집 항목: 결제 수단 정보 (카드사명, 카드번호 일부), 결제 내역 (결제 처리는 Stripe를 통해 이루어지며 회사는 카드 정보 원본을 저장하지 않습니다)</li>
+              <li>결제 시 수집 항목: 결제 수단 정보 (카드사명, 카드번호 일부), 결제 내역 (결제 처리는 토스페이먼츠 및 포트원을 통해 이루어지며 회사는 카드 정보 원본을 저장하지 않습니다)</li>
             </ul>
           </section>
 
@@ -57,8 +57,13 @@ export default function PrivacyPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-800">
                   <tr>
-                    <td className="px-4 py-2">Stripe, Inc.</td>
-                    <td className="px-4 py-2">결제 처리</td>
+                    <td className="px-4 py-2">토스페이먼츠(주)</td>
+                    <td className="px-4 py-2">결제 처리 (정기결제)</td>
+                    <td className="px-4 py-2">계약 종료 시까지</td>
+                  </tr>
+                  <tr>
+                    <td className="px-4 py-2">포트원(주)</td>
+                    <td className="px-4 py-2">결제 처리 (간편결제)</td>
                     <td className="px-4 py-2">계약 종료 시까지</td>
                   </tr>
                   <tr>

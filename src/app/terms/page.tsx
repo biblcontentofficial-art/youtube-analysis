@@ -51,7 +51,7 @@ export default function TermsPage() {
               <li>구독료는 구독 시작일로부터 매월 동일한 날짜에 자동 결제됩니다.</li>
               <li>결제 수단은 신용카드/체크카드를 지원합니다.</li>
               <li>구독 요금은 다음과 같습니다: Starter ₩49,000/월, Pro ₩199,000/월, Business ₩490,000/월</li>
-              <li>결제는 Stripe를 통해 안전하게 처리됩니다.</li>
+              <li>결제는 토스페이먼츠 및 포트원을 통해 안전하게 처리됩니다.</li>
             </ul>
           </section>
 
