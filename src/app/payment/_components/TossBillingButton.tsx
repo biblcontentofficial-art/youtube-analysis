@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 
 interface TossBillingButtonProps {
   plan: string;
@@ -8,19 +8,40 @@ interface TossBillingButtonProps {
   userId: string;
 }
 
+type TossPaymentInstance = Awaited<ReturnType<Awaited<ReturnType<typeof import("@tosspayments/tosspayments-sdk")["loadTossPayments"]>>["payment"]>>;
+
 export default function TossBillingButton({ plan, userId }: TossBillingButtonProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const paymentRef = useRef<TossPaymentInstance | null>(null);
+
+  // 마운트 시 SDK 미리 로드 → 클릭 시 user gesture context 유지
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { loadTossPayments } = await import("@tosspayments/tosspayments-sdk");
+        const clientKey = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY || "";
+        const tossPayments = await loadTossPayments(clientKey);
+        if (!cancelled) {
+          paymentRef.current = tossPayments.payment({ customerKey: userId });
+        }
+      } catch (e) {
+        console.error("[Toss] SDK 초기화 실패:", e);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [userId]);
 
   const handleClick = async () => {
+    if (!paymentRef.current) {
+      setError("결제 모듈을 초기화 중입니다. 잠시 후 다시 시도해주세요.");
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
-      const { loadTossPayments } = await import("@tosspayments/tosspayments-sdk");
-      const clientKey = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY || "";
-      const tossPayments = await loadTossPayments(clientKey);
-      const payment = tossPayments.payment({ customerKey: userId });
-      await payment.requestBillingAuth({
+      await paymentRef.current.requestBillingAuth({
         method: "CARD",
         successUrl: `${window.location.origin}/api/toss/billing/confirm?plan=${plan}`,
         failUrl: `${window.location.origin}/pricing?error=billing`,
