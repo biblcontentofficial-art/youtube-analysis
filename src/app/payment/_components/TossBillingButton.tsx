@@ -24,8 +24,10 @@ export default function TossBillingButton({ plan, userId }: TossBillingButtonPro
         successUrl: `${window.location.origin}/api/toss/billing/confirm?plan=${plan}`,
         failUrl: `${window.location.origin}/pricing?error=billing`,
       });
-    } catch (e) {
+    } catch (e: unknown) {
       console.error("[Toss] 빌링 인증 오류:", e);
+      const msg = e instanceof Error ? e.message : String(e);
+      alert(`토스 결제 오류: ${msg}`);
       setLoading(false);
     }
   };
