@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { PORTONE_PLANS, PortonePlanKey, PORTONE_STORE_ID, PORTONE_KAKAOPAY_CHANNEL_KEY, PORTONE_NAVERPAY_CHANNEL_KEY, PORTONE_KCP_CHANNEL_KEY } from "@/lib/portone";
+import { PORTONE_PLANS, PortonePlanKey, PORTONE_STORE_ID, PORTONE_KAKAOPAY_CHANNEL_KEY, PORTONE_KCP_CHANNEL_KEY } from "@/lib/portone";
 
 interface PortoneButtonProps {
   plan: PortonePlanKey;
@@ -30,15 +30,16 @@ const PAY_OPTIONS: PayOption[] = [
     bg: "bg-[#FEE500] hover:bg-[#F0D900]",
     text: "text-black",
   },
-  {
-    key: "NAVERPAY",
-    label: "네이버페이",
-    channelKeyEnv: () => PORTONE_NAVERPAY_CHANNEL_KEY,
-    billingKeyMethod: "EASY_PAY",
-    easyPayProvider: "NAVERPAY",
-    bg: "bg-[#03C75A] hover:bg-[#02B050]",
-    text: "text-white",
-  },
+  // NAVERPAY: 파트너센터 연동 전까지 비활성화
+  // {
+  //   key: "NAVERPAY",
+  //   label: "네이버페이",
+  //   channelKeyEnv: () => PORTONE_NAVERPAY_CHANNEL_KEY,
+  //   billingKeyMethod: "EASY_PAY",
+  //   easyPayProvider: "NAVERPAY",
+  //   bg: "bg-[#03C75A] hover:bg-[#02B050]",
+  //   text: "text-white",
+  // },
   {
     key: "CARD",
     label: "신용카드",
