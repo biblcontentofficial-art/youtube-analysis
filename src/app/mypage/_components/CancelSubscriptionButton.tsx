@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 export default function CancelSubscriptionButton() {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [activeUntil, setActiveUntil] = useState<string | null>(null);
   const router = useRouter();
 
   async function handleCancel() {
@@ -12,13 +13,30 @@ export default function CancelSubscriptionButton() {
     try {
       const res = await fetch("/api/cancel-subscription", { method: "POST" });
       if (!res.ok) throw new Error("failed");
+      const data = await res.json();
       setOpen(false);
-      router.refresh();
+      if (data.activeUntil) {
+        setActiveUntil(data.activeUntil);
+      } else {
+        router.refresh();
+      }
     } catch {
       alert("구독 취소에 실패했습니다. 잠시 후 다시 시도해주세요.");
     } finally {
       setLoading(false);
     }
+  }
+
+  if (activeUntil) {
+    const until = new Date(activeUntil).toLocaleDateString("ko-KR", {
+      year: "numeric", month: "long", day: "numeric",
+    });
+    return (
+      <div className="text-center text-xs text-gray-500 bg-gray-800/50 rounded-xl px-4 py-3">
+        구독이 취소되었습니다.<br />
+        <span className="text-gray-400">{until}</span>까지 서비스를 계속 이용할 수 있습니다.
+      </div>
+    );
   }
 
   return (
@@ -42,7 +60,8 @@ export default function CancelSubscriptionButton() {
             <div className="space-y-1.5">
               <p className="text-white text-sm font-semibold">구독을 취소하시겠습니까?</p>
               <p className="text-gray-500 text-xs leading-relaxed">
-                취소 즉시 Free 플랜으로 전환되며, 남은 기간의 혜택은 사라집니다.
+                취소해도 현재 결제 기간 종료까지 서비스를 계속 이용할 수 있습니다.
+                다음 결제일에 자동 갱신이 중단됩니다.
               </p>
             </div>
             <div className="flex gap-2 pt-1">
