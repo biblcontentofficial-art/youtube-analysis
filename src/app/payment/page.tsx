@@ -63,6 +63,7 @@ export default async function PaymentPage({
               plan={plan}
               userId={userId}
               userEmail={user?.emailAddresses[0]?.emailAddress || ''}
+              userName={`${user?.firstName ?? ''} ${user?.lastName ?? ''}`.trim()}
             />
           </div>
 

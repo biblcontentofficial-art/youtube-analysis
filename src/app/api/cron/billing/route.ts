@@ -3,7 +3,9 @@
  * GET /api/cron/billing
  *
  * Vercel Cron으로 매일 실행 → next_billing_at이 지난 active 구독에 대해
- * 토스페이먼츠 빌링키로 월 결제를 실행하고 next_billing_at을 +1개월 갱신.
+ * PG별(Toss / PortOne)로 월 결제를 실행하고 next_billing_at을 +1개월 갱신.
+ *
+ * PG 구분: billing_key가 "portone:" prefix이면 PortOne, 아니면 Toss
  *
  * 취소된(cancelled) 구독의 경우: next_billing_at이 지났으면 Clerk 플랜을 free로 내림.
  */
@@ -12,6 +14,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { clerkClient } from "@clerk/nextjs/server";
 import { getSupabase } from "@/lib/supabase";
 import { TOSS_PLANS, TossPlanKey } from "@/lib/toss";
+import { PORTONE_PLANS, PORTONE_API_SECRET, PORTONE_BILLING_KEY_PREFIX, PortonePlanKey } from "@/lib/portone";
 import { insertPayment } from "@/lib/db";
 
 export const maxDuration = 60;
@@ -46,7 +49,6 @@ export async function GET(req: NextRequest) {
       await client.users.updateUserMetadata(sub.user_id, {
         publicMetadata: { plan: "free" },
       });
-      // 만료 처리: status를 expired로 변경
       await db
         .from("subscriptions")
         .update({ status: "expired", updated_at: now })
@@ -56,7 +58,7 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  // ── 2. 결제일이 지난 active 구독 → 토스 빌링키로 월 결제 실행 ────────────
+  // ── 2. 결제일이 지난 active 구독 → PG별로 월 결제 실행 ──────────────────
   const { data: dueSubscriptions, error } = await db
     .from("subscriptions")
     .select("*")
@@ -69,89 +71,15 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "DB error" }, { status: 500 });
   }
 
-  const secretKey = process.env.TOSS_SECRET_KEY || "";
-  const base64 = Buffer.from(`${secretKey}:`).toString("base64");
-
-  const results: Array<{ userId: string; status: string; reason?: string }> = [];
+  const results: Array<{ userId: string; status: string; pg?: string; reason?: string }> = [];
 
   for (const sub of dueSubscriptions ?? []) {
-    const plan = sub.plan as TossPlanKey;
-    const planData = TOSS_PLANS[plan];
+    const isPortone = (sub.billing_key as string).startsWith(PORTONE_BILLING_KEY_PREFIX);
 
-    if (!planData) {
-      results.push({ userId: sub.user_id, status: "skipped", reason: "unknown plan" });
-      continue;
-    }
-
-    // orderId: 날짜 기반으로 중복 방지
-    const dateSuffix = new Date().toISOString().slice(0, 10).replace(/-/g, "");
-    const orderId = `billing_renewal_${sub.user_id}_${plan}_${dateSuffix}`;
-
-    try {
-      // 이메일 조회 (영수증용)
-      const clerkUser = await client.users.getUser(sub.user_id).catch(() => null);
-      const customerEmail = clerkUser?.emailAddresses?.[0]?.emailAddress ?? "";
-
-      const chargeRes = await fetch(
-        `https://api.tosspayments.com/v1/billing/${sub.billing_key}`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Basic ${base64}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            customerKey: sub.customer_key || sub.user_id,
-            amount: planData.amount,
-            orderId,
-            orderName: planData.orderName,
-            customerEmail,
-          }),
-        }
-      );
-
-      const chargeData = await chargeRes.json();
-
-      if (!chargeRes.ok) {
-        console.error(`[cron/billing] 결제 실패 userId=${sub.user_id}:`, chargeData);
-        await insertPayment({
-          userId: sub.user_id,
-          plan,
-          amount: planData.amount,
-          orderId,
-          status: "failed",
-          raw: chargeData,
-        });
-        results.push({ userId: sub.user_id, status: "failed", reason: chargeData.message });
-        continue;
-      }
-
-      // 결제 성공 → next_billing_at +1개월
-      const nextBillingAt = new Date();
-      nextBillingAt.setMonth(nextBillingAt.getMonth() + 1);
-
-      await db
-        .from("subscriptions")
-        .update({
-          next_billing_at: nextBillingAt.toISOString(),
-          updated_at: new Date().toISOString(),
-        })
-        .eq("user_id", sub.user_id);
-
-      await insertPayment({
-        userId: sub.user_id,
-        plan,
-        amount: planData.amount,
-        orderId,
-        paymentKey: chargeData.paymentKey,
-        status: "success",
-        raw: chargeData,
-      });
-
-      results.push({ userId: sub.user_id, status: "success" });
-    } catch (e) {
-      console.error(`[cron/billing] 예외 userId=${sub.user_id}:`, e);
-      results.push({ userId: sub.user_id, status: "error", reason: String(e) });
+    if (isPortone) {
+      await chargePortone(sub, client, db, now, results);
+    } else {
+      await chargeToss(sub, client, db, now, results);
     }
   }
 
@@ -163,4 +91,149 @@ export async function GET(req: NextRequest) {
     processed: results.length,
     results,
   });
+}
+
+// ─────────────────────────────────────────────────────────────
+// Toss 결제 실행
+// ─────────────────────────────────────────────────────────────
+async function chargeToss(
+  sub: Record<string, string>,
+  client: Awaited<ReturnType<typeof clerkClient>>,
+  db: NonNullable<ReturnType<typeof getSupabase>>,
+  now: string,
+  results: Array<{ userId: string; status: string; pg?: string; reason?: string }>
+) {
+  const plan     = sub.plan as TossPlanKey;
+  const planData = TOSS_PLANS[plan];
+
+  if (!planData) {
+    results.push({ userId: sub.user_id, status: "skipped", pg: "toss", reason: "unknown plan" });
+    return;
+  }
+
+  const secretKey = process.env.TOSS_SECRET_KEY || "";
+  const base64    = Buffer.from(`${secretKey}:`).toString("base64");
+  const dateSuffix = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+  const orderId    = `billing_renewal_${sub.user_id}_${plan}_${dateSuffix}`;
+
+  try {
+    const clerkUser      = await client.users.getUser(sub.user_id).catch(() => null);
+    const customerEmail  = clerkUser?.emailAddresses?.[0]?.emailAddress ?? "";
+
+    const chargeRes = await fetch(
+      `https://api.tosspayments.com/v1/billing/${sub.billing_key}`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Basic ${base64}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          customerKey: sub.customer_key || sub.user_id,
+          amount: planData.amount,
+          orderId,
+          orderName: planData.orderName,
+          customerEmail,
+        }),
+      }
+    );
+
+    const chargeData = await chargeRes.json();
+
+    if (!chargeRes.ok) {
+      console.error(`[cron/billing/toss] 결제 실패 userId=${sub.user_id}:`, chargeData);
+      await insertPayment({ userId: sub.user_id, plan, amount: planData.amount, orderId, status: "failed", raw: chargeData });
+      results.push({ userId: sub.user_id, status: "failed", pg: "toss", reason: chargeData.message });
+      return;
+    }
+
+    const nextBillingAt = new Date();
+    nextBillingAt.setMonth(nextBillingAt.getMonth() + 1);
+
+    await db.from("subscriptions").update({ next_billing_at: nextBillingAt.toISOString(), updated_at: now }).eq("user_id", sub.user_id);
+    await insertPayment({ userId: sub.user_id, plan, amount: planData.amount, orderId, paymentKey: chargeData.paymentKey, status: "success", raw: chargeData });
+
+    results.push({ userId: sub.user_id, status: "success", pg: "toss" });
+  } catch (e) {
+    console.error(`[cron/billing/toss] 예외 userId=${sub.user_id}:`, e);
+    results.push({ userId: sub.user_id, status: "error", pg: "toss", reason: String(e) });
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// PortOne 결제 실행
+// ─────────────────────────────────────────────────────────────
+async function chargePortone(
+  sub: Record<string, string>,
+  client: Awaited<ReturnType<typeof clerkClient>>,
+  db: NonNullable<ReturnType<typeof getSupabase>>,
+  now: string,
+  results: Array<{ userId: string; status: string; pg?: string; reason?: string }>
+) {
+  const plan     = sub.plan as PortonePlanKey;
+  const planData = PORTONE_PLANS[plan];
+
+  if (!planData) {
+    results.push({ userId: sub.user_id, status: "skipped", pg: "portone", reason: "unknown plan" });
+    return;
+  }
+
+  const apiSecret = PORTONE_API_SECRET;
+  if (!apiSecret) {
+    results.push({ userId: sub.user_id, status: "skipped", pg: "portone", reason: "PORTONE_API_SECRET not set" });
+    return;
+  }
+
+  // "portone:" prefix 제거하여 실제 빌링키 추출
+  const actualBillingKey = (sub.billing_key as string).slice(PORTONE_BILLING_KEY_PREFIX.length);
+  const dateSuffix       = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+  const paymentId        = `portone_renewal_${sub.user_id}_${plan}_${dateSuffix}`;
+
+  try {
+    const clerkUser = await client.users.getUser(sub.user_id).catch(() => null);
+    const email     = clerkUser?.emailAddresses?.[0]?.emailAddress ?? "";
+    const fullName  = `${clerkUser?.firstName ?? ""} ${clerkUser?.lastName ?? ""}`.trim() || "고객";
+
+    const chargeRes = await fetch(
+      `https://api.portone.io/payments/${encodeURIComponent(paymentId)}/billing-key`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `PortOne ${apiSecret}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          billingKey: actualBillingKey,
+          orderName: planData.orderName,
+          amount:    { total: planData.amount },
+          currency:  "KRW",
+          customer: {
+            id:    sub.user_id,
+            name:  { full: fullName },
+            email,
+          },
+        }),
+      }
+    );
+
+    const chargeData = await chargeRes.json();
+
+    if (!chargeRes.ok) {
+      console.error(`[cron/billing/portone] 결제 실패 userId=${sub.user_id}:`, chargeData);
+      await insertPayment({ userId: sub.user_id, plan, amount: planData.amount, orderId: paymentId, status: "failed", raw: chargeData });
+      results.push({ userId: sub.user_id, status: "failed", pg: "portone", reason: chargeData.message });
+      return;
+    }
+
+    const nextBillingAt = new Date();
+    nextBillingAt.setMonth(nextBillingAt.getMonth() + 1);
+
+    await db.from("subscriptions").update({ next_billing_at: nextBillingAt.toISOString(), updated_at: now }).eq("user_id", sub.user_id);
+    await insertPayment({ userId: sub.user_id, plan, amount: planData.amount, orderId: paymentId, paymentKey: chargeData.id ?? paymentId, status: "success", raw: chargeData });
+
+    results.push({ userId: sub.user_id, status: "success", pg: "portone" });
+  } catch (e) {
+    console.error(`[cron/billing/portone] 예외 userId=${sub.user_id}:`, e);
+    results.push({ userId: sub.user_id, status: "error", pg: "portone", reason: String(e) });
+  }
 }

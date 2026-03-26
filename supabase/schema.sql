@@ -49,9 +49,11 @@ CREATE OR REPLACE TRIGGER subscriptions_updated_at
   BEFORE UPDATE ON subscriptions
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 
--- 5. Row Level Security (서버에서 Service Role Key 쓰므로 비활성화)
-ALTER TABLE subscriptions DISABLE ROW LEVEL SECURITY;
-ALTER TABLE payments DISABLE ROW LEVEL SECURITY;
+-- 5. Row Level Security
+-- 서버는 SUPABASE_SERVICE_ROLE_KEY를 사용하므로 RLS를 우회 → 서비스 코드에 영향 없음
+-- anon key 직접 접근을 차단하기 위해 모든 테이블에 RLS 활성화
+ALTER TABLE subscriptions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE payments ENABLE ROW LEVEL SECURITY;
 
 -- 6. 검색 기록 테이블 (Starter 이상)
 CREATE TABLE IF NOT EXISTS search_history (
@@ -66,7 +68,7 @@ CREATE TABLE IF NOT EXISTS search_history (
 CREATE INDEX IF NOT EXISTS idx_search_history_user_id ON search_history(user_id);
 CREATE INDEX IF NOT EXISTS idx_search_history_searched_at ON search_history(searched_at DESC);
 
-ALTER TABLE search_history DISABLE ROW LEVEL SECURITY;
+ALTER TABLE search_history ENABLE ROW LEVEL SECURITY;
 
 -- 7. 수집한 영상 테이블 (Pro 이상)
 CREATE TABLE IF NOT EXISTS saved_videos (
@@ -91,7 +93,7 @@ CREATE TABLE IF NOT EXISTS saved_videos (
 CREATE INDEX IF NOT EXISTS idx_saved_videos_user_id ON saved_videos(user_id);
 CREATE INDEX IF NOT EXISTS idx_saved_videos_saved_at ON saved_videos(saved_at DESC);
 
-ALTER TABLE saved_videos DISABLE ROW LEVEL SECURITY;
+ALTER TABLE saved_videos ENABLE ROW LEVEL SECURITY;
 
 -- 8. 상담 신청 테이블 (TMK STUDIO 채널 대행 폼)
 CREATE TABLE IF NOT EXISTS consulting_submissions (
@@ -110,4 +112,4 @@ CREATE TABLE IF NOT EXISTS consulting_submissions (
 
 CREATE INDEX IF NOT EXISTS idx_consulting_submissions_created_at ON consulting_submissions(created_at DESC);
 
-ALTER TABLE consulting_submissions DISABLE ROW LEVEL SECURITY;
+ALTER TABLE consulting_submissions ENABLE ROW LEVEL SECURITY;
