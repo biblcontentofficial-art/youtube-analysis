@@ -26,8 +26,9 @@ export default function TossBillingButton({ plan, userId }: TossBillingButtonPro
       });
     } catch (e: unknown) {
       console.error("[Toss] 빌링 인증 오류:", e);
-      const msg = e instanceof Error ? e.message : String(e);
-      alert(`토스 결제 오류: ${msg}`);
+      const code = (e as { code?: string }).code ?? "NO_CODE";
+      const msg = (e as { message?: string }).message ?? String(e);
+      alert(`토스 결제 오류 [${code}]: ${msg}`);
       setLoading(false);
     }
   };
