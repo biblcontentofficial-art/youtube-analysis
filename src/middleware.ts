@@ -60,7 +60,7 @@ export const config = {
   // 정적 파일, 이미지, 폰트 등은 미들웨어 완전 제외
   // studio·pricing·channels 같은 공개 HTML 페이지도 Edge 호출 최소화
   matcher: [
-    "/((?!_next/static|_next/image|favicon\\.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js|woff2?|ttf)).*)",
+    "/((?!_next/static|_next/image|favicon\\.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js|woff2?|ttf|txt|xml)).*)",
     "/(api|trpc)(.*)",
   ],
 };
