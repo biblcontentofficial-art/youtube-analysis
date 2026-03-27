@@ -185,7 +185,7 @@ export default function SearchResultList({
   // 더보기 가능 여부: resultLimit 미만이고 소진되지 않았으면 항상 표시
   const hasMore = canLoadMore && videos.length < resultLimit && !exhausted;
 
-  // 영상 수집: Pro/Business 전용 — CSV 다운로드 + 서버 저장
+  // 영상 수집: Pro/Business 전용 — 수집한 영상 탭에 저장 (CSV는 수집한 영상 탭에서 내보내기)
   const handleCollect = useCallback(async () => {
     if (!canCollect) {
       alert("영상 수집은 Pro 플랜부터 사용 가능합니다.\n/pricing 에서 업그레이드하세요.");
@@ -194,32 +194,7 @@ export default function SearchResultList({
     const targets = checkedIds.size > 0
       ? sortedVideos.filter((v) => checkedIds.has(v.videoId))
       : sortedVideos;
-    const header = "제목,채널,조회수,구독자,반응도,아웃라이어,게시일,URL";
-    const rows = targets.map((v) =>
-      [
-        `"${v.title?.replace(/"/g, '""') ?? ''}"`,
-        `"${v.channelTitle?.replace(/"/g, '""') ?? ''}"`,
-        v.viewCount ?? '',
-        v.subscriberCount ?? '',
-        v.score ?? '',
-        v.performanceRatio ?? '',
-        v.publishedAt ?? '',
-        `https://youtube.com/watch?v=${v.videoId}`,
-      ].join(",")
-    );
-    const csv = "\uFEFF" + [header, ...rows].join("\n");
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    const date = new Date().toISOString().slice(0, 10);
-    a.href = url;
-    a.download = `bibl_영상수집_${date}.csv`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
 
-    // 서버에도 저장 (수집한 영상 페이지에서 확인 가능)
     try {
       await fetch("/api/saved-videos", {
         method: "POST",
@@ -242,7 +217,8 @@ export default function SearchResultList({
         }),
       });
     } catch {
-      // 서버 저장 실패해도 CSV 다운로드는 성공했으므로 조용히 넘어감
+      alert("수집 중 오류가 발생했습니다. 다시 시도해주세요.");
+      return;
     }
 
     if (toastTimer.current) clearTimeout(toastTimer.current);
