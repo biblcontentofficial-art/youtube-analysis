@@ -231,8 +231,8 @@ export default function Home() {
           <h2 className="text-2xl font-bold text-center text-white mb-12">3단계로 바로 시작</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
             <StepCard step={1} title="키워드 입력" desc="분석하고 싶은 유튜브 키워드를 검색창에 입력하세요" />
-            <StepCard step={2} title="실시간 분석" desc="YouTube API로 최신 영상 데이터를 수집·분석합니다" />
-            <StepCard step={3} title="인사이트 확인" desc="반응도·조회수·채널 분석 결과로 전략을 세우세요" />
+            <StepCard step={2} title="실시간 분석" desc="YouTube 최신 영상 데이터를 수집·분석합니다" />
+            <StepCard step={3} title="인사이트 확인" desc="반응도, 조회수, 채널분석을 토대로 내 채널에 맞게 기획해보세요" />
           </div>
         </div>
       </div>
@@ -264,7 +264,10 @@ function FeatureCard({ icon, title, desc }: { icon: React.ReactNode; title: stri
         {icon}
       </div>
       <h3 className="font-semibold text-white transition-colors duration-300 group-hover:text-teal-400">{title}</h3>
-      <p className="text-sm text-gray-500 leading-relaxed transition-colors duration-300 group-hover:text-gray-400">{desc}</p>
+      {/* 설명: 기본 숨김 → 호버 시 슬라이드 다운 */}
+      <div className="overflow-hidden max-h-0 opacity-0 group-hover:max-h-40 group-hover:opacity-100 transition-all duration-500 ease-out">
+        <p className="text-sm text-gray-400 leading-relaxed translate-y-2 group-hover:translate-y-0 transition-transform duration-500 ease-out">{desc}</p>
+      </div>
     </div>
   );
 }
