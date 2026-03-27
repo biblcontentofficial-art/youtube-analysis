@@ -265,24 +265,24 @@ export default function Home() {
 
 function FeatureCard({ icon, title, desc }: { icon: React.ReactNode; title: string; desc: string }) {
   return (
-    <div className="flex flex-col gap-3">
-      <div className="w-10 h-10 bg-teal-950/60 border border-teal-800/50 rounded-xl flex items-center justify-center">
+    <div className="group flex flex-col gap-3 p-4 rounded-2xl border border-transparent hover:border-teal-800/60 hover:bg-teal-950/20 transition-all duration-300 cursor-default -m-4">
+      <div className="w-10 h-10 bg-teal-950/60 border border-teal-800/50 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:border-teal-500/70 group-hover:bg-teal-900/60 group-hover:shadow-[0_0_12px_rgba(20,184,166,0.3)]">
         {icon}
       </div>
-      <h3 className="font-semibold text-white">{title}</h3>
-      <p className="text-sm text-gray-500 leading-relaxed">{desc}</p>
+      <h3 className="font-semibold text-white transition-colors duration-300 group-hover:text-teal-400">{title}</h3>
+      <p className="text-sm text-gray-500 leading-relaxed transition-colors duration-300 group-hover:text-gray-400">{desc}</p>
     </div>
   );
 }
 
 function StepCard({ step, title, desc }: { step: number; title: string; desc: string }) {
   return (
-    <div className="flex flex-col items-center text-center gap-3">
-      <div className="w-12 h-12 rounded-full bg-teal-500/10 border border-teal-500/30 flex items-center justify-center text-teal-400 font-bold text-lg">
+    <div className="group flex flex-col items-center text-center gap-3 p-5 rounded-2xl border border-transparent hover:border-teal-800/50 hover:bg-teal-950/20 transition-all duration-300 cursor-default">
+      <div className="w-12 h-12 rounded-full bg-teal-500/10 border border-teal-500/30 flex items-center justify-center text-teal-400 font-bold text-lg transition-all duration-300 group-hover:scale-110 group-hover:bg-teal-500/20 group-hover:border-teal-400/60 group-hover:shadow-[0_0_16px_rgba(20,184,166,0.35)]">
         {step}
       </div>
-      <h3 className="font-semibold text-white">{title}</h3>
-      <p className="text-sm text-gray-500 leading-relaxed">{desc}</p>
+      <h3 className="font-semibold text-white transition-colors duration-300 group-hover:text-teal-400">{title}</h3>
+      <p className="text-sm text-gray-500 leading-relaxed transition-colors duration-300 group-hover:text-gray-400">{desc}</p>
     </div>
   );
 }
