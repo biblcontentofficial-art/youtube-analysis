@@ -130,8 +130,8 @@ export default function Home() {
           {/* 타이틀 */}
           <div className="space-y-4">
             <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight text-white leading-tight">
-              유튜브 키워드로<br />
-              <span className="text-teal-400">트렌드를 선점</span>하세요
+              키워드를 검색해<br />
+              <span className="text-teal-400">유튜브 트렌드</span>를 찾아보세요
             </h1>
             <p className="text-gray-400 text-lg max-w-xl mx-auto leading-relaxed">
               조회수·구독자·반응도를 한눈에 분석해<br className="hidden sm:block" />
@@ -244,19 +244,13 @@ export default function Home() {
           무료로 시작하고, 필요할 때 업그레이드하세요.<br className="hidden sm:block" />
           영상 검색 · 채널 찾기 · 영상 수집까지 — 크리에이터에게 필요한 모든 것
         </p>
-        <div className="flex flex-col sm:flex-row gap-3 justify-center">
+        <div className="flex justify-center">
           <Link
             href="/pricing"
             className="px-8 py-3 bg-teal-500 hover:bg-teal-400 text-white font-semibold rounded-xl transition"
           >
             요금제 보기
           </Link>
-          <button
-            onClick={() => trySearch("캠핑")}
-            className="px-8 py-3 bg-gray-800 hover:bg-gray-700 text-white font-semibold rounded-xl transition"
-          >
-            무료로 체험하기
-          </button>
         </div>
       </div>
     </main>
