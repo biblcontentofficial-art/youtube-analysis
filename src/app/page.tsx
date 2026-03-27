@@ -130,8 +130,8 @@ export default function Home() {
           {/* 타이틀 */}
           <div className="space-y-4">
             <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight text-white leading-tight">
-              키워드를 검색해<br />
-              <span className="text-teal-400">유튜브 트렌드</span>를 찾아보세요
+              키워드 하나로<br />
+              <span className="text-teal-400">유튜브 트렌드</span>를 파악하세요
             </h1>
             <p className="text-gray-400 text-lg max-w-xl mx-auto leading-relaxed">
               조회수·구독자·반응도를 한눈에 분석해<br className="hidden sm:block" />
