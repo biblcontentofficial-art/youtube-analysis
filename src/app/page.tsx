@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useUser } from "@clerk/nextjs";
 import { useNavigationLoading } from "@/app/_components/NavigationLoader";
 import { useConfirm } from "@/app/_components/ConfirmDialog";
+import LandingStats from "@/app/_components/LandingStats";
 
 const EXAMPLE_KEYWORDS = ["캠핑", "영어 공부", "주식 투자", "다이어트", "여행 브이로그", "요리 레시피"];
 
@@ -179,23 +180,8 @@ export default function Home() {
         </div>
       </div>
 
-      {/* 소셜 프루프 */}
-      <div className="border-y border-gray-800 bg-gray-900/50 py-6">
-        <div className="max-w-3xl mx-auto px-4 grid grid-cols-3 gap-4 text-center">
-          <div>
-            <p className="text-2xl font-bold text-teal-400">10,000+</p>
-            <p className="text-xs text-gray-500 mt-1">키워드 분석됨</p>
-          </div>
-          <div>
-            <p className="text-2xl font-bold text-teal-400">실시간</p>
-            <p className="text-xs text-gray-500 mt-1">YouTube 데이터 수집</p>
-          </div>
-          <div>
-            <p className="text-2xl font-bold text-teal-400">무료</p>
-            <p className="text-xs text-gray-500 mt-1">로그인 후 무료 2회 가능</p>
-          </div>
-        </div>
-      </div>
+      {/* 소셜 프루프 — 카운트업 애니메이션 */}
+      <LandingStats />
 
       {/* 기능 소개 */}
       <div className="bg-gray-900/30">
