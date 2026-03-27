@@ -106,13 +106,16 @@ export default async function RootLayout({
     NavUser = navUserModule.default;
 
     // 플랜 확인 → nav 잠금 해제
-    // currentUser()로 최신 publicMetadata 읽음 (sessionClaims JWT에는 publicMetadata 미포함)
+    // auth()로 JWT sessionClaims에서 publicMetadata 읽음 (API 호출 없이 안정적)
     try {
-      const { currentUser } = await import("@clerk/nextjs/server");
-      const user = await currentUser();
-      const plan = (user?.publicMetadata?.plan as string) ?? "";
-      isStarterPlus = ["starter", "pro", "business", "admin"].includes(plan);
-      isProPlus = ["pro", "business", "admin"].includes(plan);
+      const { auth } = await import("@clerk/nextjs/server");
+      const { userId, sessionClaims } = await auth();
+      if (userId) {
+        const meta = (sessionClaims?.publicMetadata ?? {}) as Record<string, unknown>;
+        const plan = ((meta.plan as string) ?? "").toLowerCase();
+        isStarterPlus = ["starter", "pro", "business", "admin"].includes(plan);
+        isProPlus = ["pro", "business", "admin"].includes(plan);
+      }
     } catch { /* auth 실패 시 기본값 false */ }
   }
 
