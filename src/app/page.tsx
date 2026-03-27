@@ -264,10 +264,7 @@ function FeatureCard({ icon, title, desc }: { icon: React.ReactNode; title: stri
         {icon}
       </div>
       <h3 className="font-semibold text-white transition-colors duration-300 group-hover:text-teal-400">{title}</h3>
-      {/* 설명: 기본 숨김 → 호버 시 슬라이드 다운 */}
-      <div className="overflow-hidden max-h-0 opacity-0 group-hover:max-h-40 group-hover:opacity-100 transition-all duration-500 ease-out">
-        <p className="text-sm text-gray-400 leading-relaxed translate-y-2 group-hover:translate-y-0 transition-transform duration-500 ease-out">{desc}</p>
-      </div>
+      <p className="text-sm text-gray-500 leading-relaxed transition-colors duration-300 group-hover:text-gray-400">{desc}</p>
     </div>
   );
 }
