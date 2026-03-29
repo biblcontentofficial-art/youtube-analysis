@@ -35,7 +35,7 @@ export default function InicisButton({ plan, userId, userEmail, userName }: Inic
     try {
       const { requestIssueBillingKey } = await import("@portone/browser-sdk/v2");
       const planData = PORTONE_PLANS[plan];
-      const issueId  = `inicis_${userId}_${plan}_${Date.now()}`;
+      const issueId  = `ini_${userId.slice(-10)}_${Date.now().toString(36)}`;
 
       const response = await requestIssueBillingKey({
         storeId,

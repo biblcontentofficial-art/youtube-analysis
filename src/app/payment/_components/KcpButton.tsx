@@ -35,7 +35,7 @@ export default function KcpButton({ plan, userId, userEmail, userName }: KcpButt
     try {
       const { requestIssueBillingKey } = await import("@portone/browser-sdk/v2");
       const planData = PORTONE_PLANS[plan];
-      const issueId  = `kcp_${userId}_${plan}_${Date.now()}`;
+      const issueId  = `kcp_${userId.slice(-10)}_${Date.now().toString(36)}`;
 
       const response = await requestIssueBillingKey({
         storeId,
