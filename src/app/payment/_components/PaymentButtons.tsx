@@ -111,8 +111,9 @@ export default function PaymentButtons({ plan, userId, userEmail, userName }: Pr
           alert("결제 모듈 초기화 중입니다. 잠시 후 다시 시도해주세요.");
           return;
         }
-        await tossRef.current.requestBillingAuth({
-          method: "CARD",
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await (tossRef.current.requestBillingAuth as any)({
+          method: "카드",
           successUrl: `${window.location.origin}/api/toss/billing/confirm?plan=${plan}`,
           failUrl: `${window.location.origin}/pricing?error=billing`,
         });
