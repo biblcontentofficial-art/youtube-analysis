@@ -115,6 +115,7 @@ export default function PaymentButtons({ plan, userId, userEmail, userName }: Pr
           method: "CARD",
           successUrl: `${window.location.origin}/api/toss/billing/confirm?plan=${plan}`,
           failUrl: `${window.location.origin}/pricing?error=billing`,
+          windowTarget: 'self',
         });
       } else if (id === "kakao") {
         const storeId = process.env.NEXT_PUBLIC_PORTONE_STORE_ID;
