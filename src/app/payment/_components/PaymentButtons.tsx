@@ -27,9 +27,9 @@ export default function PaymentButtons({ plan, userId, userEmail, userName }: Pr
   const tossRef = useRef<TossInstance | null>(null);
   const [tossReady, setTossReady] = useState(false);
 
-  // 토스 클라이언트 키 존재 여부로 활성화 판단
-  const tossClientKey = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY || "";
-  const tossEnabled = tossClientKey.startsWith("live_ck_"); // 라이브 키만 활성화
+  // 토스 결제위젯 키가 설정되어 있으면 활성화
+  const tossWidgetKey = process.env.NEXT_PUBLIC_TOSS_WIDGET_CLIENT_KEY || "";
+  const tossEnabled = tossWidgetKey.length > 0;
 
   useEffect(() => {
     if (!tossEnabled) return;
@@ -37,7 +37,7 @@ export default function PaymentButtons({ plan, userId, userEmail, userName }: Pr
     (async () => {
       try {
         const { loadTossPayments } = await import("@tosspayments/tosspayments-sdk");
-        const tp = await loadTossPayments(tossClientKey);
+        const tp = await loadTossPayments(tossWidgetKey);
         if (!cancelled) {
           tossRef.current = tp.payment({ customerKey: userId });
           setTossReady(true);
@@ -45,7 +45,7 @@ export default function PaymentButtons({ plan, userId, userEmail, userName }: Pr
       } catch {}
     })();
     return () => { cancelled = true; };
-  }, [userId, tossEnabled, tossClientKey]);
+  }, [userId, tossEnabled, tossWidgetKey]);
 
   const handleSelect = (id: PayMethod) => {
     if (loading) return;
