@@ -98,11 +98,22 @@ export default async function PaymentPage({
         <div className="mt-4 space-y-1 text-center">
           <p className="text-xs text-gray-600">카드 등록 후 매월 자동 결제됩니다. 언제든지 취소 가능합니다.</p>
           <p className="text-xs text-gray-600">
+            결제 시{' '}
+            <Link href="/terms" className="text-gray-500 underline hover:text-gray-400" target="_blank">
+              이용약관
+            </Link>
+            {' '}및{' '}
+            <Link href="/privacy" className="text-gray-500 underline hover:text-gray-400" target="_blank">
+              개인정보처리방침
+            </Link>
+            에 동의하게 됩니다.
+          </p>
+          <p className="text-xs text-gray-600">
             결제 전{' '}
             <Link href="/refund" className="text-gray-500 underline hover:text-gray-400" target="_blank">
               환불정책
             </Link>
-            을 확인하세요
+            을 확인하세요.
           </p>
         </div>
 
