@@ -5,6 +5,8 @@ import Link from "next/link";
 import VideoCard from "./VideoCard";
 import VideoModal from "./VideoModal";
 import ChannelReport from "./ChannelReport";
+import KeywordCompetition from "./KeywordCompetition";
+import TitlePatternAnalysis from "./TitlePatternAnalysis";
 import { Video } from "@/types";
 import { getMoreVideos } from "../actions";
 
@@ -309,6 +311,15 @@ export default function SearchResultList({
   return (
     <div className="w-full mt-4 pb-12">
 
+      {/* 키워드 경쟁도 분석 */}
+      <div className="mb-4">
+        <KeywordCompetition videos={videos} query={query} />
+      </div>
+
+      {/* 제목 패턴 분석 */}
+      <div className="mb-4">
+        <TitlePatternAnalysis videos={videos} />
+      </div>
 
       {/* 테이블 헤더 */}
       <div

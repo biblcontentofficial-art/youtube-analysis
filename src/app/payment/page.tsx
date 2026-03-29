@@ -8,6 +8,8 @@ import { redirect } from 'next/navigation'
 import { PLANS, PlanKey } from '@/lib/payple'
 import TossBillingButton from './_components/TossBillingButton'
 import PortoneButton from './_components/PortoneButton'
+import InicisButton from './_components/InicisButton'
+import KcpButton from './_components/KcpButton'
 
 export default async function PaymentPage({
   searchParams,
@@ -60,6 +62,18 @@ export default async function PaymentPage({
           <div className="space-y-2">
             <TossBillingButton plan={plan} amount={PLANS[plan].amount} userId={userId} />
             <PortoneButton
+              plan={plan}
+              userId={userId}
+              userEmail={user?.emailAddresses[0]?.emailAddress || ''}
+              userName={`${user?.firstName ?? ''} ${user?.lastName ?? ''}`.trim()}
+            />
+            <InicisButton
+              plan={plan}
+              userId={userId}
+              userEmail={user?.emailAddresses[0]?.emailAddress || ''}
+              userName={`${user?.firstName ?? ''} ${user?.lastName ?? ''}`.trim()}
+            />
+            <KcpButton
               plan={plan}
               userId={userId}
               userEmail={user?.emailAddresses[0]?.emailAddress || ''}

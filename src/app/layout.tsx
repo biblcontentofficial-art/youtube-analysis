@@ -303,6 +303,7 @@ export default async function RootLayout({
                 <NavTab href="/search" label="영상 찾기" />
                 <NavTab href="/channels" label="채널 찾기" requiredPlan={!isStarterPlus ? "Starter" : undefined} />
                 <NavTab href="/saved" label="수집한 영상" requiredPlan={!isProPlus ? "Pro" : undefined} />
+                <NavTab href="/my-channel" label="내 채널 분석" requiredPlan={!isStarterPlus ? "Starter" : undefined} />
                 <NavTab href="/pricing" label="요금제" />
                 {process.env.NODE_ENV === "development" && (
                   <>

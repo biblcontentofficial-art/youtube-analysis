@@ -113,12 +113,37 @@ function EmptyState() {
       </p>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {[
-          { icon: "🔥", label: "영상 평균 조회수 순", desc: "채널 전체 영상의 영상당 평균 조회수가 높은 순으로 정렬합니다. 콘텐츠 하나하나가 잘 터지는 채널을 찾아보세요." },
-          { icon: "📈", label: "월 구독자 증가량 순", desc: "구독자 수 ÷ 채널 개설 월수로 계산한 월평균 구독자 증가량이 많은 순으로 정렬합니다." },
-          { icon: "🌱", label: "신생 채널 · 평균 조회수 순", desc: "개설 3년 이내 채널을 우선으로, 영상당 평균 조회수 높은 순으로 정렬합니다." },
+          {
+            icon: (
+              <svg viewBox="0 0 24 24" fill="none" className="w-7 h-7 text-orange-400" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.362 5.214A8.252 8.252 0 0 1 12 21 8.25 8.25 0 0 1 6.038 7.047 8.287 8.287 0 0 0 9 9.601a8.983 8.983 0 0 1 3.361-6.867 8.21 8.21 0 0 0 3 2.48Z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 18a3.75 3.75 0 0 0 .495-7.468 5.99 5.99 0 0 0-1.925 3.547 5.975 5.975 0 0 1-2.133-1.001A3.75 3.75 0 0 0 12 18Z" />
+              </svg>
+            ),
+            label: "영상 평균 조회수 순",
+            desc: "채널 전체 영상의 영상당 평균 조회수가 높은 순으로 정렬합니다. 콘텐츠 하나하나가 잘 터지는 채널을 찾아보세요.",
+          },
+          {
+            icon: (
+              <svg viewBox="0 0 24 24" fill="none" className="w-7 h-7 text-blue-400" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18 9 11.25l4.306 4.306a11.95 11.95 0 0 1 5.814-5.518l2.74-1.22m0 0-5.94-2.281m5.94 2.28-2.28 5.941" />
+              </svg>
+            ),
+            label: "월 구독자 증가량 순",
+            desc: "구독자 수 ÷ 채널 개설 월수로 계산한 월평균 구독자 증가량이 많은 순으로 정렬합니다.",
+          },
+          {
+            icon: (
+              <svg viewBox="0 0 24 24" fill="none" className="w-7 h-7 text-green-400" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z" />
+              </svg>
+            ),
+            label: "신생 채널 · 평균 조회수 순",
+            desc: "개설 3년 이내 채널을 우선으로, 영상당 평균 조회수 높은 순으로 정렬합니다.",
+          },
         ].map((c) => (
           <div key={c.label} className="bg-gray-900 border border-gray-800 rounded-xl p-5">
-            <div className="text-3xl mb-3">{c.icon}</div>
+            <div className="mb-3">{c.icon}</div>
             <p className="text-sm font-semibold text-white mb-2">{c.label}</p>
             <p className="text-xs text-gray-500 leading-relaxed">{c.desc}</p>
           </div>
