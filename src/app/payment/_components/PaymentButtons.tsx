@@ -112,6 +112,7 @@ export default function PaymentButtons({ plan, userId, userEmail, userName }: Pr
           return;
         }
         await tossRef.current.requestBillingAuth({
+          method: "CARD",
           successUrl: `${window.location.origin}/api/toss/billing/confirm?plan=${plan}`,
           failUrl: `${window.location.origin}/pricing?error=billing`,
         });
