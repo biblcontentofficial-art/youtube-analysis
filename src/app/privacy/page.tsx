@@ -9,7 +9,7 @@ export default function PrivacyPage() {
     <main className="min-h-screen bg-gray-950 text-white py-16 px-4">
       <div className="max-w-3xl mx-auto">
         <h1 className="text-3xl font-bold mb-2">개인정보처리방침</h1>
-        <p className="text-gray-500 text-sm mb-10">최종 수정일: 2026년 3월 19일</p>
+        <p className="text-gray-500 text-sm mb-10">최종 수정일: 2026년 3월 30일</p>
 
         <div className="space-y-10 text-sm text-gray-400 leading-relaxed">
           <section>
@@ -44,8 +44,9 @@ export default function PrivacyPage() {
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold text-white mb-3">제4조 (개인정보의 제3자 제공)</h2>
+            <h2 className="text-lg font-semibold text-white mb-3">제4조 (개인정보의 제3자 제공 및 처리 위탁)</h2>
             <p>회사는 정보주체의 개인정보를 제1조(개인정보의 처리 목적)에서 명시한 범위 내에서만 처리하며, 정보주체의 동의, 법률의 특별한 규정 등 관련 법령에서 허용한 경우에만 제3자에게 개인정보를 제공합니다.</p>
+            <p className="mt-3">회사는 원활한 서비스 제공을 위하여 다음과 같이 개인정보 처리 업무를 위탁하고 있습니다. 회사는 위탁계약 시 개인정보보호법 제26조에 따라 위탁업무 수행목적 외 개인정보 처리 금지, 기술적·관리적 보호조치, 재위탁 제한, 수탁자에 대한 관리·감독, 손해배상 등 책임에 관한 사항을 문서에 명시하고 수탁자가 개인정보를 안전하게 처리하는지를 감독하고 있습니다.</p>
             <div className="mt-3 overflow-x-auto">
               <table className="w-full text-xs border border-gray-800 rounded-lg overflow-hidden">
                 <thead className="bg-gray-900">
@@ -57,28 +58,49 @@ export default function PrivacyPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-800">
                   <tr>
-                    <td className="px-4 py-2">토스페이먼츠(주)</td>
-                    <td className="px-4 py-2">결제 처리 (정기결제)</td>
-                    <td className="px-4 py-2">계약 종료 시까지</td>
+                    <td className="px-4 py-2">주식회사 코리아포트원 (포트원)</td>
+                    <td className="px-4 py-2">전자결제 연동 대행</td>
+                    <td className="px-4 py-2">위탁계약 종료 시까지</td>
                   </tr>
                   <tr>
-                    <td className="px-4 py-2">포트원(주)</td>
-                    <td className="px-4 py-2">결제 처리 (간편결제)</td>
-                    <td className="px-4 py-2">계약 종료 시까지</td>
+                    <td className="px-4 py-2">토스페이먼츠 주식회사</td>
+                    <td className="px-4 py-2">신용카드 정기결제 처리</td>
+                    <td className="px-4 py-2">위탁계약 종료 시까지</td>
+                  </tr>
+                  <tr>
+                    <td className="px-4 py-2">엔에이치엔케이씨피 주식회사 (NHN KCP)</td>
+                    <td className="px-4 py-2">신용카드 자동결제 처리</td>
+                    <td className="px-4 py-2">위탁계약 종료 시까지</td>
+                  </tr>
+                  <tr>
+                    <td className="px-4 py-2">주식회사 케이지이니시스 (KG이니시스)</td>
+                    <td className="px-4 py-2">신용카드 자동결제 처리</td>
+                    <td className="px-4 py-2">위탁계약 종료 시까지</td>
+                  </tr>
+                  <tr>
+                    <td className="px-4 py-2">주식회사 다날</td>
+                    <td className="px-4 py-2">신용카드 자동결제 처리</td>
+                    <td className="px-4 py-2">위탁계약 종료 시까지</td>
+                  </tr>
+                  <tr>
+                    <td className="px-4 py-2">주식회사 카카오페이</td>
+                    <td className="px-4 py-2">간편결제 처리</td>
+                    <td className="px-4 py-2">위탁계약 종료 시까지</td>
                   </tr>
                   <tr>
                     <td className="px-4 py-2">Clerk, Inc.</td>
                     <td className="px-4 py-2">회원 인증·관리</td>
-                    <td className="px-4 py-2">계약 종료 시까지</td>
+                    <td className="px-4 py-2">위탁계약 종료 시까지</td>
                   </tr>
                   <tr>
                     <td className="px-4 py-2">Vercel, Inc.</td>
                     <td className="px-4 py-2">서버 인프라 운영</td>
-                    <td className="px-4 py-2">계약 종료 시까지</td>
+                    <td className="px-4 py-2">위탁계약 종료 시까지</td>
                   </tr>
                 </tbody>
               </table>
             </div>
+            <p className="mt-3">위탁업무의 내용이나 수탁자가 변경될 경우에는 지체없이 본 개인정보처리방침을 통하여 공개하겠습니다.</p>
           </section>
 
           <section>
