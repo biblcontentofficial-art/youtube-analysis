@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import { auth } from "@clerk/nextjs/server";
+import { getThreadsConnection } from "@/lib/db";
+import { searchThreads } from "@/lib/threads";
+import { searchVideos } from "@/lib/youtube";
 import CompareSearchForm from "./_components/CompareSearchForm";
 import CompareDashboard from "./_components/CompareDashboard";
 
@@ -17,18 +20,56 @@ export default async function ComparePage({ searchParams }: Props) {
   const { userId } = await auth();
 
   let compareData = null;
+
   if (keyword && userId) {
-    try {
-      const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
-      const res = await fetch(
-        `${baseUrl}/api/threads/compare?q=${encodeURIComponent(keyword)}`,
-        {
-          headers: { cookie: "" }, // server-side에서는 직접 API 호출
-          cache: "no-store",
-        }
-      );
-      if (res.ok) compareData = await res.json();
-    } catch { /* ignore */ }
+    const connection = await getThreadsConnection(userId);
+
+    const [youtubeResult, threadsResult] = await Promise.allSettled([
+      searchVideos(keyword).catch(() => null),
+      connection
+        ? searchThreads(keyword, connection.access_token).catch(() => null)
+        : Promise.resolve(null),
+    ]);
+
+    const ytData = youtubeResult.status === "fulfilled" ? youtubeResult.value : null;
+    const ytItems = ytData?.items ?? [];
+    const ytViews = ytItems.map((v) => v.viewCount ?? 0);
+    const ytAvgViews =
+      ytViews.length > 0
+        ? Math.round(ytViews.reduce((a, b) => a + b, 0) / ytViews.length)
+        : 0;
+
+    const thData = threadsResult.status === "fulfilled" ? threadsResult.value : null;
+    const thPosts = thData?.posts ?? [];
+    const thEngagements = thPosts.map(
+      (p) => p.like_count + p.repost_count + p.replies_count
+    );
+    const thAvgEng =
+      thEngagements.length > 0
+        ? Math.round(thEngagements.reduce((a, b) => a + b, 0) / thEngagements.length)
+        : 0;
+    const thAvgViral =
+      thPosts.length > 0
+        ? Math.round(thPosts.reduce((s, p) => s + p.viralScore, 0) / thPosts.length)
+        : 0;
+
+    compareData = {
+      keyword,
+      youtube: {
+        available: ytItems.length > 0,
+        count: ytItems.length,
+        avgViews: ytAvgViews,
+        maxViews: ytViews.length > 0 ? Math.max(...ytViews) : 0,
+      },
+      threads: {
+        available: thPosts.length > 0,
+        connected: !!connection,
+        count: thPosts.length,
+        avgEngagement: thAvgEng,
+        avgViralScore: thAvgViral,
+        maxEngagement: thEngagements.length > 0 ? Math.max(...thEngagements) : 0,
+      },
+    };
   }
 
   return (
