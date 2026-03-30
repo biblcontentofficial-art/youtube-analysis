@@ -113,3 +113,43 @@ CREATE TABLE IF NOT EXISTS consulting_submissions (
 CREATE INDEX IF NOT EXISTS idx_consulting_submissions_created_at ON consulting_submissions(created_at DESC);
 
 ALTER TABLE consulting_submissions ENABLE ROW LEVEL SECURITY;
+
+-- 9. 스레드 Meta 계정 연결 (threads_connections)
+CREATE TABLE IF NOT EXISTS threads_connections (
+  user_id          TEXT NOT NULL PRIMARY KEY,   -- Clerk userId
+  access_token     TEXT NOT NULL,               -- Long-lived access token (60일)
+  threads_user_id  TEXT NOT NULL,               -- Threads user ID
+  username         TEXT NOT NULL,               -- Threads username
+  connected_at     TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at       TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_threads_connections_user_id ON threads_connections(user_id);
+
+ALTER TABLE threads_connections ENABLE ROW LEVEL SECURITY;
+
+-- 10. 수집한 스레드 게시물 (saved_threads)
+CREATE TABLE IF NOT EXISTS saved_threads (
+  user_id         TEXT NOT NULL,
+  post_id         TEXT NOT NULL,
+  text            TEXT,
+  media_type      TEXT,
+  permalink       TEXT,
+  username        TEXT,
+  followers_count INTEGER DEFAULT 0,
+  like_count      INTEGER DEFAULT 0,
+  repost_count    INTEGER DEFAULT 0,
+  replies_count   INTEGER DEFAULT 0,
+  viral_score     NUMERIC DEFAULT 0,
+  published_at    TEXT,
+  query           TEXT,
+  memo            TEXT,
+  is_favorite     BOOLEAN DEFAULT FALSE,
+  saved_at        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (user_id, post_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_saved_threads_user_id ON saved_threads(user_id);
+CREATE INDEX IF NOT EXISTS idx_saved_threads_saved_at ON saved_threads(saved_at DESC);
+
+ALTER TABLE saved_threads ENABLE ROW LEVEL SECURITY;
