@@ -27,10 +27,12 @@ if (hasClerk) {
     "/studio/consulting",
     "/studio/class(.*)",
     "/channels(.*)",
+    "/threads(.*)",
     "/sitemap.xml",
     "/robots.txt",
     // API
     "/api/youtube/search(.*)",
+    "/api/threads/auth(.*)",
     "/api/youtube/channels/suggest(.*)",
     "/api/usage(.*)",
     "/api/channel-usage(.*)",

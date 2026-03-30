@@ -357,3 +357,178 @@ export async function clearSavedVideos(userId: string): Promise<void> {
 
   await db.from("saved_videos").delete().eq("user_id", userId);
 }
+
+// ─────────────────────────────────────────────────────────────
+// 스레드 Meta 계정 연결 (threads_connections)
+// ─────────────────────────────────────────────────────────────
+
+export interface ThreadsConnection {
+  user_id: string;
+  access_token: string;
+  threads_user_id: string;
+  username: string;
+  connected_at: string;
+  updated_at: string;
+}
+
+/** 스레드 계정 연결 저장 (최초 연결 or 재연결) */
+export async function upsertThreadsConnection(params: {
+  userId: string;
+  accessToken: string;
+  threadsUserId: string;
+  username: string;
+}): Promise<void> {
+  const db = getSupabase();
+  if (!db) return;
+
+  const { error } = await db.from("threads_connections").upsert(
+    {
+      user_id: params.userId,
+      access_token: params.accessToken,
+      threads_user_id: params.threadsUserId,
+      username: params.username,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "user_id" }
+  );
+  if (error) console.error("upsertThreadsConnection error:", error);
+}
+
+/** 연결된 스레드 계정 정보 조회 */
+export async function getThreadsConnection(userId: string): Promise<ThreadsConnection | null> {
+  const db = getSupabase();
+  if (!db) return null;
+
+  const { data, error } = await db
+    .from("threads_connections")
+    .select("*")
+    .eq("user_id", userId)
+    .single();
+
+  if (error || !data) return null;
+  return data as ThreadsConnection;
+}
+
+/** 스레드 계정 연결 해제 */
+export async function deleteThreadsConnection(userId: string): Promise<void> {
+  const db = getSupabase();
+  if (!db) return;
+
+  await db.from("threads_connections").delete().eq("user_id", userId);
+}
+
+// ─────────────────────────────────────────────────────────────
+// 스레드 게시물 수집 (saved_threads)
+// ─────────────────────────────────────────────────────────────
+
+export interface SavedThread {
+  user_id: string;
+  post_id: string;
+  text: string | null;
+  media_type: string | null;
+  permalink: string | null;
+  username: string | null;
+  followers_count: number;
+  like_count: number;
+  repost_count: number;
+  replies_count: number;
+  viral_score: number;
+  published_at: string | null;
+  query: string | null;
+  memo: string | null;
+  is_favorite: boolean;
+  saved_at: string;
+}
+
+export interface SaveThreadParams {
+  userId: string;
+  postId: string;
+  text?: string;
+  mediaType?: string;
+  permalink?: string;
+  username?: string;
+  followersCount?: number;
+  likeCount?: number;
+  repostCount?: number;
+  repliesCount?: number;
+  viralScore?: number;
+  publishedAt?: string;
+  query?: string;
+}
+
+/** 스레드 게시물 저장 (이미 있으면 saved_at 갱신) */
+export async function upsertSavedThread(params: SaveThreadParams): Promise<void> {
+  const db = getSupabase();
+  if (!db) return;
+
+  const { error } = await db.from("saved_threads").upsert(
+    {
+      user_id: params.userId,
+      post_id: params.postId,
+      text: params.text ?? null,
+      media_type: params.mediaType ?? null,
+      permalink: params.permalink ?? null,
+      username: params.username ?? null,
+      followers_count: params.followersCount ?? 0,
+      like_count: params.likeCount ?? 0,
+      repost_count: params.repostCount ?? 0,
+      replies_count: params.repliesCount ?? 0,
+      viral_score: params.viralScore ?? 0,
+      published_at: params.publishedAt ?? null,
+      query: params.query ?? null,
+      saved_at: new Date().toISOString(),
+    },
+    { onConflict: "user_id,post_id" }
+  );
+  if (error) console.error("upsertSavedThread error:", error);
+}
+
+/** 수집한 스레드 목록 (최신순) */
+export async function getSavedThreads(userId: string, limit = 200): Promise<SavedThread[]> {
+  const db = getSupabase();
+  if (!db) return [];
+
+  const { data, error } = await db
+    .from("saved_threads")
+    .select("*")
+    .eq("user_id", userId)
+    .order("saved_at", { ascending: false })
+    .limit(limit);
+
+  if (error) return [];
+  return data as SavedThread[];
+}
+
+/** 단일 수집 삭제 */
+export async function deleteSavedThread(userId: string, postId: string): Promise<void> {
+  const db = getSupabase();
+  if (!db) return;
+
+  await db.from("saved_threads").delete().eq("user_id", userId).eq("post_id", postId);
+}
+
+/** 전체 수집 삭제 */
+export async function clearSavedThreads(userId: string): Promise<void> {
+  const db = getSupabase();
+  if (!db) return;
+
+  await db.from("saved_threads").delete().eq("user_id", userId);
+}
+
+/** 메모·즐겨찾기 업데이트 */
+export async function updateSavedThread(
+  userId: string,
+  postId: string,
+  updates: { memo?: string; is_favorite?: boolean }
+): Promise<void> {
+  const db = getSupabase();
+  if (!db) return;
+
+  const { error } = await db
+    .from("saved_threads")
+    .update(updates)
+    .eq("user_id", userId)
+    .eq("post_id", postId);
+
+  if (error) console.error("updateSavedThread error:", error);
+}

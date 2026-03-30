@@ -26,6 +26,8 @@ export type PlanConfig = {
   canSavedVideos: boolean;
   canServerHistory: boolean;
   historyDays: number;
+  // 스레드 검색 (threadsLimit.ts에서 별도 관리, 여기서는 UI 표시용)
+  canThreadsViralScore: boolean;             // 바이럴 점수 열람 가능 여부
 };
 
 export type PlanKey = "free" | "starter" | "pro" | "business" | "admin";
@@ -48,6 +50,7 @@ export const PLANS: Record<PlanKey, PlanConfig> = {
     canSavedVideos: false,
     canServerHistory: false,
     historyDays: 0,
+    canThreadsViralScore: false,
   },
   starter: {
     name: "Starter",
@@ -66,6 +69,7 @@ export const PLANS: Record<PlanKey, PlanConfig> = {
     canSavedVideos: false,
     canServerHistory: true,
     historyDays: 30,
+    canThreadsViralScore: true,
   },
   pro: {
     name: "Pro",
@@ -84,6 +88,7 @@ export const PLANS: Record<PlanKey, PlanConfig> = {
     canSavedVideos: true,
     canServerHistory: true,
     historyDays: 9999,
+    canThreadsViralScore: true,
   },
   business: {
     name: "Business",
@@ -102,6 +107,7 @@ export const PLANS: Record<PlanKey, PlanConfig> = {
     canSavedVideos: true,
     canServerHistory: true,
     historyDays: 9999,
+    canThreadsViralScore: true,
   },
   // 관리자 전용 플랜 — 결제 없음, pricing 페이지 미노출, 매출 집계 제외
   admin: {
@@ -121,5 +127,6 @@ export const PLANS: Record<PlanKey, PlanConfig> = {
     canSavedVideos: true,
     canServerHistory: true,
     historyDays: 9999,
+    canThreadsViralScore: true,
   },
 };
