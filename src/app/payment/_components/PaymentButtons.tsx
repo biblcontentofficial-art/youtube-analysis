@@ -1,9 +1,8 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { PORTONE_PLANS, PortonePlanKey } from "@/lib/portone";
-import { TOSS_PLANS } from "@/lib/toss";
 
 type PayMethod = "card" | "kakao" | "toss";
 
@@ -14,10 +13,6 @@ interface Props {
   userName: string;
 }
 
-type TossInstance = Awaited<
-  ReturnType<Awaited<ReturnType<typeof import("@tosspayments/tosspayments-sdk")["loadTossPayments"]>>["payment"]>
->;
-
 export default function PaymentButtons({ plan, userId, userEmail, userName }: Props) {
   const searchParams = useSearchParams();
   const [expanded, setExpanded] = useState<PayMethod | null>(null);
@@ -25,28 +20,9 @@ export default function PaymentButtons({ plan, userId, userEmail, userName }: Pr
   const [name, setName] = useState(userName);
   const [phone, setPhone] = useState("");
   const [formError, setFormError] = useState("");
-  const tossRef = useRef<TossInstance | null>(null);
-  const [tossReady, setTossReady] = useState(false);
 
-  // 토스페이먼츠 클라이언트 키 (테스트: test_ck_... / 라이브: live_ck_...)
-  const tossClientKey = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY || "";
-  const tossEnabled = tossClientKey.length > 0;
-
-  useEffect(() => {
-    if (!tossEnabled) return;
-    let cancelled = false;
-    (async () => {
-      try {
-        const { loadTossPayments } = await import("@tosspayments/tosspayments-sdk");
-        const tp = await loadTossPayments(tossClientKey);
-        if (!cancelled) {
-          tossRef.current = tp.payment({ customerKey: userId });
-          setTossReady(true);
-        }
-      } catch {}
-    })();
-    return () => { cancelled = true; };
-  }, [userId, tossEnabled, tossClientKey]);
+  // 토스페이먼츠: 클라이언트 키가 있으면 활성화
+  const tossEnabled = !!(process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY);
 
   const handleSelect = (id: PayMethod) => {
     if (loading) return;
@@ -93,32 +69,9 @@ export default function PaymentButtons({ plan, userId, userEmail, userName }: Pr
     }
   };
 
-  /* ── 토스페이먼츠 결제위젯 ── */
-  const handleTossPay = async () => {
-    if (!tossRef.current) {
-      alert("결제 모듈 초기화 중입니다. 잠시 후 다시 시도해주세요.");
-      return;
-    }
-    setLoading("toss");
-    try {
-      const planData = TOSS_PLANS[plan as keyof typeof TOSS_PLANS];
-      const orderId = `toss_${userId.slice(-8)}_${Date.now().toString(36)}`;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await (tossRef.current as any).requestPayment({
-        method: "카드",
-        orderId,
-        orderName: planData.orderName,
-        amount: { currency: "KRW" as const, value: planData.amount },
-        customerEmail: userEmail || undefined,
-        customerName: userName || undefined,
-        successUrl: `${window.location.origin}/api/toss/confirm?plan=${plan}`,
-        failUrl: `${window.location.origin}/pricing?error=payment`,
-      });
-    } catch (e) {
-      console.error("[toss] 결제 오류:", e);
-    } finally {
-      setLoading(null);
-    }
+  /* ── 토스페이먼츠: 전용 결제 페이지로 이동 ── */
+  const handleTossPay = () => {
+    window.location.href = `/payment/toss?plan=${plan}`;
   };
 
   /* ── 신용·체크카드 (KG이니시스 기본 / ?cardpg=kcp → NHN KCP) ── */
@@ -200,11 +153,7 @@ export default function PaymentButtons({ plan, userId, userEmail, userName }: Pr
     {
       id: "toss",
       name: "토스페이먼츠",
-      desc: tossEnabled
-        ? tossReady
-          ? "신용·체크카드 간편결제"
-          : "결제 모듈 로딩 중..."
-        : "준비 중",
+      desc: tossEnabled ? "신용·체크카드 간편결제" : "준비 중",
       disabled: !tossEnabled,
       logo: (
         <svg viewBox="0 0 40 40" className="w-6 h-6">
