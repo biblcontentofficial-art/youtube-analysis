@@ -53,15 +53,20 @@ export default function TossCheckoutWidget({
       // /api/toss/billing/confirm 에서 billing key 발급 후 amount 차감
       await paymentRef.current.requestBillingAuth({
         method: "CARD",
+        windowTarget: "self", // iframe 방식 대신 전체 페이지 리다이렉트
+        customerEmail: customerEmail || undefined,
+        customerName: customerName || undefined,
         successUrl: `${window.location.origin}/api/toss/billing/confirm?plan=${plan}`,
         failUrl: `${window.location.origin}/pricing?error=billing`,
       });
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : String(e);
-      if (!msg.includes("PAY_PROCESS_CANCELED") && !msg.includes("결제가 취소")) {
-        setError(`결제 오류: ${msg}`);
-      }
-      console.error("[Toss] 결제 실패:", e);
+      // Toss SDK 에러 객체: { code: string, message: string }
+      const tossErr = e as { code?: string; message?: string } | null;
+      const code = tossErr?.code ?? "";
+      const msg = tossErr?.message ?? (e instanceof Error ? e.message : String(e));
+      console.error("[Toss] 결제 실패:", JSON.stringify(e));
+      if (code === "USER_CANCEL" || code === "PAY_PROCESS_CANCELED") return; // 사용자 취소
+      setError(`결제 오류 [${code || "UNKNOWN"}]: ${msg}`);
     } finally {
       setPaying(false);
     }
