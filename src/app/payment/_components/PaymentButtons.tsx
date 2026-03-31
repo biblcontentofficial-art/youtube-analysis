@@ -121,15 +121,18 @@ export default function PaymentButtons({ plan, userId, userEmail, userName }: Pr
       const storeId = process.env.NEXT_PUBLIC_PORTONE_STORE_ID;
       const cardPg = searchParams.get("cardpg");
       const isKcp = cardPg === "kcp";
+      const isDanal = cardPg === "danal";
       const channelKey = isKcp
         ? process.env.NEXT_PUBLIC_PORTONE_KCP_CHANNEL_KEY
-        : process.env.NEXT_PUBLIC_PORTONE_INICIS_CHANNEL_KEY;
+        : isDanal
+          ? process.env.NEXT_PUBLIC_PORTONE_DANAL_CHANNEL_KEY
+          : process.env.NEXT_PUBLIC_PORTONE_INICIS_CHANNEL_KEY;
 
       if (!storeId || !channelKey) { alert("결제 채널 설정이 필요합니다."); return; }
 
       const { requestIssueBillingKey } = await import("@portone/browser-sdk/v2");
       const planData = PORTONE_PLANS[plan];
-      const prefix = isKcp ? "kcp" : "ini";
+      const prefix = isKcp ? "kcp" : isDanal ? "danal" : "ini";
       const issueId = `${prefix}_${userId.slice(-10)}_${Date.now().toString(36)}`;
 
       const res = await requestIssueBillingKey({
