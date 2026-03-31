@@ -18,6 +18,8 @@ export default function TossCheckoutWidget({
   customerKey,
   amount,
   orderName,
+  customerEmail,
+  customerName,
   plan,
 }: Props) {
   const [paying, setPaying] = useState(false);
