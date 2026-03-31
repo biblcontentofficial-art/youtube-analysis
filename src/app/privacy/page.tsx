@@ -132,6 +132,18 @@ export default function PrivacyPage() {
           </section>
 
           <section>
+            <h2 className="text-lg font-semibold text-white mb-3">제7조의2 (Meta Threads 연동 데이터 처리)</h2>
+            <p>이용자가 Meta(Threads) 계정을 연동할 경우 아래와 같이 처리합니다.</p>
+            <ul className="list-disc list-inside mt-3 space-y-1 pl-2">
+              <li>수집 항목: Threads 액세스 토큰, Threads 사용자 ID, 닉네임(username)</li>
+              <li>이용 목적: 키워드 기반 Threads 게시물 검색 및 트렌드 분석 기능 제공</li>
+              <li>보유 기간: 연동 해제 즉시 삭제 (서비스 내 &ldquo;연결 해제&rdquo; 버튼 또는 Meta 앱 설정에서 권한 취소 가능)</li>
+              <li>수집된 데이터는 해당 이용자의 분석 목적 외 제3자 제공·판매·광고에 활용되지 않습니다</li>
+              <li>Meta 데이터 정책: <a href="https://developers.facebook.com/policy" target="_blank" rel="noopener noreferrer" className="text-teal-400 underline">https://developers.facebook.com/policy</a></li>
+            </ul>
+          </section>
+
+          <section>
             <h2 className="text-lg font-semibold text-white mb-3">제8조 (쿠키의 운영)</h2>
             <p>회사는 이용자에게 개별적인 맞춤서비스를 제공하기 위해 이용 정보를 저장하고 수시로 불러오는 쿠키(cookie)를 사용합니다. 이용자는 웹 브라우저 설정을 통해 쿠키 저장을 거부할 수 있으나, 이 경우 서비스 이용에 일부 제한이 있을 수 있습니다.</p>
           </section>
