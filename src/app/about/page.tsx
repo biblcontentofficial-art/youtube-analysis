@@ -126,6 +126,42 @@ export default function AboutPage() {
             </div>
           </section>
 
+          {/* 주요 기능 안내 */}
+          <section>
+            <h2 className="text-2xl font-bold mb-6">주요 기능 안내</h2>
+            <div className="grid gap-4">
+              {[
+                { name: "영상 찾기", desc: "키워드 기반 유튜브 영상 검색 기능입니다. 조회수·좋아요·댓글 수 등 성과 데이터를 분석하고, 트렌드 키워드를 발굴하여 콘텐츠 기획을 지원합니다. 사용자가 자신의 콘텐츠 주제를 탐색하기 위한 리서치 도구입니다." },
+                { name: "채널 찾기", desc: "유튜브 채널 검색 및 성장 데이터 분석 기능입니다. 구독자 수·업로드 빈도·평균 조회수 등 채널 지표를 비교하고, 벤치마킹을 위한 경쟁 채널 분석을 제공합니다." },
+                { name: "수집한 영상", desc: "사용자가 관심 있는 영상을 저장·분류하여 콘텐츠 리서치에 체계적으로 활용할 수 있는 기능입니다." },
+                { name: "내 채널 분석", desc: "자신의 유튜브 채널 성과를 대시보드로 확인하는 기능입니다. YouTube Analytics API 연동을 통해 영상별 성과 추이, 구독자 변화 등 자체 채널 운영 인사이트를 제공합니다." },
+                { name: "스레드 검색", desc: "Meta Threads 플랫폼의 콘텐츠 트렌드를 검색하는 기능입니다. Threads API를 활용해 공개 게시물 데이터를 분석하고, 멀티플랫폼 콘텐츠 전략 수립을 지원합니다." },
+              ].map((f) => (
+                <div key={f.name} className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+                  <h3 className="font-bold text-white mb-1">{f.name}</h3>
+                  <p className="text-gray-400 text-sm leading-relaxed">{f.desc}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* 서비스 성격 안내 */}
+          <section className="bg-gray-900 border border-teal-900/50 rounded-2xl p-8">
+            <h2 className="text-2xl font-bold mb-4">bibl lab은 데이터 분석 도구입니다</h2>
+            <p className="text-gray-400 text-sm leading-relaxed mb-4">
+              bibl lab은 바이럴 마케팅 대행 서비스가 <strong className="text-white">아닙니다</strong>.
+              순수하게 공개된 유튜브/스레드 데이터를 분석하여, 콘텐츠 기획자가 자신의 콘텐츠를
+              개선하는 데 활용하는 데이터 분석 SaaS입니다.
+            </p>
+            <ul className="text-gray-400 text-sm space-y-2">
+              <li className="flex items-start gap-2"><span className="text-red-400 mt-0.5">&#10005;</span> 타인의 SNS 계정을 이용한 광고·홍보 대행을 하지 않습니다</li>
+              <li className="flex items-start gap-2"><span className="text-red-400 mt-0.5">&#10005;</span> 인플루언서 섭외·매칭 서비스를 제공하지 않습니다</li>
+              <li className="flex items-start gap-2"><span className="text-red-400 mt-0.5">&#10005;</span> 자동 댓글·자동 팔로우 등 SNS 조작 기능이 없습니다</li>
+              <li className="flex items-start gap-2"><span className="text-teal-400 mt-0.5">&#10003;</span> YouTube Data API, Threads API 등 공개 API 데이터만 활용합니다</li>
+              <li className="flex items-start gap-2"><span className="text-teal-400 mt-0.5">&#10003;</span> 크리에이터가 자신의 콘텐츠 전략을 수립하는 데 사용합니다</li>
+            </ul>
+          </section>
+
           {/* 사용 대상 */}
           <section>
             <h2 className="text-2xl font-bold mb-6">이런 분들에게 맞습니다</h2>
