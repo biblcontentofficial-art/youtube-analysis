@@ -31,6 +31,7 @@ interface Props {
     filter?: string;
     connected?: string;
     error?: string;
+    detail?: string;
   };
 }
 
@@ -39,6 +40,7 @@ export default async function ThreadsPage({ searchParams }: Props) {
   const filter = (searchParams.filter ?? "all") as "all" | "text" | "image" | "video";
   const justConnected = searchParams.connected === "1";
   const oauthError = searchParams.error;
+  const oauthErrorDetail = searchParams.detail;
 
   // 사용자 정보
   const { userId } = await auth();
@@ -125,6 +127,11 @@ export default async function ThreadsPage({ searchParams }: Props) {
               : oauthError === "not_configured"
               ? "스레드 연동 기능을 준비하고 있어요. 곧 이용 가능합니다!"
               : "연결 중 오류가 발생했어요. 다시 시도해주세요."}
+          {oauthErrorDetail && (
+            <div className="mt-2 text-xs text-red-300/70 font-mono break-all">
+              {decodeURIComponent(oauthErrorDetail)}
+            </div>
+          )}
           </div>
         )}
 

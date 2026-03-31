@@ -55,7 +55,9 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.redirect(`${APP_URL}/threads?connected=1`);
   } catch (err) {
-    console.error("Threads OAuth callback error:", err);
-    return NextResponse.redirect(`${APP_URL}/threads?error=token_failed`);
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error("Threads OAuth callback error:", msg);
+    const detail = encodeURIComponent(msg.slice(0, 200));
+    return NextResponse.redirect(`${APP_URL}/threads?error=token_failed&detail=${detail}`);
   }
 }
