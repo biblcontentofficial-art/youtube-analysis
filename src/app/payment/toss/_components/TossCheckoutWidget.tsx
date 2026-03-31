@@ -13,45 +13,13 @@ interface Props {
   plan: string;
 }
 
-type Method = "카드" | "토스페이";
-
-const METHODS: { id: Method; label: string; logo: React.ReactNode }[] = [
-  {
-    id: "카드",
-    label: "신용·체크카드",
-    logo: (
-      <svg viewBox="0 0 36 24" className="w-9 h-6" fill="none">
-        <rect width="36" height="24" rx="4" fill="#F0F4FF" />
-        <rect x="4" y="8" width="8" height="6" rx="1" fill="#3182F6" />
-        <rect x="4" y="16" width="4" height="2" rx="0.5" fill="#AEC6FB" />
-        <rect x="10" y="16" width="4" height="2" rx="0.5" fill="#AEC6FB" />
-        <rect x="24" y="7" width="8" height="10" rx="1" fill="#E8EEFF" />
-      </svg>
-    ),
-  },
-  {
-    id: "토스페이",
-    label: "toss pay",
-    logo: (
-      <svg viewBox="0 0 56 20" className="w-14 h-5" fill="none">
-        <text x="0" y="16" fontFamily="sans-serif" fontWeight="800" fontSize="16" fill="#3182F6" letterSpacing="-0.5">toss</text>
-        <text x="36" y="16" fontFamily="sans-serif" fontWeight="700" fontSize="13" fill="#3182F6">pay</text>
-      </svg>
-    ),
-  },
-];
-
 export default function TossCheckoutWidget({
   clientKey,
   customerKey,
   amount,
-  orderId,
   orderName,
-  customerEmail,
-  customerName,
   plan,
 }: Props) {
-  const [selected, setSelected] = useState<Method>("카드");
   const [paying, setPaying] = useState(false);
   const [sdkReady, setSdkReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -62,42 +30,34 @@ export default function TossCheckoutWidget({
     let cancelled = false;
     (async () => {
       try {
-        const { loadTossPayments, ANONYMOUS } = await import("@tosspayments/tosspayments-sdk");
+        const { loadTossPayments } = await import("@tosspayments/tosspayments-sdk");
         const tp = await loadTossPayments(clientKey);
         if (!cancelled) {
-          // ANONYMOUS: 비회원 결제 (customerKey 인증 불필요)
-          paymentRef.current = tp.payment({ customerKey: ANONYMOUS });
+          paymentRef.current = tp.payment({ customerKey });
           setSdkReady(true);
         }
       } catch (e) {
         console.error("[Toss] SDK 초기화 실패:", e);
-        setError("결제 모듈 초기화에 실패했습니다. 잠시 후 다시 시도해주세요.");
+        setError("결제 모듈 초기화에 실패했습니다.");
       }
     })();
     return () => { cancelled = true; };
-  // customerKey는 참고용으로만 사용 (ANONYMOUS 방식)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [clientKey]);
+  }, [clientKey, customerKey]);
 
   const handlePay = async () => {
     if (!paymentRef.current || paying) return;
     setError(null);
     setPaying(true);
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await (paymentRef.current as any).requestPayment({
-        method: selected,
-        orderId,
-        orderName,
-        amount: { currency: "KRW", value: amount },
-        customerEmail: customerEmail || undefined,
-        customerName: customerName || undefined,
-        successUrl: `${window.location.origin}/api/toss/confirm?plan=${plan}`,
-        failUrl: `${window.location.origin}/pricing?error=payment`,
+      // requestBillingAuth: 카드 등록 → billingKey 발급 → 즉시 결제
+      // /api/toss/billing/confirm 에서 billing key 발급 후 amount 차감
+      await paymentRef.current.requestBillingAuth({
+        method: "카드",
+        successUrl: `${window.location.origin}/api/toss/billing/confirm?plan=${plan}`,
+        failUrl: `${window.location.origin}/pricing?error=billing`,
       });
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : String(e);
-      // 사용자가 직접 닫은 경우는 에러 표시 안 함
       if (!msg.includes("PAY_PROCESS_CANCELED") && !msg.includes("결제가 취소")) {
         setError(`결제 오류: ${msg}`);
       }
@@ -129,23 +89,25 @@ export default function TossCheckoutWidget({
         </div>
       )}
 
-      {/* 결제 방법 */}
-      <p className="text-sm font-semibold text-gray-700 mb-3">결제 방법</p>
-      <div className="grid grid-cols-2 gap-3 mb-6">
-        {METHODS.map((m) => (
-          <button
-            key={m.id}
-            onClick={() => setSelected(m.id)}
-            className={`flex flex-col items-center justify-center gap-2 py-4 rounded-xl border-2 transition-all ${
-              selected === m.id
-                ? "border-[#3182F6] bg-blue-50"
-                : "border-gray-200 bg-white hover:border-gray-300"
-            }`}
-          >
-            {m.logo}
-            <span className="text-xs font-medium text-gray-600">{m.label}</span>
-          </button>
-        ))}
+      {/* 결제 안내 */}
+      <div className="bg-gray-50 rounded-xl p-4 mb-5">
+        <div className="flex items-center gap-3 mb-3">
+          <div className="w-10 h-10 bg-[#3182F6] rounded-full flex items-center justify-center flex-shrink-0">
+            <svg className="w-5 h-5 text-white" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M2.5 4A1.5 1.5 0 001 5.5v1h18v-1A1.5 1.5 0 0017.5 4h-15zM19 8.5H1v6A1.5 1.5 0 002.5 16h15a1.5 1.5 0 001.5-1.5v-6zM3 13.25a.75.75 0 01.75-.75h1.5a.75.75 0 010 1.5h-1.5a.75.75 0 01-.75-.75zm4.75-.75a.75.75 0 000 1.5h3.5a.75.75 0 000-1.5h-3.5z" />
+            </svg>
+          </div>
+          <div>
+            <p className="font-semibold text-gray-800 text-sm">신용·체크카드 정기결제</p>
+            <p className="text-gray-500 text-xs mt-0.5">카드 등록 후 매월 자동 결제</p>
+          </div>
+        </div>
+        <div className="bg-white rounded-lg border border-gray-200 px-4 py-3">
+          <div className="flex justify-between items-center">
+            <span className="text-sm text-gray-600">{orderName}</span>
+            <span className="font-bold text-gray-900">₩{amount.toLocaleString()}/월</span>
+          </div>
+        </div>
       </div>
 
       {/* 약관 동의 */}
@@ -173,13 +135,13 @@ export default function TossCheckoutWidget({
             처리 중...
           </>
         ) : (
-          `₩${amount.toLocaleString()} 결제하기`
+          `카드 등록 후 ₩${amount.toLocaleString()} 결제`
         )}
       </button>
 
-      {selected === "카드" && (
-        <p className="text-center text-xs text-gray-400 mt-3">신한카드 최대 3개월 무이자 할부</p>
-      )}
+      <p className="text-center text-xs text-gray-400 mt-3">
+        신한카드 최대 3개월 무이자 · 언제든 해지 가능
+      </p>
     </div>
   );
 }
