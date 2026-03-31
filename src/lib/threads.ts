@@ -457,9 +457,9 @@ export function analyzePostTimes(posts: ThreadPost[]): PostTimeInsight {
 // Threads API의 keyword search endpoint 사용
 // ─────────────────────────────────────────────────────────────
 
-// keyword_search endpoint에서 owner 서브필드는 id, username만 지원
-// (followers_count 등은 nonexisting field 에러 발생)
-const POST_FIELDS = [
+// keyword_search endpoint: 기본 필드만 반환 (engagement 수치는 별도 호출 필요)
+// owner 서브필드는 id, username만 지원 (followers_count 직접 불가)
+const SEARCH_FIELDS = [
   "id",
   "text",
   "media_type",
@@ -467,12 +467,20 @@ const POST_FIELDS = [
   "media_url",
   "timestamp",
   "permalink",
+  "owner{id,username}",
+].join(",");
+
+// 게시물 개별 조회 시 가져올 engagement + owner 필드
+const ENGAGEMENT_FIELDS = [
+  "id",
   "like_count",
   "replies_count",
   "repost_count",
   "quote_count",
-  "owner{id,username}",
 ].join(",");
+
+// owner profile 조회 필드
+const OWNER_FIELDS = "id,username,followers_count";
 
 export async function searchThreads(
   keyword: string,
@@ -481,13 +489,13 @@ export async function searchThreads(
 ): Promise<ThreadsSearchResult> {
   const params = new URLSearchParams({
     q: keyword,
-    fields: POST_FIELDS,
+    fields: SEARCH_FIELDS,
     access_token: accessToken,
     limit: "50",  // 더 많이 가져와서 클라이언트 정렬
   });
   if (cursor) params.set("after", cursor);
 
-  // 공식 엔드포인트: GET /keyword_search
+  // Step 1: 공식 엔드포인트: GET /keyword_search
   const res = await fetch(
     `${THREADS_API}/keyword_search?${params.toString()}`,
     { cache: "no-store" }
@@ -503,8 +511,72 @@ export async function searchThreads(
     paging?: { cursors?: { after?: string } };
   };
 
+  const rawPosts = json.data ?? [];
+
+  // Step 2: 각 게시물의 engagement 수치를 개별 API 호출로 조회 (병렬)
+  // keyword_search는 engagement 필드를 반환하지 않으므로 별도 호출 필요
+  const engagementResults = await Promise.allSettled(
+    rawPosts.map((post) => {
+      const postId = String(post.id ?? "");
+      return fetch(
+        `${THREADS_API}/${postId}?fields=${ENGAGEMENT_FIELDS}&access_token=${accessToken}`,
+        { cache: "no-store" }
+      ).then((r) => r.json() as Promise<Record<string, unknown>>);
+    })
+  );
+
+  // Step 3: owner(고유 계정)의 followers_count 조회 (중복 제거 후 병렬)
+  const ownerIds = new Map<string, string>(); // id → username
+  for (const post of rawPosts) {
+    const owner = (post.owner ?? {}) as Record<string, unknown>;
+    const ownerId = String(owner.id ?? "");
+    if (ownerId) ownerIds.set(ownerId, String(owner.username ?? ""));
+  }
+
+  const ownerFollowers = new Map<string, number>();
+  await Promise.allSettled(
+    Array.from(ownerIds.keys()).map(async (ownerId) => {
+      try {
+        const r = await fetch(
+          `${THREADS_API}/${ownerId}?fields=${OWNER_FIELDS}&access_token=${accessToken}`,
+          { cache: "no-store" }
+        );
+        if (!r.ok) return;
+        const data = (await r.json()) as Record<string, unknown>;
+        ownerFollowers.set(ownerId, Number(data.followers_count ?? 0));
+      } catch {
+        // 조회 실패 시 0으로 유지
+      }
+    })
+  );
+
+  // Step 4: engagement + followers 데이터 병합
+  const mergedPosts = rawPosts.map((post, i) => {
+    const ownerRaw = (post.owner ?? {}) as Record<string, unknown>;
+    const ownerId = String(ownerRaw.id ?? "");
+    const followersCount = ownerFollowers.get(ownerId) ?? 0;
+
+    const engResult = engagementResults[i];
+    const eng: Record<string, unknown> =
+      engResult.status === "fulfilled" && engResult.value
+        ? engResult.value
+        : {};
+
+    return {
+      ...post,
+      like_count: eng.like_count ?? 0,
+      replies_count: eng.replies_count ?? 0,
+      repost_count: eng.repost_count ?? 0,
+      quote_count: eng.quote_count ?? 0,
+      owner: {
+        ...ownerRaw,
+        followers_count: followersCount,
+      },
+    };
+  });
+
   // 공유(인용) → 리포스트 → 댓글+좋아요 합산 순 내림차순 정렬
-  const posts = (json.data ?? [])
+  const posts = mergedPosts
     .map(normalize)
     .sort((a, b) => {
       if (b.quote_count !== a.quote_count) return b.quote_count - a.quote_count;
