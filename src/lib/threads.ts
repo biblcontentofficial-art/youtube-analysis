@@ -38,11 +38,12 @@ export interface ThreadPost {
   like_count: number;
   replies_count: number;
   repost_count: number;
+  quote_count: number;  // 인용(공유) 수
   owner: ThreadOwner;
   // 계산 필드
   viralScore: number;
   outlier: OutlierGrade;
-  engagementRate: number; // (좋아요 + 리포스트 + 댓글) / 팔로워
+  engagementRate: number; // (좋아요 + 리포스트 + 댓글 + 인용) / 팔로워
 }
 
 export interface ThreadsSearchResult {
@@ -117,6 +118,7 @@ function normalize(raw: Record<string, unknown>): ThreadPost {
   const likes = Number(raw.like_count ?? 0);
   const reposts = Number(raw.repost_count ?? 0);
   const replies = Number(raw.replies_count ?? 0);
+  const quotes = Number(raw.quote_count ?? 0);
   const timestamp = String(raw.timestamp ?? new Date().toISOString());
 
   const ownerRaw = (raw.owner ?? {}) as Record<string, unknown>;
@@ -143,12 +145,13 @@ function normalize(raw: Record<string, unknown>): ThreadPost {
     like_count: likes,
     replies_count: replies,
     repost_count: reposts,
+    quote_count: quotes,
     owner,
     viralScore: calculateViralScore(likes, reposts, replies, followerCount, timestamp),
     outlier: calcOutlier(likes, reposts, replies, followerCount),
     engagementRate:
       followerCount > 0
-        ? (likes + reposts + replies) / followerCount
+        ? (likes + reposts + replies + quotes) / followerCount
         : 0,
   };
 }
@@ -467,6 +470,7 @@ const POST_FIELDS = [
   "like_count",
   "replies_count",
   "repost_count",
+  "quote_count",
   "owner{id,username}",
 ].join(",");
 
@@ -479,8 +483,7 @@ export async function searchThreads(
     q: keyword,
     fields: POST_FIELDS,
     access_token: accessToken,
-    limit: "25",         // API max 100, default 25
-    search_type: "TOP",  // TOP(기본) or RECENT
+    limit: "50",  // 더 많이 가져와서 클라이언트 정렬
   });
   if (cursor) params.set("after", cursor);
 
@@ -500,7 +503,16 @@ export async function searchThreads(
     paging?: { cursors?: { after?: string } };
   };
 
-  const posts = (json.data ?? []).map(normalize);
+  // 좋아요 → 리포스트 → 댓글 → 공유(인용) 순 내림차순 정렬
+  const posts = (json.data ?? [])
+    .map(normalize)
+    .sort((a, b) => {
+      if (b.like_count !== a.like_count) return b.like_count - a.like_count;
+      if (b.repost_count !== a.repost_count) return b.repost_count - a.repost_count;
+      if (b.replies_count !== a.replies_count) return b.replies_count - a.replies_count;
+      return b.quote_count - a.quote_count;
+    });
+
   const nextCursor = json.paging?.cursors?.after;
 
   return { posts, cursor: nextCursor };
