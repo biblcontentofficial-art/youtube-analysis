@@ -1,4 +1,3 @@
-import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { PLANS, PlanKey } from "@/lib/stripe";
@@ -11,10 +10,6 @@ export const metadata: Metadata = {
 };
 
 export default async function SavedThreadsPage() {
-  if (process.env.NODE_ENV !== "development") {
-    redirect("/search");
-  }
-
   const { userId } = await auth();
   const user = userId ? await currentUser() : null;
   const plan = ((user?.publicMetadata?.plan as PlanKey) ?? "free") as PlanKey;

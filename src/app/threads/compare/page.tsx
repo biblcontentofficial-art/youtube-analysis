@@ -1,4 +1,3 @@
-import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { auth } from "@clerk/nextjs/server";
 import { getThreadsConnection } from "@/lib/db";
@@ -17,10 +16,6 @@ interface Props {
 }
 
 export default async function ComparePage({ searchParams }: Props) {
-  if (process.env.NODE_ENV !== "development") {
-    redirect("/search");
-  }
-
   const keyword = (searchParams.q ?? "").trim();
   const { userId } = await auth();
 
