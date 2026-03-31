@@ -52,7 +52,6 @@ export default function TossCheckoutWidget({
       // requestBillingAuth: 카드 등록 → billingKey 발급 → 즉시 결제
       // /api/toss/billing/confirm 에서 billing key 발급 후 amount 차감
       await paymentRef.current.requestBillingAuth({
-        method: "카드",
         successUrl: `${window.location.origin}/api/toss/billing/confirm?plan=${plan}`,
         failUrl: `${window.location.origin}/pricing?error=billing`,
       });
