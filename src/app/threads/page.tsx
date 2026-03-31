@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { PLANS, PlanKey } from "@/lib/stripe";
 import { getThreadsConnection } from "@/lib/db";
@@ -37,11 +36,6 @@ interface Props {
 }
 
 export default async function ThreadsPage({ searchParams }: Props) {
-  // 개발 중인 기능 — 프로덕션에서는 접근 차단
-  if (process.env.NODE_ENV !== "development") {
-    redirect("/search");
-  }
-
   const query = (searchParams.q ?? "").trim();
   const filter = (searchParams.filter ?? "all") as "all" | "text" | "image" | "video";
   const justConnected = searchParams.connected === "1";
