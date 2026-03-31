@@ -267,24 +267,31 @@ export async function getThreadsProfile(accessToken: string): Promise<{
   profile_picture_url?: string;
   followers_count: number;
 }> {
-  const fields = "id,username,name,threads_profile_picture_url,followers_count";
-  const res = await fetch(
-    `${THREADS_API}/me?fields=${fields}&access_token=${accessToken}`,
-    { cache: "no-store" }
-  );
+  // 전체 필드로 시도 → 실패 시 최소 필드로 재시도
+  for (const fields of [
+    "id,username,name,threads_profile_picture_url,followers_count",
+    "id,username",
+  ]) {
+    const res = await fetch(
+      `${THREADS_API}/me?fields=${fields}&access_token=${accessToken}`,
+      { cache: "no-store" }
+    );
+    if (!res.ok) continue;
 
-  if (!res.ok) throw new Error("Failed to fetch Threads profile");
+    const data = (await res.json()) as Record<string, unknown>;
+    if (!data.id) continue;
 
-  const data = (await res.json()) as Record<string, unknown>;
-  return {
-    id: String(data.id ?? ""),
-    username: String(data.username ?? ""),
-    name: data.name ? String(data.name) : undefined,
-    profile_picture_url: data.threads_profile_picture_url
-      ? String(data.threads_profile_picture_url)
-      : undefined,
-    followers_count: Number(data.followers_count ?? 0),
-  };
+    return {
+      id: String(data.id),
+      username: String(data.username ?? ""),
+      name: data.name ? String(data.name) : undefined,
+      profile_picture_url: data.threads_profile_picture_url
+        ? String(data.threads_profile_picture_url)
+        : undefined,
+      followers_count: Number(data.followers_count ?? 0),
+    };
+  }
+  throw new Error("Failed to fetch Threads profile");
 }
 
 // ─────────────────────────────────────────────────────────────

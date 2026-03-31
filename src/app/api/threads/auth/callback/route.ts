@@ -42,15 +42,21 @@ export async function GET(req: NextRequest) {
     // 코드 → 액세스 토큰 교환
     const { access_token, user_id: threadsUserId } = await exchangeCodeForToken(code);
 
-    // 프로필 조회 (username 가져오기)
-    const profile = await getThreadsProfile(access_token);
+    // 프로필 조회 (username 가져오기) — 실패해도 연결은 저장
+    let username = threadsUserId; // 폴백: user_id를 username으로 사용
+    try {
+      const profile = await getThreadsProfile(access_token);
+      if (profile.username) username = profile.username;
+    } catch (profileErr) {
+      console.warn("Threads profile fetch failed, using user_id as username:", profileErr);
+    }
 
     // Supabase 저장
     await upsertThreadsConnection({
       userId,
       accessToken: access_token,
       threadsUserId,
-      username: profile.username,
+      username,
     });
 
     return NextResponse.redirect(`${APP_URL}/threads?connected=1`);
