@@ -106,35 +106,35 @@ export default function ThreadCard({ post, rank, canViralScore }: Props) {
         </div>
       </div>
 
-      {/* 반응 지표 4개 — 좋아요 · 리포스트 · 댓글 · 공유(인용) */}
+      {/* 반응 지표 4개 — 공유 · 리포스트 · 댓글 · 좋아요 */}
       <div className="flex items-center gap-3 shrink-0">
-        {/* 좋아요 */}
+        {/* 공유(인용) — 1순위 */}
         <div className="text-center min-w-[40px]">
-          <div className="text-sm font-bold text-rose-400 tabular-nums">
-            {formatCount(post.like_count)}
+          <div className="text-sm font-bold text-yellow-400 tabular-nums">
+            {formatCount(post.quote_count)}
           </div>
-          <div className="text-[10px] text-gray-600 mt-0.5">좋아요</div>
+          <div className="text-[10px] text-gray-600 mt-0.5">공유</div>
         </div>
-        {/* 리포스트 */}
+        {/* 리포스트 — 2순위 */}
         <div className="text-center min-w-[40px]">
           <div className="text-sm font-bold text-teal-400 tabular-nums">
             {formatCount(post.repost_count)}
           </div>
           <div className="text-[10px] text-gray-600 mt-0.5">리포스트</div>
         </div>
-        {/* 댓글 */}
+        {/* 댓글 — 3순위 */}
         <div className="text-center min-w-[40px]">
           <div className="text-sm font-bold text-blue-400 tabular-nums">
             {formatCount(post.replies_count)}
           </div>
           <div className="text-[10px] text-gray-600 mt-0.5">댓글</div>
         </div>
-        {/* 공유(인용) */}
+        {/* 좋아요 — 3순위 */}
         <div className="text-center min-w-[40px]">
-          <div className="text-sm font-bold text-yellow-400 tabular-nums">
-            {formatCount(post.quote_count)}
+          <div className="text-sm font-bold text-rose-400 tabular-nums">
+            {formatCount(post.like_count)}
           </div>
-          <div className="text-[10px] text-gray-600 mt-0.5">공유</div>
+          <div className="text-[10px] text-gray-600 mt-0.5">좋아요</div>
         </div>
       </div>
 

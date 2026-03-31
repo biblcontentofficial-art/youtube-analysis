@@ -503,14 +503,13 @@ export async function searchThreads(
     paging?: { cursors?: { after?: string } };
   };
 
-  // 좋아요 → 리포스트 → 댓글 → 공유(인용) 순 내림차순 정렬
+  // 공유(인용) → 리포스트 → 댓글+좋아요 합산 순 내림차순 정렬
   const posts = (json.data ?? [])
     .map(normalize)
     .sort((a, b) => {
-      if (b.like_count !== a.like_count) return b.like_count - a.like_count;
+      if (b.quote_count !== a.quote_count) return b.quote_count - a.quote_count;
       if (b.repost_count !== a.repost_count) return b.repost_count - a.repost_count;
-      if (b.replies_count !== a.replies_count) return b.replies_count - a.replies_count;
-      return b.quote_count - a.quote_count;
+      return (b.replies_count + b.like_count) - (a.replies_count + a.like_count);
     });
 
   const nextCursor = json.paging?.cursors?.after;
