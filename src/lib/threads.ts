@@ -454,6 +454,8 @@ export function analyzePostTimes(posts: ThreadPost[]): PostTimeInsight {
 // Threads API의 keyword search endpoint 사용
 // ─────────────────────────────────────────────────────────────
 
+// keyword_search endpoint에서 owner 서브필드는 id, username만 지원
+// (followers_count 등은 nonexisting field 에러 발생)
 const POST_FIELDS = [
   "id",
   "text",
@@ -465,7 +467,7 @@ const POST_FIELDS = [
   "like_count",
   "replies_count",
   "repost_count",
-  "owner{id,username,name,threads_profile_picture_url,followers_count}",
+  "owner{id,username}",
 ].join(",");
 
 export async function searchThreads(
