@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { PORTONE_PLANS, PortonePlanKey } from "@/lib/portone";
+import { TOSS_PLANS } from "@/lib/toss";
 
 type PayMethod = "card" | "kakao" | "toss";
 
@@ -27,9 +28,9 @@ export default function PaymentButtons({ plan, userId, userEmail, userName }: Pr
   const tossRef = useRef<TossInstance | null>(null);
   const [tossReady, setTossReady] = useState(false);
 
-  // 토스 결제위젯 키가 설정되어 있으면 활성화
-  const tossWidgetKey = process.env.NEXT_PUBLIC_TOSS_WIDGET_CLIENT_KEY || "";
-  const tossEnabled = tossWidgetKey.length > 0;
+  // 토스페이먼츠 클라이언트 키 (테스트: test_ck_... / 라이브: live_ck_...)
+  const tossClientKey = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY || "";
+  const tossEnabled = tossClientKey.length > 0;
 
   useEffect(() => {
     if (!tossEnabled) return;
@@ -37,7 +38,7 @@ export default function PaymentButtons({ plan, userId, userEmail, userName }: Pr
     (async () => {
       try {
         const { loadTossPayments } = await import("@tosspayments/tosspayments-sdk");
-        const tp = await loadTossPayments(tossWidgetKey);
+        const tp = await loadTossPayments(tossClientKey);
         if (!cancelled) {
           tossRef.current = tp.payment({ customerKey: userId });
           setTossReady(true);
@@ -45,7 +46,7 @@ export default function PaymentButtons({ plan, userId, userEmail, userName }: Pr
       } catch {}
     })();
     return () => { cancelled = true; };
-  }, [userId, tossEnabled, tossWidgetKey]);
+  }, [userId, tossEnabled, tossClientKey]);
 
   const handleSelect = (id: PayMethod) => {
     if (loading) return;
@@ -92,7 +93,7 @@ export default function PaymentButtons({ plan, userId, userEmail, userName }: Pr
     }
   };
 
-  /* ── 토스페이먼츠 ── */
+  /* ── 토스페이먼츠 결제위젯 ── */
   const handleTossPay = async () => {
     if (!tossRef.current) {
       alert("결제 모듈 초기화 중입니다. 잠시 후 다시 시도해주세요.");
@@ -100,10 +101,18 @@ export default function PaymentButtons({ plan, userId, userEmail, userName }: Pr
     }
     setLoading("toss");
     try {
-      await tossRef.current.requestBillingAuth({
-        method: "CARD",
-        successUrl: `${window.location.origin}/api/toss/billing/confirm?plan=${plan}`,
-        failUrl: `${window.location.origin}/pricing?error=billing`,
+      const planData = TOSS_PLANS[plan as keyof typeof TOSS_PLANS];
+      const orderId = `toss_${userId.slice(-8)}_${Date.now().toString(36)}`;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (tossRef.current as any).requestPayment({
+        method: "카드",
+        orderId,
+        orderName: planData.orderName,
+        amount: { currency: "KRW" as const, value: planData.amount },
+        customerEmail: userEmail || undefined,
+        customerName: userName || undefined,
+        successUrl: `${window.location.origin}/api/toss/confirm?plan=${plan}`,
+        failUrl: `${window.location.origin}/pricing?error=payment`,
       });
     } catch (e) {
       console.error("[toss] 결제 오류:", e);
@@ -191,9 +200,12 @@ export default function PaymentButtons({ plan, userId, userEmail, userName }: Pr
     {
       id: "toss",
       name: "토스페이먼츠",
-      desc: tossEnabled ? "신용·체크카드 간편결제" : "준비 중",
+      desc: tossEnabled
+        ? tossReady
+          ? "신용·체크카드 간편결제"
+          : "결제 모듈 로딩 중..."
+        : "준비 중",
       disabled: !tossEnabled,
-      disabledLabel: "곧 오픈",
       logo: (
         <svg viewBox="0 0 40 40" className="w-6 h-6">
           <rect width="40" height="40" rx="8" fill={tossEnabled ? "#3182F6" : "#4B5563"} />

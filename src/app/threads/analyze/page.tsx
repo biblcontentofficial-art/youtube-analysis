@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { PLANS, PlanKey } from "@/lib/stripe";
@@ -23,6 +24,10 @@ interface Props {
 }
 
 export default async function ThreadsAnalyzePage({ searchParams }: Props) {
+  if (process.env.NODE_ENV !== "development") {
+    redirect("/search");
+  }
+
   const account = (searchParams.account ?? "").trim();
 
   // 사용자 정보

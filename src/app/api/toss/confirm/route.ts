@@ -2,6 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { clerkClient } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 import { TOSS_PLANS, TossPlanKey } from "@/lib/toss";
+import { upsertSubscription, insertPayment } from "@/lib/db";
 
 export async function GET(req: NextRequest) {
   const { userId } = await auth();
@@ -43,16 +44,25 @@ export async function GET(req: NextRequest) {
       return NextResponse.redirect(new URL("/pricing?error=payment", req.url));
     }
 
-    // 플랜 업데이트 (Clerk publicMetadata) — 결제 성공 후 best-effort
-    try {
-      const client = await clerkClient();
-      await client.users.updateUser(userId, {
-        publicMetadata: { plan },
-      });
-    } catch (metaErr) {
-      // 메타데이터 업데이트 실패해도 결제는 완료됨 → 로그만 남기고 성공 처리
-      console.error("Toss 플랜 메타데이터 업데이트 실패 (userId:", userId, "plan:", plan, "):", metaErr);
-    }
+    const chargeData = await confirmRes.json();
+
+    // Clerk 플랜 업데이트 + DB 저장 (best-effort)
+    await Promise.allSettled([
+      (async () => {
+        const client = await clerkClient();
+        await client.users.updateUser(userId, { publicMetadata: { plan } });
+      })(),
+      upsertSubscription({ userId, plan, billingKey: "", customerKey: userId }),
+      insertPayment({
+        userId,
+        plan,
+        amount: amountNum,
+        orderId: orderId!,
+        paymentKey: chargeData.paymentKey,
+        status: "success",
+        raw: chargeData,
+      }),
+    ]);
 
     return NextResponse.redirect(new URL("/search?upgraded=1", req.url));
   } catch (e) {
