@@ -7,7 +7,6 @@ interface Props {
 }
 
 const TABS = [
-  { key: "search", label: "키워드 검색", icon: "search" },
   { key: "analytics", label: "내 계정 분석", icon: "chart" },
   { key: "saved", label: "수집함", icon: "folder" },
 ] as const;
@@ -15,13 +14,6 @@ const TABS = [
 function TabIcon({ type, active }: { type: string; active: boolean }) {
   const color = active ? "currentColor" : "currentColor";
   switch (type) {
-    case "search":
-      return (
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2">
-          <circle cx="11" cy="11" r="8" />
-          <line x1="21" y1="21" x2="16.65" y2="16.65" />
-        </svg>
-      );
     case "chart":
       return (
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2">

@@ -33,7 +33,7 @@ const PLANS = [
     usage: [
       { text: "영상 검색 2회/일" },
       { text: "채널 검색 1회/일" },
-      { text: "스레드 검색 2회/일" },
+      { text: "스레드 분석", disabled: true },
     ],
     features: [
       { text: "아웃라이어 · 반응도 확인" },
@@ -41,7 +41,6 @@ const PLANS = [
       { text: "알고리즘 확률 확인", disabled: true },
       { text: "검색 기록 저장", disabled: true },
       { text: "영상 수집 · 내보내기", disabled: true },
-      { text: "스레드 바이럴 점수", disabled: true },
       { text: "스레드 계정 분석", disabled: true },
     ] as Feature[],
     cta: "무료로 시작",
@@ -58,14 +57,13 @@ const PLANS = [
     usage: [
       { text: "영상 검색 50회/월" },
       { text: "채널 검색 30회/월" },
-      { text: "스레드 검색 30회/월" },
+      { text: "스레드 계정 분석" },
     ],
     features: [
       { text: "아웃라이어 · 반응도 확인" },
       { text: "알고리즘 확률 확인" },
       { text: "쇼츠 필터 · 심화 필터" },
       { text: "검색 기록 30일 저장" },
-      { text: "스레드 바이럴 점수 확인" },
       { text: "스레드 계정 분석" },
       { text: "영상 수집 · 내보내기", disabled: true },
       { text: "팀 공유", disabled: true },
@@ -84,7 +82,7 @@ const PLANS = [
     usage: [
       { text: "영상 검색 500회/월 (팀 최대 2명)" },
       { text: "채널 검색 500회/월" },
-      { text: "스레드 검색 200회/월" },
+      { text: "스레드 계정 분석" },
     ],
     features: [
       { text: "아웃라이어 · 반응도 확인" },
@@ -93,7 +91,6 @@ const PLANS = [
       { text: "검색 기록 무제한 저장" },
       { text: "영상 수집 · CSV 내보내기" },
       { text: "채널 분석 리포트" },
-      { text: "스레드 바이럴 점수 확인" },
       { text: "스레드 계정 분석" },
       { text: "팀 공유", disabled: true },
     ] as Feature[],
@@ -111,7 +108,7 @@ const PLANS = [
     usage: [
       { text: "영상 검색 무제한 (팀 최대 5명)" },
       { text: "채널 검색 무제한" },
-      { text: "스레드 검색 무제한" },
+      { text: "스레드 계정 분석" },
     ],
     features: [
       { text: "Pro 모든 기능 포함" },
