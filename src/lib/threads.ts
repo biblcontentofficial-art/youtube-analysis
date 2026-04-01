@@ -167,7 +167,7 @@ export function getOAuthUrl(state: string): string {
   const params = new URLSearchParams({
     client_id: appId ?? "",
     redirect_uri: redirectUri,
-    scope: "threads_basic,threads_keyword_search",
+    scope: "threads_basic,threads_keyword_search,threads_manage_insights",
     response_type: "code",
     state,
   });
@@ -879,4 +879,173 @@ export function calculateAccountInsights(posts: ThreadPost[]): ThreadsAccountIns
     bestHour, engagementTrend, trendPercent,
     mediaTypeBreakdown, bestMediaType,
   };
+}
+
+// ─────────────────────────────────────────────────────────────
+// 내 계정 인사이트 (threads_manage_insights 스코프 필요)
+// ─────────────────────────────────────────────────────────────
+
+export interface ProfileInsights {
+  views: number;
+  likes: number;
+  replies: number;
+  reposts: number;
+  quotes: number;
+  followers_count: number;
+  daily_views: { date: string; value: number }[];
+}
+
+export interface PostInsight {
+  id: string;
+  text: string;
+  media_type: string;
+  timestamp: string;
+  permalink: string;
+  views: number;
+  likes: number;
+  replies: number;
+  reposts: number;
+  quotes: number;
+  shares: number;
+  engagement_rate: number;
+}
+
+export interface MyAccountData {
+  profile: {
+    id: string;
+    username: string;
+    name?: string;
+    profile_picture_url?: string;
+    followers_count: number;
+  };
+  insights: ProfileInsights;
+  posts: PostInsight[];
+}
+
+/**
+ * 내 계정 프로필 인사이트 (프로필 조회수)
+ * GET /me/threads_insights?metric=views&period=day&since=...&until=...
+ */
+export async function getMyProfileInsights(
+  accessToken: string,
+  since: number, // Unix timestamp
+  until: number
+): Promise<ProfileInsights> {
+  // 프로필 조회수 (daily)
+  const viewsParams = new URLSearchParams({
+    metric: "views",
+    period: "day",
+    since: String(since),
+    until: String(until),
+    access_token: accessToken,
+  });
+
+  const viewsRes = await fetch(
+    `${THREADS_API}/me/threads_insights?${viewsParams}`,
+    { cache: "no-store" }
+  );
+
+  let dailyViews: { date: string; value: number }[] = [];
+  let totalViews = 0;
+
+  if (viewsRes.ok) {
+    const viewsJson = (await viewsRes.json()) as {
+      data?: { values?: { end_time: string; value: number }[] }[];
+    };
+    const viewsData = viewsJson.data?.[0]?.values ?? [];
+    dailyViews = viewsData.map((v) => ({
+      date: v.end_time.split("T")[0],
+      value: v.value,
+    }));
+    totalViews = viewsData.reduce((s, v) => s + v.value, 0);
+  }
+
+  // 팔로워 수 (프로필에서 가져오기)
+  const profile = await getThreadsProfile(accessToken);
+
+  return {
+    views: totalViews,
+    likes: 0, // 게시물별 합산으로 채움
+    replies: 0,
+    reposts: 0,
+    quotes: 0,
+    followers_count: profile.followers_count,
+    daily_views: dailyViews,
+  };
+}
+
+/**
+ * 내 게시물 목록 + 각 게시물의 인사이트 조합
+ * GET /me/threads → 각 게시물 GET /{id}?fields=...
+ */
+export async function getMyPostsWithInsights(
+  accessToken: string,
+  limit = 30
+): Promise<PostInsight[]> {
+  // 내 게시물 목록 가져오기
+  const fields = [
+    "id", "text", "media_type", "timestamp", "permalink",
+    "like_count", "replies_count", "repost_count", "quote_count",
+  ].join(",");
+
+  const res = await fetch(
+    `${THREADS_API}/me/threads?fields=${fields}&limit=${limit}&access_token=${accessToken}`,
+    { cache: "no-store" }
+  );
+
+  if (!res.ok) {
+    const err = await res.text();
+    console.error("[Threads] getMyPostsWithInsights error:", err);
+    return [];
+  }
+
+  const json = (await res.json()) as { data?: Record<string, unknown>[] };
+  const rawPosts = json.data ?? [];
+
+  // 각 게시물의 조회수 인사이트 (views만 별도 API)
+  const viewsResults = await Promise.allSettled(
+    rawPosts.map(async (post) => {
+      const postId = String(post.id);
+      try {
+        const r = await fetch(
+          `${THREADS_API}/${postId}/insights?metric=views&access_token=${accessToken}`,
+          { cache: "no-store" }
+        );
+        if (!r.ok) return 0;
+        const d = (await r.json()) as {
+          data?: { values?: { value: number }[] }[];
+        };
+        return d.data?.[0]?.values?.[0]?.value ?? 0;
+      } catch {
+        return 0;
+      }
+    })
+  );
+
+  return rawPosts.map((post, i) => {
+    const likes = Number(post.like_count ?? 0);
+    const replies = Number(post.replies_count ?? 0);
+    const reposts = Number(post.repost_count ?? 0);
+    const quotes = Number(post.quote_count ?? 0);
+    const views =
+      viewsResults[i].status === "fulfilled" ? viewsResults[i].value : 0;
+    const total = likes + replies + reposts + quotes;
+
+    return {
+      id: String(post.id),
+      text: String(post.text ?? ""),
+      media_type: String(post.media_type ?? "TEXT"),
+      timestamp: String(post.timestamp ?? new Date().toISOString()),
+      permalink: String(
+        post.permalink ?? "https://www.threads.net"
+      ),
+      views,
+      likes,
+      replies,
+      reposts,
+      quotes,
+      shares: 0, // Threads API에서 공유 수 미지원
+      engagement_rate: views > 0 ? Math.round((total / views) * 1000) / 10 : 0,
+    };
+  });
 }
