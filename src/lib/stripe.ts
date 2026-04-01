@@ -30,7 +30,7 @@ export type PlanConfig = {
   canThreadsViralScore: boolean;             // 바이럴 점수 열람 가능 여부
 };
 
-export type PlanKey = "free" | "starter" | "pro" | "business" | "admin";
+export type PlanKey = "free" | "starter" | "pro" | "business" | "admin" | "team";
 
 export const PLANS: Record<PlanKey, PlanConfig> = {
   free: {
@@ -107,6 +107,26 @@ export const PLANS: Record<PlanKey, PlanConfig> = {
     canSavedVideos: true,
     canServerHistory: true,
     historyDays: 9999,
+    canThreadsViralScore: true,
+  },
+  // 팀비블 — admin 페이지에서만 지정 가능, 결제 없음, Starter 동일 기능/한도
+  team: {
+    name: "팀비블",
+    priceId: null,
+    dailySearchLimit: null,
+    monthlySearchLimit: 50,
+    dailyChannelSearchLimit: null,
+    channelSearchMonthlyLimit: 30,
+    resultLimit: 100,
+    canLoadMore: true,
+    maxTeamSize: 1,
+    canCollect: false,
+    canAlgorithm: true,
+    canChannelReport: false,
+    canChannelSearch: true,
+    canSavedVideos: false,
+    canServerHistory: true,
+    historyDays: 30,
     canThreadsViralScore: true,
   },
   // 관리자 전용 플랜 — 결제 없음, pricing 페이지 미노출, 매출 집계 제외

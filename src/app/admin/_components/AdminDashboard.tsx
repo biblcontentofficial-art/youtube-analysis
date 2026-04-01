@@ -57,6 +57,7 @@ const PLAN_BADGE: Record<string, string> = {
   pro: "bg-teal-900 text-teal-300",
   business: "bg-purple-900 text-purple-300",
   admin: "bg-red-900 text-red-300 border border-red-700",
+  team: "bg-orange-900 text-orange-300 border border-orange-700",
 };
 
 const PLAN_PRICE: Record<string, number> = {
@@ -65,6 +66,7 @@ const PLAN_PRICE: Record<string, number> = {
   pro: 199000,
   business: 490000,
   admin: 0,  // 매출 집계 제외
+  team: 0,   // 팀비블 — 매출 집계 제외
 };
 
 const PLAN_LABEL: Record<string, string> = {
@@ -73,6 +75,7 @@ const PLAN_LABEL: Record<string, string> = {
   pro: "Pro",
   business: "Business",
   admin: "🛡 Admin",
+  team: "🫂 팀비블",
 };
 
 const PLAN_COLOR: Record<string, string> = {
@@ -81,6 +84,7 @@ const PLAN_COLOR: Record<string, string> = {
   pro: "#14b8a6",
   business: "#a855f7",
   admin: "#ef4444",
+  team: "#f97316",
 };
 
 type Tab = "overview" | "users" | "usage" | "costs";
@@ -568,6 +572,7 @@ function UsersTab({
             <option value="starter">Starter</option>
             <option value="pro">Pro</option>
             <option value="business">Business</option>
+            <option value="team">🫂 팀비블</option>
             <option value="admin">🛡 Admin</option>
           </select>
           <button
@@ -612,7 +617,7 @@ function UsersTab({
                             onChange={(e) => setEditingPlan({ id: u.id, plan: e.target.value })}
                             className="bg-gray-700 border border-gray-600 rounded px-2 py-1 text-xs text-white focus:outline-none"
                           >
-                            {["free", "starter", "pro", "business", "admin"].map((p) => (
+                            {["free", "team", "starter", "pro", "business", "admin"].map((p) => (
                               <option key={p} value={p}>{PLAN_LABEL[p]}</option>
                             ))}
                           </select>

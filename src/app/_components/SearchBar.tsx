@@ -75,7 +75,7 @@ export default function SearchBar() {
 
   // 플랜 확인 (publicMetadata.plan)
   const plan = (user?.publicMetadata?.plan as string) ?? "free";
-  const useServerHistory = ["starter", "pro", "business", "admin"].includes(plan);
+  const useServerHistory = ["starter", "pro", "business", "admin", "team"].includes(plan);
 
   // 플랜별 히스토리 표시 한도
   const historyLimit =

@@ -2,7 +2,7 @@ import { currentUser } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
 import { isAdminEmail } from "@/lib/adminAuth";
-const VALID_PLANS = ["free", "starter", "pro", "business", "admin"];
+const VALID_PLANS = ["free", "starter", "pro", "business", "admin", "team"];
 
 export async function PATCH(
   req: Request,
