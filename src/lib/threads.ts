@@ -976,76 +976,95 @@ export async function getMyProfileInsights(
 
 /**
  * 내 게시물 목록 + 각 게시물의 인사이트 조합
- * GET /me/threads → 각 게시물 GET /{id}?fields=...
+ * Step 1: GET /me/threads (기본 필드)
+ * Step 2: GET /{id}?fields=like_count,... (engagement — 개별 호출)
+ * Step 3: GET /{id}/insights?metric=views (조회수 — 개별 호출)
  */
 export async function getMyPostsWithInsights(
   accessToken: string,
   limit = 30
 ): Promise<PostInsight[]> {
-  // 내 게시물 목록 가져오기
-  const fields = [
-    "id", "text", "media_type", "timestamp", "permalink",
-    "like_count", "replies_count", "repost_count", "quote_count",
-  ].join(",");
+  // Step 1: 내 게시물 목록 (기본 필드만)
+  const listFields = "id,text,media_type,timestamp,permalink";
 
   const res = await fetch(
-    `${THREADS_API}/me/threads?fields=${fields}&limit=${limit}&access_token=${accessToken}`,
+    `${THREADS_API}/me/threads?fields=${listFields}&limit=${limit}&access_token=${accessToken}`,
     { cache: "no-store" }
   );
 
   if (!res.ok) {
     const err = await res.text();
-    console.error("[Threads] getMyPostsWithInsights error:", err);
+    console.error("[Threads] getMyPostsWithInsights list error:", err);
     return [];
   }
 
   const json = (await res.json()) as { data?: Record<string, unknown>[] };
   const rawPosts = json.data ?? [];
 
-  // 각 게시물의 조회수 인사이트 (views만 별도 API)
-  const viewsResults = await Promise.allSettled(
+  // Step 2 + 3: 각 게시물의 engagement + views를 병렬 호출
+  const engFields = "id,like_count,replies_count,repost_count,quote_count";
+
+  const enrichResults = await Promise.allSettled(
     rawPosts.map(async (post) => {
       const postId = String(post.id);
-      try {
-        const r = await fetch(
+
+      // engagement + views 동시 호출
+      const [engRes, viewsRes] = await Promise.all([
+        fetch(
+          `${THREADS_API}/${postId}?fields=${engFields}&access_token=${accessToken}`,
+          { cache: "no-store" }
+        ).then(async (r) => {
+          if (!r.ok) {
+            console.error(`[Threads] eng fetch ${postId}: ${r.status}`);
+            return null;
+          }
+          return (await r.json()) as Record<string, unknown>;
+        }).catch(() => null),
+
+        fetch(
           `${THREADS_API}/${postId}/insights?metric=views&access_token=${accessToken}`,
           { cache: "no-store" }
-        );
-        if (!r.ok) return 0;
-        const d = (await r.json()) as {
-          data?: { values?: { value: number }[] }[];
-        };
-        return d.data?.[0]?.values?.[0]?.value ?? 0;
-      } catch {
-        return 0;
-      }
+        ).then(async (r) => {
+          if (!r.ok) return 0;
+          const d = (await r.json()) as {
+            data?: { values?: { value: number }[] }[];
+          };
+          return d.data?.[0]?.values?.[0]?.value ?? 0;
+        }).catch(() => 0),
+      ]);
+
+      return {
+        postId,
+        likes: Number(engRes?.like_count ?? 0),
+        replies: Number(engRes?.replies_count ?? 0),
+        reposts: Number(engRes?.repost_count ?? 0),
+        quotes: Number(engRes?.quote_count ?? 0),
+        views: viewsRes,
+      };
     })
   );
 
   return rawPosts.map((post, i) => {
-    const likes = Number(post.like_count ?? 0);
-    const replies = Number(post.replies_count ?? 0);
-    const reposts = Number(post.repost_count ?? 0);
-    const quotes = Number(post.quote_count ?? 0);
-    const views =
-      viewsResults[i].status === "fulfilled" ? viewsResults[i].value : 0;
-    const total = likes + replies + reposts + quotes;
+    const result = enrichResults[i];
+    const eng = result.status === "fulfilled"
+      ? result.value
+      : { likes: 0, replies: 0, reposts: 0, quotes: 0, views: 0 };
+
+    const total = eng.likes + eng.replies + eng.reposts + eng.quotes;
 
     return {
       id: String(post.id),
       text: String(post.text ?? ""),
       media_type: String(post.media_type ?? "TEXT"),
       timestamp: String(post.timestamp ?? new Date().toISOString()),
-      permalink: String(
-        post.permalink ?? "https://www.threads.net"
-      ),
-      views,
-      likes,
-      replies,
-      reposts,
-      quotes,
-      shares: 0, // Threads API에서 공유 수 미지원
-      engagement_rate: views > 0 ? Math.round((total / views) * 1000) / 10 : 0,
+      permalink: String(post.permalink ?? "https://www.threads.net"),
+      views: eng.views,
+      likes: eng.likes,
+      replies: eng.replies,
+      reposts: eng.reposts,
+      quotes: eng.quotes,
+      shares: 0,
+      engagement_rate: eng.views > 0 ? Math.round((total / eng.views) * 1000) / 10 : 0,
     };
   });
 }
