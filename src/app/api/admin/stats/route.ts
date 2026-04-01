@@ -8,12 +8,22 @@ const PLAN_PRICE: Record<string, number> = {
   starter: 49000,
   pro: 199000,
   business: 490000,
+  team: 0,   // 매출 집계 제외
+  admin: 0,  // 매출 집계 제외
 };
+
+// 월별로 추적하는 플랜 (searchLimit.ts와 동일)
+const MONTHLY_PLANS = new Set(["starter", "pro", "business", "admin", "team"]);
 
 function dateStringDaysAgo(daysAgo: number) {
   const d = new Date();
   d.setDate(d.getDate() - daysAgo);
   return d.toISOString().slice(0, 10);
+}
+
+function currentYearMonth() {
+  const now = new Date();
+  return `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, "0")}`;
 }
 
 export async function GET() {
@@ -63,7 +73,7 @@ export async function GET() {
       return last && last > now - WEEK;
     }).length;
 
-    const planCounts: Record<string, number> = { free: 0, starter: 0, pro: 0, business: 0 };
+    const planCounts: Record<string, number> = { free: 0, starter: 0, pro: 0, business: 0, team: 0, admin: 0 };
     let mrr = 0;
     const userPlanMap: Record<string, string> = {};
     for (const u of allUsers) {
@@ -77,12 +87,15 @@ export async function GET() {
     // ── 3. Redis 검색량 통계 ───────────────────────────────────────
     const today = dateStringDaysAgo(0);
     const yesterday = dateStringDaysAgo(1);
+    const ym = currentYearMonth();
+
     let todaySearches = 0;
     let yesterdaySearches = 0;
-    let searchesByPlan: Record<string, number> = { free: 0, starter: 0, pro: 0, business: 0 };
+    let searchesByPlan: Record<string, number> = { free: 0, starter: 0, pro: 0, business: 0, team: 0, admin: 0 };
     let searchActiveUsersToday = 0;
     let redisCommandsToday = 0;
     const dailySearches: { date: string; count: number }[] = [];
+    // usageMap: Free → 오늘 일별, 유료 → 이번달 월별
     let usageMap: Record<string, number> = {};
 
     try {
@@ -94,40 +107,58 @@ export async function GET() {
         });
 
         const userIds = allUsers.map((u) => u.id as string);
+        const freeIds = userIds.filter((id) => !MONTHLY_PLANS.has(userPlanMap[id] ?? "free"));
+        const paidIds = userIds.filter((id) => MONTHLY_PLANS.has(userPlanMap[id] ?? "free"));
 
-        if (userIds.length > 0) {
-          // 오늘 검색량
-          const todayKeys = userIds.map((id) => `search:${id}:${today}`);
+        // ── Free 유저: 일별 키 (search:d:{id}:{YYYY-MM-DD}) ──
+        if (freeIds.length > 0) {
+          // 오늘
+          const todayKeys = freeIds.map((id) => `search:d:${id}:${today}`);
           const todayCounts = await redis.mget<number[]>(...todayKeys);
-          for (let i = 0; i < todayCounts.length; i++) {
+          for (let i = 0; i < freeIds.length; i++) {
             const c = todayCounts[i] ?? 0;
-            usageMap[userIds[i]] = c;
+            usageMap[freeIds[i]] = c;
             if (c > 0) {
               todaySearches += c;
               searchActiveUsersToday++;
-              const plan = userPlanMap[userIds[i]] ?? "free";
+              searchesByPlan["free"] = (searchesByPlan["free"] ?? 0) + c;
+            }
+          }
+          // 어제
+          const yKeys = freeIds.map((id) => `search:d:${id}:${yesterday}`);
+          const yCounts = await redis.mget<number[]>(...yKeys);
+          yesterdaySearches += yCounts.reduce((s, c) => s + (c ?? 0), 0);
+        }
+
+        // ── 유료 유저: 월별 키 (search:m:{id}:{YYYY-MM}) ──
+        if (paidIds.length > 0) {
+          const monthlyKeys = paidIds.map((id) => `search:m:${id}:${ym}`);
+          const monthlyCounts = await redis.mget<number[]>(...monthlyKeys);
+          for (let i = 0; i < paidIds.length; i++) {
+            const c = monthlyCounts[i] ?? 0;
+            usageMap[paidIds[i]] = c;
+            if (c > 0) {
+              searchActiveUsersToday++;
+              const plan = userPlanMap[paidIds[i]] ?? "free";
               searchesByPlan[plan] = (searchesByPlan[plan] ?? 0) + c;
             }
           }
+          // 어제 월별: 같은 달이면 어제 일별 키로 추정
+          const yPaidKeys = paidIds.map((id) => `search:d:${id}:${yesterday}`);
+          const yPaidCounts = await redis.mget<number[]>(...yPaidKeys);
+          yesterdaySearches += yPaidCounts.reduce((s, c) => s + (c ?? 0), 0);
+        }
 
-          // 어제 검색량
-          const yKeys = userIds.map((id) => `search:${id}:${yesterday}`);
-          const yCounts = await redis.mget<number[]>(...yKeys);
-          yesterdaySearches = yCounts.reduce((s, c) => s + (c ?? 0), 0);
-
-          // 최근 7일 일별 통계
-          for (let d = 6; d >= 0; d--) {
-            const dateStr = dateStringDaysAgo(d);
-            if (d === 0) {
-              dailySearches.push({ date: dateStr, count: todaySearches });
-            } else if (d === 1) {
-              dailySearches.push({ date: dateStr, count: yesterdaySearches });
-            } else {
-              const dKeys = userIds.map((id) => `search:${id}:${dateStr}`);
-              const dCounts = await redis.mget<number[]>(...dKeys);
-              const total = dCounts.reduce((s, c) => s + (c ?? 0), 0);
-              dailySearches.push({ date: dateStr, count: total });
-            }
+        // 최근 7일 일별 통계 (Free 기준 daily key)
+        for (let d = 6; d >= 0; d--) {
+          const dateStr = dateStringDaysAgo(d);
+          if (d === 0) {
+            dailySearches.push({ date: dateStr, count: todaySearches });
+          } else {
+            const allDayKeys = userIds.map((id) => `search:d:${id}:${dateStr}`);
+            const dayCounts = await redis.mget<number[]>(...allDayKeys);
+            const total = dayCounts.reduce((s, c) => s + (c ?? 0), 0);
+            dailySearches.push({ date: dateStr, count: total });
           }
         }
 
@@ -140,18 +171,16 @@ export async function GET() {
     // ── 4. YouTube API 쿼터 계산 ───────────────────────────────────
     const UNITS_PER_SEARCH = 105; // search(100) + videos(1) + channels(4)
     const FREE_QUOTA_PER_KEY = 10000;
-    // 실제 env에서 키 수 동적 계산
     let FREE_KEY_COUNT = process.env.YOUTUBE_API_KEY ? 1 : 0;
     for (let i = 2; i <= 10; i++) { if (process.env[`YOUTUBE_API_KEY_${i}`]) FREE_KEY_COUNT++; }
     let PAID_KEY_COUNT = 0;
     for (let i = 1; i <= 10; i++) { if (process.env[`YOUTUBE_API_KEY_PAID_${i}`]) PAID_KEY_COUNT++; }
-    const totalFreeQuota = FREE_KEY_COUNT * FREE_QUOTA_PER_KEY; // 90,000
-    const totalPaidQuota = PAID_KEY_COUNT * FREE_QUOTA_PER_KEY; // 10,000
+    const totalFreeQuota = FREE_KEY_COUNT * FREE_QUOTA_PER_KEY;
+    const totalPaidQuota = PAID_KEY_COUNT * FREE_QUOTA_PER_KEY;
     const estimatedUnitsToday = todaySearches * UNITS_PER_SEARCH;
     const quotaUsedPct = Math.min(100, Math.round((estimatedUnitsToday / totalFreeQuota) * 100));
     const capacitySearches = Math.floor(totalFreeQuota / UNITS_PER_SEARCH);
     const overageUnits = Math.max(0, estimatedUnitsToday - totalFreeQuota);
-    // YouTube API 초과 요금: $5/1,000 units ≈ 7,000원/1,000 units (1USD≈1400원)
     const overageCostKRW = Math.round((overageUnits / 1000) * 5 * 1400);
 
     return NextResponse.json({

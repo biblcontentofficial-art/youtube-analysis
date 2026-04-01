@@ -313,23 +313,11 @@ export default async function RootLayout({
                   </svg>
                 } />
                 {/* 채널 분석 */}
-                {isStarterPlus ? (
-                  <a
-                    href="/my-channel"
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm transition text-gray-400 hover:text-white hover:bg-gray-800"
-                  >
-                    <svg viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5 text-red-500">
-                      <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.546 12 3.546 12 3.546s-7.505 0-9.377.504A3.016 3.016 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.504 9.376.504 9.376.504s7.505 0 9.377-.504a3.016 3.016 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-                    </svg>
-                    채널 분석
-                  </a>
-                ) : (
-                  <NavTab href="/my-channel" label="채널 분석" requiredPlan="Starter" icon={
-                    <svg viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5 text-red-500/50">
-                      <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.546 12 3.546 12 3.546s-7.505 0-9.377.504A3.016 3.016 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.504 9.376.504 9.376.504s7.505 0 9.377-.504a3.016 3.016 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-                    </svg>
-                  } />
-                )}
+                <NavTab href="/my-channel" label="채널 분석" requiredPlan={!isStarterPlus ? "Starter" : undefined} icon={
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
+                    <line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" />
+                  </svg>
+                } />
                 {/* 수집한 영상 */}
                 <NavTab href="/saved" label="수집한 영상" requiredPlan={!isProPlus ? "Pro" : undefined} icon={
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
@@ -486,7 +474,11 @@ function NavTab({
           : "text-gray-400 hover:text-white hover:bg-gray-800"
       }`}
     >
-      {locked && <span className="text-[11px]">🔒</span>}
+      {locked && (
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-3 h-3 text-gray-500">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />
+        </svg>
+      )}
       {!locked && icon}
       {label}
       {locked && requiredPlan && (

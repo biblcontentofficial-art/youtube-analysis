@@ -74,8 +74,8 @@ const PLAN_LABEL: Record<string, string> = {
   starter: "Starter",
   pro: "Pro",
   business: "Business",
-  admin: "🛡 Admin",
-  team: "🫂 팀비블",
+  admin: "Admin",
+  team: "팀비블",
 };
 
 const PLAN_COLOR: Record<string, string> = {
@@ -205,10 +205,14 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleResetUsage = async (userId: string) => {
+  const handleResetUsage = async (userId: string, plan = "free") => {
     setUsageResetting(userId);
     try {
-      const res = await fetch(`/api/admin/users/${userId}/reset-usage`, { method: "POST" });
+      const res = await fetch(`/api/admin/users/${userId}/reset-usage`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan }),
+      });
       if (!res.ok) throw new Error("Failed");
       // Optimistically update the stats usageMap
       setStats((prev) =>
@@ -238,19 +242,43 @@ export default function AdminDashboard() {
     return matchesPlan && matchesSearch;
   });
 
-  // admin 플랜은 매출 집계에서 제외
-  const mrr = users.reduce((s, u) => s + (u.plan !== "admin" ? (PLAN_PRICE[u.plan] ?? 0) : 0), 0);
-  const payingUsers = users.filter((u) => u.plan !== "free" && u.plan !== "admin").length;
+  // admin·team 플랜은 매출 집계에서 제외
+  const FREE_PLANS = new Set(["free", "admin", "team"]);
+  const mrr = users.reduce((s, u) => s + (FREE_PLANS.has(u.plan) ? 0 : (PLAN_PRICE[u.plan] ?? 0)), 0);
+  const payingUsers = users.filter((u) => !FREE_PLANS.has(u.plan)).length;
   const planCounts = users.reduce<Record<string, number>>((acc, u) => {
     acc[u.plan] = (acc[u.plan] ?? 0) + 1;
     return acc;
   }, {});
 
-  const TABS: { id: Tab; label: string; icon: string }[] = [
-    { id: "overview", label: "개요", icon: "📊" },
-    { id: "users", label: "사용자", icon: "👥" },
-    { id: "usage", label: "사용량", icon: "📡" },
-    { id: "costs", label: "비용 분석", icon: "💰" },
+  const TAB_ICONS: Record<Tab, React.ReactNode> = {
+    overview: (
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+        <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+      </svg>
+    ),
+    users: (
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+      </svg>
+    ),
+    usage: (
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+      </svg>
+    ),
+    costs: (
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+        <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+      </svg>
+    ),
+  };
+
+  const TABS: { id: Tab; label: string }[] = [
+    { id: "overview", label: "개요" },
+    { id: "users", label: "사용자" },
+    { id: "usage", label: "사용량" },
+    { id: "costs", label: "비용 분석" },
   ];
 
   return (
@@ -261,13 +289,13 @@ export default function AdminDashboard() {
           <button
             key={t.id}
             onClick={() => setActiveTab(t.id)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
               activeTab === t.id
                 ? "bg-gray-700 text-white"
                 : "text-gray-500 hover:text-gray-300"
             }`}
           >
-            <span className="mr-1.5">{t.icon}</span>
+            {TAB_ICONS[t.id]}
             {t.label}
           </button>
         ))}
@@ -432,7 +460,7 @@ function OverviewTab({
           <div className="text-gray-500 text-sm">로딩 중...</div>
         ) : (
           <div className="space-y-3">
-            {["free", "starter", "pro", "business", "admin"].map((plan) => {
+            {["free", "team", "starter", "pro", "business", "admin"].map((plan) => {
               const count = planCounts[plan] ?? 0;
               const pct = users.length > 0 ? Math.round((count / users.length) * 100) : 0;
               return (
@@ -541,7 +569,7 @@ function UsersTab({
   onRefresh: () => void;
   usageMap: Record<string, number>;
   usageResetting: string | null;
-  onResetUsage: (id: string) => void;
+  onResetUsage: (id: string, plan?: string) => void;
 }) {
   return (
     <div className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden">
@@ -572,8 +600,8 @@ function UsersTab({
             <option value="starter">Starter</option>
             <option value="pro">Pro</option>
             <option value="business">Business</option>
-            <option value="team">🫂 팀비블</option>
-            <option value="admin">🛡 Admin</option>
+            <option value="team">팀비블</option>
+            <option value="admin">Admin</option>
           </select>
           <button
             onClick={onRefresh}
@@ -594,14 +622,16 @@ function UsersTab({
                 <th className="px-6 py-3 text-left">이메일</th>
                 <th className="px-6 py-3 text-left">이름</th>
                 <th className="px-6 py-3 text-left">플랜</th>
-                <th className="px-6 py-3 text-left">오늘 검색</th>
+                <th className="px-6 py-3 text-left">사용량</th>
                 <th className="px-6 py-3 text-left">가입일</th>
                 <th className="px-6 py-3 text-left">관리</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-800">
               {filteredUsers.map((u) => {
-                const todayCount = usageMap[u.id] ?? 0;
+                const usageCount = usageMap[u.id] ?? 0;
+                const isMonthlyPlan = ["starter", "pro", "business", "admin", "team"].includes(u.plan);
+                const usageLabel = isMonthlyPlan ? "이번달" : "오늘";
                 const isResetting = usageResetting === u.id;
                 return (
                   <tr key={u.id} className="hover:bg-gray-800/50 transition">
@@ -646,9 +676,10 @@ function UsersTab({
                       )}
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`text-sm font-semibold ${todayCount > 0 ? "text-yellow-400" : "text-gray-600"}`}>
-                        {todayCount}회
+                      <span className={`text-sm font-semibold ${usageCount > 0 ? "text-yellow-400" : "text-gray-600"}`}>
+                        {usageCount}회
                       </span>
+                      <span className="ml-1 text-[10px] text-gray-600">{usageLabel}</span>
                     </td>
                     <td className="px-6 py-4 text-gray-500">{formatDate(u.createdAt)}</td>
                     <td className="px-6 py-4">
@@ -659,14 +690,21 @@ function UsersTab({
                         >
                           플랜 변경
                         </button>
-                        {todayCount > 0 && (
+                        {usageCount > 0 && (
                           <button
-                            onClick={() => onResetUsage(u.id)}
+                            onClick={() => onResetUsage(u.id, u.plan)}
                             disabled={isResetting}
-                            title="오늘 검색 횟수 초기화"
-                            className="text-xs px-2 py-0.5 bg-orange-900/50 hover:bg-orange-800/60 border border-orange-700/50 text-orange-400 hover:text-orange-300 rounded transition disabled:opacity-50"
+                            title={`${usageLabel} 검색 횟수 초기화`}
+                            className="flex items-center gap-1 text-xs px-2 py-0.5 bg-orange-900/50 hover:bg-orange-800/60 border border-orange-700/50 text-orange-400 hover:text-orange-300 rounded transition disabled:opacity-50"
                           >
-                            {isResetting ? "..." : "🔄 초기화"}
+                            {isResetting ? "..." : (
+                              <>
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-3 h-3">
+                                  <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+                                </svg>
+                                초기화
+                              </>
+                            )}
                           </button>
                         )}
                       </div>
