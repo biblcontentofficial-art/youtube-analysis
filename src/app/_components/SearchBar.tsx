@@ -341,11 +341,6 @@ export default function SearchBar() {
                       className="flex items-center gap-1.5 px-2.5 py-1.5 cursor-pointer"
                     >
                       <span className="text-xs font-medium text-gray-200">{item.term}</span>
-                      {item.count > 1 && (
-                        <span className="text-[10px] font-bold text-teal-400 bg-teal-950/60 border border-teal-800 px-1.5 py-0.5 rounded-full leading-none">
-                          {item.count}회
-                        </span>
-                      )}
                     </div>
                     <button
                       type="button"
