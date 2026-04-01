@@ -51,6 +51,8 @@ export default function PaymentButtons({ plan, userId, userEmail, userName }: Pr
         storeId, channelKey,
         billingKeyMethod: "EASY_PAY",
         issueId, issueName: planData.orderName,
+        displayAmount: planData.amount,
+        currency: "KRW",
         customer: { customerId: userId, fullName: userName || "고객", email: userEmail },
         easyPay: { easyPayProvider: "KAKAOPAY" },
       } as Parameters<typeof requestIssueBillingKey>[0]);
@@ -100,8 +102,10 @@ export default function PaymentButtons({ plan, userId, userEmail, userName }: Pr
       const res = await requestIssueBillingKey({
         storeId, channelKey, billingKeyMethod: "CARD",
         issueId, issueName: planData.orderName,
+        displayAmount: planData.amount,
+        currency: "KRW",
         customer: { customerId: userId, fullName: name.trim(), phoneNumber: phone.trim(), email: userEmail },
-      });
+      } as Parameters<typeof requestIssueBillingKey>[0]);
       if (!res || "code" in res) { alert((res as { message?: string })?.message || "카드 등록 실패"); return; }
       const billingKey = (res as { billingKey: string }).billingKey;
       const confirmRes = await fetch("/api/portone/billing/confirm", {
