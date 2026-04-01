@@ -110,27 +110,32 @@ export async function GET() {
         const freeIds = userIds.filter((id) => !MONTHLY_PLANS.has(userPlanMap[id] ?? "free"));
         const paidIds = userIds.filter((id) => MONTHLY_PLANS.has(userPlanMap[id] ?? "free"));
 
-        // ── Free 유저: 일별 키 (search:d:{id}:{YYYY-MM-DD}) ──
+        // ── 글로벌 일별 카운터 (실제 YouTube API 사용량) ──────────────────
+        // searchLimit.ts의 incrementSearchCount()가 성공 시 search:global:d:{date}에 기록
+        const globalKey = `search:global:d:${today}`;
+        const globalYesterday = `search:global:d:${yesterday}`;
+        const [globalTodayCount, globalYesterdayCount] = await Promise.all([
+          redis.get<number>(globalKey).catch(() => null),
+          redis.get<number>(globalYesterday).catch(() => null),
+        ]);
+        todaySearches = globalTodayCount ?? 0;
+        yesterdaySearches = globalYesterdayCount ?? 0;
+
+        // ── Free 유저: 일별 키 → 사용자별 usageMap ──────────────────────────
         if (freeIds.length > 0) {
-          // 오늘
           const todayKeys = freeIds.map((id) => `search:d:${id}:${today}`);
           const todayCounts = await redis.mget<number[]>(...todayKeys);
           for (let i = 0; i < freeIds.length; i++) {
             const c = todayCounts[i] ?? 0;
             usageMap[freeIds[i]] = c;
             if (c > 0) {
-              todaySearches += c;
               searchActiveUsersToday++;
               searchesByPlan["free"] = (searchesByPlan["free"] ?? 0) + c;
             }
           }
-          // 어제
-          const yKeys = freeIds.map((id) => `search:d:${id}:${yesterday}`);
-          const yCounts = await redis.mget<number[]>(...yKeys);
-          yesterdaySearches += yCounts.reduce((s, c) => s + (c ?? 0), 0);
         }
 
-        // ── 유료 유저: 월별 키 (search:m:{id}:{YYYY-MM}) ──
+        // ── 유료 유저: 월별 키 → 사용자별 usageMap ─────────────────────────
         if (paidIds.length > 0) {
           const monthlyKeys = paidIds.map((id) => `search:m:${id}:${ym}`);
           const monthlyCounts = await redis.mget<number[]>(...monthlyKeys);
@@ -143,22 +148,27 @@ export async function GET() {
               searchesByPlan[plan] = (searchesByPlan[plan] ?? 0) + c;
             }
           }
-          // 어제 월별: 같은 달이면 어제 일별 키로 추정
-          const yPaidKeys = paidIds.map((id) => `search:d:${id}:${yesterday}`);
-          const yPaidCounts = await redis.mget<number[]>(...yPaidKeys);
-          yesterdaySearches += yPaidCounts.reduce((s, c) => s + (c ?? 0), 0);
         }
 
-        // 최근 7일 일별 통계 (Free 기준 daily key)
+        // ── 최근 7일 일별 통계 (글로벌 카운터 우선, 없으면 per-user 합산) ──
         for (let d = 6; d >= 0; d--) {
           const dateStr = dateStringDaysAgo(d);
           if (d === 0) {
             dailySearches.push({ date: dateStr, count: todaySearches });
+          } else if (d === 1) {
+            dailySearches.push({ date: dateStr, count: yesterdaySearches });
           } else {
-            const allDayKeys = userIds.map((id) => `search:d:${id}:${dateStr}`);
-            const dayCounts = await redis.mget<number[]>(...allDayKeys);
-            const total = dayCounts.reduce((s, c) => s + (c ?? 0), 0);
-            dailySearches.push({ date: dateStr, count: total });
+            const gKey = `search:global:d:${dateStr}`;
+            const gCount = await redis.get<number>(gKey).catch(() => null);
+            if (gCount !== null) {
+              dailySearches.push({ date: dateStr, count: gCount ?? 0 });
+            } else {
+              // 글로벌 키 없으면 per-user daily 합산 (레거시)
+              const allDayKeys = userIds.map((id) => `search:d:${id}:${dateStr}`);
+              const dayCounts = await redis.mget<number[]>(...allDayKeys);
+              const total = dayCounts.reduce((s, c) => s + (c ?? 0), 0);
+              dailySearches.push({ date: dateStr, count: total });
+            }
           }
         }
 

@@ -917,11 +917,35 @@ function CostsTab({
   // 순이익
   const netProfit = mrr - totalMonthlyCostKRW;
 
+  // 서비스 아이콘 SVG
+  const SVC_ICONS: Record<string, React.ReactNode> = {
+    youtube: (
+      <svg viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 text-red-500">
+        <path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.75 15.5v-7l6.5 3.5-6.5 3.5z"/>
+      </svg>
+    ),
+    redis: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6 text-yellow-400">
+        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+      </svg>
+    ),
+    clerk: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6 text-blue-400">
+        <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/>
+      </svg>
+    ),
+    vercel: (
+      <svg viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 text-white">
+        <path d="M12 2L2 19.7778h20L12 2z"/>
+      </svg>
+    ),
+  };
+
   const services = [
     {
       name: "YouTube Data API v3",
       provider: "Google Cloud",
-      icon: "🎬",
+      iconKey: "youtube",
       plan: "무료 (10,000 units/key/일)",
       freeLimit: `${((stats?.youtube.freeKeyCount ?? 9) * 10000).toLocaleString()} units/일`,
       currentUsage: `~${(stats?.youtube.estimatedUnitsToday ?? 0).toLocaleString()} units/일 (${stats?.youtube.quotaUsedPct ?? 0}%)`,
@@ -931,46 +955,46 @@ function CostsTab({
       note:
         monthlyOverageUnits > 0
           ? `초과 ${monthlyOverageUnits.toLocaleString()} units → ${formatKRW(monthlyYouTubeCostKRW)}`
-          : "무료 쿼터 이내 ✓",
+          : "무료 쿼터 이내",
       noteColor: monthlyOverageUnits > 0 ? "text-red-400" : "text-green-400",
     },
     {
       name: "Upstash Redis",
       provider: "Upstash",
-      icon: "⚡",
+      iconKey: "redis",
       plan: "Free (10,000 req/일, 256MB)",
       freeLimit: "300,000 req/월",
       currentUsage: `~${(stats?.redis.estimatedCommandsToday ?? 0).toLocaleString()} req/일 (${stats?.redis.usedPct ?? 0}%)`,
       monthlyProjection: `~${monthlyRedisOps.toLocaleString()} req`,
       monthlyCost: monthlyRedisCostKRW,
       usedPct: stats?.redis.usedPct ?? 0,
-      note: redisOverage > 0 ? `초과 ${redisOverage.toLocaleString()} req` : "무료 한도 이내 ✓",
+      note: redisOverage > 0 ? `초과 ${redisOverage.toLocaleString()} req` : "무료 한도 이내",
       noteColor: redisOverage > 0 ? "text-red-400" : "text-green-400",
     },
     {
       name: "Clerk Auth",
       provider: "Clerk",
-      icon: "🔑",
+      iconKey: "clerk",
       plan: "Free (10,000 MAU)",
       freeLimit: "10,000 MAU",
       currentUsage: `${mau}명 (${stats?.clerk.usedPct ?? 0}%)`,
       monthlyProjection: `${mau}명 MAU`,
       monthlyCost: monthlyClerkCostKRW,
       usedPct: stats?.clerk.usedPct ?? 0,
-      note: mau > clerkFreeLimit ? `한도 초과 → Pro $25/월` : "무료 한도 이내 ✓",
+      note: mau > clerkFreeLimit ? `한도 초과 → Pro $25/월` : "무료 한도 이내",
       noteColor: mau > clerkFreeLimit ? "text-red-400" : "text-green-400",
     },
     {
       name: "Vercel",
       provider: "Vercel",
-      icon: "▲",
+      iconKey: "vercel",
       plan: "Hobby (무료)",
       freeLimit: "100GB BW, 100K func/일",
       currentUsage: "실시간 측정 불가",
       monthlyProjection: "-",
       monthlyCost: monthlyVercelCostKRW,
       usedPct: 0,
-      note: "Hobby 플랜 사용 중 ✓",
+      note: "Hobby 플랜 사용 중",
       noteColor: "text-green-400",
     },
   ];
@@ -1013,7 +1037,7 @@ function CostsTab({
             <div key={s.name} className="px-6 py-5">
               <div className="flex items-start justify-between gap-4">
                 <div className="flex items-center gap-3 min-w-0">
-                  <span className="text-2xl shrink-0">{s.icon}</span>
+                  <span className="shrink-0">{SVC_ICONS[s.iconKey]}</span>
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <p className="font-semibold text-white text-sm">{s.name}</p>
@@ -1067,7 +1091,7 @@ function CostsTab({
               {totalMonthlyCostKRW === 0 ? "₩0" : formatKRW(totalMonthlyCostKRW)}
             </p>
             {totalMonthlyCostKRW === 0 && (
-              <p className="text-xs text-green-400 mt-0.5">모든 서비스 무료 한도 이내 🎉</p>
+              <p className="text-xs text-green-400 mt-0.5">모든 서비스 무료 한도 이내</p>
             )}
           </div>
         </div>
@@ -1075,7 +1099,12 @@ function CostsTab({
 
       {/* 비용 절감 팁 */}
       <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
-        <h2 className="text-sm font-semibold text-white mb-3">💡 비용 관리 가이드</h2>
+        <div className="flex items-center gap-2 mb-3">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-yellow-400">
+            <line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/>
+          </svg>
+          <h2 className="text-sm font-semibold text-white">비용 관리 가이드</h2>
+        </div>
         <div className="space-y-3 text-sm text-gray-400">
           <div className="flex gap-2">
             <span className="text-yellow-400 shrink-0">•</span>

@@ -206,7 +206,12 @@ export async function getSearchUsage(): Promise<UsageResult> {
   return { used, limit: planData.monthlySearchLimit!, plan, isMonthly: true, unlimited: false };
 }
 
-export async function incrementSearchCount(): Promise<{ ok: boolean; used: number; limit: number }> {
+// 글로벌 일별 검색 카운터 키 (모든 플랜 합산 — YouTube API 사용량 추적용)
+function globalDailyKey() {
+  return `search:global:d:${todayString()}`;
+}
+
+async function _incrementSearchCountCore(): Promise<{ ok: boolean; used: number; limit: number }> {
   const userId = await getServerUserId();
 
   if (!userId) {
@@ -305,4 +310,24 @@ export async function incrementSearchCount(): Promise<{ ok: boolean; used: numbe
   }
 
   return { ok: newMonthly <= monthlyLimit, used: newMonthly, limit: monthlyLimit };
+}
+
+export async function incrementSearchCount(): Promise<{ ok: boolean; used: number; limit: number }> {
+  const result = await _incrementSearchCountCore();
+  if (result.ok) {
+    // 성공한 검색만 글로벌 카운터에 합산 (fire-and-forget, YouTube API 사용량 추적용)
+    void (async () => {
+      try {
+        const r = await getRedis();
+        const gKey = globalDailyKey();
+        if (r) {
+          await r.incr(gKey);
+          await r.expire(gKey, secondsUntilMidnight() + 86400); // 자정 후 24h 여유
+        } else {
+          memoryStore.set(gKey, (memoryStore.get(gKey) ?? 0) + 1);
+        }
+      } catch {}
+    })();
+  }
+  return result;
 }
