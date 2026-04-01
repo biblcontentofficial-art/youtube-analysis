@@ -57,8 +57,8 @@ function AlgorithmBadge({ score }: { score: number }) {
 
   return (
     <div className="flex flex-col items-center gap-1">
-      <span className={`text-xs font-bold ${color}`}>{label}</span>
-      <div className="w-12 h-1 bg-gray-800 rounded-full overflow-hidden">
+      <span className={`text-sm font-bold ${color}`}>{label}</span>
+      <div className="w-14 h-1 bg-gray-800 rounded-full overflow-hidden">
         <div className={`h-full rounded-full ${barColor}`} style={{ width: `${score}%` }} />
       </div>
     </div>
@@ -187,10 +187,10 @@ export default function VideoCard({ video, checked, onCheck, onClick, canAlgorit
 
       {/* ───── 데스크탑 레이아웃 ───── */}
       <div
-        className={`hidden md:grid items-center gap-2 px-3 py-3 transition-colors group ${
+        className={`hidden md:grid items-center gap-2 px-3 py-4 transition-colors group ${
           checked ? "bg-teal-950/20" : "hover:bg-gray-900/60"
         }`}
-        style={{ gridTemplateColumns: "32px 36px 110px 1fr 90px 140px 80px 90px 90px" }}
+        style={{ gridTemplateColumns: "32px 40px 130px 1fr 90px 155px 85px 95px 95px" }}
       >
         {/* 체크박스 */}
         <div className="flex justify-center" onClick={(e) => e.stopPropagation()}>

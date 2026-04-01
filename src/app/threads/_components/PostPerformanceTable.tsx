@@ -87,18 +87,18 @@ export default function PostPerformanceTable({ posts }: Props) {
     <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
       {/* 헤더 */}
       <div className="p-4 border-b border-gray-800 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
-        <h3 className="text-sm font-medium text-white">게시물</h3>
+        <h3 className="text-base font-semibold text-white">게시물</h3>
         <div className="flex gap-2 items-center">
           <input
             type="text"
             placeholder="텍스트 검색..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-teal-500 w-40"
+            className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-teal-500 w-44"
           />
           <button
             onClick={handleCsvDownload}
-            className="flex items-center gap-1 bg-teal-600 hover:bg-teal-500 text-white text-xs px-3 py-1.5 rounded-lg transition"
+            className="flex items-center gap-1.5 bg-teal-600 hover:bg-teal-500 text-white text-sm px-4 py-2 rounded-lg transition"
           >
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
@@ -112,10 +112,10 @@ export default function PostPerformanceTable({ posts }: Props) {
 
       {/* 테이블 */}
       <div className="overflow-x-auto">
-        <table className="w-full text-xs">
+        <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-gray-800 text-gray-500">
-              <th className="text-left px-4 py-3 font-medium min-w-[200px]">콘텐츠 / 날짜</th>
+              <th className="text-left px-4 py-3 font-medium min-w-[240px]">콘텐츠 / 날짜</th>
               {cols.map((c) => (
                 <th
                   key={c.key}
@@ -139,11 +139,11 @@ export default function PostPerformanceTable({ posts }: Props) {
                 className="border-b border-gray-800/50 hover:bg-gray-800/30 transition"
               >
                 <td className="px-4 py-3">
-                  <div className="text-white line-clamp-2 text-xs leading-relaxed">
+                  <div className="text-white line-clamp-2 text-sm leading-relaxed">
                     {p.text.slice(0, 120) || "(이미지/영상)"}
                   </div>
                   <div className="flex items-center gap-2 mt-1">
-                    <span className="text-gray-600 text-[10px]">
+                    <span className="text-gray-600 text-xs">
                       {new Date(p.timestamp).toLocaleDateString("ko-KR")}
                     </span>
                     <a

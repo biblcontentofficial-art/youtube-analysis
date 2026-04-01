@@ -17,12 +17,12 @@ export default function ProfileMetricCard({ label, value, delta, format = "numbe
   const display = format === "percent" ? `${value}%` : fmt(value);
 
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 flex flex-col gap-1">
-      <span className="text-xs text-gray-500">{label}</span>
-      <span className="text-2xl font-bold text-white">{display}</span>
+    <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 flex flex-col gap-1.5">
+      <span className="text-sm text-gray-500">{label}</span>
+      <span className="text-3xl font-bold text-white">{display}</span>
       {delta !== undefined && delta !== 0 && (
         <span
-          className={`text-xs font-medium ${
+          className={`text-sm font-medium ${
             delta > 0 ? "text-teal-400" : "text-red-400"
           }`}
         >

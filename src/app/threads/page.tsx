@@ -65,10 +65,10 @@ export default async function ThreadsPage({ searchParams }: Props) {
         {/* 헤더 */}
         <div className="mb-6">
           <div className="flex items-center gap-2 mb-1">
-            <ThreadsLogo className="w-5 h-5 text-white" />
-            <h1 className="text-lg font-semibold">Threads 분석</h1>
+            <ThreadsLogo className="w-7 h-7 text-white" />
+            <h1 className="text-2xl font-bold">Threads 분석</h1>
           </div>
-          <p className="text-xs text-gray-500">
+          <p className="text-sm text-gray-500">
             내 계정 성과 분석, 게시물 데이터 인사이트
           </p>
         </div>
@@ -99,15 +99,15 @@ export default async function ThreadsPage({ searchParams }: Props) {
         {/* 비로그인 → 로그인 유도 */}
         {!userId ? (
           <div className="text-center py-24">
-            <div className="w-16 h-16 rounded-full bg-gray-900 border border-gray-800 flex items-center justify-center mx-auto mb-4">
-              <ThreadsLogo className="w-9 h-9 text-white opacity-30" />
+            <div className="w-20 h-20 rounded-full bg-gray-900 border border-gray-800 flex items-center justify-center mx-auto mb-5">
+              <ThreadsLogo className="w-11 h-11 text-white opacity-30" />
             </div>
-            <h2 className="text-base font-semibold text-white mb-2">Threads 계정 분석</h2>
-            <p className="text-sm text-gray-400 mb-1">내 Threads 게시물의 성과를 한눈에 확인하세요</p>
-            <p className="text-xs text-gray-600 mb-6">조회수, 좋아요, 댓글, 리포스트 등 상세 데이터 분석</p>
+            <h2 className="text-xl font-bold text-white mb-2">Threads 계정 분석</h2>
+            <p className="text-base text-gray-400 mb-1">내 Threads 게시물의 성과를 한눈에 확인하세요</p>
+            <p className="text-sm text-gray-500 mb-8">조회수, 좋아요, 댓글, 리포스트 등 상세 데이터 분석</p>
             <a
               href="/sign-in"
-              className="inline-flex items-center gap-2 bg-teal-500 hover:bg-teal-400 text-white text-sm font-medium px-6 py-2.5 rounded-lg transition"
+              className="inline-flex items-center gap-2 bg-teal-500 hover:bg-teal-400 text-white text-base font-medium px-8 py-3 rounded-lg transition"
             >
               로그인하고 시작하기
             </a>
@@ -135,15 +135,15 @@ export default async function ThreadsPage({ searchParams }: Props) {
                           <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                         </svg>
                       </div>
-                      <h2 className="text-base font-semibold text-white mb-1">Starter 플랜부터 이용 가능</h2>
-                      <p className="text-xs text-gray-500 mb-4">내 계정 데이터 분석은 Starter 이상 플랜에서 사용할 수 있어요</p>
-                      <a href="/pricing" className="bg-teal-500 hover:bg-teal-400 text-white text-sm px-5 py-2 rounded-lg transition">
+                      <h2 className="text-lg font-bold text-white mb-2">Starter 플랜부터 이용 가능</h2>
+                      <p className="text-sm text-gray-500 mb-5">내 계정 데이터 분석은 Starter 이상 플랜에서 사용할 수 있어요</p>
+                      <a href="/pricing" className="bg-teal-500 hover:bg-teal-400 text-white text-base px-6 py-2.5 rounded-lg transition">
                         플랜 업그레이드
                       </a>
                     </div>
                   ) : !connection ? (
                     <div className="text-center py-20">
-                      <p className="text-gray-400 text-sm">위에서 Meta 계정을 연결하면 내 Threads 성과를 분석해드려요</p>
+                      <p className="text-gray-400 text-base">위에서 Meta 계정을 연결하면 내 Threads 성과를 분석해드려요</p>
                     </div>
                   ) : (
                     <MyAccountDashboard />
@@ -162,9 +162,9 @@ export default async function ThreadsPage({ searchParams }: Props) {
                           <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                         </svg>
                       </div>
-                      <h2 className="text-base font-semibold text-white mb-1">Pro 플랜부터 이용 가능</h2>
-                      <p className="text-xs text-gray-500 mb-4">게시물 수집과 CSV 내보내기는 Pro 이상 플랜에서 사용할 수 있어요</p>
-                      <a href="/pricing" className="bg-teal-500 hover:bg-teal-400 text-white text-sm px-5 py-2 rounded-lg transition">
+                      <h2 className="text-lg font-bold text-white mb-2">Pro 플랜부터 이용 가능</h2>
+                      <p className="text-sm text-gray-500 mb-5">게시물 수집과 CSV 내보내기는 Pro 이상 플랜에서 사용할 수 있어요</p>
+                      <a href="/pricing" className="bg-teal-500 hover:bg-teal-400 text-white text-base px-6 py-2.5 rounded-lg transition">
                         플랜 업그레이드
                       </a>
                     </div>
