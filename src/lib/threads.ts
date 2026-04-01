@@ -457,8 +457,8 @@ export function analyzePostTimes(posts: ThreadPost[]): PostTimeInsight {
 // Threads API의 keyword search endpoint 사용
 // ─────────────────────────────────────────────────────────────
 
-// keyword_search endpoint: 기본 필드만 반환 (engagement 수치는 별도 호출 필요)
-// owner 서브필드는 id, username만 지원 (followers_count 직접 불가)
+// keyword_search에서 직접 가져올 필드 (engagement 포함해서 시도)
+// Live 모드에서 like_count 등이 반환되면 이걸 우선 사용
 const SEARCH_FIELDS = [
   "id",
   "text",
@@ -467,20 +467,28 @@ const SEARCH_FIELDS = [
   "media_url",
   "timestamp",
   "permalink",
-  "owner{id,username}",
-].join(",");
-
-// 게시물 개별 조회 시 가져올 engagement + owner 필드
-const ENGAGEMENT_FIELDS = [
-  "id",
   "like_count",
   "replies_count",
   "repost_count",
   "quote_count",
+  "owner{id,username}",
 ].join(",");
+
+// 게시물 개별 조회 시 engagement 필드
+const ENGAGEMENT_FIELDS = "id,like_count,replies_count,repost_count,quote_count";
 
 // owner profile 조회 필드
 const OWNER_FIELDS = "id,username,followers_count";
+
+/** engagement 응답 안에 실제 데이터가 있는지 확인 */
+function hasRealEngagement(data: Record<string, unknown>): boolean {
+  return (
+    Number(data.like_count) > 0 ||
+    Number(data.replies_count) > 0 ||
+    Number(data.repost_count) > 0 ||
+    Number(data.quote_count) > 0
+  );
+}
 
 export async function searchThreads(
   keyword: string,
@@ -491,11 +499,11 @@ export async function searchThreads(
     q: keyword,
     fields: SEARCH_FIELDS,
     access_token: accessToken,
-    limit: "50",  // 더 많이 가져와서 클라이언트 정렬
+    limit: "50",
   });
   if (cursor) params.set("after", cursor);
 
-  // Step 1: 공식 엔드포인트: GET /keyword_search
+  // Step 1: keyword_search (engagement 필드 포함 요청 — Live 모드에서 반환 가능)
   const res = await fetch(
     `${THREADS_API}/keyword_search?${params.toString()}`,
     { cache: "no-store" }
@@ -513,19 +521,43 @@ export async function searchThreads(
 
   const rawPosts = json.data ?? [];
 
-  // Step 2: 각 게시물의 engagement 수치를 개별 API 호출로 조회 (병렬)
-  // keyword_search는 engagement 필드를 반환하지 않으므로 별도 호출 필요
-  const engagementResults = await Promise.allSettled(
-    rawPosts.map((post) => {
-      const postId = String(post.id ?? "");
-      return fetch(
-        `${THREADS_API}/${postId}?fields=${ENGAGEMENT_FIELDS}&access_token=${accessToken}`,
-        { cache: "no-store" }
-      ).then((r) => r.json() as Promise<Record<string, unknown>>);
-    })
-  );
+  // Step 2: keyword_search 결과에 engagement가 없으면 → 개별 post API 호출
+  // (Threads API가 keyword_search에서 engagement를 반환하지 않는 경우 fallback)
+  const needsPerPostFetch = rawPosts.every((p) => !hasRealEngagement(p));
 
-  // Step 3: owner(고유 계정)의 followers_count 조회 (중복 제거 후 병렬)
+  let engagementMap = new Map<string, Record<string, unknown>>();
+
+  if (needsPerPostFetch && rawPosts.length > 0) {
+    const results = await Promise.allSettled(
+      rawPosts.map(async (post) => {
+        const postId = String(post.id ?? "");
+        try {
+          const r = await fetch(
+            `${THREADS_API}/${postId}?fields=${ENGAGEMENT_FIELDS}&access_token=${accessToken}`,
+            { cache: "no-store" }
+          );
+          const data = (await r.json()) as Record<string, unknown>;
+          if (!r.ok) {
+            // API 오류 로그 (Vercel 함수 로그에서 확인 가능)
+            console.error(`[Threads] engagement fetch ${postId} → ${r.status}:`, JSON.stringify(data));
+            return null;
+          }
+          return { id: postId, data };
+        } catch (e) {
+          console.error(`[Threads] engagement fetch ${postId} exception:`, e);
+          return null;
+        }
+      })
+    );
+
+    for (const r of results) {
+      if (r.status === "fulfilled" && r.value) {
+        engagementMap.set(r.value.id, r.value.data);
+      }
+    }
+  }
+
+  // Step 3: owner followers_count 조회 (고유 owner ID별 1회)
   const ownerIds = new Map<string, string>(); // id → username
   for (const post of rawPosts) {
     const owner = (post.owner ?? {}) as Record<string, unknown>;
@@ -543,6 +575,7 @@ export async function searchThreads(
         );
         if (!r.ok) return;
         const data = (await r.json()) as Record<string, unknown>;
+        if (data.error) return; // API 오류 응답 무시
         ownerFollowers.set(ownerId, Number(data.followers_count ?? 0));
       } catch {
         // 조회 실패 시 0으로 유지
@@ -551,23 +584,24 @@ export async function searchThreads(
   );
 
   // Step 4: engagement + followers 데이터 병합
-  const mergedPosts = rawPosts.map((post, i) => {
+  const mergedPosts = rawPosts.map((post) => {
+    const postId = String(post.id ?? "");
     const ownerRaw = (post.owner ?? {}) as Record<string, unknown>;
     const ownerId = String(ownerRaw.id ?? "");
     const followersCount = ownerFollowers.get(ownerId) ?? 0;
 
-    const engResult = engagementResults[i];
-    const eng: Record<string, unknown> =
-      engResult.status === "fulfilled" && engResult.value
-        ? engResult.value
-        : {};
+    // keyword_search에서 직접 반환된 engagement가 있으면 우선 사용
+    // 없으면 per-post 호출 결과 사용
+    const eng = needsPerPostFetch
+      ? (engagementMap.get(postId) ?? post)
+      : post;
 
     return {
       ...post,
-      like_count: eng.like_count ?? 0,
-      replies_count: eng.replies_count ?? 0,
-      repost_count: eng.repost_count ?? 0,
-      quote_count: eng.quote_count ?? 0,
+      like_count: Number(eng.like_count ?? 0),
+      replies_count: Number(eng.replies_count ?? 0),
+      repost_count: Number(eng.repost_count ?? 0),
+      quote_count: Number(eng.quote_count ?? 0),
       owner: {
         ...ownerRaw,
         followers_count: followersCount,
@@ -575,13 +609,14 @@ export async function searchThreads(
     };
   });
 
-  // 공유(인용) → 리포스트 → 댓글+좋아요 합산 순 내림차순 정렬
+  // 좋아요 → 댓글 → 리포스트 → 공유 순 내림차순 정렬
   const posts = mergedPosts
     .map(normalize)
     .sort((a, b) => {
-      if (b.quote_count !== a.quote_count) return b.quote_count - a.quote_count;
+      if (b.like_count !== a.like_count) return b.like_count - a.like_count;
+      if (b.replies_count !== a.replies_count) return b.replies_count - a.replies_count;
       if (b.repost_count !== a.repost_count) return b.repost_count - a.repost_count;
-      return (b.replies_count + b.like_count) - (a.replies_count + a.like_count);
+      return b.quote_count - a.quote_count;
     });
 
   const nextCursor = json.paging?.cursors?.after;
