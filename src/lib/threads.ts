@@ -923,27 +923,26 @@ export interface MyAccountData {
 }
 
 /**
- * 내 계정 프로필 인사이트 (프로필 조회수)
+ * 내 계정 프로필 인사이트 (프로필 조회수 + 팔로워 수)
  * GET /me/threads_insights?metric=views&period=day&since=...&until=...
+ * GET /me/threads_insights?metric=follower_count (총 팔로워 수)
  */
 export async function getMyProfileInsights(
   accessToken: string,
-  since: number, // Unix timestamp
+  since: number,
   until: number
 ): Promise<ProfileInsights> {
-  // 프로필 조회수 (daily)
-  const viewsParams = new URLSearchParams({
-    metric: "views",
-    period: "day",
-    since: String(since),
-    until: String(until),
-    access_token: accessToken,
-  });
-
-  const viewsRes = await fetch(
-    `${THREADS_API}/me/threads_insights?${viewsParams}`,
-    { cache: "no-store" }
-  );
+  // 프로필 조회수 (daily) + 팔로워 수 병렬 호출
+  const [viewsRes, followerRes] = await Promise.all([
+    fetch(
+      `${THREADS_API}/me/threads_insights?metric=views&period=day&since=${since}&until=${until}&access_token=${accessToken}`,
+      { cache: "no-store" }
+    ),
+    fetch(
+      `${THREADS_API}/me/threads_insights?metric=follower_count&access_token=${accessToken}`,
+      { cache: "no-store" }
+    ),
+  ]);
 
   let dailyViews: { date: string; value: number }[] = [];
   let totalViews = 0;
@@ -960,97 +959,103 @@ export async function getMyProfileInsights(
     totalViews = viewsData.reduce((s, v) => s + v.value, 0);
   }
 
-  // 팔로워 수 (프로필에서 가져오기)
-  const profile = await getThreadsProfile(accessToken);
+  // 팔로워 수: insights API → fallback to profile API
+  let followersCount = 0;
+  if (followerRes.ok) {
+    const fJson = (await followerRes.json()) as {
+      data?: { total_value?: { value: number }; values?: { value: number }[] }[];
+    };
+    followersCount = fJson.data?.[0]?.total_value?.value
+      ?? fJson.data?.[0]?.values?.[0]?.value
+      ?? 0;
+  }
+
+  if (followersCount === 0) {
+    try {
+      const profile = await getThreadsProfile(accessToken);
+      followersCount = profile.followers_count;
+    } catch {
+      // ignore
+    }
+  }
 
   return {
     views: totalViews,
-    likes: 0, // 게시물별 합산으로 채움
+    likes: 0,
     replies: 0,
     reposts: 0,
     quotes: 0,
-    followers_count: profile.followers_count,
+    followers_count: followersCount,
     daily_views: dailyViews,
   };
 }
 
 /**
- * 내 게시물 목록 + 각 게시물의 인사이트 조합
- * Step 1: GET /me/threads (기본 필드)
- * Step 2: GET /{id}?fields=like_count,... (engagement — 개별 호출)
- * Step 3: GET /{id}/insights?metric=views (조회수 — 개별 호출)
+ * 내 게시물 목록 + 인사이트
+ * 본인 게시물이므로 /me/threads에 engagement 필드 직접 포함 가능
+ * 조회수만 별도 insights API 호출 필요
  */
 export async function getMyPostsWithInsights(
   accessToken: string,
   limit = 30
 ): Promise<PostInsight[]> {
-  // Step 1: 내 게시물 목록 (기본 필드만)
-  const listFields = "id,text,media_type,timestamp,permalink";
+  // 본인 게시물은 engagement 필드를 리스트 호출에 직접 포함
+  const fields = [
+    "id", "text", "media_type", "timestamp", "permalink",
+    "like_count", "replies_count", "repost_count", "quote_count",
+  ].join(",");
 
   const res = await fetch(
-    `${THREADS_API}/me/threads?fields=${listFields}&limit=${limit}&access_token=${accessToken}`,
+    `${THREADS_API}/me/threads?fields=${fields}&limit=${limit}&access_token=${accessToken}`,
     { cache: "no-store" }
   );
 
   if (!res.ok) {
     const err = await res.text();
-    console.error("[Threads] getMyPostsWithInsights list error:", err);
+    console.error("[Threads] getMyPostsWithInsights error:", err);
     return [];
   }
 
   const json = (await res.json()) as { data?: Record<string, unknown>[] };
   const rawPosts = json.data ?? [];
 
-  // Step 2 + 3: 각 게시물의 engagement + views를 병렬 호출
-  const engFields = "id,like_count,replies_count,repost_count,quote_count";
+  console.log(`[Threads] fetched ${rawPosts.length} own posts, sample:`,
+    rawPosts[0] ? JSON.stringify({
+      id: rawPosts[0].id,
+      like_count: rawPosts[0].like_count,
+      replies_count: rawPosts[0].replies_count,
+      repost_count: rawPosts[0].repost_count,
+      quote_count: rawPosts[0].quote_count,
+    }) : "none"
+  );
 
-  const enrichResults = await Promise.allSettled(
+  // 조회수만 per-post insights API로 가져오기 (engagement는 위에서 이미 포함)
+  const viewsResults = await Promise.allSettled(
     rawPosts.map(async (post) => {
       const postId = String(post.id);
-
-      // engagement + views 동시 호출
-      const [engRes, viewsRes] = await Promise.all([
-        fetch(
-          `${THREADS_API}/${postId}?fields=${engFields}&access_token=${accessToken}`,
-          { cache: "no-store" }
-        ).then(async (r) => {
-          if (!r.ok) {
-            console.error(`[Threads] eng fetch ${postId}: ${r.status}`);
-            return null;
-          }
-          return (await r.json()) as Record<string, unknown>;
-        }).catch(() => null),
-
-        fetch(
+      try {
+        const r = await fetch(
           `${THREADS_API}/${postId}/insights?metric=views&access_token=${accessToken}`,
           { cache: "no-store" }
-        ).then(async (r) => {
-          if (!r.ok) return 0;
-          const d = (await r.json()) as {
-            data?: { values?: { value: number }[] }[];
-          };
-          return d.data?.[0]?.values?.[0]?.value ?? 0;
-        }).catch(() => 0),
-      ]);
-
-      return {
-        postId,
-        likes: Number(engRes?.like_count ?? 0),
-        replies: Number(engRes?.replies_count ?? 0),
-        reposts: Number(engRes?.repost_count ?? 0),
-        quotes: Number(engRes?.quote_count ?? 0),
-        views: viewsRes,
-      };
+        );
+        if (!r.ok) return 0;
+        const d = (await r.json()) as {
+          data?: { values?: { value: number }[] }[];
+        };
+        return d.data?.[0]?.values?.[0]?.value ?? 0;
+      } catch {
+        return 0;
+      }
     })
   );
 
   return rawPosts.map((post, i) => {
-    const result = enrichResults[i];
-    const eng = result.status === "fulfilled"
-      ? result.value
-      : { likes: 0, replies: 0, reposts: 0, quotes: 0, views: 0 };
-
-    const total = eng.likes + eng.replies + eng.reposts + eng.quotes;
+    const likes = Number(post.like_count ?? 0);
+    const replies = Number(post.replies_count ?? 0);
+    const reposts = Number(post.repost_count ?? 0);
+    const quotes = Number(post.quote_count ?? 0);
+    const views = viewsResults[i].status === "fulfilled" ? viewsResults[i].value : 0;
+    const total = likes + replies + reposts + quotes;
 
     return {
       id: String(post.id),
@@ -1058,13 +1063,13 @@ export async function getMyPostsWithInsights(
       media_type: String(post.media_type ?? "TEXT"),
       timestamp: String(post.timestamp ?? new Date().toISOString()),
       permalink: String(post.permalink ?? "https://www.threads.net"),
-      views: eng.views,
-      likes: eng.likes,
-      replies: eng.replies,
-      reposts: eng.reposts,
-      quotes: eng.quotes,
+      views,
+      likes,
+      replies,
+      reposts,
+      quotes,
       shares: 0,
-      engagement_rate: eng.views > 0 ? Math.round((total / eng.views) * 1000) / 10 : 0,
+      engagement_rate: views > 0 ? Math.round((total / views) * 1000) / 10 : 0,
     };
   });
 }
