@@ -300,9 +300,19 @@ export default async function RootLayout({
               </a>
 
               <div className="hidden md:flex items-center gap-1 text-sm">
-                <NavTab href="/search" label="영상 찾기" />
-                <NavTab href="/channels" label="채널 찾기" requiredPlan={!isStarterPlus ? "Starter" : undefined} />
-                <NavTab href="/saved" label="수집한 영상" requiredPlan={!isProPlus ? "Pro" : undefined} />
+                {/* 영상 찾기 */}
+                <NavTab href="/search" label="영상 찾기" icon={
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
+                    <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
+                  </svg>
+                } />
+                {/* 채널 찾기 */}
+                <NavTab href="/channels" label="채널 찾기" requiredPlan={!isStarterPlus ? "Starter" : undefined} icon={
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                  </svg>
+                } />
+                {/* 채널 분석 */}
                 {isStarterPlus ? (
                   <a
                     href="/my-channel"
@@ -314,8 +324,19 @@ export default async function RootLayout({
                     채널 분석
                   </a>
                 ) : (
-                  <NavTab href="/my-channel" label="채널 분석" requiredPlan="Starter" />
+                  <NavTab href="/my-channel" label="채널 분석" requiredPlan="Starter" icon={
+                    <svg viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5 text-red-500/50">
+                      <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.546 12 3.546 12 3.546s-7.505 0-9.377.504A3.016 3.016 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.504 9.376.504 9.376.504s7.505 0 9.377-.504a3.016 3.016 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                    </svg>
+                  } />
                 )}
+                {/* 수집한 영상 */}
+                <NavTab href="/saved" label="수집한 영상" requiredPlan={!isProPlus ? "Pro" : undefined} icon={
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
+                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" /><polyline points="17 21 17 13 7 13 7 21" /><polyline points="7 3 7 8 15 8" />
+                  </svg>
+                } />
+                {/* 내 Threads 분석 */}
                 <a
                   href="/threads"
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm transition text-gray-400 hover:text-white hover:bg-gray-800"
@@ -325,7 +346,12 @@ export default async function RootLayout({
                   </svg>
                   내 Threads 분석
                 </a>
-                <NavTab href="/pricing" label="요금제" />
+                {/* 요금제 */}
+                <NavTab href="/pricing" label="요금제" icon={
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
+                    <rect x="1" y="4" width="22" height="16" rx="2" ry="2" /><line x1="1" y1="10" x2="23" y2="10" />
+                  </svg>
+                } />
                 {process.env.NODE_ENV === "development" && (
                   <>
                     <div className="w-px h-4 bg-gray-700 mx-1" />
@@ -421,11 +447,13 @@ export default async function RootLayout({
 function NavTab({
   href,
   label,
+  icon,
   requiredPlan,
   isStudio,
 }: {
   href: string;
   label: string;
+  icon?: React.ReactNode;
   requiredPlan?: "Starter" | "Pro";
   isStudio?: boolean;
 }) {
@@ -442,6 +470,7 @@ function NavTab({
         href={href}
         className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm transition text-teal-400 hover:text-teal-300 hover:bg-teal-950/40 font-medium"
       >
+        {icon}
         {label}
       </a>
     );
@@ -458,6 +487,7 @@ function NavTab({
       }`}
     >
       {locked && <span className="text-[11px]">🔒</span>}
+      {!locked && icon}
       {label}
       {locked && requiredPlan && (
         <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full leading-none ${planStyle[requiredPlan]}`}>
