@@ -62,9 +62,9 @@ function fmt(n: number): string {
 }
 
 // ── 응원/인정 멘트 ──
-const CHEERS_HIGH = ["미쳤다!", "프로 크리에이터!", "압도적 발행량!", "콘텐츠 머신!", "독보적 꾸준함!"];
-const CHEERS_MID = ["꾸준히 잘하는 중!", "좋은 페이스!", "이 흐름 유지!", "성장 중!", "멋진 루틴!"];
-const CHEERS_LOW = ["시작이 반이다!", "한 걸음씩!", "오늘 한 개 써보자!", "다시 시작!", "할 수 있다!"];
+const CHEERS_HIGH = ["프로 스레더시네요!", "발행 장인이세요!", "압도적이에요!", "독보적 꾸준함!", "대단하세요!"];
+const CHEERS_MID = ["꾸준히 잘하고 계세요!", "좋은 페이스예요!", "이 흐름 유지해요!", "잘 성장하고 계세요!", "멋진 루틴이에요!"];
+const CHEERS_LOW = ["시작이 반이에요!", "한 걸음씩 가봐요!", "오늘 한 개 써볼까요?", "다시 시작해봐요!", "할 수 있으세요!"];
 
 function getCheer(avg: number): string {
   const list = avg >= 2 ? CHEERS_HIGH : avg >= 0.5 ? CHEERS_MID : CHEERS_LOW;
