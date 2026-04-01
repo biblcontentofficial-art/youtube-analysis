@@ -303,7 +303,19 @@ export default async function RootLayout({
                 <NavTab href="/search" label="영상 찾기" />
                 <NavTab href="/channels" label="채널 찾기" requiredPlan={!isStarterPlus ? "Starter" : undefined} />
                 <NavTab href="/saved" label="수집한 영상" requiredPlan={!isProPlus ? "Pro" : undefined} />
-                <NavTab href="/my-channel" label="내 채널 분석" requiredPlan={!isStarterPlus ? "Starter" : undefined} />
+                {isStarterPlus ? (
+                  <a
+                    href="/my-channel"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm transition text-gray-400 hover:text-white hover:bg-gray-800"
+                  >
+                    <svg viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5 text-red-500">
+                      <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.546 12 3.546 12 3.546s-7.505 0-9.377.504A3.016 3.016 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.504 9.376.504 9.376.504s7.505 0 9.377-.504a3.016 3.016 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                    </svg>
+                    채널 분석
+                  </a>
+                ) : (
+                  <NavTab href="/my-channel" label="채널 분석" requiredPlan="Starter" />
+                )}
                 <a
                   href="/threads"
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm transition text-gray-400 hover:text-white hover:bg-gray-800"
