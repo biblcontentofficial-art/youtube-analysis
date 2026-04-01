@@ -303,8 +303,8 @@ export default function SearchBar() {
         </button>
       </form>
 
-      {/* 검색 기록 */}
-      {history.length > 0 && (
+      {/* 검색 기록 — Starter 이상만 표시 */}
+      {useServerHistory && history.length > 0 && (
         <div className="w-full bg-gray-900/50 border border-gray-800 rounded-xl overflow-hidden">
           <div
             onClick={() => setIsExpanded(!isExpanded)}

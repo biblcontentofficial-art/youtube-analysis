@@ -106,11 +106,18 @@ export default async function SearchPage({ searchParams }: Props) {
           skipCount = isCached;
         }
       }
-      const countResult = skipCount ? { ok: true } : await incrementSearchCount();
-      const { ok } = countResult;
+      const countResult = skipCount ? null : await incrementSearchCount();
+      const ok = countResult ? countResult.ok : true;
       if (!ok) {
         limitExceeded = true;
-      } else if (filter === "all") {
+      } else {
+        // 실제 차감 후 used/limit 갱신 (표시 정확도 — 검색 전 값 아닌 차감 후 값 표시)
+        if (countResult) {
+          used = countResult.used;
+          limit = countResult.limit;
+        }
+      }
+      if (ok) if (filter === "all") {
         // 전체 = 쇼츠 제외 + 쇼츠 병렬 fetch, 각 절반 목표 (플랜 결과 한도 기준)
         const initialTarget = Math.min(INITIAL_RESULT_COUNT, resultLimit);
         const half = Math.ceil(initialTarget / 2);
