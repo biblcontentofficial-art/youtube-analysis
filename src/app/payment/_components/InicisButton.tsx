@@ -43,7 +43,8 @@ export default function InicisButton({ plan, userId, userEmail, userName }: Inic
         billingKeyMethod: "CARD",
         issueId,
         issueName: planData.orderName,
-        amount: { total: planData.amount },
+        displayAmount: planData.amount,
+        currency: "KRW",
         customer: {
           customerId: userId,
           fullName:    name.trim(),

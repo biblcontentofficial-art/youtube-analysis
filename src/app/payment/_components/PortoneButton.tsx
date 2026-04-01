@@ -74,7 +74,8 @@ export default function PortoneButton({ plan, userId, userEmail, userName }: Por
         billingKeyMethod: option.billingKeyMethod,
         issueId,
         issueName: planData.orderName,
-        amount: { total: planData.amount },
+        displayAmount: planData.amount,
+        currency: "KRW",
         customer: {
           customerId:  userId,
           fullName:    userName || "고객",
