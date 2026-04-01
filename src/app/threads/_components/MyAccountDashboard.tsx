@@ -104,8 +104,9 @@ export default function MyAccountDashboard() {
       <div className="flex gap-2">
         {[
           { label: "7일", value: 7 },
-          { label: "14일", value: 14 },
           { label: "1개월", value: 30 },
+          { label: "6개월", value: 180 },
+          { label: "1년", value: 365 },
         ].map((opt) => (
           <button
             key={opt.value}
