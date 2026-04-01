@@ -90,18 +90,6 @@ export default async function ThreadsPage({ searchParams }: Props) {
               키워드로 스레드 인기 게시물을 검색하고 바이럴 점수를 확인하세요
             </p>
           </div>
-          <a
-            href="/threads/analyze"
-            className="text-xs text-gray-400 hover:text-white transition px-3 py-1.5 bg-gray-900 border border-gray-800 rounded-lg"
-          >
-            계정 분석 →
-          </a>
-          <a
-            href="/threads/compare"
-            className="text-xs text-gray-400 hover:text-white transition px-3 py-1.5 bg-gray-900 border border-gray-800 rounded-lg"
-          >
-            vs 비교
-          </a>
           {canCollect && (
             <a
               href="/threads/saved"
