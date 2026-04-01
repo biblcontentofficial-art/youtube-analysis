@@ -200,9 +200,9 @@ export default function VideoCard({ video, checked, onCheck, onClick, canAlgorit
         {/* CC */}
         <div className="flex justify-center">
           {isShorts ? (
-            <span className="text-[9px] font-bold text-red-400 bg-red-950/50 border border-red-900 px-1.5 py-0.5 rounded">S</span>
+            <span className="text-[11px] font-bold text-red-400 bg-red-950/50 border border-red-900 px-1.5 py-0.5 rounded">S</span>
           ) : (
-            <span className="text-[9px] font-bold text-blue-400 bg-blue-950/50 border border-blue-900 px-1.5 py-0.5 rounded">L</span>
+            <span className="text-[11px] font-bold text-blue-400 bg-blue-950/50 border border-blue-900 px-1.5 py-0.5 rounded">L</span>
           )}
         </div>
 
@@ -218,28 +218,28 @@ export default function VideoCard({ video, checked, onCheck, onClick, canAlgorit
 
         {/* 제목 */}
         <div className="min-w-0 flex flex-col justify-center pl-1">
-          <h3 className="text-sm text-gray-200 line-clamp-2 leading-snug group-hover:text-teal-400 transition-colors cursor-pointer" onClick={onClick}>
+          <h3 className="text-base text-gray-200 line-clamp-2 leading-snug group-hover:text-teal-400 transition-colors cursor-pointer" onClick={onClick}>
             {video.title}
           </h3>
         </div>
 
         {/* 조회수 */}
         <div className="text-center">
-          <div className="text-sm font-bold text-white">{video.viewCountFormatted}</div>
+          <div className="text-base font-bold text-white">{video.viewCountFormatted}</div>
         </div>
 
         {/* 채널 */}
         <div className="flex flex-col items-center justify-center text-center gap-1">
           {video.channelThumbnail && (
-            <img src={video.channelThumbnail} alt="" className="w-7 h-7 rounded-full border border-gray-700" />
+            <img src={video.channelThumbnail} alt="" className="w-8 h-8 rounded-full border border-gray-700" />
           )}
-          <span className="text-[11px] text-gray-300 truncate max-w-[120px] leading-none">{video.channelTitle}</span>
-          <span className="text-[10px] text-gray-600">{video.subscriberCount}명</span>
+          <span className="text-xs text-gray-300 truncate max-w-[130px] leading-none">{video.channelTitle}</span>
+          <span className="text-[11px] text-gray-500">{video.subscriberCount}명</span>
         </div>
 
         {/* 아웃라이어 */}
         <div className="text-center">
-          <span className={`text-sm font-bold ${video.performanceColor}`}>{video.performanceRatio}</span>
+          <span className={`text-base font-bold ${video.performanceColor}`}>{video.performanceRatio}</span>
         </div>
 
         {/* 알고리즘 확률 — 항상 컬럼 렌더링, 플랜에 따라 내용 다름 */}
@@ -256,7 +256,7 @@ export default function VideoCard({ video, checked, onCheck, onClick, canAlgorit
 
         {/* 게시일 */}
         <div className="text-center">
-          <div className="text-[11px] text-gray-500 bg-gray-900 px-2 py-1 rounded-md border border-gray-800 whitespace-nowrap">
+          <div className="text-xs text-gray-500 bg-gray-900 px-2 py-1 rounded-md border border-gray-800 whitespace-nowrap">
             {video.publishedAt}
           </div>
         </div>

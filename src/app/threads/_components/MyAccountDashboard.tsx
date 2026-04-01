@@ -61,6 +61,60 @@ function fmt(n: number): string {
   return n.toLocaleString();
 }
 
+// ── 응원/인정 멘트 ──
+const CHEERS_HIGH = ["미쳤다!", "프로 크리에이터!", "압도적 발행량!", "콘텐츠 머신!", "독보적 꾸준함!"];
+const CHEERS_MID = ["꾸준히 잘하는 중!", "좋은 페이스!", "이 흐름 유지!", "성장 중!", "멋진 루틴!"];
+const CHEERS_LOW = ["시작이 반이다!", "한 걸음씩!", "오늘 한 개 써보자!", "다시 시작!", "할 수 있다!"];
+
+function getCheer(avg: number): string {
+  const list = avg >= 2 ? CHEERS_HIGH : avg >= 0.5 ? CHEERS_MID : CHEERS_LOW;
+  return list[Math.floor(Math.random() * list.length)];
+}
+
+function StreakCard({ streak, last30 }: { streak: number; last30: { date: string; count: number }[] }) {
+  const totalPosts = last30.reduce((s, d) => s + d.count, 0);
+  const dailyAvg = Math.round(totalPosts / 30 * 10) / 10;
+  const cheer = getCheer(dailyAvg);
+
+  return (
+    <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+      <h3 className="text-sm text-gray-500 mb-4 font-medium flex items-center gap-2">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-orange-400"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        게시 연속 기록
+      </h3>
+      <div className="flex items-baseline justify-center gap-6 mb-4">
+        <div className="text-center">
+          <span className="text-4xl font-bold text-white">{streak}</span>
+          <span className="text-base text-gray-500 ml-1">일 연속</span>
+        </div>
+        <div className="text-center">
+          <span className="text-2xl font-bold text-teal-400">{dailyAvg}</span>
+          <span className="text-sm text-gray-500 ml-1">개/일</span>
+        </div>
+      </div>
+      <p className="text-center text-sm text-yellow-400 font-medium mb-4">{cheer}</p>
+      <div className="flex flex-wrap gap-1">
+        {last30.map((d) => (
+          <div
+            key={d.date}
+            title={`${d.date}: ${d.count}개 게시`}
+            className={`w-4 h-4 rounded-sm ${
+              d.count >= 3
+                ? "bg-teal-400"
+                : d.count >= 2
+                ? "bg-teal-500"
+                : d.count >= 1
+                ? "bg-teal-700"
+                : "bg-gray-800"
+            }`}
+          />
+        ))}
+      </div>
+      <p className="text-xs text-gray-600 mt-2">최근 30일</p>
+    </div>
+  );
+}
+
 export default function MyAccountDashboard() {
   const [period, setPeriod] = useState(7);
   const [data, setData] = useState<InsightsData | null>(null);
@@ -172,34 +226,7 @@ export default function MyAccountDashboard() {
         </div>
 
         {/* 2. 게시 연속 기록 */}
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
-          <h3 className="text-sm text-gray-500 mb-4 font-medium flex items-center gap-2">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-orange-400"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-            게시 연속 기록
-          </h3>
-          <div className="text-center mb-4">
-            <span className="text-4xl font-bold text-white">{dashboard.streak}</span>
-            <span className="text-base text-gray-500 ml-1">일 연속</span>
-          </div>
-          <div className="flex flex-wrap gap-1">
-            {dashboard.last30.map((d) => (
-              <div
-                key={d.date}
-                title={`${d.date}: ${d.count}개 게시`}
-                className={`w-4 h-4 rounded-sm ${
-                  d.count >= 3
-                    ? "bg-teal-400"
-                    : d.count >= 2
-                    ? "bg-teal-500"
-                    : d.count >= 1
-                    ? "bg-teal-700"
-                    : "bg-gray-800"
-                }`}
-              />
-            ))}
-          </div>
-          <p className="text-xs text-gray-600 mt-2">최근 30일</p>
-        </div>
+        <StreakCard streak={dashboard.streak} last30={dashboard.last30} />
 
         {/* 3. 인기 콘텐츠 */}
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
