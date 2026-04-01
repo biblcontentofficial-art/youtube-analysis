@@ -311,15 +311,55 @@ export default function SearchResultList({
   return (
     <div className="w-full mt-4 pb-12">
 
-      {/* 키워드 경쟁도 분석 */}
-      <div className="mb-4">
-        <KeywordCompetition videos={videos} query={query} />
-      </div>
-
-      {/* 제목 패턴 분석 */}
-      <div className="mb-4">
-        <TitlePatternAnalysis videos={videos} />
-      </div>
+      {/* 키워드 경쟁도 + 제목 패턴 분석 — Starter 이상 */}
+      {canAlgorithm ? (
+        <>
+          <div className="mb-4">
+            <KeywordCompetition videos={videos} query={query} />
+          </div>
+          <div className="mb-4">
+            <TitlePatternAnalysis videos={videos} />
+          </div>
+        </>
+      ) : (
+        <div className="mb-4 relative overflow-hidden rounded-2xl border border-gray-800 bg-gray-900/60">
+          {/* 블러 처리된 미리보기 */}
+          <div className="select-none pointer-events-none" style={{ filter: "blur(6px)", opacity: 0.35 }}>
+            <div className="p-5 space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="w-14 h-14 rounded-full bg-teal-900/60 border-4 border-teal-800 flex items-center justify-center">
+                  <span className="text-xl font-bold text-teal-400">78</span>
+                </div>
+                <div className="space-y-1.5">
+                  <div className="h-4 w-32 bg-gray-700 rounded" />
+                  <div className="h-3 w-48 bg-gray-800 rounded" />
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                {[60, 40, 80].map((w, i) => (
+                  <div key={i} className="h-8 rounded bg-gray-800" style={{ width: `${w}%` }} />
+                ))}
+              </div>
+            </div>
+          </div>
+          {/* 잠금 오버레이 */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-gray-950/60 backdrop-blur-[1px]">
+            <div className="flex flex-col items-center gap-2 text-center">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" className="w-7 h-7 text-gray-400">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />
+              </svg>
+              <p className="text-sm font-semibold text-white">키워드 경쟁도 · 제목 패턴 분석</p>
+              <p className="text-xs text-gray-400">Starter 플랜 이상에서 이용할 수 있습니다</p>
+            </div>
+            <a
+              href="/pricing"
+              className="px-4 py-2 rounded-xl bg-teal-600 hover:bg-teal-500 text-white text-xs font-semibold transition"
+            >
+              플랜 업그레이드 →
+            </a>
+          </div>
+        </div>
+      )}
 
       {/* 테이블 헤더 */}
       <div

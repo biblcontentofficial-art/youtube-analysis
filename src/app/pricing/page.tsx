@@ -38,6 +38,7 @@ const PLANS = [
       { text: "아웃라이어 · 반응도 확인" },
       { text: "기본 필터 (전체/쇼츠)" },
       { text: "알고리즘 확률 확인", disabled: true },
+      { text: "키워드 경쟁도 · 제목 패턴 분석", disabled: true },
       { text: "검색 기록 저장", disabled: true },
       { text: "영상 수집 · 내보내기", disabled: true },
       { text: "내 Threads 계정 분석", disabled: true },
@@ -60,6 +61,7 @@ const PLANS = [
     features: [
       { text: "아웃라이어 · 반응도 확인" },
       { text: "알고리즘 확률 확인" },
+      { text: "키워드 경쟁도 · 제목 패턴 분석" },
       { text: "쇼츠 필터 · 심화 필터" },
       { text: "검색 기록 30일 저장" },
       { text: "내 Threads 계정 분석" },
@@ -78,12 +80,13 @@ const PLANS = [
     color: "border-teal-500",
     badge: "추천",
     usage: [
-      { text: "영상 검색 500회/월 (팀 최대 2명)" },
+      { text: "영상 검색 500회/월" },
       { text: "채널 검색 500회/월" },
     ],
     features: [
       { text: "아웃라이어 · 반응도 확인" },
       { text: "알고리즘 확률 확인" },
+      { text: "키워드 경쟁도 · 제목 패턴 분석" },
       { text: "쇼츠 필터 · 심화 필터" },
       { text: "검색 기록 무제한 저장" },
       { text: "영상 수집 · CSV 내보내기" },
@@ -103,7 +106,7 @@ const PLANS = [
     color: "border-purple-600",
     badge: null,
     usage: [
-      { text: "영상 검색 무제한 (팀 최대 5명)" },
+      { text: "영상 검색 무제한" },
       { text: "채널 검색 무제한" },
     ],
     features: [
