@@ -27,6 +27,10 @@ interface StatsData {
   };
   youtube: {
     estimatedUnitsToday: number;
+    isActualUnits: boolean;     // true = 실측, false = 추정
+    ytSearchCalls: number;
+    ytVideosCalls: number;
+    ytChannelsCalls: number;
     freeQuota: number;
     paidQuota: number;
     quotaUsedPct: number;
@@ -38,6 +42,10 @@ interface StatsData {
   };
   redis: {
     estimatedCommandsToday: number;
+    cacheHits: number;
+    cacheMisses: number;
+    cacheSets: number;
+    cacheHitRate: number;
     freeLimit: number;
     usedPct: number;
   };
@@ -760,7 +768,7 @@ function UsageTab({
 
       {/* 오늘 검색 현황 */}
       <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
-        <h2 className="text-sm font-semibold text-white mb-4">📊 오늘 검색 현황</h2>
+        <h2 className="text-sm font-semibold text-white mb-4">오늘 검색 현황</h2>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-5">
           <div className="text-center">
             <p className="text-3xl font-extrabold text-teal-400">{searches.today}</p>
@@ -803,10 +811,10 @@ function UsageTab({
 
       {/* YouTube API 쿼터 */}
       <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
-        <h2 className="text-sm font-semibold text-white mb-1">🎬 YouTube Data API v3 쿼터</h2>
+        <h2 className="text-sm font-semibold text-white mb-1">YouTube Data API v3 쿼터</h2>
         <p className="text-xs text-gray-500 mb-4">Google Cloud Console 기준 하루 10,000 units/key</p>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-4">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
           <div>
             <p className="text-xs text-gray-500">무료 API 키</p>
             <p className="text-xl font-bold text-white">{youtube.freeKeyCount}개</p>
@@ -815,18 +823,31 @@ function UsageTab({
           <div>
             <p className="text-xs text-gray-500">유료 전용 키</p>
             <p className="text-xl font-bold text-white">{youtube.paidKeyCount}개</p>
-            <p className="text-xs text-gray-600">= {(youtube.paidKeyCount * 10000).toLocaleString()} units/일 (유료 유저용)</p>
+            <p className="text-xs text-gray-600">= {(youtube.paidKeyCount * 10000).toLocaleString()} units/일</p>
           </div>
           <div>
-            <p className="text-xs text-gray-500">검색당 소모 units</p>
-            <p className="text-xl font-bold text-white">~{youtube.unitsPerSearch}</p>
-            <p className="text-xs text-gray-600">search(100) + videos(1) + channels(4)</p>
+            <p className="text-xs text-gray-500">오늘 API 호출</p>
+            <p className="text-xl font-bold text-yellow-400">
+              {(youtube.ytSearchCalls ?? 0) + (youtube.ytVideosCalls ?? 0) + (youtube.ytChannelsCalls ?? 0)}회
+            </p>
+            <p className="text-xs text-gray-600">
+              search×{youtube.ytSearchCalls ?? 0} / vid×{youtube.ytVideosCalls ?? 0} / ch×{youtube.ytChannelsCalls ?? 0}
+            </p>
+          </div>
+          <div>
+            <p className="text-xs text-gray-500">측정 방식</p>
+            <p className={`text-sm font-bold ${youtube.isActualUnits ? "text-green-400" : "text-amber-400"}`}>
+              {youtube.isActualUnits ? "실측" : "추정"}
+            </p>
+            <p className="text-xs text-gray-600">{youtube.isActualUnits ? "API 호출마다 기록" : "검색 수 × 102 추정"}</p>
           </div>
         </div>
 
         <div className="bg-gray-800 rounded-xl p-4">
           <div className="flex justify-between items-center mb-1">
-            <span className="text-sm text-gray-300">오늘 예상 사용량</span>
+            <span className="text-sm text-gray-300">
+              오늘 {youtube.isActualUnits ? "실측" : "추정"} 사용량
+            </span>
             <span className="text-sm font-bold text-white">
               {youtube.estimatedUnitsToday.toLocaleString()} / {youtube.freeQuota.toLocaleString()} units
             </span>
@@ -853,17 +874,43 @@ function UsageTab({
 
       {/* Redis */}
       <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
-        <h2 className="text-sm font-semibold text-white mb-1">⚡ Upstash Redis</h2>
+        <h2 className="text-sm font-semibold text-white mb-1">Upstash Redis</h2>
         <p className="text-xs text-gray-500 mb-4">무료 플랜: 10,000 commands/일, 256MB 저장</p>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
+          <div>
+            <p className="text-xs text-gray-500">캐시 히트</p>
+            <p className="text-xl font-bold text-green-400">{redis.cacheHits.toLocaleString()}</p>
+          </div>
+          <div>
+            <p className="text-xs text-gray-500">캐시 미스</p>
+            <p className="text-xl font-bold text-orange-400">{redis.cacheMisses.toLocaleString()}</p>
+          </div>
+          <div>
+            <p className="text-xs text-gray-500">캐시 히트율</p>
+            <p className={`text-xl font-bold ${redis.cacheHitRate >= 60 ? "text-green-400" : redis.cacheHitRate >= 30 ? "text-yellow-400" : "text-red-400"}`}>
+              {(redis.cacheHits + redis.cacheMisses) > 0 ? `${redis.cacheHitRate}%` : "-"}
+            </p>
+          </div>
+          <div>
+            <p className="text-xs text-gray-500">캐시 쓰기</p>
+            <p className="text-xl font-bold text-blue-400">{redis.cacheSets.toLocaleString()}</p>
+          </div>
+        </div>
         <div className="bg-gray-800 rounded-xl p-4">
           <div className="flex justify-between items-center mb-1">
-            <span className="text-sm text-gray-300">오늘 추정 명령 수</span>
+            <span className="text-sm text-gray-300">
+              오늘 {(redis.cacheHits + redis.cacheMisses) > 0 ? "실측" : "추정"} 명령 수
+            </span>
             <span className="text-sm font-bold text-white">
-              ~{redis.estimatedCommandsToday.toLocaleString()} / {redis.freeLimit.toLocaleString()}
+              {redis.estimatedCommandsToday.toLocaleString()} / {redis.freeLimit.toLocaleString()}
             </span>
           </div>
           <ProgressBar pct={redis.usedPct} />
-          <p className="text-xs text-gray-600 mt-2">검색 1회당 ~4 Redis ops (INCR, GET, EXPIRE, TTL)</p>
+          <p className="text-xs text-gray-600 mt-2">
+            {(redis.cacheHits + redis.cacheMisses) > 0
+              ? `캐시 히트/미스 기록 기반 실측 (히트율 ${redis.cacheHitRate}%)`
+              : "검색 횟수 기반 추정 (실측 데이터 없음)"}
+          </p>
         </div>
       </div>
     </div>
@@ -948,7 +995,9 @@ function CostsTab({
       iconKey: "youtube",
       plan: "무료 (10,000 units/key/일)",
       freeLimit: `${((stats?.youtube.freeKeyCount ?? 9) * 10000).toLocaleString()} units/일`,
-      currentUsage: `~${(stats?.youtube.estimatedUnitsToday ?? 0).toLocaleString()} units/일 (${stats?.youtube.quotaUsedPct ?? 0}%)`,
+      currentUsage: stats?.youtube.isActualUnits
+        ? `${(stats.youtube.estimatedUnitsToday).toLocaleString()} units (실측 · search×${stats.youtube.ytSearchCalls} / videos×${stats.youtube.ytVideosCalls} / ch×${stats.youtube.ytChannelsCalls})`
+        : `~${(stats?.youtube.estimatedUnitsToday ?? 0).toLocaleString()} units (추정 · ${stats?.youtube.quotaUsedPct ?? 0}%)`,
       monthlyProjection: `~${monthlyYouTubeUnits.toLocaleString()} units`,
       monthlyCost: monthlyYouTubeCostKRW,
       usedPct: stats?.youtube.quotaUsedPct ?? 0,
@@ -964,7 +1013,9 @@ function CostsTab({
       iconKey: "redis",
       plan: "Free (10,000 req/일, 256MB)",
       freeLimit: "300,000 req/월",
-      currentUsage: `~${(stats?.redis.estimatedCommandsToday ?? 0).toLocaleString()} req/일 (${stats?.redis.usedPct ?? 0}%)`,
+      currentUsage: (stats?.redis.cacheHits ?? 0) + (stats?.redis.cacheMisses ?? 0) > 0
+        ? `${(stats?.redis.estimatedCommandsToday ?? 0).toLocaleString()} req (실측 · 히트율 ${stats?.redis.cacheHitRate ?? 0}%)`
+        : `~${(stats?.redis.estimatedCommandsToday ?? 0).toLocaleString()} req (추정 · ${stats?.redis.usedPct ?? 0}%)`,
       monthlyProjection: `~${monthlyRedisOps.toLocaleString()} req`,
       monthlyCost: monthlyRedisCostKRW,
       usedPct: stats?.redis.usedPct ?? 0,

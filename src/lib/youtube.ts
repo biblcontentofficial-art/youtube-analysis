@@ -284,6 +284,8 @@ export async function searchChannels(query: string, isPaid = false): Promise<{
       }
 
       const videoData = await videoRes.json();
+      // 실측: 채널 검색용 search.list 기록
+      import("./metrics").then(({ trackYtApi }) => trackYtApi("search")).catch(() => {});
       if (!videoData.items?.length) return { items: [] };
 
       // ── Step 2: 채널 ID 빈도 집계 (많이 나올수록 해당 주제 전문 채널) ──────
@@ -319,6 +321,8 @@ export async function searchChannels(query: string, isPaid = false): Promise<{
       }
 
       const channelData = await channelRes.json();
+      // 실측: 채널 검색용 channels.list 기록
+      import("./metrics").then(({ trackYtApi }) => trackYtApi("channels")).catch(() => {});
       if (!channelData.items) return { items: [] };
 
       // ── Step 4: 빈도 순서 유지하며 ChannelResult 매핑 ───────────────────────
@@ -642,14 +646,18 @@ export async function searchVideos(query: string, filter?: string, pageToken?: s
       }
 
       const searchData = await searchRes.json();
-      if (!searchData.items?.length) break; 
-      
+      // 실측: search.list 성공 호출 기록
+      import("./metrics").then(({ trackYtApi }) => trackYtApi("search")).catch(() => {});
+      if (!searchData.items?.length) break;
+
       currentToken = searchData.nextPageToken;
       nextTokenToReturn = currentToken;
 
       const videoIds = searchData.items.map((item: any) => item.id.videoId).join(",");
       const videosUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics,contentDetails&id=${videoIds}&key=${apiKeys[activeKeyIndex]}`;
       const videosRes = await fetch(videosUrl, { cache: 'no-store' });
+      // 실측: videos.list 성공 호출 기록
+      import("./metrics").then(({ trackYtApi }) => trackYtApi("videos")).catch(() => {});
       const videosData = await videosRes.json();
       
       if (!videosData.items) { attempt++; if (!currentToken) break; continue; }
@@ -679,6 +687,8 @@ export async function searchVideos(query: string, filter?: string, pageToken?: s
     const channelIds = [...new Set(foundItems.map((item: any) => item.snippet.channelId))].join(",");
     const channelsUrl = `https://www.googleapis.com/youtube/v3/channels?part=statistics,snippet&id=${channelIds}&key=${apiKeys[activeKeyIndex]}`;
     const channelsRes = await fetch(channelsUrl);
+    // 실측: channels.list 성공 호출 기록
+    import("./metrics").then(({ trackYtApi }) => trackYtApi("channels")).catch(() => {});
     const channelsData = await channelsRes.json();
     
     const channelMap: Record<string, { sub: string, thumb: string }> = {}; 

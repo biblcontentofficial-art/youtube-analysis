@@ -172,14 +172,34 @@ export async function GET() {
           }
         }
 
-        redisCommandsToday = (todaySearches + yesterdaySearches) * 4; // 검색당 ~4 ops 추정
+        redisCommandsToday = 0; // 아래에서 실측값으로 대체
       }
     } catch (e) {
       console.error("Redis stats error:", e);
     }
 
-    // ── 4. YouTube API 쿼터 계산 ───────────────────────────────────
-    const UNITS_PER_SEARCH = 105; // search(100) + videos(1) + channels(4)
+    // ── 4. 실측 metrics 읽기 (YouTube API 실제 호출 수, 캐시 히트율) ─────────
+    let ytSearchCalls = 0, ytVideosCalls = 0, ytChannelsCalls = 0, ytPlaylistCalls = 0;
+    let cacheHits = 0, cacheMisses = 0, cacheSets = 0;
+
+    try {
+      const { getYtApiMetrics, getCacheMetrics } = await import("@/lib/metrics");
+      const [ytMetrics, cacheMetrics] = await Promise.all([
+        getYtApiMetrics(today),
+        getCacheMetrics(today),
+      ]);
+      ytSearchCalls = ytMetrics.searchCalls;
+      ytVideosCalls = ytMetrics.videosCalls;
+      ytChannelsCalls = ytMetrics.channelsCalls;
+      ytPlaylistCalls = ytMetrics.playlistCalls;
+      cacheHits = cacheMetrics.hits;
+      cacheMisses = cacheMetrics.misses;
+      cacheSets = cacheMetrics.sets;
+    } catch (e) {
+      console.error("Metrics read error:", e);
+    }
+
+    // ── 5. YouTube API 쿼터 계산 (실측 우선, 없으면 추정) ──────────────────
     const FREE_QUOTA_PER_KEY = 10000;
     let FREE_KEY_COUNT = process.env.YOUTUBE_API_KEY ? 1 : 0;
     for (let i = 2; i <= 10; i++) { if (process.env[`YOUTUBE_API_KEY_${i}`]) FREE_KEY_COUNT++; }
@@ -187,11 +207,24 @@ export async function GET() {
     for (let i = 1; i <= 10; i++) { if (process.env[`YOUTUBE_API_KEY_PAID_${i}`]) PAID_KEY_COUNT++; }
     const totalFreeQuota = FREE_KEY_COUNT * FREE_QUOTA_PER_KEY;
     const totalPaidQuota = PAID_KEY_COUNT * FREE_QUOTA_PER_KEY;
-    const estimatedUnitsToday = todaySearches * UNITS_PER_SEARCH;
+
+    // 실측 units: search.list×100 + videos.list×1 + channels.list×1 + playlist×1
+    const actualUnitsToday = ytSearchCalls * 100 + ytVideosCalls + ytChannelsCalls + ytPlaylistCalls;
+    // 실측 없으면 글로벌 검색 카운터 기반 추정 (레거시 폴백)
+    const UNITS_PER_SEARCH = 102;
+    const estimatedUnitsToday = actualUnitsToday > 0
+      ? actualUnitsToday
+      : todaySearches * UNITS_PER_SEARCH;
+    const isActualUnits = actualUnitsToday > 0;
+
     const quotaUsedPct = Math.min(100, Math.round((estimatedUnitsToday / totalFreeQuota) * 100));
     const capacitySearches = Math.floor(totalFreeQuota / UNITS_PER_SEARCH);
     const overageUnits = Math.max(0, estimatedUnitsToday - totalFreeQuota);
     const overageCostKRW = Math.round((overageUnits / 1000) * 5 * 1400);
+
+    // 실측 Redis ops: cache 조작 + searchLimit ops (글로벌 카운터×2 + 사용자 카운터×2)
+    const actualRedisOps = cacheHits + cacheMisses + cacheSets * 2 + todaySearches * 4;
+    redisCommandsToday = actualRedisOps > 0 ? actualRedisOps : redisCommandsToday;
 
     return NextResponse.json({
       users: {
@@ -214,6 +247,10 @@ export async function GET() {
       },
       youtube: {
         estimatedUnitsToday,
+        isActualUnits,          // true면 실측값, false면 추정값
+        ytSearchCalls,
+        ytVideosCalls,
+        ytChannelsCalls,
         freeQuota: totalFreeQuota,
         paidQuota: totalPaidQuota,
         quotaUsedPct,
@@ -225,6 +262,12 @@ export async function GET() {
       },
       redis: {
         estimatedCommandsToday: redisCommandsToday,
+        cacheHits,
+        cacheMisses,
+        cacheSets,
+        cacheHitRate: (cacheHits + cacheMisses) > 0
+          ? Math.round((cacheHits / (cacheHits + cacheMisses)) * 100)
+          : 0,
         freeLimit: 10000,
         usedPct: Math.min(100, Math.round((redisCommandsToday / 10000) * 100)),
       },

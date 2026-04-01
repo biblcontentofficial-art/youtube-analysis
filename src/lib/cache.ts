@@ -36,7 +36,10 @@ export async function cacheGet<T>(key: string): Promise<T | null> {
   const r = await getRedis();
   if (!r) return null;
   try {
-    return await r.get<T>(key);
+    const val = await r.get<T>(key);
+    // 실측: 캐시 히트/미스 기록 (fire-and-forget)
+    import("./metrics").then(({ trackCacheOp }) => trackCacheOp(val !== null ? "hit" : "miss")).catch(() => {});
+    return val;
   } catch {
     return null;
   }
@@ -51,6 +54,8 @@ export async function cacheSet(
   if (!r) return;
   try {
     await r.set(key, value, { ex: ttl });
+    // 실측: 캐시 쓰기 기록 (fire-and-forget)
+    import("./metrics").then(({ trackCacheOp }) => trackCacheOp("set")).catch(() => {});
   } catch {
     // 캐시 실패해도 서비스 계속
   }
