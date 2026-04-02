@@ -41,7 +41,7 @@ export default function RecentSearches() {
     }
 
     const plan = (user.publicMetadata?.plan as string) ?? "free";
-    const canServerHistory = ["starter", "pro", "business", "admin"].includes(plan);
+    const canServerHistory = ["starter", "pro", "business", "admin", "team"].includes(plan);
 
     if (canServerHistory) {
       fetch("/api/search-history")

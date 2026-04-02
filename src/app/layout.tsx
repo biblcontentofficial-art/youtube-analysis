@@ -113,8 +113,8 @@ export default async function RootLayout({
       if (userId) {
         const meta = (sessionClaims?.publicMetadata ?? {}) as Record<string, unknown>;
         const plan = ((meta.plan as string) ?? "").toLowerCase();
-        isStarterPlus = ["starter", "pro", "business", "admin"].includes(plan);
-        isProPlus = ["pro", "business", "admin"].includes(plan);
+        isStarterPlus = ["starter", "pro", "business", "admin", "team"].includes(plan);
+        isProPlus = ["pro", "business", "admin", "team"].includes(plan);
       }
     } catch { /* auth 실패 시 기본값 false */ }
   }
