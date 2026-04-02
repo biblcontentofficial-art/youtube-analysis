@@ -167,7 +167,7 @@ export function getOAuthUrl(state: string): string {
   const params = new URLSearchParams({
     client_id: appId ?? "",
     redirect_uri: redirectUri,
-    scope: "threads_basic,threads_keyword_search,threads_manage_insights",
+    scope: "threads_basic,threads_manage_insights",
     response_type: "code",
     state,
   });
