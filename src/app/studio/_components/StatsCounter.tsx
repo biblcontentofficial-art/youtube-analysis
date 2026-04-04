@@ -6,12 +6,13 @@ interface Stat {
   end: number;
   suffix: string;
   label: string;
+  decimals?: number;
 }
 
 const STATS: Stat[] = [
   { end: 65, suffix: "만+", label: "총 구독자" },
   { end: 7,  suffix: "개",  label: "운영·공동기획 채널" },
-  { end: 100000000, suffix: "회+", label: "누적 조회수" },
+  { end: 1.7, suffix: "억회+", label: "누적 조회수", decimals: 1 },
 ];
 
 function useCountUp(end: number, duration = 1800, started: boolean) {
@@ -25,7 +26,7 @@ function useCountUp(end: number, duration = 1800, started: boolean) {
       const progress = Math.min((timestamp - startTime) / duration, 1);
       // easeOutExpo
       const eased = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
-      setCount(Math.floor(eased * end));
+      setCount(eased * end);
       if (progress < 1) requestAnimationFrame(step);
     };
     requestAnimationFrame(step);
@@ -37,7 +38,8 @@ function useCountUp(end: number, duration = 1800, started: boolean) {
 function Counter({ stat }: { stat: Stat }) {
   const ref = useRef<HTMLDivElement>(null);
   const [started, setStarted] = useState(false);
-  const count = useCountUp(stat.end, 1800, started);
+  const rawCount = useCountUp(stat.end, 1800, started);
+  const count = stat.decimals ? rawCount.toFixed(stat.decimals) : Math.floor(rawCount).toLocaleString("ko-KR");
 
   useEffect(() => {
     const el = ref.current;
@@ -59,7 +61,7 @@ function Counter({ stat }: { stat: Stat }) {
     <div ref={ref} className="flex flex-col items-center text-center flex-1 min-w-[160px]">
       {/* 숫자 */}
       <div className="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight stat-num leading-none whitespace-nowrap">
-        <span className="text-white">{count.toLocaleString("ko-KR")}</span>
+        <span className="text-white">{count}</span>
         <span
           className="text-transparent bg-clip-text"
           style={{ backgroundImage: "linear-gradient(135deg, #14b8a6, #06b6d4)" }}

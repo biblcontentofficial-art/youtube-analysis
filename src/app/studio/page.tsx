@@ -256,8 +256,8 @@ export default function StudioPage() {
       <section className="border-b border-gray-800 bg-gray-900/20">
         <div className="max-w-screen-xl mx-auto px-4 py-20">
           <div className="text-center mb-14">
-            <p data-animate="up" className="text-xs text-gray-500 uppercase tracking-widest mb-3">왜 혼자는 어려운가</p>
-            <h2 data-animate="up" data-delay="80" className="text-2xl md:text-4xl font-bold">
+            <p data-animate="up" className="text-sm text-gray-500 uppercase tracking-widest mb-3">왜 혼자는 어려운가</p>
+            <h2 data-animate="up" data-delay="80" className="text-3xl md:text-5xl font-bold">
               유튜브 채널 운영,<br />
               <span className="text-amber-400">혼자 하면 이 3가지에서 막힙니다</span>
             </h2>
@@ -267,16 +267,19 @@ export default function StudioPage() {
             {[
               {
                 icon: "",
+                badge: "문제 01",
                 title: "기획이 막막하다",
                 desc: "무슨 주제로 찍어야 할지, 어떤 제목이 뜨는지 전혀 감이 안 옵니다. 경쟁자는 많고 내 영상만 아무도 안 봅니다.",
               },
               {
                 icon: "",
+                badge: "문제 02",
                 title: "시간이 없다",
                 desc: "기획부터 촬영·편집까지 영상 하나에 10~20시간. 본업까지 병행하면 결국 업로드를 포기합니다. 일관성이 무너지면 채널도 죽습니다.",
               },
               {
                 icon: "",
+                badge: "문제 03",
                 title: "뭐가 문제인지 모른다",
                 desc: "올려도 조회수가 안 나옵니다. 썸네일인지, 제목인지, 내용인지 원인을 모르니 개선이 불가능합니다. 결국 지칩니다.",
               },
@@ -287,15 +290,19 @@ export default function StudioPage() {
                 data-delay={String(i * 100)}
                 className="rounded-2xl border border-amber-900/30 bg-amber-950/10 p-6"
               >
-                {item.icon && <div className="text-3xl mb-4">{item.icon}</div>}
-                <h3 className="font-bold text-lg mb-3 text-white">{item.title}</h3>
-                <p className="text-sm text-gray-400 leading-relaxed">{item.desc}</p>
+                <div className="flex items-start justify-between mb-4">
+                  <h3 className="font-bold text-xl text-white">{item.title}</h3>
+                  <span className="ml-3 shrink-0 text-xs font-bold text-amber-400 bg-amber-950/60 border border-amber-700/60 px-2.5 py-1 rounded-md whitespace-nowrap">
+                    {item.badge}
+                  </span>
+                </div>
+                <p className="text-base text-gray-400 leading-relaxed">{item.desc}</p>
               </div>
             ))}
           </div>
 
           <div data-animate="up" data-delay="300" className="mt-10 text-center">
-            <p className="text-gray-500 text-sm mb-4">이 3가지 문제, 비블이 전부 해결합니다.</p>
+            <p className="text-gray-500 text-base mb-4">이 3가지 문제, 비블이 전부 해결합니다.</p>
             <a
               href="/studio/consulting"
               className="inline-flex items-center gap-2 px-6 py-3 bg-teal-500 hover:bg-teal-400 text-white font-bold rounded-xl transition text-sm"
@@ -311,11 +318,11 @@ export default function StudioPage() {
       {/* ══════════════════════════════════════════════════════════════ */}
       <section className="border-b border-gray-800">
         <div className="max-w-screen-xl mx-auto px-4 py-20">
-          <p data-animate="up" className="text-xs text-gray-500 uppercase tracking-widest mb-3">실제 운영 채널</p>
-          <h2 data-animate="up" data-delay="80" className="text-2xl md:text-4xl font-bold mb-3">
+          <p data-animate="up" className="text-sm text-gray-500 uppercase tracking-widest mb-3">실제 운영 채널</p>
+          <h2 data-animate="up" data-delay="80" className="text-3xl md:text-5xl font-bold mb-3">
             말이 아닌, 결과로 증명합니다
           </h2>
-          <p data-animate="up" data-delay="160" className="text-gray-400 mb-12 text-sm md:text-base">
+          <p data-animate="up" data-delay="160" className="text-gray-400 mb-12 text-base md:text-lg">
             총 <span className="text-teal-400 font-semibold">65만+ 구독자</span> 채널을 운영 및 공동 기획하고 있습니다.
           </p>
 
@@ -391,11 +398,11 @@ export default function StudioPage() {
       {/* ══════════════════════════════════════════════════════════════ */}
       <section id="process" className="border-b border-gray-800 bg-gray-900/20">
         <div className="max-w-screen-xl mx-auto px-4 py-20">
-          <p data-animate="up" className="text-xs text-gray-500 uppercase tracking-widest mb-3 text-center">진행 과정</p>
-          <h2 data-animate="up" data-delay="80" className="text-2xl md:text-4xl font-bold mb-4 text-center">
+          <p data-animate="up" className="text-sm text-gray-500 uppercase tracking-widest mb-3 text-center">진행 과정</p>
+          <h2 data-animate="up" data-delay="80" className="text-3xl md:text-5xl font-bold mb-4 text-center">
             상담부터 운영까지<br />딱 3단계입니다
           </h2>
-          <p data-animate="up" data-delay="160" className="text-gray-400 text-center mb-16 text-sm">복잡한 절차 없이 빠르게 시작합니다</p>
+          <p data-animate="up" data-delay="160" className="text-gray-400 text-center mb-16 text-base">복잡한 절차 없이 빠르게 시작합니다</p>
 
           <div className="grid md:grid-cols-3 gap-8 relative">
             {/* 연결선 (데스크탑) */}
@@ -445,7 +452,7 @@ export default function StudioPage() {
                 </div>
                 <div className="text-xs text-teal-500 font-bold tracking-widest mb-2">STEP {s.step}</div>
                 <h3 className="font-bold text-xl mb-3 text-white">{s.title}</h3>
-                <p className="text-sm text-gray-400 leading-relaxed mb-5 max-w-xs">{s.desc}</p>
+                <p className="text-base text-gray-400 leading-relaxed mb-5 max-w-xs">{s.desc}</p>
                 <span className="text-xs border border-teal-800/50 text-teal-400/70 bg-teal-950/30 rounded-full px-4 py-1.5 font-medium">{s.duration}</span>
               </div>
             ))}
@@ -490,8 +497,8 @@ export default function StudioPage() {
       {/* ══════════════════════════════════════════════════════════════ */}
       <section className="border-b border-gray-800">
         <div className="max-w-screen-xl mx-auto px-4 py-20">
-          <p data-animate="up" className="text-xs text-gray-500 uppercase tracking-widest mb-3">고객 후기</p>
-          <h2 data-animate="up" data-delay="80" className="text-2xl md:text-4xl font-bold mb-12">
+          <p data-animate="up" className="text-sm text-gray-500 uppercase tracking-widest mb-3">고객 후기</p>
+          <h2 data-animate="up" data-delay="80" className="text-3xl md:text-5xl font-bold mb-12">
             숫자가 거짓말하지 않습니다
           </h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -508,8 +515,8 @@ export default function StudioPage() {
                     {r.result}
                   </span>
                 </div>
-                <p className="text-sm text-gray-300 leading-relaxed mb-5">&ldquo;{r.text}&rdquo;</p>
-                <div className="text-xs text-gray-500 font-medium border-t border-gray-800 pt-4">{r.name}</div>
+                <p className="text-base text-gray-300 leading-relaxed mb-5">&ldquo;{r.text}&rdquo;</p>
+                <div className="text-sm text-gray-500 font-medium border-t border-gray-800 pt-4">{r.name}</div>
               </div>
             ))}
           </div>
@@ -523,8 +530,8 @@ export default function StudioPage() {
         <div className="max-w-screen-xl mx-auto px-4 py-20">
           <div className="grid md:grid-cols-2 gap-16 items-center">
             <div>
-              <p data-animate="up" className="text-xs text-gray-500 uppercase tracking-widest mb-4">운영자 소개</p>
-              <h2 data-animate="up" data-delay="80" className="text-3xl md:text-4xl font-bold mb-2">비블 (김태민)</h2>
+              <p data-animate="up" className="text-sm text-gray-500 uppercase tracking-widest mb-4">운영자 소개</p>
+              <h2 data-animate="up" data-delay="80" className="text-4xl md:text-5xl font-bold mb-2">비블 (김태민)</h2>
               <p data-animate="up" data-delay="160" className="text-teal-400 font-semibold text-lg mb-8">TMK STUDIO 대표</p>
 
               <div data-animate="up" data-delay="220" className="space-y-6 mb-8">
@@ -540,7 +547,7 @@ export default function StudioPage() {
                       "SEMOGOLF 대표 (골프 영상 제작, 쇼핑몰)",
                       "TMK STUDIO 대표 (유튜브 제작 프로덕션)",
                     ].map((item) => (
-                      <div key={item} className="flex items-start gap-2.5 text-sm text-gray-300">
+                      <div key={item} className="flex items-start gap-2.5 text-base text-gray-300">
                         <span className="text-teal-400 mt-0.5 shrink-0 text-xs">✓</span>
                         <span>{item}</span>
                       </div>
@@ -557,7 +564,7 @@ export default function StudioPage() {
                       "2급 정교사",
                       "팀 내부 교사 출신들의 유튜브 교육 커리큘럼",
                     ].map((item) => (
-                      <div key={item} className="flex items-start gap-2.5 text-sm text-gray-300">
+                      <div key={item} className="flex items-start gap-2.5 text-base text-gray-300">
                         <span className="text-teal-400 mt-0.5 shrink-0 text-xs">✓</span>
                         <span>{item}</span>
                       </div>
@@ -573,7 +580,7 @@ export default function StudioPage() {
                       "프랜차이즈 B사 3곳",
                       "프랜차이즈 M사 1곳",
                     ].map((item) => (
-                      <div key={item} className="flex items-start gap-2.5 text-sm text-gray-300">
+                      <div key={item} className="flex items-start gap-2.5 text-base text-gray-300">
                         <span className="text-teal-400 mt-0.5 shrink-0 text-xs">✓</span>
                         <span>{item}</span>
                       </div>
@@ -635,8 +642,8 @@ export default function StudioPage() {
       {/* ══════════════════════════════════════════════════════════════ */}
       <section className="border-b border-gray-800">
         <div className="max-w-screen-xl mx-auto px-4 py-20">
-          <p data-animate="up" className="text-xs text-gray-500 uppercase tracking-widest mb-3 text-center">FAQ</p>
-          <h2 data-animate="up" data-delay="80" className="text-2xl md:text-4xl font-bold mb-12 text-center">
+          <p data-animate="up" className="text-sm text-gray-500 uppercase tracking-widest mb-3 text-center">FAQ</p>
+          <h2 data-animate="up" data-delay="80" className="text-3xl md:text-5xl font-bold mb-12 text-center">
             자주 하시는 질문
           </h2>
           <div className="max-w-3xl mx-auto space-y-4">
@@ -647,11 +654,11 @@ export default function StudioPage() {
                 data-delay={String(i * 60)}
                 className="group rounded-2xl bg-gray-900 border border-gray-800 hover:border-gray-700 transition"
               >
-                <summary className="p-5 cursor-pointer list-none text-sm font-semibold flex items-center justify-between gap-4">
+                <summary className="p-5 cursor-pointer list-none text-base font-semibold flex items-center justify-between gap-4">
                   <span>{item.q}</span>
                   <span className="text-gray-500 group-open:rotate-180 transition-transform shrink-0 text-lg">▾</span>
                 </summary>
-                <div className="px-5 pb-5 text-sm text-gray-400 leading-relaxed border-t border-gray-800 pt-4">
+                <div className="px-5 pb-5 text-base text-gray-400 leading-relaxed border-t border-gray-800 pt-4">
                   {item.a}
                 </div>
               </details>
