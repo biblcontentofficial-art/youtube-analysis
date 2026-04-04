@@ -41,6 +41,7 @@ if (hasClerk) {
     "/threads(.*)",
     "/tmklab-site(.*)",
     "/tmkstudio",
+    "/teambibl",
     "/sitemap.xml",
     "/robots.txt",
     // API
