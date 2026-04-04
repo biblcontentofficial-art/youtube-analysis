@@ -259,7 +259,7 @@ export default function StudioPage() {
             <p data-animate="up" className="text-xs text-gray-500 uppercase tracking-widest mb-3">왜 혼자는 어려운가</p>
             <h2 data-animate="up" data-delay="80" className="text-2xl md:text-4xl font-bold">
               유튜브 채널 운영,<br />
-              <span className="text-red-400">혼자 하면 이 3가지에서 막힙니다</span>
+              <span className="text-amber-400">혼자 하면 이 3가지에서 막힙니다</span>
             </h2>
           </div>
 
@@ -285,7 +285,7 @@ export default function StudioPage() {
                 key={item.title}
                 data-animate="up"
                 data-delay={String(i * 100)}
-                className="rounded-2xl border border-red-900/30 bg-red-950/10 p-6"
+                className="rounded-2xl border border-amber-900/30 bg-amber-950/10 p-6"
               >
                 {item.icon && <div className="text-3xl mb-4">{item.icon}</div>}
                 <h3 className="font-bold text-lg mb-3 text-white">{item.title}</h3>
