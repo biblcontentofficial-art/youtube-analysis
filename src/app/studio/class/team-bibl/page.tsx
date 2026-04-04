@@ -77,6 +77,254 @@ const CURRICULUM = [
       { title: "[9주차] Claude 다양한 활용 방법", duration: "22:25" },
     ],
   },
+  {
+    week: "10주차", lessons: [
+      { title: "[10주차] 스마트폰 하나로 끝내는 홈 스튜디오 세팅", duration: "--:--" },
+      { title: "[10주차] 대본을 내 이야기처럼 자연스럽게 말하는 법", duration: "--:--" },
+      { title: "[10주차] 시각적 몰입을 위한 B롤 기획 및 소싱", duration: "--:--" },
+      { title: "[10주차] 편집 시간을 50% 줄이는 폴더 정리와 컷 편집 콘티", duration: "--:--" },
+    ],
+  },
+  {
+    week: "11주차", lessons: [
+      { title: "[11주차] 프리미어 프로 기본 세팅 및 단축키", duration: "--:--" },
+      { title: "[11주차] 컷 편집의 달인 되기", duration: "--:--" },
+      { title: "[11주차] 자막 자동 생성과 텍스트 기반 편집", duration: "--:--" },
+      { title: "[11주차] B롤 얹기와 유튜브용 최종 출력", duration: "--:--" },
+    ],
+  },
+  {
+    week: "12주차", lessons: [
+      { title: "[12주차] 시청자 이탈을 막는 화면 연출 (키프레임)", duration: "--:--" },
+      { title: "[12주차] 귀를 사로잡는 사운드 디자인 (BGM & 효과음)", duration: "--:--" },
+      { title: "[12주차] 초간단 색보정 (Lumetri Color)", duration: "--:--" },
+      { title: "[12주차] 편집 자동화 & 템플릿(플러그인) 활용법", duration: "--:--" },
+    ],
+  },
+  {
+    week: "13주차", lessons: [
+      { title: "[13주차] 유튜브 업로드 최적화 설정", duration: "--:--" },
+      { title: "[13주차] 제목·태그·설명 SEO 세팅", duration: "--:--" },
+      { title: "[13주차] 업로드 스케줄 전략", duration: "--:--" },
+      { title: "[13주차] 커뮤니티 포스팅 활용법", duration: "--:--" },
+    ],
+  },
+  {
+    week: "14주차", lessons: [
+      { title: "[14주차] 유튜브 스튜디오 지표 읽는 법", duration: "--:--" },
+      { title: "[14주차] 클릭률·시청 지속률 정량 분석", duration: "--:--" },
+      { title: "[14주차] 댓글·공유·저장 정성 분석", duration: "--:--" },
+      { title: "[14주차] 데이터 기반 다음 영상 개선 전략", duration: "--:--" },
+    ],
+  },
+  {
+    week: "15주차", lessons: [
+      { title: "[15주차] 숏폼 알고리즘의 이해", duration: "--:--" },
+      { title: "[15주차] 릴스·쇼츠·틱톡 플랫폼 비교", duration: "--:--" },
+      { title: "[15주차] 숏폼 훅(Hook) 설계", duration: "--:--" },
+      { title: "[15주차] 숏폼 기획안 작성법", duration: "--:--" },
+    ],
+  },
+  {
+    week: "16주차", lessons: [
+      { title: "[16주차] 숏폼 편집 템플릿 세팅", duration: "--:--" },
+      { title: "[16주차] 캡컷·프리미어로 숏폼 편집하기", duration: "--:--" },
+      { title: "[16주차] 자막·음악·효과 넣기", duration: "--:--" },
+      { title: "[16주차] 숏폼 업로드 전략", duration: "--:--" },
+    ],
+  },
+  {
+    week: "17주차", lessons: [
+      { title: "[17주차] 고조회수 숏폼 구조 분석", duration: "--:--" },
+      { title: "[17주차] 숏폼 시리즈 전략", duration: "--:--" },
+      { title: "[17주차] 롱폼과 숏폼 연계 전략", duration: "--:--" },
+      { title: "[17주차] 숏폼 성과 분석 및 개선", duration: "--:--" },
+    ],
+  },
+  {
+    week: "18주차", lessons: [
+      { title: "[18주차] 숏폼으로 DB 수집하기", duration: "--:--" },
+      { title: "[18주차] 숏폼과 링크 연결 전략", duration: "--:--" },
+      { title: "[18주차] 인스타그램 릴스 수익화 사례", duration: "--:--" },
+      { title: "[18주차] 숏폼 광고 활용법", duration: "--:--" },
+    ],
+  },
+  {
+    week: "19주차", lessons: [
+      { title: "[19주차] 멀티채널 운영 전략", duration: "--:--" },
+      { title: "[19주차] 주제별 서브채널 기획", duration: "--:--" },
+      { title: "[19주차] 채널 간 시너지 만들기", duration: "--:--" },
+      { title: "[19주차] 리소스 최소화 다채널 운영법", duration: "--:--" },
+    ],
+  },
+  {
+    week: "20주차", lessons: [
+      { title: "[20주차] 스레드(Threads) 활용 전략", duration: "--:--" },
+      { title: "[20주차] X(트위터) 콘텐츠 기획", duration: "--:--" },
+      { title: "[20주차] 텍스트 콘텐츠로 유튜브 유입 만들기", duration: "--:--" },
+      { title: "[20주차] SNS 크로스 포스팅 전략", duration: "--:--" },
+    ],
+  },
+  {
+    week: "21주차", lessons: [
+      { title: "[21주차] 네이버 리뷰노트 활용법", duration: "--:--" },
+      { title: "[21주차] 블로그 체험단 신청 전략", duration: "--:--" },
+      { title: "[21주차] 신문사 기사 작성법", duration: "--:--" },
+      { title: "[21주차] 네이버 검색 노출 최적화", duration: "--:--" },
+    ],
+  },
+  {
+    week: "22주차", lessons: [
+      { title: "[22주차] 나만의 비즈니스 모델 설계", duration: "--:--" },
+      { title: "[22주차] 상품·서비스 기획 기초", duration: "--:--" },
+      { title: "[22주차] 가격 설정과 포지셔닝 전략", duration: "--:--" },
+      { title: "[22주차] 첫 매출 만들기 실습", duration: "--:--" },
+    ],
+  },
+  {
+    week: "23주차", lessons: [
+      { title: "[23주차] 비즈니스 목적 콘텐츠 vs 브랜딩 콘텐츠", duration: "--:--" },
+      { title: "[23주차] 신뢰를 쌓는 콘텐츠 유형", duration: "--:--" },
+      { title: "[23주차] 판매로 이어지는 콘텐츠 구조", duration: "--:--" },
+      { title: "[23주차] 비즈니스 콘텐츠 캘린더 작성", duration: "--:--" },
+    ],
+  },
+  {
+    week: "24주차", lessons: [
+      { title: "[24주차] 랜딩페이지란 무엇인가", duration: "--:--" },
+      { title: "[24주차] 랜딩페이지 구성 요소", duration: "--:--" },
+      { title: "[24주차] 노코드 툴로 랜딩페이지 만들기", duration: "--:--" },
+      { title: "[24주차] 유튜브에서 랜딩페이지로 유입시키는 법", duration: "--:--" },
+    ],
+  },
+  {
+    week: "25주차", lessons: [
+      { title: "[25주차] 전환율 높이는 카피라이팅", duration: "--:--" },
+      { title: "[25주차] 사회적 증거(후기·사례) 배치 전략", duration: "--:--" },
+      { title: "[25주차] A/B 테스트로 랜딩페이지 최적화", duration: "--:--" },
+      { title: "[25주차] 구매 버튼 설계와 결제 연동", duration: "--:--" },
+    ],
+  },
+  {
+    week: "26주차", lessons: [
+      { title: "[26주차] DB란 무엇인가 (잠재고객 수집)", duration: "--:--" },
+      { title: "[26주차] 이메일·카카오 채널 CRM 구축", duration: "--:--" },
+      { title: "[26주차] 재구매와 구독을 만드는 CRM 전략", duration: "--:--" },
+      { title: "[26주차] 광고와 유기 트래픽 조합 마케팅", duration: "--:--" },
+    ],
+  },
+  {
+    week: "27주차", lessons: [
+      { title: "[27주차] 브랜딩이란 무엇인가", duration: "--:--" },
+      { title: "[27주차] 퍼스널 브랜딩 vs 비즈니스 브랜딩", duration: "--:--" },
+      { title: "[27주차] 내 브랜드 정체성 설계", duration: "--:--" },
+      { title: "[27주차] 브랜딩 키워드와 비주얼 가이드", duration: "--:--" },
+    ],
+  },
+  {
+    week: "28주차", lessons: [
+      { title: "[28주차] 브랜드 스토리 만들기", duration: "--:--" },
+      { title: "[28주차] 콘텐츠로 브랜딩 강화하는 법", duration: "--:--" },
+      { title: "[28주차] 채널 외형(아트워크·인트로) 브랜딩", duration: "--:--" },
+      { title: "[28주차] 브랜딩 일관성 유지 전략", duration: "--:--" },
+    ],
+  },
+  {
+    week: "29주차", lessons: [
+      { title: "[29주차] 나를 브랜드화하는 퍼스널 브랜딩", duration: "--:--" },
+      { title: "[29주차] 시스템화로 나 없이도 돌아가는 구조 만들기", duration: "--:--" },
+      { title: "[29주차] 팀과 외주를 활용한 스케일업", duration: "--:--" },
+      { title: "[29주차] 퍼스널 브랜딩과 시스템의 균형 설계", duration: "--:--" },
+    ],
+  },
+  {
+    week: "30주차", lessons: [
+      { title: "[30주차] 내 채널의 병목 구간 찾기", duration: "--:--" },
+      { title: "[30주차] 트래픽·클릭률·시청 지속률 병목 분석", duration: "--:--" },
+      { title: "[30주차] 구독자 전환 병목 진단", duration: "--:--" },
+      { title: "[30주차] 병목 우선순위 설정법", duration: "--:--" },
+    ],
+  },
+  {
+    week: "31주차", lessons: [
+      { title: "[31주차] 영상별 성과 비교 분석", duration: "--:--" },
+      { title: "[31주차] 성공한 영상 패턴 추출", duration: "--:--" },
+      { title: "[31주차] 실패한 영상 원인 분석", duration: "--:--" },
+      { title: "[31주차] 진단 결과 기반 개선 계획 수립", duration: "--:--" },
+    ],
+  },
+  {
+    week: "32주차", lessons: [
+      { title: "[32주차] 조회수 병목 뚫는 썸네일·제목 개선", duration: "--:--" },
+      { title: "[32주차] 트래픽 소스 다각화 전략", duration: "--:--" },
+      { title: "[32주차] 외부 유입(커뮤니티·SNS) 만들기", duration: "--:--" },
+      { title: "[32주차] 콜라보·노출 확장 전략", duration: "--:--" },
+    ],
+  },
+  {
+    week: "33주차", lessons: [
+      { title: "[33주차] 내 썸네일 클릭률 데이터 분석", duration: "--:--" },
+      { title: "[33주차] 썸네일 A/B 테스트 실전", duration: "--:--" },
+      { title: "[33주차] 제목 클릭률 높이는 카피라이팅", duration: "--:--" },
+      { title: "[33주차] 개선 후 성과 추적", duration: "--:--" },
+    ],
+  },
+  {
+    week: "34주차", lessons: [
+      { title: "[34주차] 시청 지속률 떨어지는 구간 찾기", duration: "--:--" },
+      { title: "[34주차] 대본 개선으로 시청 지속률 높이기", duration: "--:--" },
+      { title: "[34주차] 업로드 설정 최적화(태그·챕터·엔드카드)", duration: "--:--" },
+      { title: "[34주차] 개선된 영상 성과 측정", duration: "--:--" },
+    ],
+  },
+  {
+    week: "35주차", lessons: [
+      { title: "[35주차] 편집 스타일로 이탈률 낮추기", duration: "--:--" },
+      { title: "[35주차] 링크 클릭률 높이는 CTA 설계", duration: "--:--" },
+      { title: "[35주차] 엔드카드·카드 클릭률 최적화", duration: "--:--" },
+      { title: "[35주차] 편집과 링크 개선 성과 측정", duration: "--:--" },
+    ],
+  },
+  {
+    week: "36주차", lessons: [
+      { title: "[36주차] 비즈니스 모델 전환율 분석", duration: "--:--" },
+      { title: "[36주차] 오퍼·가격·구성 개선 전략", duration: "--:--" },
+      { title: "[36주차] 구매 여정 최적화", duration: "--:--" },
+      { title: "[36주차] 비즈니스 모델 스케일업 방법", duration: "--:--" },
+    ],
+  },
+  {
+    week: "37주차", lessons: [
+      { title: "[37주차] 랜딩페이지 전환율 분석", duration: "--:--" },
+      { title: "[37주차] 카피·디자인·구조 개선", duration: "--:--" },
+      { title: "[37주차] 신뢰 요소 추가로 전환율 높이기", duration: "--:--" },
+      { title: "[37주차] 최적화 후 성과 추적", duration: "--:--" },
+    ],
+  },
+  {
+    week: "38주차", lessons: [
+      { title: "[38주차] 단건 판매와 구독 모델의 차이", duration: "--:--" },
+      { title: "[38주차] 내 비즈니스에 맞는 수익 모델 선택", duration: "--:--" },
+      { title: "[38주차] 구독 모델 설계와 운영", duration: "--:--" },
+      { title: "[38주차] 수익 다각화 전략", duration: "--:--" },
+    ],
+  },
+  {
+    week: "39주차", lessons: [
+      { title: "[39주차] 장기 브랜딩 로드맵 설계", duration: "--:--" },
+      { title: "[39주차] 브랜드 팬덤 만들기", duration: "--:--" },
+      { title: "[39주차] 브랜드 확장 전략", duration: "--:--" },
+      { title: "[39주차] 브랜딩 유지와 일관성 관리", duration: "--:--" },
+    ],
+  },
+  {
+    week: "40주차", lessons: [
+      { title: "[40주차] 지속가능한 콘텐츠 운영 시스템 구축", duration: "--:--" },
+      { title: "[40주차] 번아웃 없이 꾸준히 하는 법", duration: "--:--" },
+      { title: "[40주차] 나만의 성장 루틴 만들기", duration: "--:--" },
+      { title: "[40주차] 다음 단계로 나아가는 법", duration: "--:--" },
+    ],
+  },
 ];
 
 const REVIEWS = [
@@ -192,7 +440,7 @@ export default function TeamBiblPage() {
                   <span className="text-gray-500 ml-1">({REVIEWS.length}개의 리뷰)</span>
                 </div>
                 <span className="w-px h-4 bg-gray-700" />
-                <span className="text-xs text-gray-500">동영상 36개 · 총 8시간 38분</span>
+                <span className="text-xs text-gray-500">동영상 160개 · 총 40주 커리큘럼</span>
               </div>
               <h1 className="text-2xl md:text-3xl font-bold leading-tight mb-1">
                 팀비블 : 10개월간 유튜브 강의와 실행을 책임지는 관리형 프로젝트
@@ -275,7 +523,7 @@ export default function TeamBiblPage() {
             <section ref={(el) => { sectionRefs.current["커리큘럼"] = el; }}>
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-bold">커리큘럼</h2>
-                <span className="text-xs text-gray-500">총 36강 · 8시간 38분</span>
+                <span className="text-xs text-gray-500">총 160강 · 40주 커리큘럼</span>
               </div>
               <div className="space-y-2">
                 {CURRICULUM.map((section) => (
@@ -411,7 +659,7 @@ function PriceCard() {
           {[
             { icon: "👥", label: "모집 정원", value: "50명 한정" },
             { icon: "📅", label: "수강 기한", value: "365일" },
-            { icon: "🎬", label: "동영상", value: "36개 (총 8시간 38분)" },
+            { icon: "🎬", label: "동영상", value: "160개 (총 40주 커리큘럼)" },
           ].map((item) => (
             <div key={item.label} className="flex items-center justify-between text-sm">
               <span className="text-gray-500 flex items-center gap-2">
