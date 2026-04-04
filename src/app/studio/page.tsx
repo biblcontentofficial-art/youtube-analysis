@@ -678,10 +678,12 @@ export default function StudioPage() {
 
             <div data-animate="up" className="relative inline-block mb-8">
               {/* 외부 ping 링 */}
-              <div className="absolute inset-0 rounded-2xl border border-red-500/50 animate-ping" style={{ animationDuration: "2s" }} />
+              <div className="absolute inset-0 rounded-2xl border border-red-500/60 animate-ping" style={{ animationDuration: "1.8s" }} />
+              {/* 글로우 pulse */}
+              <div className="absolute inset-0 rounded-2xl animate-pulse" style={{ boxShadow: "0 0 20px 4px rgba(239,68,68,0.25)" }} />
               <a
                 href="/studio/consulting"
-                className="relative inline-flex flex-col items-center gap-1 border border-red-700/60 bg-red-950/40 hover:bg-red-950/60 rounded-2xl px-7 py-3.5 transition group"
+                className="relative inline-flex flex-col items-center gap-1 border border-red-600/70 bg-red-950/50 hover:bg-red-950/70 rounded-2xl px-7 py-3.5 transition group"
               >
                 <span className="flex items-center gap-2 text-sm font-bold text-red-400">
                   <span className="w-2 h-2 bg-red-400 rounded-full animate-pulse shrink-0" />
