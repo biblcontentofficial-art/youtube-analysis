@@ -676,19 +676,22 @@ export default function StudioPage() {
             {/* 배경 효과 */}
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-40 bg-teal-500/10 blur-3xl rounded-full pointer-events-none" />
 
-            <a
-              href="/studio/consulting"
-              data-animate="up"
-              className="relative inline-flex flex-col items-center gap-1 border border-red-700/60 bg-red-950/40 hover:bg-red-950/60 rounded-2xl px-7 py-3.5 mb-8 transition group"
-            >
-              <span className="flex items-center gap-2 text-sm font-bold text-red-400">
-                <span className="w-2 h-2 bg-red-400 rounded-full animate-pulse shrink-0" />
-                이번달 신규 대행 마감임박
-              </span>
-              <span className="text-sm font-semibold text-white group-hover:text-teal-300 transition">
-                무료 상담을 남겨주세요 →
-              </span>
-            </a>
+            <div data-animate="up" className="relative inline-block mb-8">
+              {/* 외부 ping 링 */}
+              <div className="absolute inset-0 rounded-2xl border border-red-500/50 animate-ping" style={{ animationDuration: "2s" }} />
+              <a
+                href="/studio/consulting"
+                className="relative inline-flex flex-col items-center gap-1 border border-red-700/60 bg-red-950/40 hover:bg-red-950/60 rounded-2xl px-7 py-3.5 transition group"
+              >
+                <span className="flex items-center gap-2 text-sm font-bold text-red-400">
+                  <span className="w-2 h-2 bg-red-400 rounded-full animate-pulse shrink-0" />
+                  이번달 신규 대행 마감임박
+                </span>
+                <span className="text-sm font-semibold text-white group-hover:text-teal-300 transition">
+                  무료 상담을 남겨주세요 →
+                </span>
+              </a>
+            </div>
 
             <h2 data-animate="up" data-delay="80" className="text-3xl md:text-5xl font-bold mb-6 leading-tight relative">
               지금 채널 URL 하나만 보내주세요.<br />
