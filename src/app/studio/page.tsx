@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import AnimationObserver from "@/app/_components/AnimationObserver";
+import StudioGuard from "./_components/StudioGuard";
 import StatsCounter from "./_components/StatsCounter";
 import VideoMarquee from "./_components/VideoMarquee";
 import rawContent from "./studio-content.json";
@@ -175,6 +176,7 @@ const FAQS = [
 export default function StudioPage() {
   return (
     <main className="min-h-screen bg-gray-950 text-white">
+      <StudioGuard />
       <AnimationObserver />
       {DevEditor && <DevEditor />}
 

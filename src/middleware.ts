@@ -40,6 +40,7 @@ if (hasClerk) {
     "/channels(.*)",
     "/threads(.*)",
     "/tmklab-site(.*)",
+    "/tmkstudio",
     "/sitemap.xml",
     "/robots.txt",
     // API
