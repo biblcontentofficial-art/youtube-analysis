@@ -694,13 +694,12 @@ export default function StudioPage() {
             </div>
 
             <h2 data-animate="up" data-delay="80" className="text-3xl md:text-5xl font-bold mb-6 leading-tight relative">
-              지금 채널 URL 하나만 보내주세요.<br />
-              <span className="text-teal-400">무료로 가능성을 확인해드립니다.</span>
+              지금 무료 상담을 신청해보세요.<br />
+              <span className="text-teal-400">비블이 직접 연락드립니다.</span>
             </h2>
 
             <p data-animate="up" data-delay="160" className="text-gray-400 mb-10 text-base md:text-lg relative max-w-xl mx-auto">
-              기획부터 촬영, 편집, 업로드, 채널관리까지<br />
-              한번에 진행합니다. 지금바로 무료상담을 받아보세요.
+              여러분의 유튜브 성장 가능성을 무료로 확인해드립니다.
             </p>
 
             <div data-animate="scale" data-delay="240" className="relative">
