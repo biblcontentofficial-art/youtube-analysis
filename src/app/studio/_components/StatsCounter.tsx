@@ -11,7 +11,7 @@ interface Stat {
 const STATS: Stat[] = [
   { end: 65, suffix: "만+", label: "총 구독자" },
   { end: 7,  suffix: "개",  label: "운영·공동기획 채널" },
-  { end: 1,  suffix: "억+", label: "누적 조회수" },
+  { end: 100000000, suffix: "회+", label: "누적 조회수" },
 ];
 
 function useCountUp(end: number, duration = 1800, started: boolean) {
@@ -59,7 +59,7 @@ function Counter({ stat }: { stat: Stat }) {
     <div ref={ref} className="flex flex-col items-center text-center flex-1 min-w-[160px]">
       {/* 숫자 */}
       <div className="text-6xl md:text-7xl lg:text-8xl font-black tracking-tight stat-num leading-none">
-        <span className="text-white">{count}</span>
+        <span className="text-white">{count.toLocaleString("ko-KR")}</span>
         <span
           className="text-transparent bg-clip-text"
           style={{ backgroundImage: "linear-gradient(135deg, #14b8a6, #06b6d4)" }}
