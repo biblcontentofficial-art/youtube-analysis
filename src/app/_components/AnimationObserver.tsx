@@ -10,20 +10,31 @@ export default function AnimationObserver() {
   useEffect(() => {
     const elements = document.querySelectorAll<HTMLElement>("[data-animate]");
 
+    const trigger = (el: HTMLElement) => {
+      const delay = Number(el.dataset.delay ?? 0);
+      setTimeout(() => el.classList.add("in-view"), delay);
+    };
+
     const io = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (!entry.isIntersecting) return;
-          const el = entry.target as HTMLElement;
-          const delay = Number(el.dataset.delay ?? 0);
-          setTimeout(() => el.classList.add("in-view"), delay);
-          io.unobserve(el);
+          trigger(entry.target as HTMLElement);
+          io.unobserve(entry.target);
         });
       },
       { threshold: 0.12, rootMargin: "0px 0px -40px 0px" }
     );
 
-    elements.forEach((el) => io.observe(el));
+    elements.forEach((el) => {
+      const rect = el.getBoundingClientRect();
+      const inViewport = rect.top < window.innerHeight && rect.bottom > 0;
+      if (inViewport) {
+        trigger(el);
+      } else {
+        io.observe(el);
+      }
+    });
     return () => io.disconnect();
   }, []);
 
