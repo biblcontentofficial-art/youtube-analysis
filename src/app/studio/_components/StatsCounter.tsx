@@ -58,7 +58,7 @@ function Counter({ stat }: { stat: Stat }) {
   return (
     <div ref={ref} className="flex flex-col items-center text-center flex-1 min-w-[160px]">
       {/* 숫자 */}
-      <div className="text-5xl md:text-6xl lg:text-7xl font-black tracking-tight stat-num leading-none whitespace-nowrap">
+      <div className="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight stat-num leading-none whitespace-nowrap">
         <span className="text-white">{count.toLocaleString("ko-KR")}</span>
         <span
           className="text-transparent bg-clip-text"
