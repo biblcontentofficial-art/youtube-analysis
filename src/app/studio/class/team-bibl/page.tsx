@@ -443,7 +443,7 @@ export default function TeamBiblPage() {
                 <span className="text-xs text-gray-500">동영상 160개 · 총 40주 커리큘럼</span>
               </div>
               <h1 className="text-2xl md:text-3xl font-bold leading-tight mb-1">
-                팀비블 : 10개월간 유튜브 강의와 실행을 책임지는 관리형 프로젝트
+                팀비블 : 유튜브를 책임지고 실행하는 1:1 컨설팅 프로그램
               </h1>
               <p className="text-gray-400 text-sm">비블 | 김태민 · 입문 이상</p>
             </div>
