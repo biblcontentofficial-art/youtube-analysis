@@ -1,14 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  async redirects() {
-    return [
-      {
-        source: "/teambibl",
-        destination: "/studio/class/team-bibl",
-        permanent: false,
-      },
-    ];
-  },
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "i.ytimg.com" },

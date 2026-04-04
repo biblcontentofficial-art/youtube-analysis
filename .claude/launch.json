@@ -3,9 +3,10 @@
   "configurations": [
     {
       "name": "youtube-analysis",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev", "--", "-p", "3001"],
-      "port": 3001
+      "runtimeExecutable": "/bin/sh",
+      "runtimeArgs": ["-c", "PATH=/usr/local/bin:$PATH npm run dev"],
+      "port": 3001,
+      "autoPort": true
     }
   ]
 }
