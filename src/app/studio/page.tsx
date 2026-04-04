@@ -259,7 +259,7 @@ export default function StudioPage() {
             <p data-animate="up" className="text-sm text-gray-500 uppercase tracking-widest mb-3">왜 혼자는 어려운가</p>
             <h2 data-animate="up" data-delay="80" className="text-3xl md:text-5xl font-bold">
               유튜브 채널 운영,<br />
-              <span className="text-amber-400">혼자 하면 이 3가지에서 막힙니다</span>
+              <span className="text-teal-400">혼자 하면 이 3가지에서 막힙니다</span>
             </h2>
           </div>
 
@@ -288,11 +288,11 @@ export default function StudioPage() {
                 key={item.title}
                 data-animate="up"
                 data-delay={String(i * 100)}
-                className="rounded-2xl border border-amber-900/30 bg-amber-950/10 p-6"
+                className="rounded-2xl border border-gray-700/50 bg-gray-800/30 p-6"
               >
                 <div className="flex items-start justify-between mb-4">
                   <h3 className="font-bold text-xl text-white">{item.title}</h3>
-                  <span className="ml-3 shrink-0 text-xs font-bold text-amber-400 bg-amber-950/60 border border-amber-700/60 px-2.5 py-1 rounded-md whitespace-nowrap">
+                  <span className="ml-3 shrink-0 text-xs font-bold text-teal-400 bg-teal-950/50 border border-teal-800/50 px-2.5 py-1 rounded-md whitespace-nowrap">
                     {item.badge}
                   </span>
                 </div>
@@ -510,7 +510,7 @@ export default function StudioPage() {
                 className="review-card rounded-2xl bg-gray-900 border border-gray-800 p-6"
               >
                 <div className="flex items-center justify-between mb-4">
-                  <div className="flex gap-0.5 text-amber-400 text-sm">★★★★★</div>
+                  <div className="flex gap-0.5 text-teal-400 text-sm">★★★★★</div>
                   <span className="text-xs font-bold text-teal-400 bg-teal-950/50 border border-teal-800/50 px-2.5 py-1 rounded-full">
                     {r.result}
                   </span>
