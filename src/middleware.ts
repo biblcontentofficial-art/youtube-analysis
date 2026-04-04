@@ -1,5 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 
+// tmklab.com → /tmklab-site 로 rewrite
+function handleTmklab(req: NextRequest): NextResponse | null {
+  const host = req.headers.get("host") ?? "";
+  if (host === "tmklab.com" || host === "www.tmklab.com") {
+    const url = req.nextUrl.clone();
+    url.pathname = "/tmklab-site";
+    return NextResponse.rewrite(url);
+  }
+  return null;
+}
+
 const clerkKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
 const hasClerk =
   !!clerkKey &&
@@ -28,6 +39,7 @@ if (hasClerk) {
     "/studio/class(.*)",
     "/channels(.*)",
     "/threads(.*)",
+    "/tmklab-site(.*)",
     "/sitemap.xml",
     "/robots.txt",
     // API
@@ -48,12 +60,15 @@ if (hasClerk) {
   ]);
 
   middlewareHandler = clerkMiddleware(async (auth: any, req: NextRequest) => {
+    const tmklabResponse = handleTmklab(req);
+    if (tmklabResponse) return tmklabResponse;
+
     if (!isPublicRoute(req)) {
       await auth().protect();
     }
   });
 } else {
-  middlewareHandler = () => NextResponse.next();
+  middlewareHandler = (req: NextRequest) => handleTmklab(req) ?? NextResponse.next();
 }
 
 export default middlewareHandler;
