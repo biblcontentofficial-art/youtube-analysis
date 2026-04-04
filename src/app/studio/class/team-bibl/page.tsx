@@ -657,23 +657,38 @@ function PriceCard() {
 
         <div className="mt-5 pt-5 border-t border-gray-800 space-y-2">
           {[
-            { icon: "👥", label: "모집 정원", value: "50명 한정" },
-            { icon: "📅", label: "수강 기한", value: "365일" },
-            { icon: "🎬", label: "동영상", value: "160개 (총 40주 커리큘럼)" },
+            {
+              icon: (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M17 20h5v-2a4 4 0 00-5.916-3.519M9 20H4v-2a4 4 0 015.916-3.519M15 7a4 4 0 11-8 0 4 4 0 018 0zm6 4a3 3 0 11-6 0 3 3 0 016 0zM3 11a3 3 0 116 0 3 3 0 01-6 0z" />
+                </svg>
+              ),
+              label: "모집 정원", value: "15명 한정",
+            },
+            {
+              icon: (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              ),
+              label: "수강 기한", value: "365일",
+            },
+            {
+              icon: (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15 10l4.553-2.276A1 1 0 0121 8.723v6.554a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z" />
+                </svg>
+              ),
+              label: "동영상", value: "160개 (총 40주 커리큘럼)",
+            },
           ].map((item) => (
             <div key={item.label} className="flex items-center justify-between text-sm">
               <span className="text-gray-500 flex items-center gap-2">
-                <span>{item.icon}</span>{item.label}
+                {item.icon}{item.label}
               </span>
               <span className="text-gray-300 font-medium">{item.value}</span>
             </div>
           ))}
-        </div>
-
-        {/* 남은 자리 배지 */}
-        <div className="mt-4 flex items-center gap-2 px-3 py-2 rounded-lg bg-red-950/40 border border-red-900/40">
-          <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse flex-shrink-0" />
-          <span className="text-xs text-red-400 font-medium">남은 자리 : 3명</span>
         </div>
       </div>
     </div>
