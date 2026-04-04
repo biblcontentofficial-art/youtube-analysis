@@ -696,8 +696,8 @@ export default function StudioPage() {
             </h2>
 
             <p data-animate="up" data-delay="160" className="text-gray-400 mb-10 text-base md:text-lg relative max-w-xl mx-auto">
-              기획부터 촬영·편집·업로드까지 전부 맡겨주세요.<br />
-              상담 비용 없음 · 완전 무료로 시작할 수 있습니다.
+              기획부터 촬영, 편집, 업로드, 채널관리까지<br />
+              한번에 진행합니다. 지금바로 무료상담을 받아보세요.
             </p>
 
             <div data-animate="scale" data-delay="240" className="relative">
