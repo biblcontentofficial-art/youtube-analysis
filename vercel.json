@@ -1,6 +1,7 @@
 {
   "framework": "nextjs",
   "buildCommand": "npm run build",
+  "ignoreCommand": "git diff HEAD~1 --name-only | grep -qE '^(src/|public/|package\\.json|next\\.config|vercel\\.json|tailwind\\.config|tsconfig)' && exit 1 || exit 0",
   "devCommand": "npm run dev",
   "installCommand": "npm install",
   "functions": {
