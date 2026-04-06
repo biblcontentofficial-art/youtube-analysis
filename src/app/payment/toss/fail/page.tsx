@@ -1,16 +1,12 @@
+"use client";
+
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 
-export const metadata = {
-  robots: { index: false, follow: false },
-};
-
-export default function TossPaymentFailPage({
-  searchParams,
-}: {
-  searchParams: { code?: string; message?: string; orderId?: string };
-}) {
-  const message = searchParams.message ?? "결제에 실패했습니다.";
-  const code = searchParams.code;
+export default function TossPaymentFailPage() {
+  const searchParams = useSearchParams();
+  const message = searchParams.get("message") ?? "결제에 실패했습니다.";
+  const code = searchParams.get("code");
 
   return (
     <div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center p-4 text-center">
