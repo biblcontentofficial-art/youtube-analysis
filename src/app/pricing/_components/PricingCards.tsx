@@ -191,7 +191,7 @@ export default function PricingCards() {
                 <div className="text-lg font-bold text-white mb-2">{plan.name}</div>
                 {/* 연간: 월간 원가 취소선 */}
                 {!isFree && isYearly && (
-                  <div className="text-sm text-gray-600 line-through">
+                  <div className="text-lg text-gray-600 line-through">
                     {formatPrice(plan.monthlyPrice)}
                   </div>
                 )}
