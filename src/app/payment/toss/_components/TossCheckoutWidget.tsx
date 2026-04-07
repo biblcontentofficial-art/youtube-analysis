@@ -13,6 +13,12 @@ interface Props {
   plan: string;
 }
 
+declare global {
+  // CDN 스크립트가 window.TossPayments를 주입
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  function TossPayments(clientKey: string): any;
+}
+
 export default function TossCheckoutWidget({
   clientKey,
   customerKey,
@@ -30,19 +36,37 @@ export default function TossCheckoutWidget({
 
   useEffect(() => {
     let cancelled = false;
+
+    // v2 SDK를 CDN으로 로드 (npm 패키지 대신)
+    // @docs https://docs.tosspayments.com/guides/v2/billing/integration
+    const loadSDK = () => {
+      return new Promise<void>((resolve, reject) => {
+        if (typeof window.TossPayments !== "undefined") {
+          resolve();
+          return;
+        }
+        const script = document.createElement("script");
+        script.src = "https://js.tosspayments.com/v2/standard";
+        script.onload = () => resolve();
+        script.onerror = () => reject(new Error("토스페이먼츠 SDK 로드 실패"));
+        document.head.appendChild(script);
+      });
+    };
+
     (async () => {
       try {
-        const { loadTossPayments } = await import("@tosspayments/tosspayments-sdk");
-        const tp = await loadTossPayments(clientKey);
-        if (!cancelled) {
-          paymentRef.current = tp.payment({ customerKey });
-          setSdkReady(true);
-        }
+        await loadSDK();
+        if (cancelled) return;
+
+        const tossPayments = window.TossPayments(clientKey);
+        paymentRef.current = tossPayments.payment({ customerKey });
+        setSdkReady(true);
       } catch (e) {
         console.error("[Toss] SDK 초기화 실패:", e);
-        setError("결제 모듈 초기화에 실패했습니다.");
+        if (!cancelled) setError("결제 모듈 초기화에 실패했습니다.");
       }
     })();
+
     return () => { cancelled = true; };
   }, [clientKey, customerKey]);
 
@@ -51,9 +75,7 @@ export default function TossCheckoutWidget({
     setError(null);
     setPaying(true);
     try {
-      // requestBillingAuth: 카드 등록 → billingKey 발급 → 즉시 결제
-      // /api/toss/billing/confirm 에서 billing key 발급 후 amount 차감
-      // v2 SDK: requestBillingAuth 파라미터
+      // v2 SDK: requestBillingAuth - 카드 등록 결제창
       // @docs https://docs.tosspayments.com/sdk/v2/js#paymentrequestbillingauth
       await paymentRef.current.requestBillingAuth({
         method: "CARD",
@@ -63,12 +85,11 @@ export default function TossCheckoutWidget({
         customerName: customerName || undefined,
       });
     } catch (e: unknown) {
-      // Toss SDK 에러 객체: { code: string, message: string }
       const tossErr = e as { code?: string; message?: string } | null;
       const code = tossErr?.code ?? "";
       const msg = tossErr?.message ?? (e instanceof Error ? e.message : String(e));
-      console.error("[Toss] 결제 실패:", JSON.stringify(e));
-      if (code === "USER_CANCEL" || code === "PAY_PROCESS_CANCELED") return; // 사용자 취소
+      console.error("[Toss] 결제 실패:", code, msg, e);
+      if (code === "USER_CANCEL" || code === "PAY_PROCESS_CANCELED") return;
       setError(`결제 오류 [${code || "UNKNOWN"}]: ${msg}`);
     } finally {
       setPaying(false);
@@ -148,7 +169,7 @@ export default function TossCheckoutWidget({
       </button>
 
       <p className="text-center text-xs text-gray-400 mt-3">
-        신한카드 최대 3개월 무이자 · 언제든 해지 가능
+        언제든 해지 가능
       </p>
     </div>
   );
