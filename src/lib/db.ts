@@ -135,6 +135,26 @@ export async function insertPayment(params: {
   if (error) console.error("insertPayment error:", error);
 }
 
+/** 결제 상태 업데이트 (환불 처리 시 사용) */
+export async function updatePaymentStatus(
+  paymentKey: string,
+  status: "success" | "failed" | "cancelled",
+  cancelRaw?: Record<string, unknown>
+) {
+  const db = getSupabase();
+  if (!db) return;
+
+  const updateData: Record<string, unknown> = { status };
+  if (cancelRaw) updateData.raw = cancelRaw;
+
+  const { error } = await db
+    .from("payments")
+    .update(updateData)
+    .eq("payment_key", paymentKey);
+
+  if (error) console.error("updatePaymentStatus error:", error);
+}
+
 /** 유저 결제 이력 전체 조회 (최신순) */
 export async function getPayments(userId: string): Promise<Payment[]> {
   const db = getSupabase();

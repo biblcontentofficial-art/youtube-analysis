@@ -1,0 +1,28 @@
+/**
+ * GET /api/admin/users/:id/payments
+ * 특정 유저의 결제 이력 조회 (관리자 전용)
+ */
+
+import { currentUser } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
+import { isAdminEmail } from "@/lib/adminAuth";
+import { getPayments } from "@/lib/db";
+
+export async function GET(
+  _req: Request,
+  { params }: { params: { id: string } }
+) {
+  const admin = await currentUser();
+  if (!admin) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const email = admin.emailAddresses?.[0]?.emailAddress ?? "";
+  if (!isAdminEmail(email)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  const userId = params.id;
+  if (!userId) return NextResponse.json({ error: "Missing user id" }, { status: 400 });
+
+  const payments = await getPayments(userId);
+  return NextResponse.json({ payments });
+}

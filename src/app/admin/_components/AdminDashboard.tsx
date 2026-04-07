@@ -164,6 +164,24 @@ export default function AdminDashboard() {
   const [planSaving, setPlanSaving] = useState(false);
   const [usageResetting, setUsageResetting] = useState<string | null>(null);
 
+  // ── 환불 관리 상태 ──
+  interface PaymentRecord {
+    id: string;
+    user_id: string;
+    plan: string;
+    amount: number;
+    order_id: string;
+    payment_key: string | null;
+    status: "success" | "failed" | "cancelled";
+    paid_at: string;
+  }
+  const [refundUser, setRefundUser] = useState<{ id: string; email: string } | null>(null);
+  const [userPayments, setUserPayments] = useState<PaymentRecord[]>([]);
+  const [paymentsLoading, setPaymentsLoading] = useState(false);
+  const [refundProcessing, setRefundProcessing] = useState<string | null>(null);
+  const [refundConfirm, setRefundConfirm] = useState<{ paymentKey: string; amount: number; orderId: string } | null>(null);
+  const [refundReason, setRefundReason] = useState("");
+
   const fetchUsers = useCallback(() => {
     setUsersLoading(true);
     fetch("/api/admin/users")
@@ -238,6 +256,54 @@ export default function AdminDashboard() {
       alert("초기화에 실패했습니다.");
     } finally {
       setUsageResetting(null);
+    }
+  };
+
+  // ── 환불 관리 핸들러 ──
+  const handleShowPayments = async (userId: string, email: string) => {
+    setRefundUser({ id: userId, email });
+    setPaymentsLoading(true);
+    setUserPayments([]);
+    try {
+      const res = await fetch(`/api/admin/users/${userId}/payments`);
+      if (!res.ok) throw new Error("Failed");
+      const data = await res.json();
+      setUserPayments(data.payments ?? []);
+    } catch {
+      alert("결제 이력 조회에 실패했습니다.");
+    } finally {
+      setPaymentsLoading(false);
+    }
+  };
+
+  const handleRefund = async () => {
+    if (!refundUser || !refundConfirm || !refundReason.trim()) return;
+    setRefundProcessing(refundConfirm.paymentKey);
+    try {
+      const res = await fetch(`/api/admin/users/${refundUser.id}/refund`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          paymentKey: refundConfirm.paymentKey,
+          cancelReason: refundReason.trim(),
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        alert(`환불 실패: ${data.error || "알 수 없는 에러"}`);
+        return;
+      }
+      alert(`환불 완료: ₩${(data.cancelData?.cancelAmount ?? refundConfirm.amount).toLocaleString()}`);
+      // 결제 이력 새로고침
+      handleShowPayments(refundUser.id, refundUser.email);
+      // 사용자 목록 새로고침 (플랜 변경 반영)
+      fetchUsers();
+      setRefundConfirm(null);
+      setRefundReason("");
+    } catch {
+      alert("환불 처리 중 오류가 발생했습니다.");
+    } finally {
+      setRefundProcessing(null);
     }
   };
 
@@ -348,7 +414,103 @@ export default function AdminDashboard() {
           usageMap={stats?.searches.usageMap ?? {}}
           usageResetting={usageResetting}
           onResetUsage={handleResetUsage}
+          onShowPayments={handleShowPayments}
         />
+      )}
+
+      {/* ── 환불 관리 모달 ── */}
+      {refundUser && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => { setRefundUser(null); setRefundConfirm(null); setRefundReason(""); }}>
+          <div className="bg-[#161b27] border border-gray-800 rounded-2xl w-full max-w-2xl max-h-[80vh] overflow-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between p-5 border-b border-gray-800">
+              <h3 className="text-white font-semibold">{refundUser.email} 결제 이력</h3>
+              <button onClick={() => { setRefundUser(null); setRefundConfirm(null); setRefundReason(""); }} className="text-gray-500 hover:text-white">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            <div className="p-5">
+              {paymentsLoading ? (
+                <div className="flex justify-center py-8"><span className="w-6 h-6 border-2 border-gray-600 border-t-teal-400 rounded-full animate-spin" /></div>
+              ) : userPayments.length === 0 ? (
+                <p className="text-gray-500 text-center py-8">결제 이력이 없습니다.</p>
+              ) : (
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="text-gray-500 text-xs border-b border-gray-800">
+                      <th className="px-3 py-2 text-left">날짜</th>
+                      <th className="px-3 py-2 text-left">플랜</th>
+                      <th className="px-3 py-2 text-right">금액</th>
+                      <th className="px-3 py-2 text-left">상태</th>
+                      <th className="px-3 py-2 text-right">액션</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {userPayments.map((p) => (
+                      <tr key={p.id} className="border-b border-gray-800/50">
+                        <td className="px-3 py-3 text-gray-400">{new Date(p.paid_at).toLocaleDateString("ko-KR")}</td>
+                        <td className="px-3 py-3 text-white">{p.plan}</td>
+                        <td className="px-3 py-3 text-right text-white">₩{p.amount.toLocaleString()}</td>
+                        <td className="px-3 py-3">
+                          {p.status === "success" && <span className="text-xs px-2 py-0.5 rounded-full bg-green-900/50 text-green-400 border border-green-700/50">결제 완료</span>}
+                          {p.status === "cancelled" && <span className="text-xs px-2 py-0.5 rounded-full bg-gray-800 text-gray-500 border border-gray-700">환불 완료</span>}
+                          {p.status === "failed" && <span className="text-xs px-2 py-0.5 rounded-full bg-red-900/50 text-red-400 border border-red-700/50">실패</span>}
+                        </td>
+                        <td className="px-3 py-3 text-right">
+                          {p.status === "success" && p.payment_key && (
+                            <button
+                              onClick={() => { setRefundConfirm({ paymentKey: p.payment_key!, amount: p.amount, orderId: p.order_id }); setRefundReason(""); }}
+                              disabled={!!refundProcessing}
+                              className="text-xs px-3 py-1 bg-red-900/40 hover:bg-red-800/60 border border-red-700/50 text-red-400 hover:text-red-300 rounded-lg transition disabled:opacity-50"
+                            >
+                              환불
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── 환불 확인 다이얼로그 ── */}
+      {refundConfirm && (
+        <div className="fixed inset-0 bg-black/70 z-[60] flex items-center justify-center p-4" onClick={() => setRefundConfirm(null)}>
+          <div className="bg-[#1a2030] border border-gray-700 rounded-2xl w-full max-w-sm p-6" onClick={(e) => e.stopPropagation()}>
+            <h4 className="text-white font-semibold mb-2">환불 확인</h4>
+            <p className="text-gray-400 text-sm mb-4">
+              ₩{refundConfirm.amount.toLocaleString()}을 환불하시겠습니까?<br />
+              <span className="text-xs text-gray-600">주문번호: {refundConfirm.orderId}</span>
+            </p>
+            <input
+              type="text"
+              placeholder="환불 사유 (필수)"
+              value={refundReason}
+              onChange={(e) => setRefundReason(e.target.value)}
+              className="w-full px-3.5 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:border-red-500 mb-4"
+            />
+            <div className="flex gap-2">
+              <button
+                onClick={() => setRefundConfirm(null)}
+                className="flex-1 py-2.5 border border-gray-700 text-gray-400 rounded-lg text-sm hover:bg-gray-800 transition"
+              >
+                취소
+              </button>
+              <button
+                onClick={handleRefund}
+                disabled={!refundReason.trim() || !!refundProcessing}
+                className="flex-1 py-2.5 bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white rounded-lg text-sm font-semibold transition flex items-center justify-center gap-1"
+              >
+                {refundProcessing ? (
+                  <><span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />처리 중</>
+                ) : "환불 처리"}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* ── USAGE TAB ────────────────────────────────────────── */}
@@ -570,6 +732,7 @@ function UsersTab({
   usageMap,
   usageResetting,
   onResetUsage,
+  onShowPayments,
 }: {
   users: AdminUser[];
   filteredUsers: AdminUser[];
@@ -587,6 +750,7 @@ function UsersTab({
   usageMap: Record<string, number>;
   usageResetting: string | null;
   onResetUsage: (id: string, plan?: string) => void;
+  onShowPayments?: (id: string, email: string) => void;
 }) {
   return (
     <div className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden">
@@ -722,6 +886,14 @@ function UsersTab({
                                 초기화
                               </>
                             )}
+                          </button>
+                        )}
+                        {["starter", "pro", "business"].includes(u.plan) && onShowPayments && (
+                          <button
+                            onClick={() => onShowPayments(u.id, u.email)}
+                            className="text-xs text-gray-500 hover:text-red-400 transition"
+                          >
+                            환불 관리
                           </button>
                         )}
                       </div>
