@@ -27,6 +27,14 @@ export async function GET(req: NextRequest) {
   const customerName = req.nextUrl.searchParams.get("name") || "";
   const origin = req.nextUrl.origin;
 
+  // JS 인라인에 안전하게 삽입하기 위해 JSON.stringify 사용
+  const safeClientKey = JSON.stringify(clientKey);
+  const safeUserId = JSON.stringify(userId);
+  const safeEmail = JSON.stringify(customerEmail);
+  const safeName = JSON.stringify(customerName);
+  const safeSuccessUrl = JSON.stringify(`${origin}/api/toss/billing/confirm?plan=${plan}`);
+  const safeFailUrl = JSON.stringify(`${origin}/pricing?error=billing`);
+
   const html = `<!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -75,8 +83,8 @@ export async function GET(req: NextRequest) {
 
   <script>
     // 토스페이먼츠 v2 SDK 초기화 (공식 가이드와 동일)
-    var clientKey = "${clientKey}";
-    var customerKey = "${userId}";
+    var clientKey = ${safeClientKey};
+    var customerKey = ${safeUserId};
     var tossPayments = TossPayments(clientKey);
     var payment = tossPayments.payment({ customerKey: customerKey });
 
@@ -86,10 +94,10 @@ export async function GET(req: NextRequest) {
 
       payment.requestBillingAuth({
         method: "CARD",
-        successUrl: "${origin}/api/toss/billing/confirm?plan=${plan}",
-        failUrl: "${origin}/pricing?error=billing",
-        customerEmail: "${customerEmail}",
-        customerName: "${customerName}",
+        successUrl: ${safeSuccessUrl},
+        failUrl: ${safeFailUrl},
+        customerEmail: ${safeEmail},
+        customerName: ${safeName},
       }).catch(function(e) {
         errorEl.textContent = "결제 오류 [" + (e.code || "UNKNOWN") + "]: " + (e.message || "에러 발생");
         errorEl.style.display = "block";
