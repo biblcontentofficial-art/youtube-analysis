@@ -189,6 +189,12 @@ export default function PricingCards() {
               <div className="mb-5">
                 <div className="text-xs text-gray-500 font-medium mb-1">{plan.desc}</div>
                 <div className="text-lg font-bold text-white mb-2">{plan.name}</div>
+                {/* 연간: 월간 원가 취소선 + 할인가 */}
+                {!isFree && isYearly && (
+                  <div className="text-sm text-gray-600 line-through mb-0.5">
+                    {formatPrice(plan.monthlyPrice)}
+                  </div>
+                )}
                 <div className="flex items-baseline gap-1">
                   <span className="text-2xl font-extrabold text-white">{formatPrice(price)}</span>
                   {period && <span className="text-gray-500 text-xs">{period}</span>}
@@ -197,12 +203,6 @@ export default function PricingCards() {
                 {!isFree && isYearly && (
                   <div className="text-xs text-gray-500 mt-1">
                     연 {formatPrice(plan.yearlyTotal)} 일시불
-                  </div>
-                )}
-                {/* 월간 대비 할인 표시 */}
-                {!isFree && isYearly && (
-                  <div className="text-xs text-teal-400 mt-0.5">
-                    월간 대비 ₩{((plan.monthlyPrice - plan.yearlyMonthlyPrice) * 12).toLocaleString()} 절약
                   </div>
                 )}
               </div>
