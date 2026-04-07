@@ -85,8 +85,8 @@ export async function GET(req: NextRequest) {
     // 토스페이먼츠 v2 SDK 초기화 (공식 가이드와 동일)
     var clientKey = ${safeClientKey};
     var customerKey = ${safeUserId};
-    var tossPayments = TossPayments(clientKey);
-    var payment = tossPayments.payment({ customerKey: customerKey });
+    var tossPayments = TossPayments(clientKey.trim());
+    var payment = tossPayments.payment({ customerKey: customerKey.trim() });
 
     function requestBilling() {
       var errorEl = document.getElementById("error");
