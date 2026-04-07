@@ -9,7 +9,7 @@ export const metadata = {
 export default async function TossCheckoutPage({
   searchParams,
 }: {
-  searchParams: { plan?: string };
+  searchParams: { plan?: string; period?: string };
 }) {
   const { userId } = await auth();
   if (!userId) redirect("/sign-in?redirect_url=/pricing");
@@ -22,6 +22,7 @@ export default async function TossCheckoutPage({
   const userEmail = user?.emailAddresses?.[0]?.emailAddress ?? "";
 
   // 순수 HTML 결제 페이지로 리다이렉트 (React/Next.js 환경 우회)
-  const params = new URLSearchParams({ plan, email: userEmail, name: userName });
+  const period = searchParams.period === "monthly" ? "monthly" : "yearly";
+  const params = new URLSearchParams({ plan, period, email: userEmail, name: userName });
   redirect(`/api/toss/billing/page?${params.toString()}`);
 }

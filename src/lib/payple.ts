@@ -9,19 +9,33 @@ export const PAYPLE_CONFIG = {
 export const PLANS = {
   starter: {
     name: 'Starter',
-    amount: 49000,
+    amount: 49000,           // 연간 월환산 (기본)
+    monthlyAmount: 59000,    // 월간 결제
+    yearlyAmount: 588000,    // 연간 일시불 (49000 × 12)
     searchLimit: 10,
   },
   pro: {
     name: 'Pro',
     amount: 199000,
+    monthlyAmount: 249000,
+    yearlyAmount: 2388000,   // 199000 × 12
     searchLimit: 50,
   },
   business: {
     name: 'Business',
     amount: 490000,
+    monthlyAmount: 590000,
+    yearlyAmount: 5880000,   // 490000 × 12
     searchLimit: -1, // unlimited
   },
+}
+
+export type BillingPeriod = 'monthly' | 'yearly';
+
+/** period에 따라 실제 결제 금액 반환 */
+export function getPlanAmount(plan: PlanKey, period: BillingPeriod): number {
+  const p = PLANS[plan];
+  return period === 'yearly' ? p.yearlyAmount : p.monthlyAmount;
 }
 
 export type PlanKey = keyof typeof PLANS

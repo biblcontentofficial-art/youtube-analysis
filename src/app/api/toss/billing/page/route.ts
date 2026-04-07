@@ -22,6 +22,11 @@ export async function GET(req: NextRequest) {
   }
 
   const planData = TOSS_PLANS[plan];
+  const period = req.nextUrl.searchParams.get("period") === "monthly" ? "monthly" : "yearly";
+  const amount = period === "yearly" ? planData.yearlyAmount : planData.monthlyAmount;
+  const periodLabel = period === "yearly" ? "연간 구독" : "월간 구독";
+  const periodSuffix = period === "yearly" ? "/년" : "/월";
+
   const clientKey = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY || "";
   const customerEmail = req.nextUrl.searchParams.get("email") || "";
   const customerName = req.nextUrl.searchParams.get("name") || "";
@@ -32,7 +37,7 @@ export async function GET(req: NextRequest) {
   const safeUserId = JSON.stringify(userId);
   const safeEmail = JSON.stringify(customerEmail);
   const safeName = JSON.stringify(customerName);
-  const safeSuccessUrl = JSON.stringify(`${origin}/api/toss/billing/confirm?plan=${plan}`);
+  const safeSuccessUrl = JSON.stringify(`${origin}/api/toss/billing/confirm?plan=${plan}&period=${period}`);
   const safeFailUrl = JSON.stringify(`${origin}/pricing?error=billing`);
 
   const html = `<!DOCTYPE html>
@@ -40,7 +45,7 @@ export async function GET(req: NextRequest) {
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>카드 등록 - ${planData.orderName}</title>
+  <title>카드 등록 - ${planData.orderName} (${period === "yearly" ? "연간" : "월간"})</title>
   <script src="https://js.tosspayments.com/v2/standard"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -65,17 +70,17 @@ export async function GET(req: NextRequest) {
     <div class="card">
       <div class="plan">
         <div>
-          <div class="plan-name">${planData.orderName}</div>
-          <div class="plan-period">월 정기 구독 · 매월 자동 결제</div>
+          <div class="plan-name">${planData.orderName} (${period === "yearly" ? "연간" : "월간"})</div>
+          <div class="plan-period">${periodLabel} · 언제든 취소 가능</div>
         </div>
         <div style="text-align:right">
-          <div class="plan-price">₩${planData.amount.toLocaleString()}</div>
-          <div class="plan-period">/월</div>
+          <div class="plan-price">₩${amount.toLocaleString()}</div>
+          <div class="plan-period">${periodSuffix}</div>
         </div>
       </div>
       <div class="error" id="error"></div>
       <button class="btn" id="pay-btn" onclick="requestBilling()">
-        카드 등록 후 ₩${planData.amount.toLocaleString()} 결제
+        카드 등록 후 ₩${amount.toLocaleString()} 결제
       </button>
       <div class="info">언제든지 해지 가능</div>
     </div>

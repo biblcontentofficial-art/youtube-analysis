@@ -7,9 +7,10 @@ type PricingButtonProps = {
   plan: string; // 'free' | 'starter' | 'pro' | 'business'
   cta: string;
   ctaStyle: string;
+  period?: "monthly" | "yearly";
 };
 
-export default function PricingButton({ plan, cta, ctaStyle }: PricingButtonProps) {
+export default function PricingButton({ plan, cta, ctaStyle, period = "yearly" }: PricingButtonProps) {
   const { isSignedIn, isLoaded } = useUser();
   const router = useRouter();
 
@@ -26,7 +27,7 @@ export default function PricingButton({ plan, cta, ctaStyle }: PricingButtonProp
       return;
     }
 
-    router.push(`/payment?plan=${plan}`);
+    router.push(`/payment?plan=${plan}&period=${period}`);
   };
 
   return (

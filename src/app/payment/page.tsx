@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { auth, currentUser } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { PLANS, PlanKey } from '@/lib/payple'
+import { PLANS, PlanKey, getPlanAmount, type BillingPeriod } from '@/lib/payple'
 import PaymentButtons from './_components/PaymentButtons'
 import type { PortonePlanKey } from '@/lib/portone'
 
@@ -19,13 +19,16 @@ const PLAN_BADGE_COLOR: Record<string, string> = {
 export default async function PaymentPage({
   searchParams,
 }: {
-  searchParams: { plan?: string; error?: string }
+  searchParams: { plan?: string; period?: string; error?: string }
 }) {
   const { userId } = await auth()
   if (!userId) redirect('/sign-in?redirect_url=/pricing')
 
   const plan = searchParams.plan as PlanKey
   if (!plan || !PLANS[plan]) redirect('/pricing')
+
+  const period: BillingPeriod = searchParams.period === 'monthly' ? 'monthly' : 'yearly';
+  const amount = getPlanAmount(plan, period);
 
   const user = await currentUser()
   const errorMsg =
@@ -61,14 +64,18 @@ export default async function PaymentPage({
                   {PLANS[plan].name}
                 </span>
               </div>
-              <p className="text-white font-semibold text-base">월 정기 구독</p>
-              <p className="text-gray-500 text-xs mt-0.5">매월 자동 결제 · 언제든 취소 가능</p>
+              <p className="text-white font-semibold text-base">
+                {period === 'yearly' ? '연간 구독' : '월간 구독'}
+              </p>
+              <p className="text-gray-500 text-xs mt-0.5">
+                {period === 'yearly' ? '연 1회 일시불 결제 · 언제든 취소 가능' : '매월 자동 결제 · 언제든 취소 가능'}
+              </p>
             </div>
             <div className="text-right flex-shrink-0">
               <p className="text-white font-bold text-xl">
-                ₩{PLANS[plan].amount.toLocaleString()}
+                ₩{amount.toLocaleString()}
               </p>
-              <p className="text-gray-500 text-xs">/월</p>
+              <p className="text-gray-500 text-xs">{period === 'yearly' ? '/년' : '/월'}</p>
             </div>
           </div>
         </div>
@@ -91,12 +98,15 @@ export default async function PaymentPage({
             userId={userId}
             userEmail={userEmail}
             userName={userName}
+            period={period}
           />
         </div>
 
         {/* 안내 */}
         <div className="mt-4 space-y-1 text-center">
-          <p className="text-xs text-gray-600">카드 등록 후 매월 자동 결제됩니다. 언제든지 취소 가능합니다.</p>
+          <p className="text-xs text-gray-600">
+            {period === 'yearly' ? '연간 구독료가 일시불로 결제됩니다.' : '카드 등록 후 매월 자동 결제됩니다.'} 언제든지 취소 가능합니다.
+          </p>
           <p className="text-xs text-gray-600">
             결제 시{' '}
             <Link href="/terms" className="text-gray-500 underline hover:text-gray-400" target="_blank">

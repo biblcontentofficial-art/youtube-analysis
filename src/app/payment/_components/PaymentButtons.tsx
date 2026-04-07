@@ -11,9 +11,10 @@ interface Props {
   userId: string;
   userEmail: string;
   userName: string;
+  period?: "monthly" | "yearly";
 }
 
-export default function PaymentButtons({ plan, userId, userEmail, userName }: Props) {
+export default function PaymentButtons({ plan, userId, userEmail, userName, period = "yearly" }: Props) {
   const searchParams = useSearchParams();
   const [expanded, setExpanded] = useState<PayMethod | null>(null);
   const [loading, setLoading] = useState<PayMethod | null>(null);
@@ -73,7 +74,7 @@ export default function PaymentButtons({ plan, userId, userEmail, userName }: Pr
 
   /* ── 토스페이먼츠: 전용 결제 페이지로 이동 ── */
   const handleTossPay = () => {
-    window.location.href = `/payment/toss?plan=${plan}`;
+    window.location.href = `/payment/toss?plan=${plan}&period=${period}`;
   };
 
   /* ── 신용·체크카드 (KG이니시스 기본 / ?cardpg=kcp → NHN KCP) ── */

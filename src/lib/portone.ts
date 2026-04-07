@@ -15,14 +15,20 @@ export const PORTONE_BILLING_KEY_PREFIX = "portone:";
 export const PORTONE_PLANS = {
   starter: {
     amount: 49000,
+    monthlyAmount: 59000,
+    yearlyAmount: 588000,
     orderName: "bibl lab Starter 플랜",
   },
   pro: {
     amount: 199000,
+    monthlyAmount: 249000,
+    yearlyAmount: 2388000,
     orderName: "bibl lab Pro 플랜",
   },
   business: {
     amount: 490000,
+    monthlyAmount: 590000,
+    yearlyAmount: 5880000,
     orderName: "bibl lab Business 플랜",
   },
 } as const;
