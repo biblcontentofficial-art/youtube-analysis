@@ -149,9 +149,9 @@ export default function PaymentButtons({ plan, userId, userEmail, userName, peri
       preparing: true,
       logo: (
         <svg viewBox="0 0 40 40" className="w-8 h-8">
-          <rect width="40" height="40" rx="10" fill="#E5E7EB" />
-          <path d="M10 16h20M10 14a2 2 0 012-2h16a2 2 0 012 2v12a2 2 0 01-2 2H12a2 2 0 01-2-2V14z" fill="none" stroke="#9CA3AF" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-          <rect x="14" y="21" width="5" height="3" rx="0.5" fill="#9CA3AF" opacity="0.5" />
+          <rect width="40" height="40" rx="10" fill="#374151" />
+          <path d="M10 16h20M10 14a2 2 0 012-2h16a2 2 0 012 2v12a2 2 0 01-2 2H12a2 2 0 01-2-2V14z" fill="none" stroke="#6B7280" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+          <rect x="14" y="21" width="5" height="3" rx="0.5" fill="#6B7280" opacity="0.5" />
         </svg>
       ),
     },
@@ -162,8 +162,8 @@ export default function PaymentButtons({ plan, userId, userEmail, userName, peri
       preparing: true,
       logo: (
         <svg viewBox="0 0 40 40" className="w-8 h-8">
-          <rect width="40" height="40" rx="10" fill="#E5E7EB" />
-          <text x="50%" y="56%" dominantBaseline="middle" textAnchor="middle" fill="#9CA3AF" fontSize="14" fontWeight="bold" fontFamily="sans-serif">K</text>
+          <rect width="40" height="40" rx="10" fill="#374151" />
+          <text x="50%" y="56%" dominantBaseline="middle" textAnchor="middle" fill="#6B7280" fontSize="14" fontWeight="bold" fontFamily="sans-serif">K</text>
         </svg>
       ),
     },
@@ -185,27 +185,27 @@ export default function PaymentButtons({ plan, userId, userEmail, userName, peri
               disabled={!!loading}
               className={`w-full flex items-center gap-3.5 px-4 py-4 rounded-xl border transition-all duration-150 text-left
                 ${isExpanded
-                  ? "border-blue-400 bg-blue-50"
+                  ? "border-blue-500 bg-blue-500/10"
                   : isPreparing
-                    ? "border-gray-200 bg-gray-50 hover:bg-gray-100"
-                    : "border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300"
+                    ? "border-gray-800 bg-gray-800/30 hover:bg-gray-800/50"
+                    : "border-gray-700 bg-gray-800/40 hover:bg-gray-800/70 hover:border-gray-600"
                 } disabled:cursor-wait`}
             >
               <span className="flex-shrink-0">{method.logo}</span>
               <span className="flex-1 min-w-0">
-                <span className={`block text-sm font-semibold ${isPreparing ? "text-gray-400" : "text-gray-900"}`}>
+                <span className={`block text-sm font-semibold ${isPreparing ? "text-gray-600" : "text-white"}`}>
                   {method.name}
                 </span>
-                <span className={`block text-xs mt-0.5 ${isPreparing ? "text-gray-300" : "text-gray-500"}`}>
+                <span className={`block text-xs mt-0.5 ${isPreparing ? "text-gray-700" : "text-gray-400"}`}>
                   {method.desc}
                 </span>
               </span>
               {isLoading ? (
-                <span className="w-4 h-4 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin flex-shrink-0" />
+                <span className="w-4 h-4 border-2 border-gray-600 border-t-blue-400 rounded-full animate-spin flex-shrink-0" />
               ) : isPreparing ? (
-                <span className="text-[10px] text-gray-400 bg-gray-200 px-2 py-0.5 rounded-full flex-shrink-0">심사중</span>
+                <span className="text-[10px] text-gray-600 bg-gray-800 px-2 py-0.5 rounded-full border border-gray-700 flex-shrink-0">심사중</span>
               ) : (
-                <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <svg className="w-4 h-4 text-gray-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                 </svg>
               )}
@@ -213,27 +213,27 @@ export default function PaymentButtons({ plan, userId, userEmail, userName, peri
 
             {/* 카드 정보 입력 폼 */}
             {isCard && isExpanded && (
-              <div className="mt-1 px-4 py-4 bg-gray-50 rounded-xl border border-gray-200 space-y-2.5">
+              <div className="mt-1 px-4 py-4 bg-gray-800/60 rounded-xl border border-gray-700/60 space-y-2.5">
                 <input
                   type="text"
                   placeholder="이름"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-white border border-gray-300 rounded-lg text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:border-blue-500 transition-colors"
+                  className="w-full px-3.5 py-2.5 bg-gray-700/60 border border-gray-600/60 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors"
                 />
                 <input
                   type="tel"
                   placeholder="휴대폰 번호 (01012345678)"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-white border border-gray-300 rounded-lg text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:border-blue-500 transition-colors"
+                  className="w-full px-3.5 py-2.5 bg-gray-700/60 border border-gray-600/60 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors"
                 />
-                {formError && <p className="text-red-500 text-xs">{formError}</p>}
+                {formError && <p className="text-red-400 text-xs">{formError}</p>}
                 <button
                   type="button"
                   onClick={handleCardPay}
                   disabled={!!loading}
-                  className="w-full py-2.5 bg-blue-500 hover:bg-blue-600 disabled:opacity-50 text-white rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-2"
+                  className="w-full py-2.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-2"
                 >
                   {isLoading ? (
                     <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />처리 중...</>
