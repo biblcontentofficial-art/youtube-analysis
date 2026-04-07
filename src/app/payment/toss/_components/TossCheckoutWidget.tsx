@@ -70,30 +70,28 @@ export default function TossCheckoutWidget({
     return () => { cancelled = true; };
   }, [clientKey, customerKey]);
 
-  const handlePay = async () => {
+  const handlePay = () => {
     if (!paymentRef.current || paying) return;
-    setError(null);
-    setPaying(true);
-    try {
-      // v2 SDK: requestBillingAuth - 카드 등록 결제창
-      // @docs https://docs.tosspayments.com/sdk/v2/js#paymentrequestbillingauth
-      await paymentRef.current.requestBillingAuth({
-        method: "CARD",
-        successUrl: `${window.location.origin}/api/toss/billing/confirm?plan=${plan}`,
-        failUrl: `${window.location.origin}/pricing?error=billing`,
-        customerEmail: customerEmail || undefined,
-        customerName: customerName || undefined,
-      });
-    } catch (e: unknown) {
-      const tossErr = e as { code?: string; message?: string } | null;
-      const code = tossErr?.code ?? "";
-      const msg = tossErr?.message ?? (e instanceof Error ? e.message : String(e));
-      console.error("[Toss] 결제 실패:", code, msg, e);
+
+    // 중요: setState를 requestBillingAuth 호출 전에 하면
+    // React re-render로 사용자 제스처 컨텍스트가 사라져 팝업이 차단됨.
+    // requestBillingAuth를 먼저 동기적으로 호출한 후 setState 처리.
+
+    // v2 SDK: requestBillingAuth - 카드 등록 결제창 (리다이렉트/팝업 방식)
+    // @docs https://docs.tosspayments.com/sdk/v2/js#paymentrequestbillingauth
+    paymentRef.current.requestBillingAuth({
+      method: "CARD",
+      successUrl: `${window.location.origin}/api/toss/billing/confirm?plan=${plan}`,
+      failUrl: `${window.location.origin}/pricing?error=billing`,
+      customerEmail: customerEmail || undefined,
+      customerName: customerName || undefined,
+    }).catch((e: { code?: string; message?: string }) => {
+      const code = e?.code ?? "";
+      const msg = e?.message ?? "알 수 없는 에러가 발생했습니다.";
+      console.error("[Toss] 결제 실패:", code, msg);
       if (code === "USER_CANCEL" || code === "PAY_PROCESS_CANCELED") return;
       setError(`결제 오류 [${code || "UNKNOWN"}]: ${msg}`);
-    } finally {
-      setPaying(false);
-    }
+    });
   };
 
   return (
