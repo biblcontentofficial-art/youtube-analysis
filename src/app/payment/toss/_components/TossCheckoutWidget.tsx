@@ -167,7 +167,7 @@ export default function TossCheckoutWidget({
       </button>
 
       <p className="text-center text-xs text-gray-400 mt-3">
-        언제든 해지 가능
+        언제든지 해지 가능
       </p>
     </div>
   );
