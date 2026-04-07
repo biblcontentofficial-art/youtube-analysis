@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { TOSS_PLANS, TossPlanKey } from "@/lib/toss";
 import { PLANS, PlanKey } from "@/lib/payple";
-import TossPaymentWidget from "./_components/TossPaymentWidget";
+import TossCheckoutWidget from "./_components/TossCheckoutWidget";
 
 export const metadata = {
   robots: { index: false, follow: false },
@@ -32,7 +32,8 @@ export default async function TossCheckoutPage({
 
   const userName = `${user?.firstName ?? ""} ${user?.lastName ?? ""}`.trim();
   const userEmail = user?.emailAddresses?.[0]?.emailAddress ?? "";
-  const clientKey = process.env.NEXT_PUBLIC_TOSS_WIDGET_CLIENT_KEY || process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY || "";
+  // 자동결제(빌링)는 API 개별 연동 키 사용 (결제위젯 키가 아님)
+  const clientKey = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY || "";
 
   // orderId는 SSR에서 생성 → 중복 방지
   const orderId = `toss_${userId.slice(-8)}_${Date.now().toString(36)}`;
@@ -74,9 +75,9 @@ export default async function TossCheckoutPage({
           </div>
         </div>
 
-        {/* 토스 결제위젯 (흰 배경) */}
+        {/* 토스 자동결제(빌링) 카드 등록 */}
         <div className="bg-white rounded-2xl p-5 shadow-lg">
-          <TossPaymentWidget
+          <TossCheckoutWidget
             clientKey={clientKey}
             customerKey={userId}
             amount={planData.amount}
