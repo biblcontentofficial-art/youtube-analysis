@@ -203,7 +203,7 @@ export default function PaymentButtons({ plan, userId, userEmail, userName, peri
               {isLoading ? (
                 <span className="w-4 h-4 border-2 border-gray-600 border-t-blue-400 rounded-full animate-spin flex-shrink-0" />
               ) : isPreparing ? (
-                <span className="text-[10px] text-gray-600 bg-gray-800 px-2 py-0.5 rounded-full border border-gray-700 flex-shrink-0">심사중</span>
+                <span className="text-[10px] text-gray-600 bg-gray-800 px-2 py-0.5 rounded-full border border-gray-700 flex-shrink-0">준비중</span>
               ) : (
                 <svg className="w-4 h-4 text-gray-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
