@@ -199,16 +199,11 @@ export default function PricingCards() {
                   <span className="text-2xl font-extrabold text-white">{formatPrice(price)}</span>
                   {period && <span className="text-gray-500 text-xs">{period}</span>}
                 </div>
-                {/* 연간: 총액 + 절약 금액 */}
+                {/* 연간: 절약 금액 */}
                 {!isFree && isYearly && (
-                  <>
-                    <div className="text-xs text-gray-500 mt-1">
-                      연 {formatPrice(plan.yearlyTotal)} 일시불
-                    </div>
-                    <div className="text-xs text-teal-400 mt-0.5">
-                      월간 대비 {formatPrice((plan.monthlyPrice - plan.yearlyMonthlyPrice) * 12)} 절약
-                    </div>
-                  </>
+                  <div className="text-xs text-teal-400 mt-1">
+                    월간 대비 {formatPrice((plan.monthlyPrice - plan.yearlyMonthlyPrice) * 12)} 절약
+                  </div>
                 )}
               </div>
 
