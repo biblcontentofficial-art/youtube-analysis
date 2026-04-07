@@ -10,22 +10,22 @@ export const PLANS = {
   starter: {
     name: 'Starter',
     amount: 49000,           // 연간 월환산 (기본)
-    monthlyAmount: 59000,    // 월간 결제
+    monthlyAmount: 70000,    // 월간 결제 (30% 할증)
     yearlyAmount: 588000,    // 연간 일시불 (49000 × 12)
     searchLimit: 10,
   },
   pro: {
     name: 'Pro',
-    amount: 199000,
-    monthlyAmount: 249000,
-    yearlyAmount: 2388000,   // 199000 × 12
+    amount: 99000,
+    monthlyAmount: 140000,   // 월간 결제 (30% 할증)
+    yearlyAmount: 1188000,   // 연간 일시불 (99000 × 12)
     searchLimit: 50,
   },
   business: {
     name: 'Business',
     amount: 490000,
-    monthlyAmount: 590000,
-    yearlyAmount: 5880000,   // 490000 × 12
+    monthlyAmount: 700000,   // 월간 결제 (30% 할증)
+    yearlyAmount: 5880000,   // 연간 일시불 (490000 × 12)
     searchLimit: -1, // unlimited
   },
 }

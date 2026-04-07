@@ -47,7 +47,7 @@ const PLANS: PlanData[] = [
   },
   {
     name: "Starter",
-    monthlyPrice: 59000,
+    monthlyPrice: 70000,
     yearlyMonthlyPrice: 49000,
     yearlyTotal: 588000,
     desc: "주 2~3회 키워드를 분석하는 크리에이터",
@@ -72,9 +72,9 @@ const PLANS: PlanData[] = [
   },
   {
     name: "Pro",
-    monthlyPrice: 249000,
-    yearlyMonthlyPrice: 199000,
-    yearlyTotal: 2388000,
+    monthlyPrice: 140000,
+    yearlyMonthlyPrice: 99000,
+    yearlyTotal: 1188000,
     desc: "매일 트렌드를 선점하는 전문 크리에이터",
     color: "border-teal-500",
     badge: "추천",
@@ -98,7 +98,7 @@ const PLANS: PlanData[] = [
   },
   {
     name: "Business",
-    monthlyPrice: 590000,
+    monthlyPrice: 700000,
     yearlyMonthlyPrice: 490000,
     yearlyTotal: 5880000,
     desc: "마케터 · MCN · 에이전시",
@@ -129,30 +129,37 @@ export default function PricingCards() {
 
   return (
     <>
-      {/* 월간/연간 토글 */}
-      <div className="flex items-center justify-center gap-3 mb-10">
-        <span className={`text-sm font-medium transition ${!isYearly ? "text-white" : "text-gray-500"}`}>
-          월간
-        </span>
-        <button
-          onClick={() => setIsYearly(!isYearly)}
-          className="relative w-14 h-7 rounded-full transition-colors bg-gray-800 border border-gray-700"
-          aria-label="결제 주기 전환"
-        >
-          <span
-            className={`absolute top-0.5 w-6 h-6 rounded-full transition-all duration-200 ${
-              isYearly ? "left-7 bg-teal-400" : "left-0.5 bg-gray-500"
+      {/* 월간/연간 토글 (탭 스타일) */}
+      <div className="flex justify-center mb-10">
+        <div className="inline-flex bg-gray-900 border border-gray-700 rounded-full p-1">
+          <button
+            onClick={() => setIsYearly(false)}
+            className={`px-8 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 ${
+              !isYearly
+                ? "bg-white text-gray-900 shadow-sm"
+                : "text-gray-500 hover:text-gray-300"
             }`}
-          />
-        </button>
-        <span className={`text-sm font-medium transition ${isYearly ? "text-white" : "text-gray-500"}`}>
-          연간
-        </span>
-        {isYearly && (
-          <span className="text-xs bg-teal-500/20 text-teal-400 border border-teal-500/40 px-2 py-0.5 rounded-full font-semibold">
-            17% 할인
-          </span>
-        )}
+          >
+            월간
+          </button>
+          <button
+            onClick={() => setIsYearly(true)}
+            className={`px-8 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 flex items-center gap-2 ${
+              isYearly
+                ? "bg-white text-gray-900 shadow-sm"
+                : "text-gray-500 hover:text-gray-300"
+            }`}
+          >
+            연간
+            <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${
+              isYearly
+                ? "bg-red-100 text-red-500"
+                : "bg-gray-800 text-gray-500"
+            }`}>
+              30% 할인
+            </span>
+          </button>
+        </div>
       </div>
 
       {/* 요금제 카드 */}

@@ -4,20 +4,20 @@ export const TOSS_SECRET_KEY = process.env.TOSS_SECRET_KEY || "";
 
 export const TOSS_PLANS = {
   starter: {
-    amount: 49000,           // 연간 월환산 (레거시 호환)
-    monthlyAmount: 59000,
+    amount: 49000,
+    monthlyAmount: 70000,
     yearlyAmount: 588000,
     orderName: "bibl lab Starter 플랜",
   },
   pro: {
-    amount: 199000,
-    monthlyAmount: 249000,
-    yearlyAmount: 2388000,
+    amount: 99000,
+    monthlyAmount: 140000,
+    yearlyAmount: 1188000,
     orderName: "bibl lab Pro 플랜",
   },
   business: {
     amount: 490000,
-    monthlyAmount: 590000,
+    monthlyAmount: 700000,
     yearlyAmount: 5880000,
     orderName: "bibl lab Business 플랜",
   },
