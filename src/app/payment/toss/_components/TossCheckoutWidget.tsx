@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import Script from "next/script";
+import { useEffect, useRef, useState } from "react";
 
 interface Props {
   clientKey: string;
@@ -12,11 +11,6 @@ interface Props {
   customerEmail?: string;
   customerName?: string;
   plan: string;
-}
-
-declare global {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  function TossPayments(clientKey: string): any;
 }
 
 export default function TossCheckoutWidget({
@@ -30,43 +24,78 @@ export default function TossCheckoutWidget({
 }: Props) {
   const [sdkReady, setSdkReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const btnRef = useRef<HTMLButtonElement>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const paymentInstanceRef = useRef<any>(null);
 
-  // 버튼 클릭 시: SDK 초기화 + requestBillingAuth를 한 번에 동기적으로 실행
-  // 이렇게 하면 사용자 제스처 컨텍스트가 유지됨
-  const handlePay = () => {
-    if (!sdkReady) return;
-    setError(null);
+  // 1) SDK 로드 + payment 인스턴스 생성 (공식 샘플 방식: 페이지 로드 시 1회)
+  useEffect(() => {
+    let cancelled = false;
 
-    try {
-      const tossPayments = window.TossPayments(clientKey);
-      const payment = tossPayments.payment({ customerKey });
+    const script = document.createElement("script");
+    script.src = "https://js.tosspayments.com/v2/standard";
+    script.async = true;
+    script.onload = () => {
+      if (cancelled) return;
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const tp = (window as any).TossPayments(clientKey);
+        paymentInstanceRef.current = tp.payment({ customerKey });
+        setSdkReady(true);
+        console.log("[Toss] SDK 초기화 완료");
+      } catch (e) {
+        console.error("[Toss] SDK 초기화 실패:", e);
+        if (!cancelled) setError("결제 모듈 초기화에 실패했습니다.");
+      }
+    };
+    script.onerror = () => {
+      if (!cancelled) setError("결제 모듈 로드에 실패했습니다.");
+    };
+    document.head.appendChild(script);
 
-      payment.requestBillingAuth({
-        method: "CARD",
-        successUrl: `${window.location.origin}/api/toss/billing/confirm?plan=${plan}`,
-        failUrl: `${window.location.origin}/pricing?error=billing`,
-        customerEmail: customerEmail || undefined,
-        customerName: customerName || undefined,
-      });
-    } catch (e: unknown) {
-      const err = e as { code?: string; message?: string };
-      const code = err?.code ?? "";
-      if (code === "USER_CANCEL" || code === "PAY_PROCESS_CANCELED") return;
-      console.error("[Toss] 결제 실패:", e);
-      setError(`결제 오류: ${err?.message || "알 수 없는 에러가 발생했습니다."}`);
-    }
-  };
+    return () => {
+      cancelled = true;
+    };
+  }, [clientKey, customerKey]);
+
+  // 2) 네이티브 click 리스너로 requestBillingAuth 호출
+  //    React 합성 이벤트 대신 네이티브 이벤트를 사용해야
+  //    브라우저가 사용자 제스처로 인식 → 팝업/iframe 허용
+  useEffect(() => {
+    const btn = btnRef.current;
+    if (!btn || !sdkReady) return;
+
+    const handler = async () => {
+      const payment = paymentInstanceRef.current;
+      if (!payment) return;
+
+      try {
+        console.log("[Toss] requestBillingAuth 호출...");
+        await payment.requestBillingAuth({
+          method: "CARD",
+          successUrl: `${window.location.origin}/api/toss/billing/confirm?plan=${plan}`,
+          failUrl: `${window.location.origin}/pricing?error=billing`,
+          customerEmail: customerEmail || undefined,
+          customerName: customerName || undefined,
+        });
+        // 성공 시 successUrl로 리다이렉트되므로 여기까지 오지 않음
+      } catch (e: unknown) {
+        const err = e as { code?: string; message?: string };
+        const code = err?.code ?? "";
+        const msg = err?.message ?? "알 수 없는 에러가 발생했습니다.";
+        console.error("[Toss] requestBillingAuth 에러:", code, msg, e);
+
+        if (code === "USER_CANCEL" || code === "PAY_PROCESS_CANCELED") return;
+        setError(`결제 오류 [${code || "UNKNOWN"}]: ${msg}`);
+      }
+    };
+
+    btn.addEventListener("click", handler);
+    return () => btn.removeEventListener("click", handler);
+  }, [sdkReady, plan, customerEmail, customerName]);
 
   return (
     <div className="w-full">
-      {/* 토스페이먼츠 v2 SDK CDN 로드 */}
-      <Script
-        src="https://js.tosspayments.com/v2/standard"
-        strategy="afterInteractive"
-        onLoad={() => setSdkReady(true)}
-        onError={() => setError("결제 모듈 로드에 실패했습니다.")}
-      />
-
       {/* 테스트 환경 배너 */}
       {clientKey.startsWith("test_") && (
         <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-5 text-amber-700 text-sm">
@@ -116,9 +145,9 @@ export default function TossCheckoutWidget({
         <span className="text-xs text-gray-500">[필수] 결제 서비스 이용 약관, 개인정보 처리 동의</span>
       </div>
 
-      {/* 결제 버튼 */}
+      {/* 결제 버튼 - React onClick 대신 네이티브 이벤트 리스너 사용 */}
       <button
-        onClick={handlePay}
+        ref={btnRef}
         disabled={!sdkReady}
         className="w-full py-4 bg-[#3182F6] hover:bg-[#1b6ef3] disabled:opacity-50 text-white font-bold text-base rounded-xl transition-colors flex items-center justify-center gap-2"
       >
