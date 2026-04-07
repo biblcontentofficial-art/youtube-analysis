@@ -6,10 +6,19 @@ import { useEffect, useState } from "react";
 export default function SSOCallback() {
   const [showRetry, setShowRetry] = useState(false);
 
-  // 10초 이상 걸리면 재시도 버튼 표시
   useEffect(() => {
-    const timer = setTimeout(() => setShowRetry(true), 10000);
-    return () => clearTimeout(timer);
+    // 7초 후 재시도 버튼 표시
+    const retryTimer = setTimeout(() => setShowRetry(true), 7000);
+
+    // 15초 후 자동으로 /search로 이동 (스피너 무한 대기 방지)
+    const autoRedirect = setTimeout(() => {
+      window.location.href = "/search";
+    }, 15000);
+
+    return () => {
+      clearTimeout(retryTimer);
+      clearTimeout(autoRedirect);
+    };
   }, []);
 
   return (
@@ -30,8 +39,8 @@ export default function SSOCallback() {
         )}
       </div>
       <AuthenticateWithRedirectCallback
-        afterSignInUrl="/search"
-        afterSignUpUrl="/search"
+        signInFallbackRedirectUrl="/search"
+        signUpFallbackRedirectUrl="/search"
       />
     </main>
   );
