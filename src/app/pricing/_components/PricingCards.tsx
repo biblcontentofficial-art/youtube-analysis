@@ -153,7 +153,7 @@ export default function PricingCards() {
             연간
             <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${
               isYearly
-                ? "bg-red-100 text-red-500"
+                ? "bg-teal-500/20 text-teal-400 border border-teal-500/40"
                 : "bg-gray-800 text-gray-500"
             }`}>
               30% 할인
