@@ -123,22 +123,21 @@ export default function PaymentButtons({ plan, userId, userEmail, userName, peri
     }
   };
 
-  /* ── 결제수단 목록 (토스페이먼츠 최상단, 나머지 준비중) ── */
+  /* ── 결제수단 목록 (토스페이먼츠 활성, 나머지 심사 준비중) ── */
   const methods: {
     id: PayMethod;
     name: string;
     desc: string;
     logo: React.ReactNode;
-    disabled?: boolean;
-    disabledLabel?: string;
+    preparing?: boolean;
   }[] = [
     {
       id: "toss",
       name: "토스페이먼츠",
       desc: "신용·체크카드 간편결제",
       logo: (
-        <svg viewBox="0 0 40 40" className="w-6 h-6">
-          <rect width="40" height="40" rx="8" fill="#3182F6" />
+        <svg viewBox="0 0 40 40" className="w-8 h-8">
+          <rect width="40" height="40" rx="10" fill="#3182F6" />
           <text x="50%" y="56%" dominantBaseline="middle" textAnchor="middle" fill="white" fontSize="18" fontWeight="bold" fontFamily="sans-serif">T</text>
         </svg>
       ),
@@ -147,12 +146,12 @@ export default function PaymentButtons({ plan, userId, userEmail, userName, peri
       id: "card",
       name: "신용·체크카드",
       desc: "정기결제 (자동결제)",
-      disabledLabel: "준비중",
+      preparing: true,
       logo: (
-        <svg viewBox="0 0 40 40" className="w-6 h-6">
-          <rect width="40" height="40" rx="8" fill="#3B82F6" />
-          <path d="M10 16h20M10 14a2 2 0 012-2h16a2 2 0 012 2v12a2 2 0 01-2 2H12a2 2 0 01-2-2V14z" fill="none" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-          <rect x="14" y="21" width="5" height="3" rx="0.5" fill="white" opacity="0.7" />
+        <svg viewBox="0 0 40 40" className="w-8 h-8">
+          <rect width="40" height="40" rx="10" fill="#E5E7EB" />
+          <path d="M10 16h20M10 14a2 2 0 012-2h16a2 2 0 012 2v12a2 2 0 01-2 2H12a2 2 0 01-2-2V14z" fill="none" stroke="#9CA3AF" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+          <rect x="14" y="21" width="5" height="3" rx="0.5" fill="#9CA3AF" opacity="0.5" />
         </svg>
       ),
     },
@@ -160,11 +159,11 @@ export default function PaymentButtons({ plan, userId, userEmail, userName, peri
       id: "kakao",
       name: "카카오페이",
       desc: "카카오 계정으로 간편 결제",
-      disabledLabel: "준비중",
+      preparing: true,
       logo: (
-        <svg viewBox="0 0 40 40" className="w-6 h-6">
-          <rect width="40" height="40" rx="8" fill="#FEE500" />
-          <text x="50%" y="56%" dominantBaseline="middle" textAnchor="middle" fill="#3C1E1E" fontSize="14" fontWeight="bold" fontFamily="sans-serif">K</text>
+        <svg viewBox="0 0 40 40" className="w-8 h-8">
+          <rect width="40" height="40" rx="10" fill="#E5E7EB" />
+          <text x="50%" y="56%" dominantBaseline="middle" textAnchor="middle" fill="#9CA3AF" fontSize="14" fontWeight="bold" fontFamily="sans-serif">K</text>
         </svg>
       ),
     },
@@ -176,42 +175,37 @@ export default function PaymentButtons({ plan, userId, userEmail, userName, peri
         const isCard = method.id === "card";
         const isExpanded = isCard && expanded === "card";
         const isLoading = loading === method.id;
-        const isDisabled = method.disabled;
+        const isPreparing = method.preparing;
 
         return (
           <div key={method.id}>
             <button
               type="button"
               onClick={() => handleSelect(method.id)}
-              disabled={!!loading || isDisabled}
-              className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl border transition-all duration-150 text-left
+              disabled={!!loading}
+              className={`w-full flex items-center gap-3.5 px-4 py-4 rounded-xl border transition-all duration-150 text-left
                 ${isExpanded
-                  ? "border-blue-500 bg-blue-500/10"
-                  : isDisabled
-                    ? "border-gray-800/40 bg-gray-900/30 cursor-not-allowed opacity-60"
-                    : method.id === "toss"
-                      ? "border-blue-500/60 bg-blue-500/10 hover:bg-blue-500/20 hover:border-blue-400"
-                      : "border-gray-700/60 bg-gray-800/40 hover:bg-gray-800/80 hover:border-gray-600"
-                } disabled:cursor-not-allowed`}
+                  ? "border-blue-400 bg-blue-50"
+                  : isPreparing
+                    ? "border-gray-200 bg-gray-50 hover:bg-gray-100"
+                    : "border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300"
+                } disabled:cursor-wait`}
             >
-              <span className={`flex-shrink-0 ${isDisabled ? "opacity-40" : ""}`}>{method.logo}</span>
+              <span className="flex-shrink-0">{method.logo}</span>
               <span className="flex-1 min-w-0">
-                <span className={`block text-sm font-medium ${isDisabled ? "text-gray-600" : "text-white"}`}>{method.name}</span>
-                <span className={`block text-xs mt-0.5 ${isDisabled ? "text-gray-700" : "text-gray-500"}`}>{method.desc}</span>
+                <span className={`block text-sm font-semibold ${isPreparing ? "text-gray-400" : "text-gray-900"}`}>
+                  {method.name}
+                </span>
+                <span className={`block text-xs mt-0.5 ${isPreparing ? "text-gray-300" : "text-gray-500"}`}>
+                  {method.desc}
+                </span>
               </span>
               {isLoading ? (
-                <span className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin flex-shrink-0" />
-              ) : method.disabledLabel ? (
-                <span className="text-[10px] text-gray-500 bg-gray-800 px-2 py-0.5 rounded-full flex-shrink-0">{method.disabledLabel}</span>
-              ) : isCard ? (
-                <svg
-                  className={`w-4 h-4 text-gray-500 flex-shrink-0 transition-transform duration-150 ${isExpanded ? "rotate-180" : ""}`}
-                  fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                </svg>
+                <span className="w-4 h-4 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin flex-shrink-0" />
+              ) : isPreparing ? (
+                <span className="text-[10px] text-gray-400 bg-gray-200 px-2 py-0.5 rounded-full flex-shrink-0">심사중</span>
               ) : (
-                <svg className="w-4 h-4 text-gray-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                 </svg>
               )}
@@ -219,27 +213,27 @@ export default function PaymentButtons({ plan, userId, userEmail, userName, peri
 
             {/* 카드 정보 입력 폼 */}
             {isCard && isExpanded && (
-              <div className="mt-1 px-4 py-4 bg-gray-800/60 rounded-xl border border-gray-700/60 space-y-2.5">
+              <div className="mt-1 px-4 py-4 bg-gray-50 rounded-xl border border-gray-200 space-y-2.5">
                 <input
                   type="text"
                   placeholder="이름"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-gray-700/60 border border-gray-600/60 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors"
+                  className="w-full px-3.5 py-2.5 bg-white border border-gray-300 rounded-lg text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:border-blue-500 transition-colors"
                 />
                 <input
                   type="tel"
                   placeholder="휴대폰 번호 (01012345678)"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-gray-700/60 border border-gray-600/60 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors"
+                  className="w-full px-3.5 py-2.5 bg-white border border-gray-300 rounded-lg text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:border-blue-500 transition-colors"
                 />
-                {formError && <p className="text-red-400 text-xs">{formError}</p>}
+                {formError && <p className="text-red-500 text-xs">{formError}</p>}
                 <button
                   type="button"
                   onClick={handleCardPay}
                   disabled={!!loading}
-                  className="w-full py-2.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-2"
+                  className="w-full py-2.5 bg-blue-500 hover:bg-blue-600 disabled:opacity-50 text-white rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-2"
                 >
                   {isLoading ? (
                     <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />처리 중...</>
