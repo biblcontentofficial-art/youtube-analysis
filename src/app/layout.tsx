@@ -70,6 +70,13 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/icon", type: "image/png", sizes: "32x32" },
+    ],
+    apple: [{ url: "/icon", sizes: "180x180" }],
+  },
   verification: {
     google: "g0Ol1fn2l_gp_Acox_LXFgYsEL4aL5CQJmzWkqL3t0c",
     other: {

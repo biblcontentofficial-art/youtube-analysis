@@ -145,27 +145,25 @@ export default function PaymentButtons({ plan, userId, userEmail, userName }: Pr
     {
       id: "card",
       name: "신용·체크카드",
-      desc: "준비 중",
-      disabled: true,
+      desc: "정기결제 (자동결제)",
       disabledLabel: "준비중",
       logo: (
         <svg viewBox="0 0 40 40" className="w-6 h-6">
-          <rect width="40" height="40" rx="8" fill="#4B5563" />
-          <path d="M10 16h20M10 14a2 2 0 012-2h16a2 2 0 012 2v12a2 2 0 01-2 2H12a2 2 0 01-2-2V14z" fill="none" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" opacity="0.5" />
-          <rect x="14" y="21" width="5" height="3" rx="0.5" fill="white" opacity="0.3" />
+          <rect width="40" height="40" rx="8" fill="#3B82F6" />
+          <path d="M10 16h20M10 14a2 2 0 012-2h16a2 2 0 012 2v12a2 2 0 01-2 2H12a2 2 0 01-2-2V14z" fill="none" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+          <rect x="14" y="21" width="5" height="3" rx="0.5" fill="white" opacity="0.7" />
         </svg>
       ),
     },
     {
       id: "kakao",
       name: "카카오페이",
-      desc: "준비 중",
-      disabled: true,
+      desc: "카카오 계정으로 간편 결제",
       disabledLabel: "준비중",
       logo: (
         <svg viewBox="0 0 40 40" className="w-6 h-6">
-          <rect width="40" height="40" rx="8" fill="#4B5563" />
-          <text x="50%" y="56%" dominantBaseline="middle" textAnchor="middle" fill="white" fontSize="14" fontWeight="bold" fontFamily="sans-serif" opacity="0.5">K</text>
+          <rect width="40" height="40" rx="8" fill="#FEE500" />
+          <text x="50%" y="56%" dominantBaseline="middle" textAnchor="middle" fill="#3C1E1E" fontSize="14" fontWeight="bold" fontFamily="sans-serif">K</text>
         </svg>
       ),
     },
@@ -202,8 +200,8 @@ export default function PaymentButtons({ plan, userId, userEmail, userName }: Pr
               </span>
               {isLoading ? (
                 <span className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin flex-shrink-0" />
-              ) : isDisabled && method.disabledLabel ? (
-                <span className="text-[10px] text-gray-600 bg-gray-800 px-2 py-0.5 rounded-full flex-shrink-0">{method.disabledLabel}</span>
+              ) : method.disabledLabel ? (
+                <span className="text-[10px] text-gray-500 bg-gray-800 px-2 py-0.5 rounded-full flex-shrink-0">{method.disabledLabel}</span>
               ) : isCard ? (
                 <svg
                   className={`w-4 h-4 text-gray-500 flex-shrink-0 transition-transform duration-150 ${isExpanded ? "rotate-180" : ""}`}
