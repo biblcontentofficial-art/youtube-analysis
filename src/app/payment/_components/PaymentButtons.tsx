@@ -134,7 +134,7 @@ export default function PaymentButtons({ plan, userId, userEmail, userName, peri
     {
       id: "toss",
       name: "토스페이먼츠",
-      desc: "신용·체크카드 간편결제",
+      desc: "신용·체크카드 간편결제 (현대·우리카드 제외 가능)",
       logo: (
         <svg viewBox="0 0 40 40" className="w-8 h-8">
           <rect width="40" height="40" rx="10" fill="#3182F6" />
