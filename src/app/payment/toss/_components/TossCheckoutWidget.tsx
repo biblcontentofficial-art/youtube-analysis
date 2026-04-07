@@ -59,35 +59,33 @@ export default function TossCheckoutWidget({
   }, [clientKey, customerKey]);
 
   // 2) 네이티브 click 리스너로 requestBillingAuth 호출
-  //    React 합성 이벤트 대신 네이티브 이벤트를 사용해야
-  //    브라우저가 사용자 제스처로 인식 → 팝업/iframe 허용
+  //    핵심: handler는 반드시 동기 함수여야 함 (async 금지!)
+  //    async/await 사용 시 마이크로태스크가 생성되어
+  //    브라우저가 사용자 제스처 컨텍스트를 잃고 팝업 차단
   useEffect(() => {
     const btn = btnRef.current;
     if (!btn || !sdkReady) return;
 
-    const handler = async () => {
+    const handler = () => {
       const payment = paymentInstanceRef.current;
       if (!payment) return;
 
-      try {
-        console.log("[Toss] requestBillingAuth 호출...");
-        await payment.requestBillingAuth({
-          method: "CARD",
-          successUrl: `${window.location.origin}/api/toss/billing/confirm?plan=${plan}`,
-          failUrl: `${window.location.origin}/pricing?error=billing`,
-          customerEmail: customerEmail || undefined,
-          customerName: customerName || undefined,
-        });
-        // 성공 시 successUrl로 리다이렉트되므로 여기까지 오지 않음
-      } catch (e: unknown) {
-        const err = e as { code?: string; message?: string };
-        const code = err?.code ?? "";
-        const msg = err?.message ?? "알 수 없는 에러가 발생했습니다.";
-        console.error("[Toss] requestBillingAuth 에러:", code, msg, e);
+      console.log("[Toss] requestBillingAuth 호출...");
 
+      // 동기적으로 호출 (await 금지!) + .catch()로 비동기 에러만 처리
+      payment.requestBillingAuth({
+        method: "CARD",
+        successUrl: `${window.location.origin}/api/toss/billing/confirm?plan=${plan}`,
+        failUrl: `${window.location.origin}/pricing?error=billing`,
+        customerEmail: customerEmail || undefined,
+        customerName: customerName || undefined,
+      }).catch((e: { code?: string; message?: string }) => {
+        const code = e?.code ?? "";
+        const msg = e?.message ?? "알 수 없는 에러가 발생했습니다.";
+        console.error("[Toss] requestBillingAuth 에러:", code, msg);
         if (code === "USER_CANCEL" || code === "PAY_PROCESS_CANCELED") return;
         setError(`결제 오류 [${code || "UNKNOWN"}]: ${msg}`);
-      }
+      });
     };
 
     btn.addEventListener("click", handler);
