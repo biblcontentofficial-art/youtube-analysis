@@ -71,7 +71,7 @@ export async function GET(req: NextRequest) {
       <div class="plan">
         <div>
           <div class="plan-name">${planData.orderName} (${period === "yearly" ? "연간" : "월간"})</div>
-          <div class="plan-period">${periodLabel} · 언제든 취소 가능</div>
+          <div class="plan-period">${periodLabel}</div>
         </div>
         <div style="text-align:right">
           <div class="plan-price">₩${amount.toLocaleString()}</div>
@@ -82,7 +82,7 @@ export async function GET(req: NextRequest) {
       <button class="btn" id="pay-btn" onclick="requestBilling()">
         카드 등록 후 ₩${amount.toLocaleString()} 결제
       </button>
-      <div class="info">언제든지 해지 가능</div>
+      <div class="info">SSL 보안 결제 · 토스페이먼츠 안심 결제</div>
     </div>
   </div>
 
