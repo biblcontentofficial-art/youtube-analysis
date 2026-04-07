@@ -27,16 +27,34 @@ export default function TossPaymentWidget({
     let cancelled = false;
     (async () => {
       try {
-        const { loadPaymentWidget } = await import("@tosspayments/payment-widget-sdk");
-        const widget = await loadPaymentWidget(clientKey, customerKey);
-        if (!cancelled) {
-          widgetRef.current = widget;
-          widget.renderPaymentMethods("#toss-payment-method", { value: amount });
-          widget.renderAgreement("#toss-payment-agreement");
-          setReady(true);
-        }
+        // v2 SDK: @tosspayments/tosspayments-sdk
+        // @docs https://docs.tosspayments.com/sdk/v2/js
+        const { loadTossPayments } = await import("@tosspayments/tosspayments-sdk");
+        const tossPayments = await loadTossPayments(clientKey);
+
+        if (cancelled) return;
+
+        // 결제위젯 인스턴스 생성
+        const widget = tossPayments.widgets({ customerKey });
+
+        // 결제 금액 설정
+        await widget.setAmount({ currency: "KRW", value: amount });
+
+        if (cancelled) return;
+
+        // 결제수단 UI 렌더링
+        await widget.renderPaymentMethods({
+          selector: "#toss-payment-method",
+          variantKey: "DEFAULT",
+        });
+
+        // 이용약관 UI 렌더링
+        await widget.renderAgreement({ selector: "#toss-payment-agreement" });
+
+        widgetRef.current = widget;
+        setReady(true);
       } catch (e) {
-        console.error("[Toss Widget] 초기화 실패:", e);
+        console.error("[Toss Widget v2] 초기화 실패:", e);
         if (!cancelled) setError("결제 모듈 초기화에 실패했습니다.");
       }
     })();
@@ -89,7 +107,7 @@ export default function TossPaymentWidget({
         </div>
       )}
 
-      {/* 결제수단 UI */}
+      {/* 결제수단 UI (v2: renderPaymentMethods) */}
       <div id="toss-payment-method" className="min-h-[200px]">
         {!ready && (
           <div className="flex items-center justify-center h-[200px]">
@@ -98,7 +116,7 @@ export default function TossPaymentWidget({
         )}
       </div>
 
-      {/* 약관 동의 UI */}
+      {/* 이용약관 UI (v2: renderAgreement) */}
       <div id="toss-payment-agreement" />
 
       {/* 결제 버튼 */}
