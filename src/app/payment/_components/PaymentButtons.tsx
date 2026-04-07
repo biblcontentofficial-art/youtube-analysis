@@ -122,7 +122,7 @@ export default function PaymentButtons({ plan, userId, userEmail, userName }: Pr
     }
   };
 
-  /* ── 결제수단 목록 ── */
+  /* ── 결제수단 목록 (토스페이먼츠 최상단, 나머지 준비중) ── */
   const methods: {
     id: PayMethod;
     name: string;
@@ -132,37 +132,40 @@ export default function PaymentButtons({ plan, userId, userEmail, userName }: Pr
     disabledLabel?: string;
   }[] = [
     {
-      id: "card",
-      name: "신용·체크카드",
-      desc: "정기결제 (자동결제)",
+      id: "toss",
+      name: "토스페이먼츠",
+      desc: "신용·체크카드 간편결제",
       logo: (
         <svg viewBox="0 0 40 40" className="w-6 h-6">
-          <rect width="40" height="40" rx="8" fill="#3B82F6" />
-          <path d="M10 16h20M10 14a2 2 0 012-2h16a2 2 0 012 2v12a2 2 0 01-2 2H12a2 2 0 01-2-2V14z" fill="none" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-          <rect x="14" y="21" width="5" height="3" rx="0.5" fill="white" opacity="0.7" />
+          <rect width="40" height="40" rx="8" fill="#3182F6" />
+          <text x="50%" y="56%" dominantBaseline="middle" textAnchor="middle" fill="white" fontSize="18" fontWeight="bold" fontFamily="sans-serif">T</text>
+        </svg>
+      ),
+    },
+    {
+      id: "card",
+      name: "신용·체크카드",
+      desc: "준비 중",
+      disabled: true,
+      disabledLabel: "준비중",
+      logo: (
+        <svg viewBox="0 0 40 40" className="w-6 h-6">
+          <rect width="40" height="40" rx="8" fill="#4B5563" />
+          <path d="M10 16h20M10 14a2 2 0 012-2h16a2 2 0 012 2v12a2 2 0 01-2 2H12a2 2 0 01-2-2V14z" fill="none" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" opacity="0.5" />
+          <rect x="14" y="21" width="5" height="3" rx="0.5" fill="white" opacity="0.3" />
         </svg>
       ),
     },
     {
       id: "kakao",
       name: "카카오페이",
-      desc: "카카오 계정으로 간편 결제",
+      desc: "준비 중",
+      disabled: true,
+      disabledLabel: "준비중",
       logo: (
         <svg viewBox="0 0 40 40" className="w-6 h-6">
-          <rect width="40" height="40" rx="8" fill="#FEE500" />
-          <text x="50%" y="56%" dominantBaseline="middle" textAnchor="middle" fill="#3C1E1E" fontSize="14" fontWeight="bold" fontFamily="sans-serif">K</text>
-        </svg>
-      ),
-    },
-    {
-      id: "toss",
-      name: "토스페이먼츠",
-      desc: tossEnabled ? "신용·체크카드 간편결제" : "준비 중",
-      disabled: !tossEnabled,
-      logo: (
-        <svg viewBox="0 0 40 40" className="w-6 h-6">
-          <rect width="40" height="40" rx="8" fill={tossEnabled ? "#3182F6" : "#4B5563"} />
-          <text x="50%" y="56%" dominantBaseline="middle" textAnchor="middle" fill="white" fontSize="18" fontWeight="bold" fontFamily="sans-serif">T</text>
+          <rect width="40" height="40" rx="8" fill="#4B5563" />
+          <text x="50%" y="56%" dominantBaseline="middle" textAnchor="middle" fill="white" fontSize="14" fontWeight="bold" fontFamily="sans-serif" opacity="0.5">K</text>
         </svg>
       ),
     },
@@ -186,8 +189,10 @@ export default function PaymentButtons({ plan, userId, userEmail, userName }: Pr
                 ${isExpanded
                   ? "border-blue-500 bg-blue-500/10"
                   : isDisabled
-                    ? "border-gray-800/40 bg-gray-900/30 cursor-not-allowed"
-                    : "border-gray-700/60 bg-gray-800/40 hover:bg-gray-800/80 hover:border-gray-600"
+                    ? "border-gray-800/40 bg-gray-900/30 cursor-not-allowed opacity-60"
+                    : method.id === "toss"
+                      ? "border-blue-500/60 bg-blue-500/10 hover:bg-blue-500/20 hover:border-blue-400"
+                      : "border-gray-700/60 bg-gray-800/40 hover:bg-gray-800/80 hover:border-gray-600"
                 } disabled:cursor-not-allowed`}
             >
               <span className={`flex-shrink-0 ${isDisabled ? "opacity-40" : ""}`}>{method.logo}</span>
