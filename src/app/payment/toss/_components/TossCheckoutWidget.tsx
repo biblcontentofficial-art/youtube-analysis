@@ -53,13 +53,14 @@ export default function TossCheckoutWidget({
     try {
       // requestBillingAuth: 카드 등록 → billingKey 발급 → 즉시 결제
       // /api/toss/billing/confirm 에서 billing key 발급 후 amount 차감
+      // v2 SDK: requestBillingAuth 파라미터
+      // @docs https://docs.tosspayments.com/sdk/v2/js#paymentrequestbillingauth
       await paymentRef.current.requestBillingAuth({
         method: "CARD",
-        windowTarget: "self", // iframe 방식 대신 전체 페이지 리다이렉트
-        customerEmail: customerEmail || undefined,
-        customerName: customerName || undefined,
         successUrl: `${window.location.origin}/api/toss/billing/confirm?plan=${plan}`,
         failUrl: `${window.location.origin}/pricing?error=billing`,
+        customerEmail: customerEmail || undefined,
+        customerName: customerName || undefined,
       });
     } catch (e: unknown) {
       // Toss SDK 에러 객체: { code: string, message: string }
