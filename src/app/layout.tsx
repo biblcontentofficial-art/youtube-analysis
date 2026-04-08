@@ -351,13 +351,11 @@ export default async function RootLayout({
                     <rect x="1" y="4" width="22" height="16" rx="2" ry="2" /><line x1="1" y1="10" x2="23" y2="10" />
                   </svg>
                 } />
-                {process.env.NODE_ENV === "development" && (
-                  <>
-                    <div className="w-px h-4 bg-gray-700 mx-1" />
-                    <NavTab href="/studio" label="올인원 유튜브 채널 대행" isStudio />
-                    <NavTab href="/studio/class/team-bibl" label="팀비블 1:1 유튜브 컨설팅" isStudio />
-                  </>
-                )}
+                <>
+                  <div className="w-px h-4 bg-gray-700 mx-1" />
+                  <NavTab href="/studio" label="올인원 유튜브 채널 대행" isStudio />
+                  <NavTab href="/studio/class/team-bibl" label="팀비블 1:1 유튜브 컨설팅" isStudio />
+                </>
               </div>
             </div>
 
