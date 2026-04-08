@@ -2,18 +2,46 @@
 
 import { useSignIn } from "@clerk/nextjs";
 import { useUser } from "@clerk/nextjs";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import {
+  type InAppInfo,
+  detectInAppBrowser,
+  openInChrome,
+  copyUrl,
+} from "@/lib/inAppBrowser";
 
 export default function LimitModal({ show, limit }: { show: boolean; limit: number }) {
   const { signIn, isLoaded } = useSignIn();
   const { isSignedIn } = useUser();
   const [loading, setLoading] = useState<"kakao" | "google" | null>(null);
+  const [inAppInfo, setInAppInfo] = useState<InAppInfo>({
+    isInApp: false, appName: "", isAndroid: false, isIOS: false,
+  });
+
+  useEffect(() => {
+    setInAppInfo(detectInAppBrowser());
+  }, []);
 
   if (!show) return null;
 
+  const handleOpenExternal = async () => {
+    if (inAppInfo.isAndroid) {
+      openInChrome(window.location.href);
+    } else {
+      await copyUrl();
+    }
+  };
+
   const handleOAuth = async (provider: "oauth_custom_kakao" | "oauth_google") => {
     if (!isLoaded || loading) return;
+
+    // 인앱 브라우저에서 Google OAuth는 차단됨 → 외부 브라우저로 유도
+    if (provider === "oauth_google" && inAppInfo.isInApp) {
+      handleOpenExternal();
+      return;
+    }
+
     setLoading(provider === "oauth_custom_kakao" ? "kakao" : "google");
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -116,11 +144,13 @@ export default function LimitModal({ show, limit }: { show: boolean; limit: numb
           카카오로 무료 가입
         </button>
 
-        {/* 구글 버튼 */}
+        {/* 구글 버튼 — 인앱 브라우저에서는 비활성화 표시 */}
         <button
           onClick={() => handleOAuth("oauth_google")}
           disabled={!!loading}
-          className="w-full flex items-center justify-center gap-3 bg-white hover:bg-gray-100 text-gray-800 font-semibold py-3.5 rounded-xl transition disabled:opacity-70"
+          className={`w-full flex items-center justify-center gap-3 bg-white text-gray-800 font-semibold py-3.5 rounded-xl transition disabled:opacity-70 ${
+            inAppInfo.isInApp ? "opacity-40 cursor-not-allowed" : "hover:bg-gray-100"
+          }`}
         >
           {loading === "google" ? (
             <span className="w-5 h-5 border-2 border-gray-300 border-t-gray-800 rounded-full animate-spin" />
@@ -132,8 +162,17 @@ export default function LimitModal({ show, limit }: { show: boolean; limit: numb
               <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
             </svg>
           )}
-          Google로 무료 가입
+          {inAppInfo.isInApp ? (
+            <span className="text-gray-500">Google (외부 브라우저 필요)</span>
+          ) : (
+            "Google로 무료 가입"
+          )}
         </button>
+        {inAppInfo.isInApp && (
+          <p className="mt-2 text-xs text-amber-400/80 text-center">
+            Google은 앱 내 브라우저를 차단합니다. 카카오로 가입하거나 외부 브라우저에서 열어주세요.
+          </p>
+        )}
 
         <p className="mt-5 text-xs text-gray-600">
           가입하면{" "}
