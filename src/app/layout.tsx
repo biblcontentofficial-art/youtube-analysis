@@ -290,9 +290,9 @@ export default async function RootLayout({
         <NavigationLoader>
         <ConfirmProvider>
         <nav className="border-b border-gray-800 bg-gray-950 sticky top-0 z-50">
-          <div className="max-w-screen-xl mx-auto px-4 h-14 flex items-center justify-between">
+          <div className="max-w-screen-xl mx-auto px-4 h-14 flex items-center justify-between min-w-0 overflow-x-auto scrollbar-hide">
             {/* 로고 + 탭 */}
-            <div className="flex items-center gap-6">
+            <div className="flex items-center gap-6 shrink-0">
               <a href="/" className="flex items-center gap-2 shrink-0">
                 <div className="w-8 h-8 bg-black border border-gray-700 rounded-lg flex items-center justify-center">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" className="w-4 h-4">
@@ -305,7 +305,7 @@ export default async function RootLayout({
                 </span>
               </a>
 
-              <div className="hidden md:flex items-center gap-1 text-sm">
+              <div className="hidden md:flex items-center gap-1 text-sm whitespace-nowrap">
                 {/* 영상 찾기 */}
                 <NavTab href="/search" label="영상 찾기" icon={
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
@@ -355,7 +355,7 @@ export default async function RootLayout({
             </div>
 
             {/* 우측 */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 shrink-0 ml-4">
               <SearchUsageBadge />
               {/* 모바일 전용: 요금제 링크 */}
               <a
