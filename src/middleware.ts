@@ -59,6 +59,8 @@ if (hasClerk) {
     "/api/toss/confirm(.*)",
     "/api/toss/billing/confirm(.*)",
     "/api/stripe/webhook(.*)",
+    // Clerk webhook (svix 서버가 인증 없이 호출)
+    "/api/webhooks/clerk(.*)",
   ]);
 
   middlewareHandler = clerkMiddleware(async (auth: any, req: NextRequest) => {
