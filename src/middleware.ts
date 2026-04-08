@@ -61,6 +61,8 @@ if (hasClerk) {
     "/api/stripe/webhook(.*)",
     // Clerk webhook (svix 서버가 인증 없이 호출)
     "/api/webhooks/clerk(.*)",
+    // Admin migration (CRON_SECRET으로 자체 인증)
+    "/api/admin/init-migration(.*)",
   ]);
 
   middlewareHandler = clerkMiddleware(async (auth: any, req: NextRequest) => {
