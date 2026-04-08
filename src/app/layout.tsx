@@ -43,7 +43,7 @@ export const metadata: Metadata = {
       "비블랩 — 유튜브 키워드 트렌드 분석, 채널 찾기, 영상 수집. 크리에이터를 위한 데이터 인사이트.",
     images: [
       {
-        url: "/og-image.png",
+        url: "https://www.bibllab.com/og-image.png",
         width: 1280,
         height: 720,
         alt: "비블랩 - 유튜브 키워드·채널 분석 도구",
@@ -54,7 +54,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "비블랩 (bibl lab) - 유튜브 키워드·채널 분석 도구",
     description: "유튜브 키워드·채널 분석, 영상 수집. 크리에이터를 위한 무료 도구.",
-    images: ["/og-image.png"],
+    images: ["https://www.bibllab.com/og-image.png"],
   },
   alternates: {
     canonical: "https://bibllab.com",
