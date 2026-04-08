@@ -15,7 +15,7 @@ const hasClerk =
   process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY !== "pk_test_placeholder";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://www.bibllab.com"),
+  metadataBase: new URL("https://bibllab.com"),
   title: {
     default: "비블랩 (bibl lab) - 유튜브 키워드·채널 분석 도구",
     template: "%s | 비블랩 (bibl lab)",

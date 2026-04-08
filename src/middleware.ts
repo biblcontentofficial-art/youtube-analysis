@@ -1,5 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 
+// www.bibllab.com → bibllab.com 리다이렉트 (Clerk 세션 쿠키 도메인 일치를 위해)
+function handleWwwRedirect(req: NextRequest): NextResponse | null {
+  const host = req.headers.get("host") ?? "";
+  if (host.startsWith("www.bibllab.com")) {
+    const url = req.nextUrl.clone();
+    url.host = "bibllab.com";
+    url.port = "";
+    return NextResponse.redirect(url, 301);
+  }
+  return null;
+}
+
 // tmklab.com → /tmklab-site 로 rewrite
 function handleTmklab(req: NextRequest): NextResponse | null {
   const host = req.headers.get("host") ?? "";
@@ -66,6 +78,10 @@ if (hasClerk) {
   ]);
 
   middlewareHandler = clerkMiddleware(async (auth: any, req: NextRequest) => {
+    // www → non-www 리다이렉트 (Clerk 도메인 일치)
+    const wwwRedirect = handleWwwRedirect(req);
+    if (wwwRedirect) return wwwRedirect;
+
     const tmklabResponse = handleTmklab(req);
     if (tmklabResponse) return tmklabResponse;
 
@@ -74,7 +90,7 @@ if (hasClerk) {
     }
   });
 } else {
-  middlewareHandler = (req: NextRequest) => handleTmklab(req) ?? NextResponse.next();
+  middlewareHandler = (req: NextRequest) => handleWwwRedirect(req) ?? handleTmklab(req) ?? NextResponse.next();
 }
 
 export default middlewareHandler;
