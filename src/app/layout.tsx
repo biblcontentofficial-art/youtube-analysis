@@ -302,9 +302,7 @@ export default async function RootLayout({
             <div className="flex items-center gap-6 shrink-0">
               <a href="/" className="flex items-center gap-2 shrink-0">
                 <div className="w-8 h-8 bg-black border border-gray-700 rounded-lg flex items-center justify-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" className="w-4 h-4">
-                    <path d="M8 5.14v14l11-7-11-7z" />
-                  </svg>
+                  <span style={{ color: "white", fontSize: 18, fontWeight: 900, lineHeight: 1, fontFamily: "sans-serif" }}>B</span>
                 </div>
                 <span className="font-bold text-base tracking-tight">
                   <span className="text-white">bibl</span>
@@ -393,9 +391,7 @@ export default async function RootLayout({
               <div className="shrink-0">
                 <a href="/" className="flex items-center gap-2 mb-3">
                   <div className="w-7 h-7 bg-black border border-gray-700 rounded-md flex items-center justify-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" className="w-3.5 h-3.5">
-                      <path d="M8 5.14v14l11-7-11-7z" />
-                    </svg>
+                    <span style={{ color: "white", fontSize: 16, fontWeight: 900, lineHeight: 1, fontFamily: "sans-serif" }}>B</span>
                   </div>
                   <span className="font-bold text-sm tracking-tight">
                     <span className="text-white">bibl</span>
