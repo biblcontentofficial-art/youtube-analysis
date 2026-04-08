@@ -1,8 +1,19 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { searchVideos } from "@/lib/youtube";
 import { incrementSearchCount } from "@/lib/searchLimit";
+import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
+  // IP 기반 Rate Limit: 분당 30회
+  const ip = getClientIp(req);
+  const { allowed } = await checkRateLimit(ip, "yt-search", 30, 60);
+  if (!allowed) {
+    return NextResponse.json(
+      { error: "TOO_MANY_REQUESTS", message: "잠시 후 다시 시도해주세요." },
+      { status: 429 }
+    );
+  }
+
   const { searchParams } = new URL(req.url);
   const q = (searchParams.get("q") ?? "").trim();
 

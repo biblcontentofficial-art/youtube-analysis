@@ -16,17 +16,14 @@ import { getSupabase } from "@/lib/supabase";
 import { TOSS_PLANS, TossPlanKey } from "@/lib/toss";
 import { PORTONE_PLANS, PORTONE_API_SECRET, PORTONE_BILLING_KEY_PREFIX, PortonePlanKey } from "@/lib/portone";
 import { insertPayment } from "@/lib/db";
+import { verifyBearerToken } from "@/lib/authUtils";
 
 export const maxDuration = 60;
 
 export async function GET(req: NextRequest) {
-  // Vercel Cron은 Authorization: Bearer <CRON_SECRET> 헤더를 전송
-  const cronSecret = process.env.CRON_SECRET;
-  if (cronSecret) {
-    const auth = req.headers.get("authorization");
-    if (auth !== `Bearer ${cronSecret}`) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+  // Vercel Cron은 Authorization: Bearer <CRON_SECRET> 헤더를 전송 (timing-safe 비교)
+  if (!verifyBearerToken(req.headers.get("authorization"), process.env.CRON_SECRET)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const db = getSupabase();

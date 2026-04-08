@@ -1,8 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 import { getSupabase } from "@/lib/supabase";
+import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
+
+/** HTML 특수문자 이스케이프 (XSS/이메일 인젝션 방지) */
+function escHtml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#x27;");
+}
 
 export async function POST(req: NextRequest) {
+  // IP 기반 Rate Limit: 시간당 5회 (스팸 방지)
+  const ip = getClientIp(req);
+  const { allowed } = await checkRateLimit(ip, "contact", 5, 3600);
+  if (!allowed) {
+    return NextResponse.json(
+      { error: "TOO_MANY_REQUESTS", message: "잠시 후 다시 시도해주세요." },
+      { status: 429 }
+    );
+  }
+
   let body: Record<string, string>;
   try {
     body = await req.json();
@@ -12,9 +33,14 @@ export async function POST(req: NextRequest) {
 
   const required = ["name", "phone", "service", "goal", "budget"];
   for (const field of required) {
-    if (!body[field]) {
+    if (!body[field] || typeof body[field] !== "string") {
       return NextResponse.json({ error: `${field} is required` }, { status: 400 });
     }
+  }
+
+  // 필드 길이 제한
+  if (body.name.length > 50 || body.phone.length > 30 || body.message?.length > 2000) {
+    return NextResponse.json({ error: "Input too long" }, { status: 400 });
   }
 
   // ── Supabase DB 저장 ──
@@ -51,7 +77,7 @@ export async function POST(req: NextRequest) {
       await transporter.sendMail({
         from: `"TMK STUDIO 상담봇" <${gmailUser}>`,
         to: "bibl.content.official@gmail.com",
-        subject: `[TMK상담] 📬 ${body.name}님 — ${body.service}`,
+        subject: `[TMK상담] 📬 ${escHtml(body.name)}님 — ${escHtml(body.service)}`,
         html: `
           <div style="font-family: 'Apple SD Gothic Neo', sans-serif; max-width: 560px; margin: 0 auto; background: #f9f9f9; border-radius: 12px; overflow: hidden;">
             <div style="background: #0d9488; padding: 28px 32px;">
@@ -62,41 +88,41 @@ export async function POST(req: NextRequest) {
               <table style="width: 100%; border-collapse: collapse;">
                 <tr>
                   <td style="padding: 10px 0; border-bottom: 1px solid #f0f0f0; color: #888; font-size: 13px; width: 120px;">이름</td>
-                  <td style="padding: 10px 0; border-bottom: 1px solid #f0f0f0; font-weight: 700; font-size: 15px;">${body.name}</td>
+                  <td style="padding: 10px 0; border-bottom: 1px solid #f0f0f0; font-weight: 700; font-size: 15px;">${escHtml(body.name)}</td>
                 </tr>
                 <tr>
                   <td style="padding: 10px 0; border-bottom: 1px solid #f0f0f0; color: #888; font-size: 13px;">연락처</td>
-                  <td style="padding: 10px 0; border-bottom: 1px solid #f0f0f0; font-size: 14px;">${body.phone}</td>
+                  <td style="padding: 10px 0; border-bottom: 1px solid #f0f0f0; font-size: 14px;">${escHtml(body.phone)}</td>
                 </tr>
                 <tr>
                   <td style="padding: 10px 0; border-bottom: 1px solid #f0f0f0; color: #888; font-size: 13px;">이메일</td>
-                  <td style="padding: 10px 0; border-bottom: 1px solid #f0f0f0; font-size: 14px;">${body.email || "미입력"}</td>
+                  <td style="padding: 10px 0; border-bottom: 1px solid #f0f0f0; font-size: 14px;">${escHtml(body.email || "미입력")}</td>
                 </tr>
                 <tr>
                   <td style="padding: 10px 0; border-bottom: 1px solid #f0f0f0; color: #888; font-size: 13px;">채널 URL</td>
-                  <td style="padding: 10px 0; border-bottom: 1px solid #f0f0f0; font-size: 14px;">${body.channelUrl || "없음"}</td>
+                  <td style="padding: 10px 0; border-bottom: 1px solid #f0f0f0; font-size: 14px;">${escHtml(body.channelUrl || "없음")}</td>
                 </tr>
                 <tr>
                   <td style="padding: 10px 0; border-bottom: 1px solid #f0f0f0; color: #888; font-size: 13px;">유입 경로</td>
-                  <td style="padding: 10px 0; border-bottom: 1px solid #f0f0f0; font-size: 14px;">${body.source || "미선택"}</td>
+                  <td style="padding: 10px 0; border-bottom: 1px solid #f0f0f0; font-size: 14px;">${escHtml(body.source || "미선택")}</td>
                 </tr>
                 <tr>
                   <td style="padding: 10px 0; border-bottom: 1px solid #f0f0f0; color: #888; font-size: 13px;">관심 서비스</td>
-                  <td style="padding: 10px 0; border-bottom: 1px solid #f0f0f0; font-size: 14px; font-weight: 600; color: #0d9488;">${body.service}</td>
+                  <td style="padding: 10px 0; border-bottom: 1px solid #f0f0f0; font-size: 14px; font-weight: 600; color: #0d9488;">${escHtml(body.service)}</td>
                 </tr>
                 <tr>
                   <td style="padding: 10px 0; border-bottom: 1px solid #f0f0f0; color: #888; font-size: 13px;">운영 목적</td>
-                  <td style="padding: 10px 0; border-bottom: 1px solid #f0f0f0; font-size: 14px;">${body.goal}</td>
+                  <td style="padding: 10px 0; border-bottom: 1px solid #f0f0f0; font-size: 14px;">${escHtml(body.goal)}</td>
                 </tr>
                 <tr>
                   <td style="padding: 10px 0; border-bottom: 1px solid #f0f0f0; color: #888; font-size: 13px;">희망 예산</td>
-                  <td style="padding: 10px 0; border-bottom: 1px solid #f0f0f0; font-size: 14px; font-weight: 600;">${body.budget}</td>
+                  <td style="padding: 10px 0; border-bottom: 1px solid #f0f0f0; font-size: 14px; font-weight: 600;">${escHtml(body.budget)}</td>
                 </tr>
                 ${body.message ? `
                 <tr>
                   <td colspan="2" style="padding: 16px 0 0;">
                     <p style="margin: 0 0 8px; color: #888; font-size: 13px;">고민 / 전달 사항</p>
-                    <div style="background: #f5f5f5; border-radius: 8px; padding: 14px 16px; font-size: 14px; line-height: 1.7; white-space: pre-wrap;">${body.message}</div>
+                    <div style="background: #f5f5f5; border-radius: 8px; padding: 14px 16px; font-size: 14px; line-height: 1.7; white-space: pre-wrap;">${escHtml(body.message)}</div>
                   </td>
                 </tr>` : ""}
               </table>

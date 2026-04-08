@@ -10,12 +10,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { clerkClient } from "@clerk/nextjs/server";
 import { getCourse } from "@/lib/courses";
+import { verifyBearerToken } from "@/lib/authUtils";
 
 export async function POST(req: NextRequest) {
-  // 관리자 인증
-  const authHeader = req.headers.get("authorization") ?? "";
-  const secret = process.env.ADMIN_SECRET ?? "";
-  if (!secret || authHeader !== `Bearer ${secret}`) {
+  // 관리자 인증 (timing-safe 비교)
+  if (!verifyBearerToken(req.headers.get("authorization"), process.env.ADMIN_SECRET)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
