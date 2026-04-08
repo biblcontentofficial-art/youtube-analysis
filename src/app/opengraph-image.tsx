@@ -6,10 +6,15 @@ export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
 export default async function Image() {
-  // Google Fonts에서 Noto Sans KR 로드 (한글 지원)
-  const fontData = await fetch(
-    "https://fonts.gstatic.com/s/notosanskr/v36/PbykFmXiEBPT4ITbgNA5Cgm20xz64px_1hVWr0wuPNGmlQNMEfD4.0.woff2"
-  ).then((res) => res.arrayBuffer());
+  // Google Fonts에서 Noto Sans KR 로드 (실패해도 이미지는 생성)
+  let fontData: ArrayBuffer | null = null;
+  try {
+    fontData = await fetch(
+      "https://fonts.gstatic.com/s/notosanskr/v36/PbykFmXiEBPT4ITbgNA5Cgm20xz64px_1hVWr0wuPNGmlQNMEfD4.0.woff2"
+    ).then((res) => res.arrayBuffer());
+  } catch {
+    // 폰트 로드 실패 시 시스템 폰트로 fallback
+  }
 
   return new ImageResponse(
     (
@@ -189,14 +194,9 @@ export default async function Image() {
     ),
     {
       ...size,
-      fonts: [
-        {
-          name: "Noto Sans KR",
-          data: fontData,
-          style: "normal",
-          weight: 400,
-        },
-      ],
+      fonts: fontData
+        ? [{ name: "Noto Sans KR", data: fontData, style: "normal" as const, weight: 400 }]
+        : [],
     }
   );
 }
