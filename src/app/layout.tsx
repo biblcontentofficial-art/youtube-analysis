@@ -347,7 +347,7 @@ export default async function RootLayout({
                 {process.env.NODE_ENV === "development" && (
                   <>
                     <div className="w-px h-4 bg-gray-700 mx-1" />
-                    <NavTab href="/studio" label="유튜브 채널 대행" isStudio />
+                    <NavTab href="/studio" label="올인원 유튜브 채널 대행" isStudio />
                     <NavTab href="/studio/class/team-bibl" label="유튜브 교육 (팀비블)" isStudio />
                   </>
                 )}
