@@ -815,8 +815,15 @@ function UsersTab({
                 const usageLabel = isMonthlyPlan ? "이번달" : "오늘";
                 const isResetting = usageResetting === u.id;
                 return (
-                  <tr key={u.id} className="hover:bg-gray-800/50 transition">
-                    <td className="px-6 py-4 text-gray-200 font-medium">{u.email || "-"}</td>
+                  <tr key={u.id} className={`hover:bg-gray-800/50 transition ${u.migrated === false ? "opacity-60" : ""}`}>
+                    <td className="px-6 py-4 font-medium">
+                      <span className={u.migrated === false ? "text-gray-500" : "text-gray-200"}>
+                        {u.email || "-"}
+                      </span>
+                      {u.migrated === false && (
+                        <span className="ml-2 text-[10px] text-gray-600 border border-gray-700 rounded px-1 py-0.5">미전환</span>
+                      )}
+                    </td>
                     <td className="px-6 py-4 text-gray-400">
                       {[u.firstName, u.lastName].filter(Boolean).join(" ") || "-"}
                     </td>
