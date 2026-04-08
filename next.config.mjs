@@ -25,7 +25,7 @@ const securityHeaders = [
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com",
       "img-src 'self' data: blob: https://i.ytimg.com https://yt3.ggpht.com https://yt3.googleusercontent.com https://img.clerk.com",
-      "frame-src 'self' https://pay.toss.im https://cpay.payple.kr https://testcpay.payple.kr https://accounts.google.com",
+      "frame-src 'self' https://clerk.bibllab.com https://*.clerk.accounts.dev https://pay.toss.im https://cpay.payple.kr https://testcpay.payple.kr https://accounts.google.com",
       "connect-src 'self' https://clerk.bibllab.com https://*.clerk.accounts.dev https://api.clerk.com https://*.supabase.co wss://*.supabase.co https://*.upstash.io",
       "media-src 'self' https://www.youtube.com",
     ].join("; "),

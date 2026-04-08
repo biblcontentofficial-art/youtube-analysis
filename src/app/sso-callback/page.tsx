@@ -8,13 +8,13 @@ export default function SSOCallback() {
   const [timedOut, setTimedOut] = useState(false);
 
   useEffect(() => {
-    // 8초 후 재시도 버튼 표시
-    const retryTimer = setTimeout(() => setShowRetry(true), 8000);
-    // 20초 후 타임아웃 → /sign-in으로 리다이렉트
+    // 10초 후 재시도 버튼 표시
+    const retryTimer = setTimeout(() => setShowRetry(true), 10000);
+    // 30초 후 타임아웃 → /sign-in으로 리다이렉트
     const timeoutTimer = setTimeout(() => {
       setTimedOut(true);
       window.location.href = "/sign-in";
-    }, 20000);
+    }, 30000);
 
     return () => {
       clearTimeout(retryTimer);
@@ -56,8 +56,12 @@ export default function SSOCallback() {
         )}
       </div>
       <AuthenticateWithRedirectCallback
+        signInUrl="/sign-in"
+        signUpUrl="/sign-up"
         signInFallbackRedirectUrl="/search"
         signUpFallbackRedirectUrl="/search"
+        signInForceRedirectUrl="/search"
+        signUpForceRedirectUrl="/search"
       />
     </main>
   );
