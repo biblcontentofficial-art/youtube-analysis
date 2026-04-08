@@ -72,8 +72,10 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
       { url: "/icon", type: "image/png", sizes: "32x32" },
     ],
+    shortcut: "/favicon.svg",
     apple: [{ url: "/apple-icon", sizes: "180x180" }],
   },
   verification: {
@@ -279,6 +281,11 @@ export default async function RootLayout({
 
   const content = (
     <html lang="ko">
+      <head>
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+        <link rel="icon" href="/icon" type="image/png" sizes="32x32" />
+        <link rel="apple-touch-icon" href="/apple-icon" sizes="180x180" />
+      </head>
       <body className={`${inter.className} bg-gray-950 text-white`}>
         {jsonLd.map((schema, i) => (
           <script
