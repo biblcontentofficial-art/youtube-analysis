@@ -67,36 +67,30 @@ function AlgorithmBadge({ score }: { score: number }) {
 
 // ─── 잠금 뱃지 (프리 플랜) ──────────────────────────────────────────────────
 function LockedAlgorithmBadge({
-  score,
   onClickLock,
 }: {
   score: number;
   onClickLock: () => void;
 }) {
-  // 실제 수치를 블러로 흐리게 → 존재감은 보이지만 읽을 수 없음
-  const barColor =
-    score >= 70 ? "bg-orange-500"
-    : score >= 50 ? "bg-yellow-500"
-    : score >= 30 ? "bg-teal-500"
-    : "bg-gray-600";
-
   return (
     <button
       onClick={(e) => { e.stopPropagation(); onClickLock(); }}
-      className="relative group flex flex-col items-center gap-1 cursor-pointer"
+      className="group flex flex-col items-center gap-1 cursor-pointer"
       title="Starter 플랜 이상에서 확인 가능"
     >
-      {/* 블러 처리된 실제 수치 */}
-      <div className="flex flex-col items-center gap-1" style={{ filter: "blur(4px)" }}>
-        <span className="text-xs font-bold text-teal-400">{score}%</span>
-        <div className="w-12 h-1 bg-gray-800 rounded-full overflow-hidden">
-          <div className={`h-full rounded-full ${barColor}`} style={{ width: `${score}%` }} />
-        </div>
-      </div>
-      {/* 자물쇠 오버레이 */}
-      <span className="absolute inset-0 flex items-center justify-center text-[13px] group-hover:scale-110 transition-transform">
-        🔒
-      </span>
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="w-4 h-4 text-gray-600 group-hover:text-gray-400 transition-colors"
+      >
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+      </svg>
     </button>
   );
 }
