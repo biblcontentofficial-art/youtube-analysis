@@ -95,23 +95,32 @@ function ProgressBar({ visible }: { visible: boolean }) {
   return (
     <div
       className="fixed top-0 left-0 right-0 z-[9999] pointer-events-none"
-      style={{ opacity, transition: "opacity 0.3s ease" }}
+      style={{ opacity, transition: "opacity 0.4s ease" }}
     >
       <div
-        className="h-[2px] bg-teal-400 relative"
+        className="h-[3px] relative"
         style={{
           width: `${width}%`,
+          background: "linear-gradient(to right, #2dd4bf, #34d399, #2dd4bf)",
           transition: visible
             ? "width 0.6s cubic-bezier(0.1, 0.5, 0.5, 1)"
             : "width 0.15s ease-out",
-          boxShadow: "0 0 8px 1px rgba(45,212,191,0.7)",
+          boxShadow: "0 0 12px 3px rgba(45,212,191,0.8), 0 0 4px 1px rgba(52,211,153,0.6)",
         }}
       >
         {/* 오른쪽 끝 빛 번짐 */}
         <span
-          className="absolute right-0 top-1/2 -translate-y-1/2 w-20 h-[2px]"
+          className="absolute right-0 top-1/2 -translate-y-1/2 w-24 h-[3px]"
           style={{
-            background: "linear-gradient(to left, transparent, rgba(45,212,191,0.4))",
+            background: "linear-gradient(to left, rgba(45,212,191,0.9), transparent)",
+            filter: "blur(2px)",
+          }}
+        />
+        {/* 끝점 원형 글로우 */}
+        <span
+          className="absolute -right-1 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-teal-300"
+          style={{
+            boxShadow: "0 0 8px 3px rgba(45,212,191,0.9)",
           }}
         />
       </div>
