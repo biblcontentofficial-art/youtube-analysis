@@ -43,9 +43,9 @@ export const metadata: Metadata = {
       "비블랩 — 유튜브 키워드 트렌드 분석, 채널 찾기, 영상 수집. 크리에이터를 위한 데이터 인사이트.",
     images: [
       {
-        url: "/opengraph-image",
-        width: 1200,
-        height: 630,
+        url: "/og-image.png",
+        width: 1280,
+        height: 720,
         alt: "비블랩 - 유튜브 키워드·채널 분석 도구",
       },
     ],
@@ -54,7 +54,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "비블랩 (bibl lab) - 유튜브 키워드·채널 분석 도구",
     description: "유튜브 키워드·채널 분석, 영상 수집. 크리에이터를 위한 무료 도구.",
-    images: ["/opengraph-image"],
+    images: ["/og-image.png"],
   },
   alternates: {
     canonical: "https://bibllab.com",
@@ -297,7 +297,7 @@ export default async function RootLayout({
         <NavigationLoader>
         <ConfirmProvider>
         <nav className="border-b border-gray-800 bg-gray-950 sticky top-0 z-50">
-          <div className="max-w-screen-xl mx-auto px-4 h-14 flex items-center justify-between min-w-0 overflow-x-auto scrollbar-hide">
+          <div className="max-w-screen-2xl mx-auto px-4 h-14 flex items-center justify-between min-w-0 overflow-x-auto scrollbar-hide">
             {/* 로고 + 탭 */}
             <div className="flex items-center gap-6 shrink-0">
               <a href="/" className="flex items-center gap-2 shrink-0">
