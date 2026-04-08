@@ -3,63 +3,101 @@
 import { useSignIn } from "@clerk/nextjs";
 import { useState, useEffect } from "react";
 
-/** 인앱 브라우저(WebView) 감지 */
-function detectInAppBrowser(): { isInApp: boolean; appName: string; isAndroid: boolean } {
-  if (typeof window === "undefined") return { isInApp: false, appName: "", isAndroid: false };
+/** ── 인앱 브라우저 감지 ────────────────────────────────────────────── */
+interface InAppInfo {
+  isInApp: boolean;
+  appName: string;
+  isAndroid: boolean;
+  isIOS: boolean;
+}
+
+function detectInAppBrowser(): InAppInfo {
+  if (typeof window === "undefined") return { isInApp: false, appName: "", isAndroid: false, isIOS: false };
   const ua = navigator.userAgent || "";
   const isAndroid = /Android/i.test(ua);
-  if (/KAKAOTALK/i.test(ua)) return { isInApp: true, appName: "카카오톡", isAndroid };
-  if (/Instagram/i.test(ua)) return { isInApp: true, appName: "인스타그램", isAndroid };
-  if (/NAVER/i.test(ua)) return { isInApp: true, appName: "네이버", isAndroid };
-  if (/Line\//i.test(ua)) return { isInApp: true, appName: "라인", isAndroid };
-  if (/FBAN|FBAV/i.test(ua)) return { isInApp: true, appName: "페이스북", isAndroid };
-  if (/NaverSearch/i.test(ua)) return { isInApp: true, appName: "네이버", isAndroid };
-  // Generic WebView detection
-  if (/\bwv\b/i.test(ua) && isAndroid) return { isInApp: true, appName: "앱 내 브라우저", isAndroid };
-  return { isInApp: false, appName: "", isAndroid };
+  const isIOS = /iPhone|iPad|iPod/i.test(ua);
+
+  // 카카오톡 (Android: KAKAOTALK, iOS: KakaoTalk / KAKAO)
+  if (/KAKAOTALK|KakaoTalk/i.test(ua)) return { isInApp: true, appName: "카카오톡", isAndroid, isIOS };
+  if (!isAndroid && /KAKAO/i.test(ua)) return { isInApp: true, appName: "카카오톡", isAndroid, isIOS };
+  // 인스타그램
+  if (/Instagram/i.test(ua)) return { isInApp: true, appName: "인스타그램", isAndroid, isIOS };
+  // 네이버 / 네이버 블로그 / 네이버 카페
+  if (/NAVER|NaverSearch|nhn/i.test(ua)) return { isInApp: true, appName: "네이버", isAndroid, isIOS };
+  // 라인
+  if (/Line\//i.test(ua)) return { isInApp: true, appName: "라인", isAndroid, isIOS };
+  // 페이스북
+  if (/FBAN|FBAV|FB_IAB/i.test(ua)) return { isInApp: true, appName: "페이스북", isAndroid, isIOS };
+  // 트위터
+  if (/TwitterAndroid|Twitter for/i.test(ua)) return { isInApp: true, appName: "트위터", isAndroid, isIOS };
+  // 틱톡
+  if (/TikTok|musical_ly/i.test(ua)) return { isInApp: true, appName: "틱톡", isAndroid, isIOS };
+  // Android 범용 WebView (wv 플래그)
+  if (isAndroid && /\bwv\b/.test(ua)) return { isInApp: true, appName: "앱 내 브라우저", isAndroid, isIOS };
+  // iOS 범용 WebView (Safari 없이 WebKit)
+  if (isIOS && !/Safari\//i.test(ua) && /AppleWebKit/i.test(ua)) return { isInApp: true, appName: "앱 내 브라우저", isAndroid, isIOS };
+
+  return { isInApp: false, appName: "", isAndroid, isIOS };
 }
 
-/** 안드로이드: Chrome intent URL로 강제 외부 오픈 */
+/** Android: Chrome intent URL로 강제 외부 오픈 */
 function openInChrome(url: string) {
-  const encoded = encodeURIComponent(url);
-  window.location.href = `intent://${url.replace(/^https?:\/\//, "")}#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=${encoded};end`;
+  // intent:// scheme — Chrome으로 강제 오픈, fallback은 브라우저 선택 화면
+  window.location.href = `intent://${url.replace(/^https?:\/\//, "")}#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(url)};end`;
 }
 
-/** iOS / 기타: 현재 URL을 클립보드에 복사하거나 안내 */
-function copyCurrentUrl() {
+/** iOS / 기타: 클립보드 복사 */
+async function copyUrl(): Promise<boolean> {
   const url = window.location.href;
-  if (navigator.clipboard) {
-    navigator.clipboard.writeText(url).then(() => {
-      alert("주소가 복사되었습니다.\nChrome 또는 Safari를 열어서 붙여넣기 해주세요.");
-    });
-  } else {
-    alert(`아래 주소를 복사해 Chrome/Safari에서 열어주세요:\n\n${url}`);
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(url);
+      return true;
+    }
+    // 구형 방식
+    const el = document.createElement("textarea");
+    el.value = url;
+    el.style.cssText = "position:fixed;top:-9999px;opacity:0";
+    document.body.appendChild(el);
+    el.select();
+    const ok = document.execCommand("copy");
+    document.body.removeChild(el);
+    return ok;
+  } catch {
+    return false;
   }
 }
 
 export default function SignInForm() {
   const { signIn, isLoaded } = useSignIn();
   const [loading, setLoading] = useState<"kakao" | "google" | null>(null);
-  const [inAppInfo, setInAppInfo] = useState<{ isInApp: boolean; appName: string; isAndroid: boolean }>({
-    isInApp: false,
-    appName: "",
-    isAndroid: false,
+  const [copied, setCopied] = useState(false);
+  const [inAppInfo, setInAppInfo] = useState<InAppInfo>({
+    isInApp: false, appName: "", isAndroid: false, isIOS: false,
   });
 
   useEffect(() => {
     setInAppInfo(detectInAppBrowser());
   }, []);
 
+  const handleOpenExternal = async () => {
+    if (inAppInfo.isAndroid) {
+      openInChrome(window.location.href);
+    } else {
+      const ok = await copyUrl();
+      if (ok) {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 3000);
+      }
+    }
+  };
+
   const handleOAuth = async (provider: "oauth_custom_kakao" | "oauth_google") => {
     if (!isLoaded || loading) return;
 
-    // 인앱 브라우저에서 Google OAuth 시도 시 차단 안내
+    // 인앱 브라우저에서 Google OAuth는 Google 정책으로 완전 차단됨 → 외부 브라우저로 유도
     if (provider === "oauth_google" && inAppInfo.isInApp) {
-      if (inAppInfo.isAndroid) {
-        openInChrome(window.location.href);
-      } else {
-        copyCurrentUrl();
-      }
+      handleOpenExternal();
       return;
     }
 
@@ -90,31 +128,82 @@ export default function SignInForm() {
           </span>
         </div>
 
-        <p className="text-center text-gray-500 text-sm mb-10">유튜브 트렌드 분석 도구</p>
+        <p className="text-center text-gray-500 text-sm mb-6">유튜브 트렌드 분석 도구</p>
 
-        {/* 인앱 브라우저 경고 배너 */}
+        {/* ── 인앱 브라우저 전용 안내 카드 ─────────────────────────────── */}
         {inAppInfo.isInApp && (
-          <div className="mb-4 bg-amber-950/60 border border-amber-700/60 rounded-xl p-4">
-            <div className="flex items-start gap-3">
-              <svg className="w-5 h-5 text-amber-400 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="mb-4 bg-amber-950/70 border border-amber-600/70 rounded-2xl p-5">
+            {/* 헤더 */}
+            <div className="flex items-center gap-2 mb-3">
+              <svg className="w-5 h-5 text-amber-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
               </svg>
-              <div>
-                <p className="text-amber-300 text-sm font-semibold mb-1">
-                  {inAppInfo.appName} 앱에서 접속 중
-                </p>
-                <p className="text-amber-400/80 text-xs leading-relaxed">
-                  Google 로그인은 앱 내 브라우저에서 차단됩니다.<br />
-                  <strong>Chrome 또는 Safari</strong>에서 열어주세요.
-                </p>
+              <p className="text-amber-300 text-sm font-bold">
+                {inAppInfo.appName} 앱에서 접속 중
+              </p>
+            </div>
+
+            {/* 안내 */}
+            <p className="text-amber-200/80 text-xs leading-relaxed mb-3">
+              Google은 앱 내 브라우저 로그인을 보안 정책으로 <strong className="text-amber-200">차단</strong>합니다.{" "}
+              {inAppInfo.isIOS
+                ? "아래 방법으로 Safari에서 열어주세요."
+                : "Chrome으로 열어서 로그인해 주세요."}
+            </p>
+
+            {/* Android: Chrome으로 열기 버튼 */}
+            {inAppInfo.isAndroid && (
+              <button
+                onClick={handleOpenExternal}
+                className="w-full flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-black font-bold text-sm py-2.5 rounded-xl transition"
+              >
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
+                  <path d="M12 8l4 4-4 4M8 12h8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
+                Chrome으로 열기
+              </button>
+            )}
+
+            {/* iOS: 단계별 안내 + 주소 복사 */}
+            {inAppInfo.isIOS && (
+              <div className="space-y-2">
+                <div className="bg-amber-900/50 rounded-lg p-3 text-xs text-amber-200/90 space-y-1.5">
+                  <p className="flex items-start gap-1.5">
+                    <span className="text-amber-400 font-bold shrink-0">1.</span>
+                    하단 또는 상단의 <strong>공유 버튼 (□↑)</strong> 을 탭하세요
+                  </p>
+                  <p className="flex items-start gap-1.5">
+                    <span className="text-amber-400 font-bold shrink-0">2.</span>
+                    <strong>"Safari로 열기"</strong> 또는 <strong>"Chrome으로 열기"</strong> 선택
+                  </p>
+                </div>
                 <button
-                  onClick={() => inAppInfo.isAndroid ? openInChrome(window.location.href) : copyCurrentUrl()}
-                  className="mt-2.5 text-xs bg-amber-500 hover:bg-amber-400 text-black font-bold px-3 py-1.5 rounded-lg transition"
+                  onClick={handleOpenExternal}
+                  className={`w-full flex items-center justify-center gap-2 font-bold text-sm py-2.5 rounded-xl transition ${
+                    copied
+                      ? "bg-green-600 text-white"
+                      : "bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-black"
+                  }`}
                 >
-                  {inAppInfo.isAndroid ? "Chrome으로 열기" : "주소 복사하기"}
+                  {copied ? (
+                    <>
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      복사 완료! Safari에서 붙여넣기 하세요
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                      </svg>
+                      주소 복사하기
+                    </>
+                  )}
                 </button>
               </div>
-            </div>
+            )}
           </div>
         )}
 
@@ -126,10 +215,7 @@ export default function SignInForm() {
 
           {/* 혜택 */}
           <div className="space-y-2 mb-6">
-            {[
-              "하루 2회 무료 검색",
-              "조회수·반응도 실시간 분석",
-            ].map((text) => (
+            {["하루 2회 무료 검색", "조회수·반응도 실시간 분석"].map((text) => (
               <div key={text} className="flex items-center gap-2.5 text-sm text-gray-400">
                 {text}
               </div>
@@ -152,14 +238,12 @@ export default function SignInForm() {
             카카오로 계속하기
           </button>
 
-          {/* 구글 로그인 */}
+          {/* 구글 로그인 — 인앱 브라우저에서는 완전 비활성화 */}
           <button
             onClick={() => handleOAuth("oauth_google")}
             disabled={!!loading}
             className={`w-full flex items-center justify-center gap-3 bg-white text-gray-800 font-semibold py-3.5 px-4 rounded-xl transition disabled:opacity-70 ${
-              inAppInfo.isInApp
-                ? "opacity-50 cursor-pointer"
-                : "hover:bg-gray-100"
+              inAppInfo.isInApp ? "opacity-40 cursor-not-allowed" : "hover:bg-gray-100"
             }`}
           >
             {loading === "google" ? (
@@ -172,9 +256,10 @@ export default function SignInForm() {
                 <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
               </svg>
             )}
-            Google로 계속하기
-            {inAppInfo.isInApp && (
-              <span className="text-xs text-gray-400 ml-1">(외부 브라우저 필요)</span>
+            {inAppInfo.isInApp ? (
+              <span className="text-gray-500">Google 로그인 (외부 브라우저 필요)</span>
+            ) : (
+              "Google로 계속하기"
             )}
           </button>
 
