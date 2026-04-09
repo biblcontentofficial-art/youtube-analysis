@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { auth } from "@/lib/auth";
+import { updateUserPlan } from "@/lib/auth";
 import { cancelSubscription, getSubscription } from "@/lib/db";
 
 export async function POST() {
@@ -10,7 +11,7 @@ export async function POST() {
   const sub = await getSubscription(userId).catch(() => null);
 
   // DB에서 구독 취소 처리 (status: cancelled, next_billing_at은 유지)
-  // → cron job이 next_billing_at 도달 시 Clerk 플랜을 free로 다운그레이드
+  // → cron job이 next_billing_at 도달 시 플랜을 free로 다운그레이드
   await cancelSubscription(userId);
 
   // next_billing_at이 없거나 이미 지났으면 즉시 free로 처리
@@ -20,11 +21,9 @@ export async function POST() {
 
   if (isExpiredAlready) {
     try {
-      const { clerkClient } = await import("@clerk/nextjs/server");
-      const client = await clerkClient();
-      await client.users.updateUserMetadata(userId, { publicMetadata: { plan: "free" } });
+      await updateUserPlan(userId, "free");
     } catch (e) {
-      console.error("[cancel-subscription] Clerk 업데이트 실패:", e);
+      console.error("[cancel-subscription] 플랜 업데이트 실패:", e);
     }
   }
 

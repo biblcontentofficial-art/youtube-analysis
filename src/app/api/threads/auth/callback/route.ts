@@ -3,7 +3,7 @@
  * Meta OAuth 콜백 — 코드 교환 → 토큰 저장 → /threads 리다이렉트
  */
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { auth } from "@/lib/auth";
 import { exchangeCodeForToken, getThreadsProfile } from "@/lib/threads";
 import { upsertThreadsConnection } from "@/lib/db";
 

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { currentUser } from "@clerk/nextjs/server";
+import { currentUser } from "@/lib/auth";
 import { COURSES, calcProgress } from "@/lib/courses";
 
 export const metadata: Metadata = {
@@ -12,14 +12,14 @@ export default async function ClassroomPage() {
   let user = null;
   try {
     user = await currentUser();
-  } catch { /* Clerk 미설정 */ }
+  } catch { /* auth 미설정 */ }
 
   if (!user) {
     redirect("/sign-in?redirect=/studio/classroom");
   }
 
-  const purchasedSlugs = (user.publicMetadata?.purchased_courses as string[]) ?? [];
-  const progressMap = (user.publicMetadata?.lesson_progress as Record<string, string[]>) ?? {};
+  const purchasedSlugs = ((user as any).purchased_courses as string[]) ?? [];
+  const progressMap = ((user as any).lesson_progress as Record<string, string[]>) ?? {};
 
   const myCourses = COURSES.filter(
     (c) => c.published && purchasedSlugs.includes(c.slug)

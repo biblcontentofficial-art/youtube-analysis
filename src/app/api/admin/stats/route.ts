@@ -1,4 +1,4 @@
-import { currentUser } from "@clerk/nextjs/server";
+import { currentUser } from "@/lib/auth";
 import { NextResponse } from "next/server";
 
 import { isAdminEmail } from "@/lib/adminAuth";
@@ -30,58 +30,52 @@ export async function GET() {
   const user = await currentUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const email = user.emailAddresses?.[0]?.emailAddress ?? "";
+  const email = user.email ?? "";
   if (!isAdminEmail(email)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const clerkSecretKey = process.env.CLERK_SECRET_KEY;
-  if (!clerkSecretKey) {
-    return NextResponse.json({ error: "Server misconfigured" }, { status: 500 });
-  }
-
   try {
-    // ── 1. Clerk 사용자 전체 조회 ──────────────────────────────────
-    const allUsers: Record<string, unknown>[] = [];
-    let offset = 0;
-    while (true) {
-      const res = await fetch(
-        `https://api.clerk.com/v1/users?limit=100&offset=${offset}&order_by=-created_at`,
-        { headers: { Authorization: `Bearer ${clerkSecretKey}` } }
-      );
-      if (!res.ok) break;
-      const page = await res.json();
-      if (!Array.isArray(page) || page.length === 0) break;
-      allUsers.push(...page);
-      if (page.length < 100 || allUsers.length >= 500) break;
-      offset += 100;
-    }
+    // ── 1. Supabase profiles에서 사용자 전체 조회 ─────────────────
+    const { getSupabase } = await import("@/lib/supabase");
+    const db = getSupabase();
+    if (!db) return NextResponse.json({ error: "DB not configured" }, { status: 500 });
+
+    const { data: profileRows } = await db
+      .from("profiles")
+      .select("id, email, plan, created_at, last_sign_in_at")
+      .order("created_at", { ascending: false })
+      .limit(500);
+
+    const allUsers = (profileRows ?? []).map((p: Record<string, unknown>) => ({
+      id: p.id as string,
+      created_at: p.created_at ? new Date(p.created_at as string).getTime() : 0,
+      last_active_at: p.last_sign_in_at ? new Date(p.last_sign_in_at as string).getTime() : null,
+      plan: (p.plan as string) ?? "free",
+    }));
 
     // ── 2. 사용자 통계 계산 ────────────────────────────────────────
     const now = Date.now();
     const DAY = 86400000;
     const WEEK = 7 * DAY;
 
-    const newToday = allUsers.filter((u) => (u.created_at as number) > now - DAY).length;
-    const newThisWeek = allUsers.filter((u) => (u.created_at as number) > now - WEEK).length;
+    const newToday = allUsers.filter((u) => u.created_at > now - DAY).length;
+    const newThisWeek = allUsers.filter((u) => u.created_at > now - WEEK).length;
     const activeToday = allUsers.filter((u) => {
-      const last = u.last_active_at as number | null;
-      return last && last > now - DAY;
+      return u.last_active_at && u.last_active_at > now - DAY;
     }).length;
     const activeThisWeek = allUsers.filter((u) => {
-      const last = u.last_active_at as number | null;
-      return last && last > now - WEEK;
+      return u.last_active_at && u.last_active_at > now - WEEK;
     }).length;
 
     const planCounts: Record<string, number> = { free: 0, starter: 0, pro: 0, business: 0, team: 0, admin: 0 };
     let mrr = 0;
     const userPlanMap: Record<string, string> = {};
     for (const u of allUsers) {
-      const meta = (u.public_metadata as Record<string, unknown>) ?? {};
-      const plan = (meta.plan as string) ?? "free";
+      const plan = u.plan;
       planCounts[plan] = (planCounts[plan] ?? 0) + 1;
       mrr += PLAN_PRICE[plan] ?? 0;
-      userPlanMap[u.id as string] = plan;
+      userPlanMap[u.id] = plan;
     }
 
     // ── 3. Redis 검색량 통계 ───────────────────────────────────────
@@ -106,7 +100,7 @@ export async function GET() {
           token: process.env.UPSTASH_REDIS_REST_TOKEN,
         });
 
-        const userIds = allUsers.map((u) => u.id as string);
+        const userIds = allUsers.map((u) => u.id);
         const freeIds = userIds.filter((id) => !MONTHLY_PLANS.has(userPlanMap[id] ?? "free"));
         const paidIds = userIds.filter((id) => MONTHLY_PLANS.has(userPlanMap[id] ?? "free"));
 

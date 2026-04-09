@@ -3,7 +3,7 @@
  * 내 계정 인사이트 — 대시보드 데이터 전체
  */
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { auth } from "@/lib/auth";
 import { getThreadsConnection } from "@/lib/db";
 import {
   getMyProfileInsights,

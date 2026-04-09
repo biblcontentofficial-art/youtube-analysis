@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { clerkClient } from '@clerk/nextjs/server'
+import { updateUserPlan } from '@/lib/auth'
 import { PLANS, PlanKey } from '@/lib/payple'
 
-// Clerk userId 형식 검증 (user_xxxxxxxxxxxxxxxxxxxxxxxx)
-const CLERK_USER_ID_RE = /^user_[A-Za-z0-9]{20,}$/
+// userId 형식 검증 (Supabase UUID 또는 레거시 Clerk user_xxx 모두 허용)
+const USER_ID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$|^user_[A-Za-z0-9]{20,}$/
 
 export async function POST(req: NextRequest) {
   try {
@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
     }
 
     // ── 4. userId 형식 검증 ───────────────────────────────────────────
-    if (!CLERK_USER_ID_RE.test(userId)) {
+    if (!USER_ID_RE.test(userId)) {
       console.error('[Payple] Invalid userId format:', userId)
       return NextResponse.json({ error: 'Invalid userId' }, { status: 400 })
     }
@@ -57,24 +57,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Amount mismatch' }, { status: 400 })
     }
 
-    // ── 6. Clerk 사용자 존재 여부 확인 ────────────────────────────────
-    const client = await clerkClient()
-    try {
-      await client.users.getUser(userId)
-    } catch {
-      console.error('[Payple] User not found:', userId)
-      return NextResponse.json({ error: 'User not found' }, { status: 400 })
-    }
-
-    // ── 7. 메타데이터 업데이트 ────────────────────────────────────────
-    await client.users.updateUserMetadata(userId, {
-      publicMetadata: {
-        plan,
-        payplePayerId: PCD_PAYER_ID,
-        payplePayerKey: PCD_PAYER_KEY,
-        subscriptionStarted: new Date().toISOString(),
-      },
-    })
+    // ── 6-7. 플랜 업데이트 ────────────────────────────────────────────
+    await updateUserPlan(userId, plan)
 
     console.log('[Payple] Payment confirmed:', { userId, plan, amount: paidAmount })
     return NextResponse.json({ success: true, plan })

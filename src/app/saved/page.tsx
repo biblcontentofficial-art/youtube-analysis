@@ -1,4 +1,4 @@
-import { auth, currentUser } from "@clerk/nextjs/server";
+import { auth, currentUser } from "@/lib/auth";
 import Link from "next/link";
 import { getSavedVideos } from "@/lib/db";
 import { PLANS, PlanKey } from "@/lib/stripe";
@@ -7,7 +7,7 @@ import SavedVideoList from "./_components/SavedVideoList";
 export default async function SavedPage() {
   const { userId } = await auth();
   const user = await currentUser();
-  const plan = (user?.publicMetadata?.plan as string) ?? "free";
+  const plan = (user?.plan as string) ?? "free";
   const planData = PLANS[plan as PlanKey] ?? PLANS.free;
 
   if (!planData.canSavedVideos) {

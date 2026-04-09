@@ -1,4 +1,4 @@
-import { currentUser } from "@clerk/nextjs/server";
+import { currentUser } from "@/lib/auth";
 import { NextResponse } from "next/server";
 import { isAdminEmail } from "@/lib/adminAuth";
 import { getSupabase } from "@/lib/supabase";
@@ -6,7 +6,7 @@ import { getSupabase } from "@/lib/supabase";
 export async function GET() {
   const user = await currentUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const email = user.emailAddresses?.[0]?.emailAddress ?? "";
+  const email = user.email ?? "";
   if (!isAdminEmail(email)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const db = getSupabase();

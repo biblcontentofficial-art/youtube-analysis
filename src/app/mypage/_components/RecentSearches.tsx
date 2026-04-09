@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useUser } from "@clerk/nextjs";
+import { createSupabaseBrowser } from "@/lib/supabase/browser";
 
 interface HistoryItem {
   term: string;
@@ -30,8 +30,22 @@ function loadLocalHistory(userId: string): HistoryItem[] {
 
 export default function RecentSearches() {
   const router = useRouter();
-  const { user, isLoaded } = useUser();
   const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [user, setUser] = useState<{ id: string; plan: string } | null>(null);
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    const supabase = createSupabaseBrowser();
+    const fetchUser = async () => {
+      const { data } = await supabase.auth.getUser();
+      if (data.user) {
+        const plan = (data.user.user_metadata?.plan as string) ?? "free";
+        setUser({ id: data.user.id, plan });
+      }
+      setIsLoaded(true);
+    };
+    fetchUser();
+  }, []);
 
   useEffect(() => {
     if (!isLoaded) return;
@@ -40,7 +54,7 @@ export default function RecentSearches() {
       return;
     }
 
-    const plan = (user.publicMetadata?.plan as string) ?? "free";
+    const plan = user.plan;
     const canServerHistory = ["starter", "pro", "business", "admin", "team"].includes(plan);
 
     if (canServerHistory) {
@@ -57,7 +71,7 @@ export default function RecentSearches() {
     } else {
       setHistory(loadLocalHistory(user.id));
     }
-  }, [isLoaded, user]);
+  }, [isLoaded, user?.id]);
 
   if (!isLoaded || !user || history.length === 0) return null;
 

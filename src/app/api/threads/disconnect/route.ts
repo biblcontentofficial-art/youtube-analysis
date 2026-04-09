@@ -3,7 +3,7 @@
  * Meta 계정 연결 해제
  */
 import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { auth } from "@/lib/auth";
 import { deleteThreadsConnection } from "@/lib/db";
 
 export async function DELETE() {

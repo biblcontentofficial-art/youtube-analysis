@@ -5,7 +5,7 @@
  * - 유료 플랜: 월별 키 (search:m:{userId}:{YYYY-MM})
  */
 
-import { currentUser } from "@clerk/nextjs/server";
+import { currentUser } from "@/lib/auth";
 import { NextResponse } from "next/server";
 
 import { isAdminEmail } from "@/lib/adminAuth";
@@ -29,7 +29,7 @@ export async function POST(
   const admin = await currentUser();
   if (!admin) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const email = admin.emailAddresses?.[0]?.emailAddress ?? "";
+  const email = admin.email ?? "";
   if (!isAdminEmail(email)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }

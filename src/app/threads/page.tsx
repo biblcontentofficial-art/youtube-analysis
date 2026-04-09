@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { auth, currentUser } from "@clerk/nextjs/server";
+import { auth, currentUser } from "@/lib/auth";
 import { PLANS, PlanKey } from "@/lib/stripe";
 import { getThreadsConnection } from "@/lib/db";
 import { getSavedThreads } from "@/lib/db";
@@ -44,7 +44,7 @@ export default async function ThreadsPage({ searchParams }: Props) {
   // 사용자 정보
   const { userId } = await auth();
   const user = userId ? await currentUser() : null;
-  const plan = ((user?.publicMetadata?.plan as PlanKey) ?? "free") as PlanKey;
+  const plan = ((user?.plan as PlanKey) ?? "free") as PlanKey;
   const planData = PLANS[plan in PLANS ? plan : "free"];
   const canViralScore = planData.canThreadsViralScore;
   const canCollect = planData.canCollect;

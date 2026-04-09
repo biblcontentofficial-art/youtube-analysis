@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
-import { currentUser } from "@clerk/nextjs/server";
+import { currentUser } from "@/lib/auth";
 import { getCourse, getTotalLessons, calcProgress } from "@/lib/courses";
 import LessonPlayer from "./_components/LessonPlayer";
 
@@ -26,18 +26,18 @@ export default async function ClassroomCoursePage({ params, searchParams }: Prop
   let user = null;
   try {
     user = await currentUser();
-  } catch { /* Clerk 미설정 */ }
+  } catch { /* auth 미설정 */ }
 
   if (!user) {
     redirect(`/sign-in?redirect=/studio/classroom/${courseId}`);
   }
 
-  const purchasedSlugs = (user.publicMetadata?.purchased_courses as string[]) ?? [];
+  const purchasedSlugs = ((user as any).purchased_courses as string[]) ?? [];
   if (!purchasedSlugs.includes(courseId)) {
     redirect(`/studio/class/${courseId}`);
   }
 
-  const progressMap = (user.publicMetadata?.lesson_progress as Record<string, string[]>) ?? {};
+  const progressMap = ((user as any).lesson_progress as Record<string, string[]>) ?? {};
   const completedIds = progressMap[courseId] ?? [];
   const prog = calcProgress(course, completedIds);
 

@@ -1,7 +1,7 @@
 "use client";
 
-import { useSignIn } from "@clerk/nextjs";
 import { useState, useEffect } from "react";
+import { createSupabaseBrowser } from "@/lib/supabase/browser";
 import {
   type InAppInfo,
   detectInAppBrowser,
@@ -10,7 +10,6 @@ import {
 } from "@/lib/inAppBrowser";
 
 export default function SignInForm() {
-  const { signIn, isLoaded } = useSignIn();
   const [loading, setLoading] = useState<"kakao" | "google" | null>(null);
   const [copied, setCopied] = useState(false);
   const [inAppInfo, setInAppInfo] = useState<InAppInfo>({
@@ -33,23 +32,28 @@ export default function SignInForm() {
     }
   };
 
-  const handleOAuth = async (provider: "oauth_custom_kakao" | "oauth_google") => {
-    if (!isLoaded || loading) return;
+  const handleOAuth = async (provider: "kakao" | "google") => {
+    if (loading) return;
 
-    // 인앱 브라우저에서 Google OAuth는 Google 정책으로 완전 차단됨 → 외부 브라우저로 유도
-    if (provider === "oauth_google" && inAppInfo.isInApp) {
+    // 인앱 브라우저에서 Google OAuth는 Google 정책으로 차단됨
+    if (provider === "google" && inAppInfo.isInApp) {
       handleOpenExternal();
       return;
     }
 
-    setLoading(provider === "oauth_custom_kakao" ? "kakao" : "google");
+    setLoading(provider);
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await (signIn as any).authenticateWithRedirect({
-        strategy: provider,
-        redirectUrl: "/sso-callback",
-        redirectUrlComplete: "/search",
+      const supabase = createSupabaseBrowser();
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback?next=/search`,
+        },
       });
+      if (error) {
+        console.error("OAuth error:", error.message);
+        setLoading(null);
+      }
     } catch {
       setLoading(null);
     }
@@ -74,7 +78,6 @@ export default function SignInForm() {
         {/* ── 인앱 브라우저 전용 안내 카드 ─────────────────────────────── */}
         {inAppInfo.isInApp && (
           <div className="mb-4 bg-amber-950/70 border border-amber-600/70 rounded-2xl p-5">
-            {/* 헤더 */}
             <div className="flex items-center gap-2 mb-3">
               <svg className="w-5 h-5 text-amber-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
@@ -83,16 +86,12 @@ export default function SignInForm() {
                 {inAppInfo.appName} 앱에서 접속 중
               </p>
             </div>
-
-            {/* 안내 */}
             <p className="text-amber-200/80 text-xs leading-relaxed mb-3">
               Google은 앱 내 브라우저 로그인을 보안 정책으로 <strong className="text-amber-200">차단</strong>합니다.{" "}
               {inAppInfo.isIOS
                 ? "아래 방법으로 Safari에서 열어주세요."
                 : "Chrome으로 열어서 로그인해 주세요."}
             </p>
-
-            {/* Android: Chrome으로 열기 버튼 */}
             {inAppInfo.isAndroid && (
               <button
                 onClick={handleOpenExternal}
@@ -105,8 +104,6 @@ export default function SignInForm() {
                 Chrome으로 열기
               </button>
             )}
-
-            {/* iOS: 단계별 안내 + 주소 복사 */}
             {inAppInfo.isIOS && (
               <div className="space-y-2">
                 <div className="bg-amber-900/50 rounded-lg p-3 text-xs text-amber-200/90 space-y-1.5">
@@ -116,7 +113,7 @@ export default function SignInForm() {
                   </p>
                   <p className="flex items-start gap-1.5">
                     <span className="text-amber-400 font-bold shrink-0">2.</span>
-                    <strong>"Safari로 열기"</strong> 또는 <strong>"Chrome으로 열기"</strong> 선택
+                    <strong>&quot;Safari로 열기&quot;</strong> 또는 <strong>&quot;Chrome으로 열기&quot;</strong> 선택
                   </p>
                 </div>
                 <button
@@ -165,7 +162,7 @@ export default function SignInForm() {
 
           {/* 카카오 로그인 */}
           <button
-            onClick={() => handleOAuth("oauth_custom_kakao")}
+            onClick={() => handleOAuth("kakao")}
             disabled={!!loading}
             className="w-full flex items-center justify-center gap-3 bg-[#FEE500] hover:bg-[#FDD835] text-[#191919] font-bold py-3.5 px-4 rounded-xl transition mb-3 disabled:opacity-70"
           >
@@ -179,9 +176,9 @@ export default function SignInForm() {
             카카오로 계속하기
           </button>
 
-          {/* 구글 로그인 — 인앱 브라우저에서는 완전 비활성화 */}
+          {/* 구글 로그인 */}
           <button
-            onClick={() => handleOAuth("oauth_google")}
+            onClick={() => handleOAuth("google")}
             disabled={!!loading}
             className={`w-full flex items-center justify-center gap-3 bg-white text-gray-800 font-semibold py-3.5 px-4 rounded-xl transition disabled:opacity-70 ${
               inAppInfo.isInApp ? "opacity-40 cursor-not-allowed" : "hover:bg-gray-100"

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getStripe } from "@/lib/stripe";
-import { clerkClient } from "@clerk/nextjs/server";
+import { updateUserPlan } from "@/lib/auth";
 import Stripe from "stripe";
 
 // ── 중복 이벤트 방어: Redis에 처리된 event.id 기록 (TTL 7일) ──────────────
@@ -39,11 +39,10 @@ async function markProcessed(eventId: string): Promise<void> {
 
 async function updatePlan(userId: string, plan: string, event: string) {
   try {
-    const client = await clerkClient();
-    await client.users.updateUserMetadata(userId, { publicMetadata: { plan } });
+    await updateUserPlan(userId, plan);
     console.log(`[stripe] ${event}: userId=${userId} plan=${plan} 업데이트 완료`);
   } catch (e) {
-    console.error(`[stripe] ${event}: userId=${userId} plan=${plan} 메타데이터 업데이트 실패`, e);
+    console.error(`[stripe] ${event}: userId=${userId} plan=${plan} 플랜 업데이트 실패`, e);
     // Stripe에 500을 반환하면 재시도함 — 여기서는 성공 응답을 유지해 무한 재시도 방지
   }
 }

@@ -1,4 +1,4 @@
-import { currentUser } from "@clerk/nextjs/server";
+import { currentUser } from "@/lib/auth";
 import { NextResponse } from "next/server";
 
 import { isAdminEmail } from "@/lib/adminAuth";
@@ -11,14 +11,9 @@ export async function PATCH(
   const user = await currentUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const email = user.emailAddresses?.[0]?.emailAddress ?? "";
+  const email = user.email ?? "";
   if (!isAdminEmail(email)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
-
-  const clerkSecretKey = process.env.CLERK_SECRET_KEY;
-  if (!clerkSecretKey) {
-    return NextResponse.json({ error: "Server misconfigured" }, { status: 500 });
   }
 
   let plan: string;
@@ -34,21 +29,8 @@ export async function PATCH(
   }
 
   try {
-    const res = await fetch(`https://api.clerk.com/v1/users/${params.id}/metadata`, {
-      method: "PATCH",
-      headers: {
-        Authorization: `Bearer ${clerkSecretKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ public_metadata: { plan } }),
-    });
-
-    if (!res.ok) {
-      const text = await res.text();
-      console.error("Clerk PATCH error:", text);
-      return NextResponse.json({ error: "Failed to update plan" }, { status: 500 });
-    }
-
+    const { updateUserPlan } = await import("@/lib/auth");
+    await updateUserPlan(params.id, plan);
     return NextResponse.json({ success: true, plan });
   } catch (err) {
     console.error("Plan update error:", err);

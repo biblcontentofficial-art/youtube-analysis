@@ -1,12 +1,12 @@
-import { auth } from "@clerk/nextjs/server";
+import { auth, getUserPlan } from "@/lib/auth";
 import { NextRequest, NextResponse } from "next/server";
 import { getSavedVideos, upsertSavedVideo, deleteSavedVideo, clearSavedVideos } from "@/lib/db";
 import { PLANS, PlanKey } from "@/lib/stripe";
 
 async function getAuthedUser() {
-  const { userId, sessionClaims } = await auth();
+  const { userId } = await auth();
   if (!userId) return null;
-  const plan = (sessionClaims?.publicMetadata as Record<string, string> | undefined)?.plan ?? "free";
+  const plan = await getUserPlan(userId);
   const planData = PLANS[plan as PlanKey] ?? PLANS.free;
   return { userId, plan, canSavedVideos: planData.canSavedVideos };
 }

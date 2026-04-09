@@ -5,7 +5,7 @@
  * DELETE /api/search-history       — 전체 삭제 (body: {} 또는 body: { term })
  */
 
-import { auth } from "@clerk/nextjs/server";
+import { auth, getUserPlan } from "@/lib/auth";
 import { NextRequest, NextResponse } from "next/server";
 import {
   getSearchHistory,
@@ -15,31 +15,27 @@ import {
 } from "@/lib/db";
 import { PLANS, PlanKey } from "@/lib/stripe";
 
-function getPlan(userId: string | null, metadata: Record<string, unknown>): PlanKey {
-  const plan = metadata?.plan as string;
-  if (plan && plan in PLANS) return plan as PlanKey;
-  return "free";
-}
-
 export async function GET() {
-  const { userId, sessionClaims } = await auth();
+  const { userId } = await auth();
   if (!userId) return NextResponse.json({ items: [] });
 
-  const plan = getPlan(userId, (sessionClaims?.publicMetadata ?? {}) as Record<string, unknown>);
-  if (!PLANS[plan].canServerHistory) return NextResponse.json({ items: [] });
+  const plan = (await getUserPlan(userId)) as PlanKey;
+  const planData = PLANS[plan] ?? PLANS.free;
+  if (!planData.canServerHistory) return NextResponse.json({ items: [] });
 
-  const historyDays = PLANS[plan].historyDays;
+  const historyDays = planData.historyDays;
   const limit = historyDays >= 9999 ? 100 : 30;
   const items = await getSearchHistory(userId, limit, historyDays);
   return NextResponse.json({ items });
 }
 
 export async function POST(req: NextRequest) {
-  const { userId, sessionClaims } = await auth();
+  const { userId } = await auth();
   if (!userId) return NextResponse.json({ ok: false }, { status: 401 });
 
-  const plan = getPlan(userId, (sessionClaims?.publicMetadata ?? {}) as Record<string, unknown>);
-  if (!PLANS[plan].canServerHistory) return NextResponse.json({ ok: false }, { status: 403 });
+  const plan = (await getUserPlan(userId)) as PlanKey;
+  const planData = PLANS[plan] ?? PLANS.free;
+  if (!planData.canServerHistory) return NextResponse.json({ ok: false }, { status: 403 });
 
   const { term } = await req.json().catch(() => ({ term: "" }));
   if (!term) return NextResponse.json({ ok: false }, { status: 400 });
@@ -49,11 +45,12 @@ export async function POST(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
-  const { userId, sessionClaims } = await auth();
+  const { userId } = await auth();
   if (!userId) return NextResponse.json({ ok: false }, { status: 401 });
 
-  const plan = getPlan(userId, (sessionClaims?.publicMetadata ?? {}) as Record<string, unknown>);
-  if (!PLANS[plan].canServerHistory) return NextResponse.json({ ok: false }, { status: 403 });
+  const plan = (await getUserPlan(userId)) as PlanKey;
+  const planData = PLANS[plan] ?? PLANS.free;
+  if (!planData.canServerHistory) return NextResponse.json({ ok: false }, { status: 403 });
 
   const body = await req.json().catch(() => ({}));
   if (body.term) {

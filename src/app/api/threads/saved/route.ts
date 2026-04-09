@@ -6,7 +6,7 @@
  * DELETE — 단건 삭제(postId) 또는 전체 삭제
  */
 import { NextRequest, NextResponse } from "next/server";
-import { auth, currentUser } from "@clerk/nextjs/server";
+import { auth, currentUser } from "@/lib/auth";
 import { PLANS, PlanKey } from "@/lib/stripe";
 import {
   upsertSavedThread,
@@ -21,7 +21,7 @@ async function requireProPlus() {
   if (!userId) return { error: "로그인이 필요합니다", status: 401, userId: null };
 
   const user = await currentUser();
-  const plan = ((user?.publicMetadata?.plan as PlanKey) ?? "free") as PlanKey;
+  const plan = ((user?.plan as PlanKey) ?? "free") as PlanKey;
   const planData = PLANS[plan in PLANS ? plan : "free"];
 
   if (!planData.canCollect) {

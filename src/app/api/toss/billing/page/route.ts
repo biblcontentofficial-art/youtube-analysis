@@ -6,7 +6,7 @@
  * 공식 가이드 HTML 샘플과 동일한 구조.
  */
 
-import { auth } from "@clerk/nextjs/server";
+import { auth } from "@/lib/auth";
 import { NextRequest, NextResponse } from "next/server";
 import { TOSS_PLANS, TossPlanKey } from "@/lib/toss";
 

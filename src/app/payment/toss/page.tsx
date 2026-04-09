@@ -1,4 +1,4 @@
-import { auth, currentUser } from "@clerk/nextjs/server";
+import { auth, currentUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { TOSS_PLANS, TossPlanKey } from "@/lib/toss";
 
@@ -18,8 +18,8 @@ export default async function TossCheckoutPage({
   if (!plan || !TOSS_PLANS[plan]) redirect("/pricing");
 
   const user = await currentUser();
-  const userName = `${user?.firstName ?? ""} ${user?.lastName ?? ""}`.trim();
-  const userEmail = user?.emailAddresses?.[0]?.emailAddress ?? "";
+  const userName = user?.firstName ?? "";
+  const userEmail = user?.email ?? "";
 
   // 순수 HTML 결제 페이지로 리다이렉트 (React/Next.js 환경 우회)
   const period = searchParams.period === "monthly" ? "monthly" : "yearly";

@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useUser } from "@clerk/nextjs";
+import { createSupabaseBrowser } from "@/lib/supabase/browser";
 import { useNavigationLoading } from "@/app/_components/NavigationLoader";
 import { useConfirm } from "@/app/_components/ConfirmDialog";
 import LandingStats from "@/app/_components/LandingStats";
@@ -12,7 +12,17 @@ const EXAMPLE_KEYWORDS = ["캠핑", "영어 공부", "주식 투자", "다이어
 
 export default function Home() {
   const router = useRouter();
-  const { isSignedIn, isLoaded } = useUser();
+  const [isSignedIn, setIsSignedIn] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
+  React.useEffect(() => {
+    const supabase = createSupabaseBrowser();
+    const fetchUser = async () => {
+      const { data } = await supabase.auth.getUser();
+      setIsSignedIn(!!data.user);
+      setIsLoaded(true);
+    };
+    fetchUser();
+  }, []);
   const { showLoading } = useNavigationLoading();
   const showConfirm = useConfirm();
   const [keyword, setKeyword] = useState("");

@@ -4,7 +4,8 @@
  * GET  /api/portone/confirm?paymentId=...&plan=...  (redirect 방식)
  */
 
-import { auth, clerkClient } from "@clerk/nextjs/server";
+import { auth } from "@/lib/auth";
+import { updateUserPlan } from "@/lib/auth";
 import { NextRequest, NextResponse } from "next/server";
 import { PORTONE_PLANS, PORTONE_API_SECRET, PortonePlanKey } from "@/lib/portone";
 import { upsertSubscription, insertPayment } from "@/lib/db";
@@ -44,14 +45,11 @@ async function verifyAndActivate(req: NextRequest, paymentId: string, plan: Port
     return { ok: false, message: `결제 상태 오류: ${payment.status}` };
   }
 
-  // Clerk 플랜 업데이트
+  // 플랜 업데이트
   try {
-    const client = await clerkClient();
-    await client.users.updateUser(userId, {
-      publicMetadata: { plan, portonePaymentId: paymentId, portonePaidAt: new Date().toISOString() },
-    });
+    await updateUserPlan(userId, plan);
   } catch (e) {
-    console.error("[PortOne] Clerk 업데이트 실패:", e);
+    console.error("[PortOne] 플랜 업데이트 실패:", e);
   }
 
   // DB 저장

@@ -3,7 +3,7 @@
  * Threads API 원본 응답 확인용 (임시 디버그)
  */
 import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { auth } from "@/lib/auth";
 import { getThreadsConnection } from "@/lib/db";
 
 const API = "https://graph.threads.net/v1.0";

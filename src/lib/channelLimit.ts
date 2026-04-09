@@ -5,7 +5,7 @@
  * - 비로그인: 쿠키 기반
  */
 
-import { auth, currentUser } from "@clerk/nextjs/server";
+import { auth, currentUser } from "@/lib/auth";
 import { cookies } from "next/headers";
 import { PLANS, PlanKey } from "./stripe";
 
@@ -114,7 +114,7 @@ export async function getChannelUsage(): Promise<ChannelUsageResult> {
   if (userId) {
     try {
       const user = await currentUser();
-      const p = user?.publicMetadata?.plan as PlanKey;
+      const p = user?.plan as PlanKey;
       plan = p in PLANS ? p : "free";
     } catch {}
   }
@@ -156,7 +156,7 @@ export async function incrementChannelCount(): Promise<{ ok: boolean; used: numb
   if (userId) {
     try {
       const user = await currentUser();
-      const p = user?.publicMetadata?.plan as PlanKey;
+      const p = user?.plan as PlanKey;
       plan = p in PLANS ? p : "free";
     } catch {}
   }

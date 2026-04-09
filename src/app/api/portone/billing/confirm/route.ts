@@ -7,7 +7,8 @@
  * billing_key는 "portone:{실제키}" 형태로 저장 → cron에서 Toss와 구분
  */
 
-import { auth, clerkClient } from "@clerk/nextjs/server";
+import { auth } from "@/lib/auth";
+import { updateUserPlan } from "@/lib/auth";
 import { NextRequest, NextResponse } from "next/server";
 import { PORTONE_PLANS, PORTONE_API_SECRET, PORTONE_BILLING_KEY_PREFIX, PortonePlanKey } from "@/lib/portone";
 import { upsertSubscription, insertPayment } from "@/lib/db";
@@ -70,19 +71,11 @@ export async function POST(req: NextRequest) {
 
   const payment = await chargeRes.json();
 
-  // Clerk 플랜 업데이트
+  // 플랜 업데이트
   try {
-    const client = await clerkClient();
-    await client.users.updateUser(userId, {
-      publicMetadata: {
-        plan,
-        portonePg: pg,
-        portoneBillingKey: billingKey,
-        portonePaidAt: new Date().toISOString(),
-      },
-    });
+    await updateUserPlan(userId, plan);
   } catch (e) {
-    console.error(`[PortOne ${pg}] Clerk 업데이트 실패:`, e);
+    console.error(`[PortOne ${pg}] 플랜 업데이트 실패:`, e);
   }
 
   // billing_key에 "portone:" prefix 붙여서 저장 → cron에서 Toss와 구분

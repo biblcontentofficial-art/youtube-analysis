@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
-import { currentUser } from "@clerk/nextjs/server";
+import { currentUser } from "@/lib/auth";
 import { getChannelDetail, getChannelRecentVideos } from "@/lib/youtube";
 import { PLANS, PlanKey } from "@/lib/stripe";
 import DescriptionToggle from "./_components/DescriptionToggle";
@@ -205,7 +205,7 @@ interface Props {
 
 export default async function ChannelDetailPage({ params, searchParams }: Props) {
   const user = await currentUser();
-  const plan = (user?.publicMetadata?.plan as string) ?? "free";
+  const plan = (user?.plan as string) ?? "free";
   const isPaid = plan !== "free";
 
   // 데이터 병렬 페치

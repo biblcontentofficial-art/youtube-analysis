@@ -1,18 +1,19 @@
 "use client";
 import { useState } from "react";
-import { useClerk } from "@clerk/nextjs";
+import { createSupabaseBrowser } from "@/lib/supabase/browser";
 
 export default function DeleteAccountButton() {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { signOut } = useClerk();
 
   async function handleDelete() {
     setLoading(true);
     try {
       const res = await fetch("/api/delete-account", { method: "DELETE" });
       if (!res.ok) throw new Error("failed");
-      await signOut({ redirectUrl: "/" });
+      const supabase = createSupabaseBrowser();
+      await supabase.auth.signOut();
+      window.location.href = "/";
     } catch {
       alert("계정 삭제에 실패했습니다. 잠시 후 다시 시도해주세요.");
       setLoading(false);

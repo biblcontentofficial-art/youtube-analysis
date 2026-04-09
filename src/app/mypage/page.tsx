@@ -1,4 +1,4 @@
-import { auth, currentUser } from "@clerk/nextjs/server";
+import { auth, currentUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getSearchUsage } from "@/lib/searchLimit";
@@ -18,7 +18,7 @@ export default async function MyPage({
   if (!userId) redirect("/sign-in");
 
   const user = await currentUser();
-  const plan = (user?.publicMetadata?.plan as string) || "free";
+  const plan = (user?.plan as string) || "free";
 
   let usage = { used: 0, limit: 3, isMonthly: false, unlimited: false };
   try {
@@ -50,8 +50,8 @@ export default async function MyPage({
     business: "text-purple-400",
   };
 
-  const displayName = user?.firstName || user?.username || user?.emailAddresses?.[0]?.emailAddress?.split("@")[0] || "사용자";
-  const email = user?.emailAddresses?.[0]?.emailAddress || "";
+  const displayName = user?.firstName || user?.email?.split("@")[0] || "사용자";
+  const email = user?.email || "";
 
   return (
     <main className="min-h-screen bg-gray-950 flex items-center justify-center px-4">

@@ -3,7 +3,7 @@
  * Meta OAuth 시작 — threads.net/oauth/authorize 로 리다이렉트
  */
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { auth } from "@/lib/auth";
 import { getOAuthUrl } from "@/lib/threads";
 
 function getBaseUrl(req: NextRequest): string {

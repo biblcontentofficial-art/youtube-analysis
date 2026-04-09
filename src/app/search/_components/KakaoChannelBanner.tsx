@@ -1,29 +1,30 @@
 "use client";
 
-import { useUser } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
+import { createSupabaseBrowser } from "@/lib/supabase/browser";
 
 const KAKAO_CHANNEL_URL = "https://pf.kakao.com/_beBNn/friend";
 const LS_KEY = "bibl_kakao_channel_added";
 
 export default function KakaoChannelBanner() {
-  const { user, isLoaded } = useUser();
   const [show, setShow] = useState(false);
 
   useEffect(() => {
-    if (!isLoaded || !user) return;
-    if (localStorage.getItem(LS_KEY)) return;
+    const supabase = createSupabaseBrowser();
+    const fetchUser = async () => {
+      const { data } = await supabase.auth.getUser();
+      if (!data.user) return;
+      if (localStorage.getItem(LS_KEY)) return;
 
-    // 카카오 계정으로 로그인한 유저인지 확인
-    const isKakaoUser = user.externalAccounts?.some(
-      (acc) => (acc.provider as string).includes("kakao")
-    );
-    if (isKakaoUser) {
-      // 페이지 진입 후 1.5초 뒤 표시
-      const timer = setTimeout(() => setShow(true), 1500);
-      return () => clearTimeout(timer);
-    }
-  }, [isLoaded, user]);
+      // 카카오 계정으로 로그인한 유저인지 확인
+      const provider = data.user.app_metadata?.provider;
+      const isKakaoUser = provider === "kakao";
+      if (isKakaoUser) {
+        setTimeout(() => setShow(true), 1500);
+      }
+    };
+    fetchUser();
+  }, []);
 
   const handleAdd = () => {
     window.open(KAKAO_CHANNEL_URL, "_blank");

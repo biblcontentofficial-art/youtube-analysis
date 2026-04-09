@@ -1,4 +1,4 @@
-import { currentUser } from "@clerk/nextjs/server";
+import { currentUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import AdminDashboard from "./_components/AdminDashboard";
@@ -12,12 +12,12 @@ export default async function AdminPage() {
     redirect("/sign-in?redirect_url=/admin");
   }
 
-  const email = user.emailAddresses?.[0]?.emailAddress ?? "";
+  const email = user.email ?? "";
   if (!isAdminEmail(email)) {
     redirect("/");
   }
 
-  const displayName = user.firstName || user.username || email.split("@")[0] || "Admin";
+  const displayName = user.firstName || email.split("@")[0] || "Admin";
 
   return (
     <main className="min-h-screen bg-gray-950 text-white py-10 px-4">

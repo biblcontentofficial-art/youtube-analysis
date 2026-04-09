@@ -8,9 +8,9 @@
  * Authorization: Bearer ADMIN_SECRET
  */
 import { NextRequest, NextResponse } from "next/server";
-import { clerkClient } from "@clerk/nextjs/server";
 import { getCourse } from "@/lib/courses";
 import { verifyBearerToken } from "@/lib/authUtils";
+import { getSupabase } from "@/lib/supabase";
 
 export async function POST(req: NextRequest) {
   // 관리자 인증 (timing-safe 비교)
@@ -37,20 +37,25 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const client = await clerkClient();
-    const user = await client.users.getUser(userId);
-    const existing = (user.publicMetadata?.purchased_courses as string[]) ?? [];
+    const db = getSupabase();
+    if (!db) return NextResponse.json({ error: "DB not configured" }, { status: 500 });
+
+    const { data: profile } = await db
+      .from("profiles")
+      .select("purchased_courses")
+      .eq("id", userId)
+      .single();
+
+    const existing = (profile?.purchased_courses as string[]) ?? [];
 
     if (existing.includes(courseSlug)) {
       return NextResponse.json({ ok: true, message: "Already enrolled" });
     }
 
-    await client.users.updateUserMetadata(userId, {
-      publicMetadata: {
-        ...user.publicMetadata,
-        purchased_courses: [...existing, courseSlug],
-      },
-    });
+    await db
+      .from("profiles")
+      .update({ purchased_courses: [...existing, courseSlug] })
+      .eq("id", userId);
 
     return NextResponse.json({ ok: true, message: `Enrolled ${userId} in ${courseSlug}` });
   } catch (err) {

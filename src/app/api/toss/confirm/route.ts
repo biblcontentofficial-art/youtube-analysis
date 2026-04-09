@@ -1,5 +1,5 @@
-import { auth } from "@clerk/nextjs/server";
-import { clerkClient } from "@clerk/nextjs/server";
+import { auth } from "@/lib/auth";
+import { updateUserPlan } from "@/lib/auth";
 import { NextRequest, NextResponse } from "next/server";
 import { TOSS_PLANS, TossPlanKey } from "@/lib/toss";
 import { upsertSubscription, insertPayment } from "@/lib/db";
@@ -46,12 +46,9 @@ export async function GET(req: NextRequest) {
 
     const chargeData = await confirmRes.json();
 
-    // Clerk 플랜 업데이트 + DB 저장 (best-effort)
+    // 플랜 업데이트 + DB 저장 (best-effort)
     await Promise.allSettled([
-      (async () => {
-        const client = await clerkClient();
-        await client.users.updateUser(userId, { publicMetadata: { plan } });
-      })(),
+      updateUserPlan(userId, plan),
       upsertSubscription({ userId, plan, billingKey: "", customerKey: userId }),
       insertPayment({
         userId,

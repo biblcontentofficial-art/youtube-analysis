@@ -11,7 +11,8 @@
  * 4. Clerk 플랜 → "free" + 빌링 메타데이터 제거
  */
 
-import { currentUser, clerkClient } from "@clerk/nextjs/server";
+import { currentUser } from "@/lib/auth";
+import { updateUserPlan } from "@/lib/auth";
 import { NextRequest, NextResponse } from "next/server";
 import { isAdminEmail } from "@/lib/adminAuth";
 import { updatePaymentStatus, cancelSubscription } from "@/lib/db";
@@ -24,7 +25,7 @@ export async function POST(
   const admin = await currentUser();
   if (!admin) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const email = admin.emailAddresses?.[0]?.emailAddress ?? "";
+  const email = admin.email ?? "";
   if (!isAdminEmail(email)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
@@ -91,20 +92,12 @@ export async function POST(
     // ── Step 3: DB 구독 취소 ──
     await cancelSubscription(userId);
 
-    // ── Step 4: Clerk 플랜 다운그레이드 + 빌링 메타 제거 ──
+    // ── Step 4: 플랜 다운그레이드 ──
     try {
-      const client = await clerkClient();
-      await client.users.updateUser(userId, {
-        publicMetadata: {
-          plan: "free",
-          tossBillingKey: null,
-          tossBillingPlan: null,
-          tossBilledAt: null,
-        },
-      });
-    } catch (clerkErr) {
-      console.error("Clerk 메타데이터 업데이트 실패:", clerkErr);
-      // 토스 환불은 성공했으므로 Clerk 실패는 경고로 반환
+      await updateUserPlan(userId, "free");
+    } catch (planErr) {
+      console.error("플랜 업데이트 실패:", planErr);
+      // 토스 환불은 성공했으므로 플랜 업데이트 실패는 경고로 반환
     }
 
     return NextResponse.json({

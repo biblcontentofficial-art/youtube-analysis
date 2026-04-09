@@ -9,7 +9,8 @@
  * 4. /search?upgraded=1 로 리다이렉트
  */
 
-import { auth, clerkClient } from "@clerk/nextjs/server";
+import { auth } from "@/lib/auth";
+import { updateUserPlan } from "@/lib/auth";
 import { NextRequest, NextResponse } from "next/server";
 import { TOSS_PLANS, TossPlanKey } from "@/lib/toss";
 import { upsertSubscription, insertPayment } from "@/lib/db";
@@ -63,18 +64,11 @@ export async function GET(req: NextRequest) {
 
     const paymentData = await confirmRes.json();
 
-    // ── Clerk 플랜 업데이트 ────────────────────────────────────────────
+    // ── 플랜 업데이트 ──────────────────────────────────────────────────
     try {
-      const client = await clerkClient();
-      await client.users.updateUser(userId, {
-        publicMetadata: {
-          plan,
-          tossPaymentKey: paymentData.paymentKey,
-          tossPaidAt: new Date().toISOString(),
-        },
-      });
+      await updateUserPlan(userId, plan);
     } catch (metaErr) {
-      console.error("Clerk 메타데이터 업데이트 실패:", metaErr);
+      console.error("플랜 업데이트 실패:", metaErr);
     }
 
     // ── DB 저장 ────────────────────────────────────────────────────────

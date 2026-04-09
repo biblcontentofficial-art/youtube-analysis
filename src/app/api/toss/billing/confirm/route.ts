@@ -10,7 +10,8 @@
  * 5. /search?upgraded=1 로 리다이렉트
  */
 
-import { auth, clerkClient, currentUser } from "@clerk/nextjs/server";
+import { auth, currentUser } from "@/lib/auth";
+import { updateUserPlan } from "@/lib/auth";
 import { NextRequest, NextResponse } from "next/server";
 import { TOSS_PLANS, TossPlanKey } from "@/lib/toss";
 import { upsertSubscription, insertPayment } from "@/lib/db";
@@ -36,8 +37,8 @@ export async function GET(req: NextRequest) {
   const planData = TOSS_PLANS[plan];
 
   // 이메일 조회 (결제 영수증용)
-  const clerkUser = await currentUser().catch(() => null);
-  const customerEmail = clerkUser?.emailAddresses?.[0]?.emailAddress ?? "";
+  const authUser = await currentUser().catch(() => null);
+  const customerEmail = authUser?.email ?? "";
 
   try {
     // ── Step 1: authKey → billingKey 발급 ────────────────────────────
@@ -100,19 +101,11 @@ export async function GET(req: NextRequest) {
 
     const chargeData = await chargeRes.json();
 
-    // ── Step 3: Clerk 메타데이터 업데이트 ────────────────────────────
+    // ── Step 3: 플랜 업데이트 ────────────────────────────────────────
     try {
-      const client = await clerkClient();
-      await client.users.updateUser(userId, {
-        publicMetadata: {
-          plan,
-          tossBillingKey: billingKey,
-          tossBillingPlan: plan,
-          tossBilledAt: new Date().toISOString(),
-        },
-      });
+      await updateUserPlan(userId, plan);
     } catch (metaErr) {
-      console.error("Toss 빌링 메타데이터 업데이트 실패:", metaErr);
+      console.error("Toss 빌링 플랜 업데이트 실패:", metaErr);
     }
 
     // ── Step 4: DB에 구독 & 결제 이력 저장 ───────────────────────────

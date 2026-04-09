@@ -10,7 +10,7 @@
  * - business/admin: 월별 (무제한, 통계용)
  */
 
-import { auth, currentUser } from "@clerk/nextjs/server";
+import { auth, currentUser } from "@/lib/auth";
 import { cookies } from "next/headers";
 import { PLANS, PlanKey } from "./stripe";
 
@@ -138,7 +138,7 @@ function secondsUntilNextMonth(): number {
 export async function getUserPlan(): Promise<PlanKey> {
   try {
     const user = await currentUser();
-    const plan = (user?.publicMetadata?.plan as PlanKey) ?? "free";
+    const plan = (user?.plan as PlanKey) ?? "free";
     return plan in PLANS ? plan : "free";
   } catch {
     return "free";

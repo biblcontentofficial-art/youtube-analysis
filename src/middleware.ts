@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
+import { updateSession } from "@/lib/supabase/middleware";
 
-// www.bibllab.com → bibllab.com 리다이렉트 (Clerk 세션 쿠키 도메인 일치를 위해)
+// www.bibllab.com → bibllab.com 리다이렉트
 function handleWwwRedirect(req: NextRequest): NextResponse | null {
   const host = req.headers.get("host") ?? "";
   if (host.startsWith("www.bibllab.com")) {
@@ -23,81 +24,63 @@ function handleTmklab(req: NextRequest): NextResponse | null {
   return null;
 }
 
-const clerkKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
-const hasClerk =
-  !!clerkKey &&
-  clerkKey.startsWith("pk_") &&
-  clerkKey !== "pk_test_placeholder";
+// 인증이 필요한 경로
+const protectedPaths = [
+  "/mypage",
+  "/admin",
+  "/saved",
+  "/api/cancel-subscription",
+  "/api/delete-account",
+  "/api/checkout",
+  "/api/saved-videos",
+  "/api/search-history",
+  "/api/studio/enroll",
+  "/payment",
+];
 
-// Clerk이 설정된 경우에만 미들웨어 적용
-let middlewareHandler: (req: NextRequest) => Response | Promise<Response>;
-
-if (hasClerk) {
-  const { clerkMiddleware, createRouteMatcher } = require("@clerk/nextjs/server");
-
-  const isPublicRoute = createRouteMatcher([
-    "/",
-    "/search(.*)",
-    "/pricing",
-    "/privacy",
-    "/terms",
-    "/refund",
-    "/sign-in(.*)",
-    "/sign-up(.*)",
-    "/sso-callback(.*)",
-    // 완전 공개 페이지 (인증 불필요)
-    "/studio",
-    "/studio/consulting",
-    "/studio/class(.*)",
-    "/channels(.*)",
-    "/threads(.*)",
-    "/tmklab-site(.*)",
-    "/tmkstudio",
-    "/teambibl",
-    "/sitemap.xml",
-    "/robots.txt",
-    // API
-    "/api/youtube/search(.*)",
-    "/api/threads/auth(.*)",
-    "/api/youtube/channels/suggest(.*)",
-    "/api/usage(.*)",
-    "/api/channel-usage(.*)",
-    // Dev only API (로컬 개발 편집기)
-    "/api/dev(.*)",
-    // 상담 신청 폼 (비로그인 가능)
-    "/api/studio/contact(.*)",
-    // 결제 콜백: 외부 서버가 인증 없이 호출
-    "/api/payple/confirm(.*)",
-    "/api/toss/confirm(.*)",
-    "/api/toss/billing/confirm(.*)",
-    "/api/stripe/webhook(.*)",
-    // Clerk webhook (svix 서버가 인증 없이 호출)
-    "/api/webhooks/clerk(.*)",
-    // Admin migration (CRON_SECRET으로 자체 인증)
-    "/api/admin/init-migration(.*)",
-  ]);
-
-  middlewareHandler = clerkMiddleware(async (auth: any, req: NextRequest) => {
-    // www → non-www 리다이렉트 (Clerk 도메인 일치)
-    const wwwRedirect = handleWwwRedirect(req);
-    if (wwwRedirect) return wwwRedirect;
-
-    const tmklabResponse = handleTmklab(req);
-    if (tmklabResponse) return tmklabResponse;
-
-    if (!isPublicRoute(req)) {
-      await auth().protect();
-    }
-  });
-} else {
-  middlewareHandler = (req: NextRequest) => handleWwwRedirect(req) ?? handleTmklab(req) ?? NextResponse.next();
+function isProtectedRoute(pathname: string): boolean {
+  return protectedPaths.some((p) => pathname.startsWith(p));
 }
 
-export default middlewareHandler;
+export default async function middleware(req: NextRequest) {
+  // www → non-www 리다이렉트
+  const wwwRedirect = handleWwwRedirect(req);
+  if (wwwRedirect) return wwwRedirect;
+
+  // tmklab 도메인 rewrite
+  const tmklabResponse = handleTmklab(req);
+  if (tmklabResponse) return tmklabResponse;
+
+  // Supabase 세션 갱신 (모든 요청)
+  const response = await updateSession(req);
+
+  // 보호된 라우트 체크 — API는 라우트 핸들러에서 자체 체크
+  if (isProtectedRoute(req.nextUrl.pathname) && !req.nextUrl.pathname.startsWith("/api/")) {
+    const { createServerClient } = await import("@supabase/ssr");
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() {
+            return req.cookies.getAll();
+          },
+          setAll() {},
+        },
+      }
+    );
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      const url = req.nextUrl.clone();
+      url.pathname = "/sign-in";
+      return NextResponse.redirect(url);
+    }
+  }
+
+  return response;
+}
 
 export const config = {
-  // 정적 파일, 이미지, 폰트 등은 미들웨어 완전 제외
-  // studio·pricing·channels 같은 공개 HTML 페이지도 Edge 호출 최소화
   matcher: [
     "/((?!_next/static|_next/image|favicon\\.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js|woff2?|ttf|txt|xml|html)).*)",
     "/(api|trpc)(.*)",

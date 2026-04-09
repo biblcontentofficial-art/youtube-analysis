@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 
-export default function TossPaymentFailPage() {
+function TossPaymentFailContent() {
   const searchParams = useSearchParams();
   const message = searchParams.get("message") ?? "결제에 실패했습니다.";
   const code = searchParams.get("code");
@@ -39,5 +40,13 @@ export default function TossPaymentFailPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function TossPaymentFailPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gray-950" />}>
+      <TossPaymentFailContent />
+    </Suspense>
   );
 }

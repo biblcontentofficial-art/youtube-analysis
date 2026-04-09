@@ -8,7 +8,7 @@
  * 3. confirm 라우트에서 빌링키 발급 + 즉시 결제 + 플랜 업데이트
  */
 
-import { auth } from "@clerk/nextjs/server";
+import { auth } from "@/lib/auth";
 import { NextRequest, NextResponse } from "next/server";
 import { TOSS_PLANS, TossPlanKey } from "@/lib/toss";
 

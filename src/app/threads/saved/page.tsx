@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { auth, currentUser } from "@clerk/nextjs/server";
+import { auth, currentUser } from "@/lib/auth";
 import { PLANS, PlanKey } from "@/lib/stripe";
 import { getSavedThreads } from "@/lib/db";
 import SavedThreadsList from "./_components/SavedThreadsList";
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 export default async function SavedThreadsPage() {
   const { userId } = await auth();
   const user = userId ? await currentUser() : null;
-  const plan = ((user?.publicMetadata?.plan as PlanKey) ?? "free") as PlanKey;
+  const plan = ((user?.plan as PlanKey) ?? "free") as PlanKey;
   const planData = PLANS[plan in PLANS ? plan : "free"];
 
   if (!userId) {

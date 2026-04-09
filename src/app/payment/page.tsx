@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { auth, currentUser } from '@clerk/nextjs/server'
+import { auth, currentUser } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { PLANS, PlanKey, getPlanAmount, type BillingPeriod } from '@/lib/payple'
@@ -31,8 +31,8 @@ export default async function PaymentPage({
     searchParams.error === 'portone' ? '결제에 실패했습니다. 다시 시도해 주세요.' :
     null
 
-  const userName = `${user?.firstName ?? ''} ${user?.lastName ?? ''}`.trim()
-  const userEmail = user?.emailAddresses[0]?.emailAddress || ''
+  const userName = user?.firstName ?? ''
+  const userEmail = user?.email || ''
 
   const periodLabel = period === 'yearly' ? '연간 구독' : '월간 구독'
   const periodDesc = period === 'yearly' ? '연 1회 결제' : '매월 자동 결제'

@@ -4,7 +4,8 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useConfirm } from "./ConfirmDialog";
 import { useNavigationLoading } from "./NavigationLoader";
-import { useUser } from "@clerk/nextjs";
+import { useEffect as useEffectOnce } from "react";
+import { createSupabaseBrowser } from "@/lib/supabase/browser";
 
 interface HistoryItem {
   term: string;
@@ -63,7 +64,21 @@ export default function SearchBar() {
   const searchParams = useSearchParams();
   const showConfirm = useConfirm();
   const { showLoading } = useNavigationLoading();
-  const { user, isLoaded } = useUser();
+  const [sbUser, setSbUser] = useState<{ id: string; plan: string } | null>(null);
+  const [isLoaded, setIsLoaded] = useState(false);
+  useEffectOnce(() => {
+    const supabase = createSupabaseBrowser();
+    const fetchUser = async () => {
+      const { data } = await supabase.auth.getUser();
+      if (data.user) {
+        const plan = (data.user.user_metadata?.plan as string) ?? "free";
+        setSbUser({ id: data.user.id, plan });
+      }
+      setIsLoaded(true);
+    };
+    fetchUser();
+  }, []);
+  const user = sbUser;
   const [keyword, setKeyword] = useState("");
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [isExpanded, setIsExpanded] = useState(true);
@@ -73,8 +88,8 @@ export default function SearchBar() {
   const [showRegionMenu, setShowRegionMenu] = useState(false);
   const regionMenuRef = useRef<HTMLDivElement>(null);
 
-  // 플랜 확인 (publicMetadata.plan)
-  const plan = (user?.publicMetadata?.plan as string) ?? "free";
+  // 플랜 확인
+  const plan = user?.plan ?? "free";
   const useServerHistory = ["starter", "pro", "business", "admin", "team"].includes(plan);
 
   // 플랜별 히스토리 표시 한도
@@ -100,9 +115,9 @@ export default function SearchBar() {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  // 히스토리 로드 — Clerk isLoaded 확정 후 실행 (플리커 방지)
+  // 히스토리 로드 — isLoaded 확정 후 실행 (플리커 방지)
   useEffect(() => {
-    if (!isLoaded) return; // Clerk가 아직 유저 정보 로딩 중이면 실행하지 않음
+    if (!isLoaded) return; // 아직 유저 정보 로딩 중이면 실행하지 않음
     if (!user) {
       // 비로그인: 익명 localStorage
       setHistory(loadAllLocalHistory().slice(0, 10));

@@ -1,7 +1,8 @@
 "use client";
 
-import { useUser } from "@clerk/nextjs";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { createSupabaseBrowser } from "@/lib/supabase/browser";
 
 type PricingButtonProps = {
   plan: string; // 'free' | 'starter' | 'pro' | 'business'
@@ -11,8 +12,19 @@ type PricingButtonProps = {
 };
 
 export default function PricingButton({ plan, cta, ctaStyle, period = "yearly" }: PricingButtonProps) {
-  const { isSignedIn, isLoaded } = useUser();
+  const [isSignedIn, setIsSignedIn] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
   const router = useRouter();
+
+  useEffect(() => {
+    const supabase = createSupabaseBrowser();
+    const fetchUser = async () => {
+      const { data } = await supabase.auth.getUser();
+      setIsSignedIn(!!data.user);
+      setIsLoaded(true);
+    };
+    fetchUser();
+  }, []);
 
   const handleClick = () => {
     if (!isLoaded) return;

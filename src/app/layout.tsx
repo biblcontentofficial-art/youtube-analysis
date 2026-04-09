@@ -3,16 +3,11 @@ import { Inter } from "next/font/google";
 import SearchUsageBadge from "./_components/SearchUsageBadge";
 import NavigationLoader from "./_components/NavigationLoader";
 import { ConfirmProvider } from "./_components/ConfirmDialog";
+import NavUser from "./_components/NavUser";
 import "./globals.css";
 
 
 const inter = Inter({ subsets: ["latin"] });
-
-// Clerk은 실제 키가 있을 때만 로드
-const hasClerk =
-  !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY &&
-  process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY.startsWith("pk_") &&
-  process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY !== "pk_test_placeholder";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://bibllab.com"),
@@ -91,8 +86,6 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  let ClerkProvider: React.ComponentType<{ children: React.ReactNode }> | null = null;
-  let NavUser: React.ComponentType | null = null;
   let isStarterPlus = false;
   let isProPlus = false;
 
@@ -102,30 +95,16 @@ export default async function RootLayout({
     DevToolbar = (await import("./_components/DevToolbar")).default;
   }
 
-  if (hasClerk) {
-    const clerkModule = await import("@clerk/nextjs");
-    const { koKR } = await import("@clerk/localizations");
-    const BaseClerkProvider = clerkModule.ClerkProvider;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ClerkProvider = ({ children }) => (
-      <BaseClerkProvider localization={koKR as any}>{children}</BaseClerkProvider>
-    );
-    const navUserModule = await import("./_components/NavUser");
-    NavUser = navUserModule.default;
-
-    // 플랜 확인 → nav 잠금 해제
-    // auth()로 JWT sessionClaims에서 publicMetadata 읽음 (API 호출 없이 안정적)
-    try {
-      const { auth } = await import("@clerk/nextjs/server");
-      const { userId, sessionClaims } = await auth();
-      if (userId) {
-        const meta = (sessionClaims?.publicMetadata ?? {}) as Record<string, unknown>;
-        const plan = ((meta.plan as string) ?? "").toLowerCase();
-        isStarterPlus = ["starter", "pro", "business", "admin", "team"].includes(plan);
-        isProPlus = ["pro", "business", "admin", "team"].includes(plan);
-      }
-    } catch { /* auth 실패 시 기본값 false */ }
-  }
+  // Supabase Auth에서 플랜 확인
+  try {
+    const { auth, getUserPlan } = await import("@/lib/auth");
+    const { userId } = await auth();
+    if (userId) {
+      const plan = (await getUserPlan(userId)).toLowerCase();
+      isStarterPlus = ["starter", "pro", "business", "admin", "team"].includes(plan);
+      isProPlus = ["pro", "business", "admin", "team"].includes(plan);
+    }
+  } catch { /* auth 실패 시 기본값 false */ }
 
   const jsonLd = [
     {
@@ -368,16 +347,7 @@ export default async function RootLayout({
               >
                 요금제
               </a>
-              {NavUser ? (
-                <NavUser />
-              ) : (
-                <a
-                  href="/sign-in"
-                  className="text-xs bg-teal-600 hover:bg-teal-500 text-white px-3 py-1.5 rounded-md transition font-medium"
-                >
-                  로그인
-                </a>
-              )}
+              <NavUser />
             </div>
           </div>
         </nav>
@@ -429,10 +399,6 @@ export default async function RootLayout({
       </body>
     </html>
   );
-
-  if (ClerkProvider) {
-    return <ClerkProvider>{content}</ClerkProvider>;
-  }
 
   return content;
 }

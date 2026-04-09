@@ -1,9 +1,9 @@
 "use client";
 
-import { useSignIn } from "@clerk/nextjs";
-import { useUser } from "@clerk/nextjs";
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { createSupabaseBrowser } from "@/lib/supabase/browser";
+import type { User } from "@supabase/supabase-js";
 import {
   type InAppInfo,
   detectInAppBrowser,
@@ -12,8 +12,7 @@ import {
 } from "@/lib/inAppBrowser";
 
 export default function LimitModal({ show, limit }: { show: boolean; limit: number }) {
-  const { signIn, isLoaded } = useSignIn();
-  const { isSignedIn } = useUser();
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<"kakao" | "google" | null>(null);
   const [inAppInfo, setInAppInfo] = useState<InAppInfo>({
     isInApp: false, appName: "", isAndroid: false, isIOS: false,
@@ -21,6 +20,12 @@ export default function LimitModal({ show, limit }: { show: boolean; limit: numb
 
   useEffect(() => {
     setInAppInfo(detectInAppBrowser());
+    const supabase = createSupabaseBrowser();
+    const fetchUser = async () => {
+      const { data } = await supabase.auth.getUser();
+      setUser(data.user);
+    };
+    fetchUser();
   }, []);
 
   if (!show) return null;
@@ -33,30 +38,34 @@ export default function LimitModal({ show, limit }: { show: boolean; limit: numb
     }
   };
 
-  const handleOAuth = async (provider: "oauth_custom_kakao" | "oauth_google") => {
-    if (!isLoaded || loading) return;
+  const handleOAuth = async (provider: "kakao" | "google") => {
+    if (loading) return;
 
-    // 인앱 브라우저에서 Google OAuth는 차단됨 → 외부 브라우저로 유도
-    if (provider === "oauth_google" && inAppInfo.isInApp) {
+    if (provider === "google" && inAppInfo.isInApp) {
       handleOpenExternal();
       return;
     }
 
-    setLoading(provider === "oauth_custom_kakao" ? "kakao" : "google");
+    setLoading(provider);
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await (signIn as any).authenticateWithRedirect({
-        strategy: provider,
-        redirectUrl: "/sso-callback",
-        redirectUrlComplete: typeof window !== "undefined" ? window.location.href : "/search",
+      const supabase = createSupabaseBrowser();
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(window.location.pathname + window.location.search)}`,
+        },
       });
+      if (error) {
+        console.error("OAuth error:", error.message);
+        setLoading(null);
+      }
     } catch {
       setLoading(null);
     }
   };
 
   // ─── 로그인된 유저 → 업그레이드 유도 ───────────────────────────────────────
-  if (isSignedIn) {
+  if (user) {
     return (
       <div className="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center px-4 pb-6 sm:pb-0">
         <div className="bg-gray-900 border border-gray-700 rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden">
@@ -76,7 +85,6 @@ export default function LimitModal({ show, limit }: { show: boolean; limit: numb
             </p>
             <p className="text-gray-600 text-xs mb-6">내일 자정 초기화 · Starter ₩49,000/월부터</p>
 
-            {/* 혜택 요약 */}
             <div className="bg-gray-800/60 border border-gray-700 rounded-xl px-4 py-3 mb-6 text-left space-y-2">
               {[
                 { plan: "Starter", color: "text-teal-400", desc: "월 50회 · 알고리즘 확률 · 채널 찾기" },
@@ -113,7 +121,6 @@ export default function LimitModal({ show, limit }: { show: boolean; limit: numb
   return (
     <div className="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center px-4 pb-6 sm:pb-0">
       <div className="bg-gray-900 border border-gray-700 rounded-2xl p-7 w-full max-w-sm text-center shadow-2xl">
-        {/* 아이콘 */}
         <div className="w-14 h-14 bg-teal-950/60 border border-teal-800 rounded-2xl flex items-center justify-center mx-auto mb-5">
           <svg viewBox="0 0 24 24" fill="none" className="w-7 h-7 text-teal-400" stroke="currentColor" strokeWidth={1.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
@@ -128,9 +135,8 @@ export default function LimitModal({ show, limit }: { show: boolean; limit: numb
         </p>
         <p className="text-gray-600 text-xs mb-7">1분 만에 가입 · Starter 플랜으로 월 50회 검색 가능</p>
 
-        {/* 카카오 버튼 */}
         <button
-          onClick={() => handleOAuth("oauth_custom_kakao")}
+          onClick={() => handleOAuth("kakao")}
           disabled={!!loading}
           className="w-full flex items-center justify-center gap-3 bg-[#FEE500] hover:bg-[#FDD835] text-[#191919] font-bold py-3.5 rounded-xl transition mb-3 disabled:opacity-70"
         >
@@ -144,9 +150,8 @@ export default function LimitModal({ show, limit }: { show: boolean; limit: numb
           카카오로 무료 가입
         </button>
 
-        {/* 구글 버튼 — 인앱 브라우저에서는 비활성화 표시 */}
         <button
-          onClick={() => handleOAuth("oauth_google")}
+          onClick={() => handleOAuth("google")}
           disabled={!!loading}
           className={`w-full flex items-center justify-center gap-3 bg-white text-gray-800 font-semibold py-3.5 rounded-xl transition disabled:opacity-70 ${
             inAppInfo.isInApp ? "opacity-40 cursor-not-allowed" : "hover:bg-gray-100"

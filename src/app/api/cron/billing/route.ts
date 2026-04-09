@@ -11,7 +11,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { clerkClient } from "@clerk/nextjs/server";
+import { updateUserPlan } from "@/lib/auth";
 import { getSupabase } from "@/lib/supabase";
 import { TOSS_PLANS, TossPlanKey } from "@/lib/toss";
 import { PORTONE_PLANS, PORTONE_API_SECRET, PORTONE_BILLING_KEY_PREFIX, PortonePlanKey } from "@/lib/portone";
@@ -39,13 +39,10 @@ export async function GET(req: NextRequest) {
     .lte("next_billing_at", now);
 
   const expired = expiredSubs ?? [];
-  const client = await clerkClient();
 
   for (const sub of expired) {
     try {
-      await client.users.updateUserMetadata(sub.user_id, {
-        publicMetadata: { plan: "free" },
-      });
+      await updateUserPlan(sub.user_id, "free");
       await db
         .from("subscriptions")
         .update({ status: "expired", updated_at: now })
@@ -74,9 +71,9 @@ export async function GET(req: NextRequest) {
     const isPortone = (sub.billing_key as string).startsWith(PORTONE_BILLING_KEY_PREFIX);
 
     if (isPortone) {
-      await chargePortone(sub, client, db, now, results);
+      await chargePortone(sub, db, now, results);
     } else {
-      await chargeToss(sub, client, db, now, results);
+      await chargeToss(sub, db, now, results);
     }
   }
 
@@ -95,7 +92,6 @@ export async function GET(req: NextRequest) {
 // ─────────────────────────────────────────────────────────────
 async function chargeToss(
   sub: Record<string, string>,
-  client: Awaited<ReturnType<typeof clerkClient>>,
   db: NonNullable<ReturnType<typeof getSupabase>>,
   now: string,
   results: Array<{ userId: string; status: string; pg?: string; reason?: string }>
@@ -114,8 +110,9 @@ async function chargeToss(
   const orderId    = `billing_renewal_${sub.user_id}_${plan}_${dateSuffix}`;
 
   try {
-    const clerkUser      = await client.users.getUser(sub.user_id).catch(() => null);
-    const customerEmail  = clerkUser?.emailAddresses?.[0]?.emailAddress ?? "";
+    // Get email from profiles table
+    const { data: profile } = await db.from("profiles").select("email").eq("id", sub.user_id).single();
+    const customerEmail = profile?.email ?? "";
 
     const chargeRes = await fetch(
       `https://api.tosspayments.com/v1/billing/${sub.billing_key}`,
@@ -162,7 +159,6 @@ async function chargeToss(
 // ─────────────────────────────────────────────────────────────
 async function chargePortone(
   sub: Record<string, string>,
-  client: Awaited<ReturnType<typeof clerkClient>>,
   db: NonNullable<ReturnType<typeof getSupabase>>,
   now: string,
   results: Array<{ userId: string; status: string; pg?: string; reason?: string }>
@@ -187,9 +183,10 @@ async function chargePortone(
   const paymentId        = `portone_renewal_${sub.user_id}_${plan}_${dateSuffix}`;
 
   try {
-    const clerkUser = await client.users.getUser(sub.user_id).catch(() => null);
-    const email     = clerkUser?.emailAddresses?.[0]?.emailAddress ?? "";
-    const fullName  = `${clerkUser?.firstName ?? ""} ${clerkUser?.lastName ?? ""}`.trim() || "고객";
+    // Get user info from profiles table
+    const { data: profile } = await db.from("profiles").select("email, first_name").eq("id", sub.user_id).single();
+    const email    = profile?.email ?? "";
+    const fullName = profile?.first_name || "고객";
 
     const chargeRes = await fetch(
       `https://api.portone.io/payments/${encodeURIComponent(paymentId)}/billing-key`,

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getCourse, getPublishedCourses, getFreeLessons, getTotalLessons } from "@/lib/courses";
-import { currentUser } from "@clerk/nextjs/server";
+import { currentUser } from "@/lib/auth";
 import CourseEnrollButton from "./_components/CourseEnrollButton";
 
 interface Props {
@@ -34,7 +34,7 @@ export default async function CourseDetailPage({ params }: Props) {
   let hasPurchased = false;
   try {
     const user = await currentUser();
-    const purchased = (user?.publicMetadata?.purchased_courses as string[]) ?? [];
+    const purchased = ((user as any)?.purchased_courses as string[]) ?? [];
     hasPurchased = purchased.includes(course.slug);
   } catch { /* 비로그인 */ }
 

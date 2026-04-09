@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { auth, clerkClient } from "@clerk/nextjs/server";
+import { auth, deleteAuthUser } from "@/lib/auth";
 import { cancelSubscription, clearSearchHistory, clearSavedVideos } from "@/lib/db";
 
 export async function DELETE() {
@@ -13,12 +13,11 @@ export async function DELETE() {
     clearSavedVideos(userId),
   ]);
 
-  // Clerk에서 유저 삭제
+  // Auth에서 유저 삭제
   try {
-    const client = await clerkClient();
-    await client.users.deleteUser(userId);
+    await deleteAuthUser(userId);
   } catch (e) {
-    console.error("[delete-account] Clerk 유저 삭제 실패:", e);
+    console.error("[delete-account] 유저 삭제 실패:", e);
     return NextResponse.json({ error: "계정 삭제에 실패했습니다." }, { status: 500 });
   }
 

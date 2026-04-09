@@ -1,4 +1,4 @@
-import { currentUser } from "@clerk/nextjs/server";
+import { currentUser } from "@/lib/auth";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { searchChannels, ChannelResult } from "@/lib/youtube";
@@ -157,7 +157,7 @@ function EmptyState() {
 
 export default async function ChannelsPage({ searchParams }: Props) {
   const user = await currentUser();
-  const plan = (user?.publicMetadata?.plan as string) ?? "free";
+  const plan = (user?.plan as string) ?? "free";
   const planData = PLANS[plan as PlanKey] ?? PLANS.free;
 
   const query = searchParams.q?.trim() || "";
