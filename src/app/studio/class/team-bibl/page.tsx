@@ -472,19 +472,200 @@ export default function TeamBiblPage() {
 
             {/* 클래스 소개 */}
             <section ref={(el) => { sectionRefs.current["클래스 소개"] = el; }}>
-              <h2 className="text-xl font-bold mb-6">클래스 소개</h2>
-              <div className="space-y-0">
-                {[1, 2, 3, 4, 5, 6].map((n) => (
-                  <div key={n} className="w-full">
-                    <Image
-                      src={`/studio/team-bibl/${String(n).padStart(2, "0")}.png`}
-                      alt={`팀비블 소개 ${String(n).padStart(2, "0")}`}
-                      width={1200}
-                      height={800}
-                      className="w-full h-auto"
-                    />
+              <h2 className="text-xl font-bold mb-8">클래스 소개</h2>
+
+              {/* Section 1: Problem Statement */}
+              <div className="space-y-8">
+
+                {/* Stats Bar */}
+                <div className="rounded-2xl bg-gray-900 border border-gray-800 p-6">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                    <div>
+                      <p className="text-2xl md:text-3xl font-bold text-teal-400">65만+</p>
+                      <p className="text-sm text-gray-400 mt-1">유튜브 구독자 총합</p>
+                    </div>
+                    <div>
+                      <p className="text-2xl md:text-3xl font-bold text-teal-400">160개</p>
+                      <p className="text-sm text-gray-400 mt-1">강의 콘텐츠</p>
+                    </div>
+                    <div>
+                      <p className="text-2xl md:text-3xl font-bold text-teal-400">10개월</p>
+                      <p className="text-sm text-gray-400 mt-1">체계적 커리큘럼</p>
+                    </div>
+                    <div>
+                      <p className="text-2xl md:text-3xl font-bold text-teal-400">1:1</p>
+                      <p className="text-sm text-gray-400 mt-1">맞춤 피드백</p>
+                    </div>
                   </div>
-                ))}
+                </div>
+
+                {/* Cost Comparison + Creator Info */}
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="rounded-2xl bg-gray-900 border border-gray-800 p-6">
+                    <p className="text-xs font-semibold tracking-widest text-teal-400 uppercase mb-3">팀비블의 비용</p>
+                    <h3 className="text-lg font-bold text-white mb-3">다른 교육 대비 합리적인 비용</h3>
+                    <p className="text-gray-400 text-sm leading-relaxed">
+                      일반 유튜브 컨설팅은 회당 수십만 원, 대행사는 월 수백만 원이 듭니다.
+                      팀비블은 10개월간 160개의 강의 + 매주 1:1 피드백 + 오프라인 수업까지
+                      포함된 올인원 프로그램입니다.
+                    </p>
+                  </div>
+                  <div className="rounded-2xl bg-gray-900 border border-gray-800 p-6">
+                    <p className="text-xs font-semibold tracking-widest text-teal-400 uppercase mb-3">크리에이터</p>
+                    <h3 className="text-lg font-bold text-white mb-3">유튜브 크리에이터 김태민</h3>
+                    <p className="text-gray-400 text-sm leading-relaxed">
+                      직접 유튜브 채널을 운영하며 구독자 65만 이상을 달성한 현직 크리에이터이자
+                      사업자입니다. 이론이 아닌, 실전 경험에서 나온 노하우를 전달합니다.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Pain Points */}
+                <div className="rounded-2xl bg-red-950/30 border border-red-900/40 p-6 md:p-8">
+                  <div className="text-center mb-6">
+                    <p className="text-xs font-semibold tracking-widest text-red-400 uppercase mb-2">PROBLEM</p>
+                    <h3 className="text-xl md:text-2xl font-bold text-white">유튜브, 왜 제자리인걸까?</h3>
+                  </div>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    {[
+                      "혼자 독학하다 방향을 잃었다",
+                      "알고리즘을 아무리 공부해도 조회수가 안 나온다",
+                      "썸네일, 제목, 대본... 뭐가 문제인지 모르겠다",
+                      "사업에 유튜브를 붙이고 싶은데 어떻게 시작할지 막막하다",
+                    ].map((text, i) => (
+                      <div key={i} className="flex items-start gap-3 rounded-xl bg-gray-950/60 border border-red-900/30 p-4">
+                        <span className="mt-0.5 flex-shrink-0 w-6 h-6 rounded-full bg-red-500/20 border border-red-500/40 flex items-center justify-center text-red-400 text-xs font-bold">✕</span>
+                        <p className="text-gray-300 text-sm">{text}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Section 2: Solution */}
+                <div className="rounded-2xl bg-gray-900/20 border border-gray-800 p-6 md:p-10">
+                  <div className="text-center mb-8">
+                    <p className="text-xs font-semibold tracking-widest text-teal-400 uppercase mb-3">SOLUTION</p>
+                    <h3 className="text-xl md:text-2xl font-bold text-white mb-3">
+                      혼자 고민할 시대에,<br className="md:hidden" /> 팀비블과 함께 실행하세요.
+                    </h3>
+                    <p className="text-gray-400 text-sm max-w-lg mx-auto leading-relaxed">
+                      문제는 &lsquo;방법&rsquo;이 아니라 &lsquo;피드백의 부재&rsquo;입니다.<br />
+                      가장 빠르게 성장하는 방법은 옆에서 함께 봐주는 사람입니다.
+                    </p>
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-4">
+                    {[
+                      { num: 1, title: "10개월간 160개의 강의", desc: "방대한 양의 체계적 TODO LIST로 단계별 학습" },
+                      { num: 2, title: "매주 1회 영상 피드백", desc: "비블이 직접 1:1로 영상을 보고 피드백" },
+                      { num: 3, title: "매주 오프라인/온라인 수업", desc: "현장감 있는 수업과 온라인 병행" },
+                      { num: 4, title: "주 1회 줌 콜", desc: "비블 출석, 실행력 관리 및 진도 체크" },
+                      { num: 5, title: "주기적 줌 콘텐츠 회의", desc: "채널 콘셉트 및 기획 정리 미팅" },
+                      { num: 6, title: "24시간 내 답변 보장", desc: "카카오톡 단톡방을 통한 빠른 소통" },
+                      { num: 7, title: "비블랩 프로 플랜 제공", desc: "AI 기반 유튜브 분석 도구 프로 플랜 포함" },
+                    ].map((item) => (
+                      <div key={item.num} className="flex items-start gap-4 rounded-xl bg-gray-900 border border-gray-800 p-4">
+                        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-teal-600/20 border border-teal-600/40 flex items-center justify-center text-teal-400 font-bold text-sm">
+                          {item.num}
+                        </div>
+                        <div>
+                          <p className="font-semibold text-white text-sm">{item.title}</p>
+                          <p className="text-gray-400 text-xs mt-1">{item.desc}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Section 3: Consulting Content */}
+                <div className="rounded-2xl bg-gray-900 border border-gray-800 p-6 md:p-8">
+                  <div className="text-center mb-6">
+                    <p className="text-xs font-semibold tracking-widest text-teal-400 uppercase mb-2">CONTENTS</p>
+                    <h3 className="text-xl md:text-2xl font-bold text-white mb-3">Pro. 프로 수준의 교육 커리큘럼</h3>
+                    <p className="text-gray-400 text-sm max-w-lg mx-auto">
+                      bibl, 그 이상의 과외. 사업을 직접 하고 있는 사업자가 전하는 4가지 콘텐츠
+                    </p>
+                  </div>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    {[
+                      { icon: "🎬", title: "영상 제작 교육", desc: "촬영, 편집, 썸네일, 제목까지 영상 제작의 A to Z" },
+                      { icon: "📊", title: "채널 전략 컨설팅", desc: "채널 콘셉트, 포지셔닝, 타겟 설정 등 전략 수립" },
+                      { icon: "📈", title: "알고리즘 & 성장", desc: "유튜브 알고리즘 이해와 조회수 성장 전략" },
+                      { icon: "💼", title: "사업 연계", desc: "유튜브를 사업과 연결하는 수익화 모델 설계" },
+                    ].map((item, i) => (
+                      <div key={i} className="rounded-xl bg-gray-950 border border-gray-800 p-5 text-center">
+                        <div className="text-3xl mb-3">{item.icon}</div>
+                        <p className="font-semibold text-white mb-1">{item.title}</p>
+                        <p className="text-gray-400 text-xs">{item.desc}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Section 4: Feedback System */}
+                <div className="rounded-2xl bg-gray-900/20 border border-gray-800 p-6 md:p-8">
+                  <div className="text-center mb-6">
+                    <p className="text-xs font-semibold tracking-widest text-teal-400 uppercase mb-2">FEEDBACK</p>
+                    <h3 className="text-xl md:text-2xl font-bold text-white mb-3">매주 1:1 영상 피드백</h3>
+                    <p className="text-gray-400 text-sm max-w-lg mx-auto leading-relaxed">
+                      매주 여러분의 영상을 직접 확인하고, 구체적인 개선점을 피드백합니다.
+                      썸네일, 제목, 인트로, 편집, 구성까지 전방위 피드백.
+                    </p>
+                  </div>
+
+                  <div className="grid md:grid-cols-3 gap-4 mb-8">
+                    {[
+                      { step: "1", title: "영상 제출", desc: "주 1회 완성된 영상을 제출" },
+                      { step: "2", title: "비블 분석", desc: "비블이 직접 영상을 시청하고 분석" },
+                      { step: "3", title: "피드백 전달", desc: "구체적인 개선 포인트를 1:1로 전달" },
+                    ].map((item) => (
+                      <div key={item.step} className="text-center rounded-xl bg-gray-900 border border-gray-800 p-5">
+                        <div className="w-10 h-10 rounded-full bg-teal-600/20 border border-teal-600/40 flex items-center justify-center text-teal-400 font-bold text-sm mx-auto mb-3">
+                          {item.step}
+                        </div>
+                        <p className="font-semibold text-white text-sm mb-1">{item.title}</p>
+                        <p className="text-gray-400 text-xs">{item.desc}</p>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Target Audience */}
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div className="rounded-xl bg-teal-950/30 border border-teal-900/40 p-5">
+                      <h4 className="font-bold text-teal-400 mb-3 text-sm">이런 분이면 딱! 맞습니다</h4>
+                      <ul className="space-y-2">
+                        {[
+                          "유튜브를 시작하고 싶지만 방향을 모르는 분",
+                          "이미 채널이 있지만 성장이 멈춘 분",
+                          "사업에 유튜브를 활용하고 싶은 대표님",
+                          "체계적인 피드백을 받고 싶은 크리에이터",
+                        ].map((text, i) => (
+                          <li key={i} className="flex items-start gap-2 text-sm text-gray-300">
+                            <span className="text-teal-400 mt-0.5 flex-shrink-0">✓</span>
+                            {text}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div className="rounded-xl bg-gray-900 border border-gray-800 p-5">
+                      <h4 className="font-bold text-white mb-3 text-sm">이런 분이면 이 강의가 맞습니다</h4>
+                      <ul className="space-y-2">
+                        {[
+                          "혼자 독학에 한계를 느끼신 분",
+                          "유료 강의만 듣고 실행을 못 하시는 분",
+                          "전문가의 1:1 관리가 필요하신 분",
+                          "단기 성과보다 장기적 채널 성장을 원하시는 분",
+                        ].map((text, i) => (
+                          <li key={i} className="flex items-start gap-2 text-sm text-gray-300">
+                            <span className="text-teal-400 mt-0.5 flex-shrink-0">→</span>
+                            {text}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
               </div>
             </section>
 
