@@ -6,7 +6,6 @@ import { useEffect, useState } from "react";
 export default function SSOCallback() {
   const [showRetry, setShowRetry] = useState(false);
   const [timedOut, setTimedOut] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     // 디버그: URL 파라미터 로깅
@@ -21,7 +20,7 @@ export default function SSOCallback() {
 
     // 10초 후 재시도 버튼 표시
     const retryTimer = setTimeout(() => setShowRetry(true), 10000);
-    // 60초 후 타임아웃 → /sign-in으로 리다이렉트 (30초 → 60초로 늘림)
+    // 60초 후 타임아웃 → /sign-in으로 리다이렉트
     const timeoutTimer = setTimeout(() => {
       setTimedOut(true);
       window.location.href = "/sign-in";
@@ -46,13 +45,6 @@ export default function SSOCallback() {
       <div className="text-center">
         <div className="w-10 h-10 border-2 border-teal-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
         <p className="text-gray-400 text-sm">로그인 처리 중...</p>
-        {error && (
-          <div className="mt-4 max-w-sm mx-auto">
-            <p className="text-red-400 text-xs bg-red-950/50 border border-red-800 rounded-lg p-3">
-              오류: {error}
-            </p>
-          </div>
-        )}
         {showRetry && (
           <div className="mt-6 space-y-3">
             <p className="text-gray-600 text-xs">처리가 오래 걸리고 있습니다.</p>
@@ -73,9 +65,13 @@ export default function SSOCallback() {
           </div>
         )}
       </div>
+      {/*
+        signUpUrl을 /sso-callback으로 설정하여 신규 유저 transfer 시
+        /sign-up으로 리다이렉트하지 않고 이 페이지에서 직접 처리
+      */}
       <AuthenticateWithRedirectCallback
         signInUrl="/sign-in"
-        signUpUrl="/sign-up"
+        signUpUrl="/sso-callback"
         signInFallbackRedirectUrl="/search"
         signUpFallbackRedirectUrl="/search"
         signInForceRedirectUrl="/search"
