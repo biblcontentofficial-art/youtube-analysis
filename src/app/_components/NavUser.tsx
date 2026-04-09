@@ -8,6 +8,8 @@ import type { User } from "@supabase/supabase-js";
 export default function NavUser() {
   const [user, setUser] = useState<User | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [imgError, setImgError] = useState(false);
+  const handleImgError = useCallback(() => setImgError(true), []);
 
   useEffect(() => {
     const supabase = createSupabaseBrowser();
@@ -33,9 +35,6 @@ export default function NavUser() {
   if (!isLoaded) {
     return <div className="w-8 h-8 rounded-full bg-gray-800 animate-pulse" />;
   }
-
-  const [imgError, setImgError] = useState(false);
-  const handleImgError = useCallback(() => setImgError(true), []);
 
   if (user) {
     const initials = (
