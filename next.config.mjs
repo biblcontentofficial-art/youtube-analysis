@@ -16,17 +16,17 @@ const securityHeaders = [
     key: "Permissions-Policy",
     value: "camera=(), microphone=(), geolocation=(), payment=(self)",
   },
-  // CSP: YouTube 임베드, Clerk, 결제 PG 허용
+  // CSP: YouTube 임베드, Supabase Auth, 결제 PG, OAuth 프로필 이미지 허용
   {
     key: "Content-Security-Policy",
     value: [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://clerk.bibllab.com https://*.clerk.accounts.dev https://pay.toss.im https://js.tosspayments.com https://cpay.payple.kr https://testcpay.payple.kr",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://pay.toss.im https://js.tosspayments.com https://cpay.payple.kr https://testcpay.payple.kr",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com",
-      "img-src 'self' data: blob: https://i.ytimg.com https://yt3.ggpht.com https://yt3.googleusercontent.com https://img.clerk.com",
-      "frame-src 'self' https://clerk.bibllab.com https://*.clerk.accounts.dev https://pay.toss.im https://cpay.payple.kr https://testcpay.payple.kr https://accounts.google.com",
-      "connect-src 'self' https://clerk.bibllab.com https://*.clerk.accounts.dev https://api.clerk.com https://*.supabase.co wss://*.supabase.co https://*.upstash.io",
+      "img-src 'self' data: blob: https://i.ytimg.com https://yt3.ggpht.com https://yt3.googleusercontent.com https://lh3.googleusercontent.com https://k.kakaocdn.net https://*.kakaocdn.net",
+      "frame-src 'self' https://pay.toss.im https://cpay.payple.kr https://testcpay.payple.kr https://accounts.google.com",
+      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.upstash.io",
       "media-src 'self' https://www.youtube.com",
     ].join("; "),
   },
