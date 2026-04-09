@@ -167,6 +167,35 @@ export async function GET() {
         }
 
         redisCommandsToday = 0; // 아래에서 실측값으로 대체
+
+        // ── 디버그: Redis에 search 키가 실제 존재하는지 SCAN ────────
+        try {
+          const scanResult = await redis.scan(0, { match: "search:*", count: 100 });
+          const foundKeys = scanResult[1] as string[];
+          // 샘플 키 최대 10개 + 값 읽기
+          const sampleKeys = foundKeys.slice(0, 10);
+          const sampleValues = sampleKeys.length > 0
+            ? await redis.mget<(number | string | null)[]>(...sampleKeys)
+            : [];
+          const debugSamples = sampleKeys.map((k, i) => ({ key: k, value: sampleValues[i] }));
+
+          // free/paid 키 카운트
+          const debugInfo = {
+            totalSearchKeysFound: foundKeys.length,
+            allFoundKeys: foundKeys.slice(0, 30),
+            samples: debugSamples,
+            freeIdsCount: freeIds.length,
+            paidIdsCount: paidIds.length,
+            todayDate: today,
+            currentYM: ym,
+            sampleFreeKey: freeIds.length > 0 ? `search:d:${freeIds[0]}:${today}` : null,
+            samplePaidKey: paidIds.length > 0 ? `search:m:${paidIds[0]}:${ym}` : null,
+          };
+          // @ts-expect-error - debug info
+          usageMap._debug = debugInfo;
+        } catch (debugErr) {
+          console.error("Debug scan error:", debugErr);
+        }
       }
     } catch (e) {
       console.error("Redis stats error:", e);
