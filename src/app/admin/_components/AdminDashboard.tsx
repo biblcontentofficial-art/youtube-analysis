@@ -817,12 +817,33 @@ function UsersTab({
                 return (
                   <tr key={u.id} className={`hover:bg-gray-800/50 transition ${u.migrated === false ? "opacity-60" : ""}`}>
                     <td className="px-6 py-4 font-medium">
-                      <span className={u.migrated === false ? "text-gray-500" : "text-gray-200"}>
-                        {u.email || "-"}
-                      </span>
-                      {u.migrated === false && (
-                        <span className="ml-2 text-[10px] text-gray-600 border border-gray-700 rounded px-1 py-0.5">미전환</span>
-                      )}
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center shrink-0 overflow-hidden">
+                          {u.avatarUrl ? (
+                            <img
+                              src={u.avatarUrl}
+                              alt=""
+                              className="w-full h-full object-cover"
+                              referrerPolicy="no-referrer"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).style.display = "none";
+                                (e.target as HTMLImageElement).nextElementSibling?.classList.remove("hidden");
+                              }}
+                            />
+                          ) : null}
+                          <span className={`text-white text-xs font-bold ${u.avatarUrl ? "hidden" : ""}`}>
+                            {(u.email?.[0] ?? "?").toUpperCase()}
+                          </span>
+                        </div>
+                        <div>
+                          <span className={u.migrated === false ? "text-gray-500" : "text-gray-200"}>
+                            {u.email || "-"}
+                          </span>
+                          {u.migrated === false && (
+                            <span className="ml-2 text-[10px] text-gray-600 border border-gray-700 rounded px-1 py-0.5">미전환</span>
+                          )}
+                        </div>
+                      </div>
                     </td>
                     <td className="px-6 py-4 text-gray-400">
                       {[u.firstName, u.lastName].filter(Boolean).join(" ") || "-"}

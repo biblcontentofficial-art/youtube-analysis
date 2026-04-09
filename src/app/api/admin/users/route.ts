@@ -13,6 +13,7 @@ export type AdminUser = {
   createdAt: number;
   lastActiveAt: number | null;
   migrated?: boolean; // true = Production Clerk 가입 완료, false = 아직 Dev 상태
+  avatarUrl: string | null;
 };
 
 export async function GET() {
@@ -42,6 +43,20 @@ export async function GET() {
       return NextResponse.json({ error: "Failed to fetch users" }, { status: 500 });
     }
 
+    // Supabase Auth에서 사용자 메타데이터(프로필 사진) 가져오기
+    const avatarMap: Record<string, string | null> = {};
+    try {
+      const { data: authData } = await db.auth.admin.listUsers({ perPage: 1000 });
+      if (authData?.users) {
+        for (const au of authData.users) {
+          const meta = au.user_metadata as Record<string, unknown> | undefined;
+          avatarMap[au.id] = (meta?.avatar_url as string) ?? (meta?.picture as string) ?? (meta?.profile_image as string) ?? null;
+        }
+      }
+    } catch (e) {
+      console.error("Failed to fetch auth users for avatars:", e);
+    }
+
     const users: AdminUser[] = (profiles ?? []).map((p: Record<string, unknown>) => ({
       id: p.id as string,
       email: (p.email as string) ?? "",
@@ -51,6 +66,7 @@ export async function GET() {
       createdAt: p.created_at ? new Date(p.created_at as string).getTime() : 0,
       lastActiveAt: p.last_sign_in_at ? new Date(p.last_sign_in_at as string).getTime() : null,
       migrated: true,
+      avatarUrl: avatarMap[p.id as string] ?? null,
     }));
 
     return NextResponse.json({ users, total: users.length });
