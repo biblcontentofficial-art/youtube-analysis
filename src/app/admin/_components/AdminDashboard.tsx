@@ -1158,17 +1158,17 @@ function CostsTab({
   const redisOverage = Math.max(0, monthlyRedisOps - monthlyRedisFree);
   const monthlyRedisCostKRW = Math.round((redisOverage / 100000) * 0.2 * 1400);
 
-  // Clerk 비용 (MAU 기준)
+  // Supabase Auth 비용 (MAU 기준 — Free 50,000 MAU)
   const mau = users.length;
-  const clerkFreeLimit = 10000;
-  const monthlyClerkCostKRW = mau > clerkFreeLimit ? 25 * 1400 : 0; // Pro plan $25
+  const supabaseAuthFreeLimit = 50000;
+  const monthlyAuthCostKRW = mau > supabaseAuthFreeLimit ? 25 * 1400 : 0; // Pro plan $25
 
   // Vercel 비용 (Hobby = 무료, 하지만 제한 있음)
   const monthlyVercelCostKRW = 0; // 현재 무료
 
   // 총 비용
   const totalMonthlyCostKRW =
-    monthlyYouTubeCostKRW + monthlyRedisCostKRW + monthlyClerkCostKRW + monthlyVercelCostKRW;
+    monthlyYouTubeCostKRW + monthlyRedisCostKRW + monthlyAuthCostKRW + monthlyVercelCostKRW;
 
   // 순이익
   const netProfit = mrr - totalMonthlyCostKRW;
@@ -1185,9 +1185,9 @@ function CostsTab({
         <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
       </svg>
     ),
-    clerk: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6 text-blue-400">
-        <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/>
+    supabase: (
+      <svg viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 text-emerald-400">
+        <path d="M13.7 21.8c-.5.6-1.5.2-1.5-.6V13h8.2c.9 0 1.4 1 .8 1.7L13.7 21.8zM10.3 2.2c.5-.6 1.5-.2 1.5.6V11H3.6c-.9 0-1.4-1-.8-1.7L10.3 2.2z"/>
       </svg>
     ),
     vercel: (
@@ -1232,17 +1232,17 @@ function CostsTab({
       noteColor: redisOverage > 0 ? "text-red-400" : "text-green-400",
     },
     {
-      name: "Clerk Auth",
-      provider: "Clerk",
-      iconKey: "clerk",
-      plan: "Free (10,000 MAU)",
-      freeLimit: "10,000 MAU",
-      currentUsage: `${mau}명 (${stats?.clerk.usedPct ?? 0}%)`,
+      name: "Supabase Auth",
+      provider: "Supabase",
+      iconKey: "supabase",
+      plan: "Free (50,000 MAU)",
+      freeLimit: "50,000 MAU",
+      currentUsage: `${mau}명 (${Math.round((mau / supabaseAuthFreeLimit) * 100)}%)`,
       monthlyProjection: `${mau}명 MAU`,
-      monthlyCost: monthlyClerkCostKRW,
-      usedPct: stats?.clerk.usedPct ?? 0,
-      note: mau > clerkFreeLimit ? `한도 초과 → Pro $25/월` : "무료 한도 이내",
-      noteColor: mau > clerkFreeLimit ? "text-red-400" : "text-green-400",
+      monthlyCost: monthlyAuthCostKRW,
+      usedPct: Math.round((mau / supabaseAuthFreeLimit) * 100),
+      note: mau > supabaseAuthFreeLimit ? `한도 초과 → Pro $25/월` : "무료 한도 이내",
+      noteColor: mau > supabaseAuthFreeLimit ? "text-red-400" : "text-green-400",
     },
     {
       name: "Vercel",
@@ -1385,7 +1385,7 @@ function CostsTab({
           <div className="flex gap-2">
             <span className="text-teal-400 shrink-0">•</span>
             <span>
-              <strong className="text-white">Clerk:</strong> MAU {mau}명 / 10,000명.
+              <strong className="text-white">Supabase Auth:</strong> MAU {mau}명 / 50,000명.
               {mau < 8000
                 ? ` 여유 ${(10000 - mau).toLocaleString()}명. 한동안 무료로 사용 가능.`
                 : " 한도 근접! Pro 플랜 전환 준비 필요 ($25/월)."}
@@ -1410,12 +1410,13 @@ function CostsTab({
 interface TrafficData {
   totalByPage: Record<string, number>;
   sourceByPage: Record<string, Record<string, number>>;
-  dailyChart: { date: string; tmkstudio: number; teambibl: number }[];
+  dailyChart: { date: string; bibllab: number; tmkstudio: number; teambibl: number }[];
   recent: { page: string; source: string; referrer: string | null; visited_at: string }[];
   total: number;
 }
 
 const TRAFFIC_PAGE_LABELS: Record<string, string> = {
+  bibllab: "비블랩 메인 (bibllab.com)",
   tmkstudio: "TMK STUDIO (/tmkstudio)",
   teambibl: "팀비블 (/teambibl)",
 };
@@ -1461,29 +1462,72 @@ function TrafficSourceBar({ sources }: { sources: Record<string, number> }) {
 }
 
 function TrafficDailyChart({ data }: { data: TrafficData["dailyChart"] }) {
-  const max = Math.max(...data.flatMap((d) => [d.tmkstudio, d.teambibl]), 1);
+  const max = Math.max(...data.flatMap((d) => [d.bibllab, d.tmkstudio, d.teambibl]), 1);
+  const [tooltip, setTooltip] = useState<{ x: number; y: number; date: string; bibllab: number; tmkstudio: number; teambibl: number } | null>(null);
+
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto relative">
       <div className="flex items-end gap-1 h-32 min-w-max px-1">
-        {data.map((d) => (
-          <div key={d.date} className="flex flex-col items-center gap-0.5 w-12">
-            <div className="flex items-end gap-0.5 h-24 w-full">
-              <div
-                className="flex-1 bg-teal-500/70 rounded-t transition-all"
-                style={{ height: `${(d.tmkstudio / max) * 100}%`, minHeight: d.tmkstudio > 0 ? "4px" : "0" }}
-                title={`tmkstudio: ${d.tmkstudio}`}
-              />
-              <div
-                className="flex-1 bg-purple-500/70 rounded-t transition-all"
-                style={{ height: `${(d.teambibl / max) * 100}%`, minHeight: d.teambibl > 0 ? "4px" : "0" }}
-                title={`teambibl: ${d.teambibl}`}
-              />
+        {data.map((d) => {
+          const total = d.bibllab + d.tmkstudio + d.teambibl;
+          return (
+            <div
+              key={d.date}
+              className="flex flex-col items-center gap-0.5 w-14 cursor-pointer group"
+              onMouseEnter={(e) => {
+                const rect = e.currentTarget.getBoundingClientRect();
+                setTooltip({
+                  x: rect.left + rect.width / 2,
+                  y: rect.top,
+                  date: d.date,
+                  bibllab: d.bibllab,
+                  tmkstudio: d.tmkstudio,
+                  teambibl: d.teambibl,
+                });
+              }}
+              onMouseLeave={() => setTooltip(null)}
+            >
+              <div className="flex items-end gap-0.5 h-24 w-full group-hover:opacity-80 transition-opacity">
+                <div
+                  className="flex-1 bg-blue-500/70 rounded-t transition-all"
+                  style={{ height: `${(d.bibllab / max) * 100}%`, minHeight: d.bibllab > 0 ? "4px" : "0" }}
+                />
+                <div
+                  className="flex-1 bg-teal-500/70 rounded-t transition-all"
+                  style={{ height: `${(d.tmkstudio / max) * 100}%`, minHeight: d.tmkstudio > 0 ? "4px" : "0" }}
+                />
+                <div
+                  className="flex-1 bg-purple-500/70 rounded-t transition-all"
+                  style={{ height: `${(d.teambibl / max) * 100}%`, minHeight: d.teambibl > 0 ? "4px" : "0" }}
+                />
+              </div>
+              <span className="text-[9px] text-gray-600 whitespace-nowrap">{d.date.slice(5)}</span>
+              {/* 호버 시 총 방문수 표시 */}
+              {total > 0 && (
+                <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-[10px] px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+                  {total}회
+                </div>
+              )}
             </div>
-            <span className="text-[9px] text-gray-600 whitespace-nowrap">{d.date.slice(5)}</span>
-          </div>
-        ))}
+          );
+        })}
       </div>
+      {/* 플로팅 툴팁 */}
+      {tooltip && (
+        <div
+          className="fixed z-50 bg-gray-900 border border-gray-700 rounded-lg shadow-xl px-3 py-2 pointer-events-none"
+          style={{ left: tooltip.x, top: tooltip.y - 10, transform: "translate(-50%, -100%)" }}
+        >
+          <p className="text-xs font-bold text-white mb-1">{tooltip.date.slice(5)} ({tooltip.bibllab + tooltip.tmkstudio + tooltip.teambibl}회)</p>
+          <div className="space-y-0.5 text-[11px]">
+            <p className="text-blue-400">bibllab: {tooltip.bibllab}회</p>
+            <p className="text-teal-400">tmkstudio: {tooltip.tmkstudio}회</p>
+            <p className="text-purple-400">teambibl: {tooltip.teambibl}회</p>
+          </div>
+        </div>
+      )}
       <div className="flex gap-4 mt-3 text-xs text-gray-400">
+        <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm bg-blue-500/70 inline-block" />bibllab</span>
         <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm bg-teal-500/70 inline-block" />tmkstudio</span>
         <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm bg-purple-500/70 inline-block" />teambibl</span>
       </div>
@@ -1511,7 +1555,7 @@ function TrafficTab() {
   if (error) return <div className="text-red-400 py-8 text-center">{error}</div>;
   if (!data) return null;
 
-  const pages = ["tmkstudio", "teambibl"];
+  const pages = ["bibllab", "tmkstudio", "teambibl"];
 
   return (
     <div className="space-y-6">
@@ -1521,7 +1565,7 @@ function TrafficTab() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {pages.map((page) => (
           <div key={page} className="rounded-2xl bg-gray-900 border border-gray-800 p-5">
-            <p className="text-xs text-gray-500 mb-1">{page === "tmkstudio" ? "TMK STUDIO" : "팀비블"}</p>
+            <p className="text-xs text-gray-500 mb-1">{page === "bibllab" ? "비블랩 메인" : page === "tmkstudio" ? "TMK STUDIO" : "팀비블"}</p>
             <p className="text-3xl font-black text-white">{data.totalByPage[page] ?? 0}</p>
             <p className="text-xs text-gray-600 mt-1">방문</p>
           </div>
@@ -1529,14 +1573,14 @@ function TrafficTab() {
         <div className="rounded-2xl bg-gray-900 border border-gray-800 p-5">
           <p className="text-xs text-gray-500 mb-1">오늘</p>
           <p className="text-3xl font-black text-teal-400">
-            {(data.dailyChart.at(-1)?.tmkstudio ?? 0) + (data.dailyChart.at(-1)?.teambibl ?? 0)}
+            {(data.dailyChart.at(-1)?.bibllab ?? 0) + (data.dailyChart.at(-1)?.tmkstudio ?? 0) + (data.dailyChart.at(-1)?.teambibl ?? 0)}
           </p>
           <p className="text-xs text-gray-600 mt-1">총 방문</p>
         </div>
         <div className="rounded-2xl bg-gray-900 border border-gray-800 p-5">
           <p className="text-xs text-gray-500 mb-1">어제</p>
           <p className="text-3xl font-black text-gray-300">
-            {(data.dailyChart.at(-2)?.tmkstudio ?? 0) + (data.dailyChart.at(-2)?.teambibl ?? 0)}
+            {(data.dailyChart.at(-2)?.bibllab ?? 0) + (data.dailyChart.at(-2)?.tmkstudio ?? 0) + (data.dailyChart.at(-2)?.teambibl ?? 0)}
           </p>
           <p className="text-xs text-gray-600 mt-1">총 방문</p>
         </div>
@@ -1578,7 +1622,7 @@ function TrafficTab() {
               {data.recent.map((r, i) => (
                 <tr key={i} className="hover:bg-gray-800/30 transition">
                   <td className="px-6 py-3">
-                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${r.page === "tmkstudio" ? "bg-teal-950 text-teal-400" : "bg-purple-950 text-purple-400"}`}>
+                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${r.page === "bibllab" ? "bg-blue-950 text-blue-400" : r.page === "tmkstudio" ? "bg-teal-950 text-teal-400" : "bg-purple-950 text-purple-400"}`}>
                       {r.page}
                     </span>
                   </td>

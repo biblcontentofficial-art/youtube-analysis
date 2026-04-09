@@ -56,6 +56,7 @@ export async function GET() {
 
   const dailyChart = last14.map((date) => ({
     date,
+    bibllab: dailyByPage["bibllab"]?.[date] ?? 0,
     tmkstudio: dailyByPage["tmkstudio"]?.[date] ?? 0,
     teambibl: dailyByPage["teambibl"]?.[date] ?? 0,
   }));

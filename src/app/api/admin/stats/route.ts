@@ -267,8 +267,8 @@ export async function GET() {
       },
       clerk: {
         totalUsers: allUsers.length,
-        freeLimit: 10000,
-        usedPct: Math.min(100, Math.round((allUsers.length / 10000) * 100)),
+        freeLimit: 50000,
+        usedPct: Math.min(100, Math.round((allUsers.length / 50000) * 100)),
       },
     });
   } catch (err) {

@@ -22,6 +22,12 @@ export default function Home() {
       setIsLoaded(true);
     };
     fetchUser();
+    // bibllab.com 메인 방문 트래킹
+    fetch("/api/track", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ page: "bibllab", referrer: document.referrer || null }),
+    }).catch(() => {});
   }, []);
   const { showLoading } = useNavigationLoading();
   const showConfirm = useConfirm();
