@@ -717,7 +717,6 @@ function PriceCard() {
   return (
     <div className="rounded-2xl bg-gray-900 border border-gray-800 overflow-hidden">
       <div className="p-6">
-        <p className="text-xs text-gray-500 mb-1">10개월 할부 시</p>
         <p className="text-3xl font-black text-white mb-1">월 390,000원</p>
         <div className="flex items-center gap-2 mb-5">
           <span className="text-xs text-gray-500">권장 소비자 가격</span>
