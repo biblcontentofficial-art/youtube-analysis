@@ -544,6 +544,20 @@ export default function TeamBiblPage() {
                     </p>
                   </div>
                 ))}
+              {/* 일반 후기 */}
+                {REVIEWS.map((r, i) => (
+                  <div key={`top-rev-${i}`} className="rounded-xl bg-gray-900 border border-gray-800 p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <div>
+                        <p className="text-base font-bold">{r.name}</p>
+                        <p className="text-xs text-gray-500 mt-1">{r.date}</p>
+                      </div>
+                      <div className="text-amber-400 text-sm tracking-wider">{"★".repeat(r.rating)}</div>
+                    </div>
+                    <div className="border-t border-gray-700 mb-4" />
+                    <p className="text-sm text-gray-300 leading-relaxed whitespace-pre-line">{r.text}</p>
+                  </div>
+                ))}
               </div>
 
               <div className="space-y-0">
