@@ -327,6 +327,51 @@ const CURRICULUM = [
   },
 ];
 
+const FEATURED_REVIEWS = [
+  {
+    title: "5만 영어 유튜버 김**님",
+    rating: 5,
+    text: "선생님, 안녕하세요! 중간 보고 드려요^^\n오늘 영상 월요일에 급하게 준비하느라 인트로를 너무 신경 못썼네요. 다음주부터 스케줄 여유가 생기니 철저히 준비하는 걸로..\n11월 26일부터 지금까지 약 470건 판매되었어요.\n다 선생님 덕분입니다. 너무 감사합니다!",
+    highlight: "약 470건 판매되었어요.",
+  },
+  {
+    title: "벤더사 대표님",
+    rating: 5,
+    text: "대표님! 안녕하세요!\n대표님을 만난 후로 유튜브는 띄엄띄엄하다가 이제 다시 편집하고 있지만, 저는 지금의 대표님이 성장하시고 다른 라인으로 확장하시는 게 진짜 너무 자랑스럽습니다!\n저는 제가 좀 더 잘돼서 대표님 자랑을 하겠습니다!\n제가 대표님을 만나고 용기를 가지고 본격적으로 벤더 다시 시작한 게 7월인데 그때부터 매출을 정리해 봤어요.",
+    highlight: "",
+  },
+  {
+    title: "초보 유튜버 김**님",
+    rating: 5,
+    text: "대표님! 대표님과 같이 진행하면서 확실히 흐름이 달라졌어요. 1,000명까지는 두 달 넘게 걸렸는데 2,000명은 3일 만에 달성했습니다ㅎ ㅎ\n너무 기분 좋은 아침입니다!",
+    highlight: "2,000명은 3일 만에 달성",
+  },
+  {
+    title: "브랜드 운영하는 사장님",
+    rating: 5,
+    text: "대표님! 이 스레드 글 하나에 문의 55건, 이틀 문의받고 하루 매출 950만원 나왔어요!ㅎ ㅎ 물론 행사 부스비라 단가가 크지만, 이익으로 따지면 30% 마진이거든요!\n자신 없어서 몇년 안하다가 대표님한테 컨설팅 받으며 용기 얻어서 하는데, 되네요. 너무 감사합니다.",
+    highlight: "하루 매출 950만원",
+  },
+  {
+    title: "비블 1기 김수연님",
+    rating: 5,
+    text: "저 기쁜 마음에 이렇게 흥분해서 문자를 드립니다. 클래스 101에서 제 영상 하나를 보시고 강의 제안이 들어왔습니다.\n앞으로 계획은 아직 미정이지만 일단 기쁜 소식이 이어서 알려 드립니다^^",
+    highlight: "강의 제안이 들어왔습니다.",
+  },
+  {
+    title: "팀비블 멤버 솔님",
+    rating: 5,
+    text: "저는 강의도 좋았지만 실제로 비블님의 도움을 받고 성장하신 분의 사례와 어려운 점을 어떻게 이겨내셨는지 들을 수 있었던 점, 그리고 비슷한 시기에 새로운 도전을 함께 시작하는 다른 분들의 애환을 나눌 수 있었던 것에 많은 에너지와 동기부여를 얻고 갑니다.\n오늘 수고해주신 팀비블 운영진들 다들 너무 감사드립니다!",
+    highlight: "",
+  },
+  {
+    title: "팀비블 멤버 김기호님",
+    rating: 5,
+    text: "새벽 첫 기차에 몸을 싣고 뜻 깊은 오프라인 모임을 참석하고 왔습니다. 어제 밤만 해도 갈까 말까 고민했던 시간이 무의미할만큼 소중한 시간이었습니다.\n직접 비블님을 뵙고 진정성 있는 에너지를 듬뿍 받을 수 있었고, 뜻을 함께 할 팀원들과 각자의 이야기를 나누며 깊은 유대감도 느낄 수 있었습니다.\n오프라인 모음 끝에 이야기해주신 '친절한 전문가'가 될 수 있도록 거듭 노력하겠습니다!",
+    highlight: "",
+  },
+];
+
 const REVIEWS = [
   {
     name: "장**",
@@ -496,8 +541,36 @@ export default function TeamBiblPage() {
                   {"★★★★★"}
                   <span className="text-white font-bold ml-1">5.0</span>
                 </div>
-                <span className="text-gray-500 text-sm">{REVIEWS.length}개의 리뷰</span>
+                <span className="text-gray-500 text-sm">{FEATURED_REVIEWS.length + REVIEWS.length}개의 리뷰</span>
               </div>
+              {/* 하이라이트 후기 */}
+              <div className="space-y-4 mb-6">
+                {FEATURED_REVIEWS.map((r, i) => (
+                  <div key={`feat-${i}`} className="rounded-xl bg-gray-900 border border-gray-800 p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-base font-bold">{r.title}</h3>
+                      <div className="text-red-500 text-sm tracking-wider">{"★".repeat(r.rating)}</div>
+                    </div>
+                    <div className="border-t border-gray-700 mb-4" />
+                    <p className="text-sm text-gray-300 leading-relaxed whitespace-pre-line">
+                      {r.highlight
+                        ? r.text.split(r.highlight).map((part, j, arr) =>
+                            j < arr.length - 1 ? (
+                              <span key={j}>
+                                {part}
+                                <span className="text-red-500 font-bold">{r.highlight}</span>
+                              </span>
+                            ) : (
+                              <span key={j}>{part}</span>
+                            )
+                          )
+                        : r.text}
+                    </p>
+                  </div>
+                ))}
+              </div>
+
+              {/* 일반 리뷰 */}
               <div className="space-y-4">
                 {REVIEWS.map((r, i) => (
                   <div key={i} className="rounded-xl bg-gray-900 border border-gray-800 p-5">
