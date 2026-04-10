@@ -518,6 +518,34 @@ export default function TeamBiblPage() {
             {/* 클래스 소개 */}
             <section ref={(el) => { sectionRefs.current["클래스 소개"] = el; }}>
               <h2 className="text-xl font-bold mb-6">클래스 소개</h2>
+
+              {/* 하이라이트 후기 */}
+              <div className="space-y-4 mb-8">
+                {FEATURED_REVIEWS.map((r, i) => (
+                  <div key={`top-feat-${i}`} className="rounded-xl bg-gray-900 border border-gray-800 p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-base font-bold">{r.title}</h3>
+                      <div className="text-amber-400 text-sm tracking-wider">{"★".repeat(r.rating)}</div>
+                    </div>
+                    <div className="border-t border-gray-700 mb-4" />
+                    <p className="text-sm text-gray-300 leading-relaxed whitespace-pre-line">
+                      {r.highlight
+                        ? r.text.split(r.highlight).map((part, j, arr) =>
+                            j < arr.length - 1 ? (
+                              <span key={j}>
+                                {part}
+                                <span className="text-red-500 font-bold">{r.highlight}</span>
+                              </span>
+                            ) : (
+                              <span key={j}>{part}</span>
+                            )
+                          )
+                        : r.text}
+                    </p>
+                  </div>
+                ))}
+              </div>
+
               <div className="space-y-0">
                 {[1, 2, 3, 4, 5, 6].map((n) => (
                   <div key={n} className="w-full">
@@ -543,33 +571,6 @@ export default function TeamBiblPage() {
                 </div>
                 <span className="text-gray-500 text-sm">{FEATURED_REVIEWS.length + REVIEWS.length}개의 리뷰</span>
               </div>
-              {/* 하이라이트 후기 */}
-              <div className="space-y-4 mb-6">
-                {FEATURED_REVIEWS.map((r, i) => (
-                  <div key={`feat-${i}`} className="rounded-xl bg-gray-900 border border-gray-800 p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-base font-bold">{r.title}</h3>
-                      <div className="text-amber-400 text-sm tracking-wider">{"★".repeat(r.rating)}</div>
-                    </div>
-                    <div className="border-t border-gray-700 mb-4" />
-                    <p className="text-sm text-gray-300 leading-relaxed whitespace-pre-line">
-                      {r.highlight
-                        ? r.text.split(r.highlight).map((part, j, arr) =>
-                            j < arr.length - 1 ? (
-                              <span key={j}>
-                                {part}
-                                <span className="text-red-500 font-bold">{r.highlight}</span>
-                              </span>
-                            ) : (
-                              <span key={j}>{part}</span>
-                            )
-                          )
-                        : r.text}
-                    </p>
-                  </div>
-                ))}
-              </div>
-
               {/* 일반 리뷰 */}
               <div className="space-y-4">
                 {REVIEWS.map((r, i) => (
