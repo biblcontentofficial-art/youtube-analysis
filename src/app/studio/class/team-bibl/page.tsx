@@ -353,19 +353,19 @@ const FEATURED_REVIEWS = [
     highlight: "하루 매출 950만원",
   },
   {
-    title: "비블 1기 김수연님",
+    title: "비블1기 김**님",
     rating: 5,
     text: "저 기쁜 마음에 이렇게 흥분해서 문자를 드립니다. 클래스 101에서 제 영상 하나를 보시고 강의 제안이 들어왔습니다.\n\n앞으로 계획은 아직 미정이지만 일단 기쁜 소식이 이어서 알려 드립니다^^",
     highlight: "강의 제안이 들어왔습니다.",
   },
   {
-    title: "팀비블 멤버 솔님",
+    title: "팀비블 멤버 솔*님",
     rating: 5,
     text: "저는 강의도 좋았지만 실제로 비블님의 도움을 받고 성장하신 분의 사례와 어려운 점을 어떻게 이겨내셨는지 들을 수 있었던 점, 그리고 비슷한 시기에 새로운 도전을 함께 시작하는 다른 분들의 애환?을 나눌 수 있었던 것에 많은 에너지와 동기부여를 얻고 갑니다. 저는 미국에 살아서 오프모임은 자주 참여하기가 어려운데 라이브 링크라도 켜주시면 많은 도움이 될 것 같아요! 오늘 수고해주신 팀비블 운영진들 다들 너무 감사드립니다!",
     highlight: "",
   },
   {
-    title: "팀비블 멤버 김기호님",
+    title: "팀비블 멤버 김** 대표님",
     rating: 5,
     text: "새벽 첫 기차에 몸을 싣고 뜻 깊은 오프라인 모임을 참석하고 왔습니다. 어제 밤만 해도 갈까 말까 고민했던 시간이 무의미할만큼 소중한 시간이었습니다.\n\n직접 비블님을 뵙고 진정성 있는 에너지를 듬뿍 받을 수 있었고, 뜻을 함께 할 팀원들과 각자의 이야기를 나누며 깊은 유대감도 느낄 수 있었습니다.\n\n오프라인 모음 끝에 이야기해주신 '친절한 전문가'가 될 수 있도록 거듭 노력하겠습니다!",
     highlight: "",
@@ -374,43 +374,43 @@ const FEATURED_REVIEWS = [
 
 const REVIEWS = [
   {
-    name: "장**",
+    name: "장**님",
     rating: 5,
     date: "3주 전",
     text: "유튜브시작함에있어서 너무막막하고 많은고민이 있었는데 강의들으면서 하나하나 시작하게 되었어요 아직은 이러한 과정이 쉽진 않지만 꾸준히 노력해서 유튜브를 키워보고싶어요!",
   },
   {
-    name: "박**",
+    name: "박**님",
     rating: 5,
     date: "3주 전",
     text: "'뭐라도 해야 하는데' 라는 마음은 누구나 갖고 있지만, 실행할 수 있게 만드는 강의라고 생각합니다. 이제 5주차 강의를 듣고 있으며, 아무것도 모르는 초보도 적용하고 실행할 수 있도록 강의가 구성되어 있습니다. 최근 다양한 짧은 강의가 수 없이 많지만, 비블님 강의는 꾸준하게 성과를 끌어낼 수 있는 기간으로 세팅한 점도 매력적이라고 생각됩니다.",
   },
   {
-    name: "허**",
+    name: "허**님",
     rating: 5,
     date: "4주 전",
     text: ".",
   },
   {
-    name: "서***",
+    name: "서**님",
     rating: 5,
     date: "1개월 전",
     text: "항상 새로운 관점과 새로운 방법을 실행을 하면서 배우니 주입으로 끝나는 것이 아니라 '내가 했었던 이 방법을 이렇게 적용하면 더 나은 결과가 나올 수 있구나' 라는 깨달음과 함께 공부할 수 있어 너무 좋습니다.\n\n이번 AI 활용과 썸네일 제작 관련해서도 여러 번 복습하면서 내 것으로 만들겠습니다.",
   },
   {
-    name: "서************",
+    name: "서**님",
     rating: 5,
     date: "1개월 전",
     text: "초보 유튜버에게 기본부터 차근차근 알려주셔서 너무 감사합니다. 강의보고 실행하며 꾸준히 성장하고 싶습니다🥰",
   },
   {
-    name: "전**",
+    name: "전**님",
     rating: 5,
     date: "1개월 전",
     text: "현재까지 대부분 알고 있던 내용들이었으나 도움되거나 다시한번 리마인드하면서 배워가는게 너무 좋습니다.\n\n앞으로 어떤걸 어떻게 알려주실지 너무나 기대가 됩니다 ㅎㅎ",
   },
   {
-    name: "마***",
+    name: "마**님",
     rating: 5,
     date: "1개월 전",
     text: "너무너무 좋고 유익한 정보들만 쏙쏙 뽑아서 먹여주는 숟가락 같은 역할을 대표님이 강의를 통해서 해 주시네요 넘너무 너무 좋아요 감사합니다",
@@ -549,7 +549,7 @@ export default function TeamBiblPage() {
                   <div key={`feat-${i}`} className="rounded-xl bg-gray-900 border border-gray-800 p-6">
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="text-base font-bold">{r.title}</h3>
-                      <div className="text-red-500 text-sm tracking-wider">{"★".repeat(r.rating)}</div>
+                      <div className="text-amber-400 text-sm tracking-wider">{"★".repeat(r.rating)}</div>
                     </div>
                     <div className="border-t border-gray-700 mb-4" />
                     <p className="text-sm text-gray-300 leading-relaxed whitespace-pre-line">
@@ -573,19 +573,15 @@ export default function TeamBiblPage() {
               {/* 일반 리뷰 */}
               <div className="space-y-4">
                 {REVIEWS.map((r, i) => (
-                  <div key={i} className="rounded-xl bg-gray-900 border border-gray-800 p-5">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-full bg-teal-700 flex items-center justify-center text-sm font-bold">
-                          {r.name[0]}
-                        </div>
-                        <div>
-                          <p className="text-sm font-semibold">{r.name}</p>
-                          <p className="text-xs text-gray-500">{r.date}</p>
-                        </div>
+                  <div key={i} className="rounded-xl bg-gray-900 border border-gray-800 p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <div>
+                        <p className="text-base font-bold">{r.name}</p>
+                        <p className="text-xs text-gray-500 mt-1">{r.date}</p>
                       </div>
-                      <div className="text-amber-400 text-sm">{"★".repeat(r.rating)}</div>
+                      <div className="text-amber-400 text-sm tracking-wider">{"★".repeat(r.rating)}</div>
                     </div>
+                    <div className="border-t border-gray-700 mb-4" />
                     <p className="text-sm text-gray-300 leading-relaxed whitespace-pre-line">{r.text}</p>
                   </div>
                 ))}
