@@ -146,12 +146,11 @@ export default function PaymentButtons({ plan, userId, userEmail, userName, peri
       id: "card",
       name: "신용·체크카드",
       desc: "정기결제 (자동결제)",
-      preparing: true,
       logo: (
         <svg viewBox="0 0 40 40" className="w-8 h-8">
-          <rect width="40" height="40" rx="10" fill="#374151" />
-          <path d="M10 16h20M10 14a2 2 0 012-2h16a2 2 0 012 2v12a2 2 0 01-2 2H12a2 2 0 01-2-2V14z" fill="none" stroke="#6B7280" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-          <rect x="14" y="21" width="5" height="3" rx="0.5" fill="#6B7280" opacity="0.5" />
+          <rect width="40" height="40" rx="10" fill="#1F2937" />
+          <path d="M10 16h20M10 14a2 2 0 012-2h16a2 2 0 012 2v12a2 2 0 01-2 2H12a2 2 0 01-2-2V14z" fill="none" stroke="#9CA3AF" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+          <rect x="14" y="21" width="5" height="3" rx="0.5" fill="#9CA3AF" opacity="0.6" />
         </svg>
       ),
     },
@@ -159,11 +158,10 @@ export default function PaymentButtons({ plan, userId, userEmail, userName, peri
       id: "kakao",
       name: "카카오페이",
       desc: "카카오 계정으로 간편 결제",
-      preparing: true,
       logo: (
         <svg viewBox="0 0 40 40" className="w-8 h-8">
-          <rect width="40" height="40" rx="10" fill="#374151" />
-          <text x="50%" y="56%" dominantBaseline="middle" textAnchor="middle" fill="#6B7280" fontSize="14" fontWeight="bold" fontFamily="sans-serif">K</text>
+          <rect width="40" height="40" rx="10" fill="#FEE500" />
+          <text x="50%" y="56%" dominantBaseline="middle" textAnchor="middle" fill="#3C1E1E" fontSize="14" fontWeight="bold" fontFamily="sans-serif">K</text>
         </svg>
       ),
     },
