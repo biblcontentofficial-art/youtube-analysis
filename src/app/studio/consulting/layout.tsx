@@ -4,6 +4,8 @@ export const metadata: Metadata = {
   title: "무료 상담 신청 — 비블 TMK STUDIO",
   description:
     "유튜브 채널 기획·촬영·편집·운영 전 과정을 맡겨보세요. 65만+ 구독자를 운영한 비블이 무료로 채널을 진단해드립니다.",
+  keywords: ["유튜브 대행", "유튜브 채널 대행", "유튜브 컨설팅", "비블 상담", "TMK STUDIO"],
+  alternates: { canonical: "https://bibllab.com/studio/consulting" },
   openGraph: {
     title: "무료 상담 신청 — 비블 TMK STUDIO",
     description:

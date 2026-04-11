@@ -38,7 +38,7 @@ export const metadata: Metadata = {
       "비블랩 — 유튜브 키워드 트렌드 분석, 채널 찾기, 영상 수집. 크리에이터를 위한 데이터 인사이트.",
     images: [
       {
-        url: "https://www.bibllab.com/og-image.png",
+        url: "https://bibllab.com/og-image.png",
         width: 1280,
         height: 720,
         alt: "비블랩 - 유튜브 키워드·채널 분석 도구",
@@ -49,7 +49,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "비블랩 (bibl lab) - 유튜브 키워드·채널 분석 도구",
     description: "유튜브 키워드·채널 분석, 영상 수집. 크리에이터를 위한 무료 도구.",
-    images: ["https://www.bibllab.com/og-image.png"],
+    images: ["https://bibllab.com/og-image.png"],
   },
   alternates: {
     canonical: "https://bibllab.com",
@@ -254,6 +254,31 @@ export default async function RootLayout({
             text: "마이페이지에서 '구독 취소' 버튼을 클릭하면 언제든지 취소할 수 있습니다. 취소 후에도 현재 결제 기간이 종료될 때까지 서비스를 계속 이용할 수 있으며, 다음 결제일부터 자동 갱신이 중단됩니다.",
           },
         },
+      ],
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      name: "비블랩 (bibl lab)",
+      alternateName: ["비블", "bibl lab", "bibllab"],
+      url: "https://bibllab.com",
+      logo: "https://bibllab.com/og-image.png",
+      email: "bibl.content.official@gmail.com",
+      telephone: "070-8027-2532",
+      sameAs: [
+        "https://www.youtube.com/@biblcontent",
+      ],
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "홈", item: "https://bibllab.com" },
+        { "@type": "ListItem", position: 2, name: "영상 찾기", item: "https://bibllab.com/search" },
+        { "@type": "ListItem", position: 3, name: "채널 찾기", item: "https://bibllab.com/channels" },
+        { "@type": "ListItem", position: 4, name: "스레드 분석", item: "https://bibllab.com/threads" },
+        { "@type": "ListItem", position: 5, name: "요금제", item: "https://bibllab.com/pricing" },
+        { "@type": "ListItem", position: 6, name: "스튜디오", item: "https://bibllab.com/studio" },
       ],
     },
   ];

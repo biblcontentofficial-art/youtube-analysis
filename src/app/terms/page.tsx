@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "이용약관 - bibl lab",
+  title: "이용약관",
+  description: "비블랩(bibl lab) 서비스 이용약관. 회원가입, 서비스 이용, 결제, 환불 등에 관한 권리와 의무를 안내합니다.",
+  alternates: { canonical: "https://bibllab.com/terms" },
 };
 
 export default function TermsPage() {

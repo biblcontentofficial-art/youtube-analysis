@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "환불정책 - bibl lab",
+  title: "환불정책",
+  description: "비블랩(bibl lab) 구독 환불정책. 구독 취소, 환불 조건, 환불 절차 및 유의사항을 안내합니다.",
+  alternates: { canonical: "https://bibllab.com/refund" },
 };
 
 export default function RefundPage() {

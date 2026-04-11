@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "개인정보처리방침 - bibl lab",
+  title: "개인정보처리방침",
+  description: "비블랩(bibl lab) 개인정보처리방침. 수집하는 개인정보 항목, 이용 목적, 보유 기간, 파기 절차 등을 안내합니다.",
+  alternates: { canonical: "https://bibllab.com/privacy" },
 };
 
 export default function PrivacyPage() {

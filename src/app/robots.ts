@@ -17,6 +17,20 @@ export default function robots(): MetadataRoute.Robots {
           '/saved',
         ],
       },
+      {
+        userAgent: 'Yeti',
+        allow: '/',
+        disallow: [
+          '/admin',
+          '/api/',
+          '/mypage',
+          '/sign-in',
+          '/sign-up',
+          '/sso-callback',
+          '/payment',
+          '/saved',
+        ],
+      },
     ],
     sitemap: 'https://bibllab.com/sitemap.xml',
   }
