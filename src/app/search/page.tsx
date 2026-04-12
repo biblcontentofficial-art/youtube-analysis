@@ -31,6 +31,8 @@ import FilterTab from "./_components/FilterTab";
 import PageLoadedSignal from "./_components/PageLoadedSignal";
 import ViewStatsInline from "./_components/ViewStatsInline";
 import VideoCountBadge from "./_components/VideoCountBadge";
+import ShareButton from "./_components/ShareButton";
+import TodaySearchCount from "./_components/TodaySearchCount";
 
 interface Props {
   searchParams: {
@@ -329,6 +331,7 @@ export default async function SearchPage({ searchParams }: Props) {
               <FilterTab href={`/search?${filterBase}&filter=long`} active={filter === "long"} label="쇼츠 제외" />
               <FilterTab href={`/search?${filterBase}&filter=shorts`} active={filter === "shorts"} label="쇼츠만" />
               {isPaid && <ViewStatsInline />}
+              <TodaySearchCount />
             </div>
 
             {/* 액션 버튼 */}
@@ -362,6 +365,7 @@ export default async function SearchPage({ searchParams }: Props) {
                 </Link>
               )}
               <ActionButton label="채널 제거" icon="🗑" event="TRIGGER_REMOVE_CHANNELS" />
+              <ShareButton query={query} />
               <VideoCountBadge initial={videos.length} />
             </div>
           </div>

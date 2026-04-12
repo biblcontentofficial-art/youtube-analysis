@@ -21,7 +21,7 @@ const securityHeaders = [
     key: "Content-Security-Policy",
     value: [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://pay.toss.im https://js.tosspayments.com https://cpay.payple.kr https://testcpay.payple.kr",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://pay.toss.im https://js.tosspayments.com https://cpay.payple.kr https://testcpay.payple.kr https://t1.kakaocdn.net",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com",
       "img-src 'self' data: blob: https://i.ytimg.com https://yt3.ggpht.com https://yt3.googleusercontent.com https://lh3.googleusercontent.com https://k.kakaocdn.net https://*.kakaocdn.net",

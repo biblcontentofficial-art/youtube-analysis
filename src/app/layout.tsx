@@ -287,6 +287,7 @@ export default async function RootLayout({
     <html lang="ko">
       <head>
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+        <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.4/kakao.min.js" integrity="sha384-DKYJZ8NLiK8MN4/C5P2dtSmLQ4KwPaoqAfyA/DfmEc1VDxu4yyC7wy6K1Hs90nk" crossOrigin="anonymous" async />
         <link rel="icon" href="/icon" type="image/png" sizes="32x32" />
         <link rel="apple-touch-icon" href="/apple-icon" sizes="180x180" />
       </head>
@@ -298,6 +299,15 @@ export default async function RootLayout({
             dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
           />
         ))}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if(typeof Kakao!=='undefined'&&!Kakao.isInitialized()){
+                Kakao.init('${process.env.NEXT_PUBLIC_KAKAO_JS_KEY || ""}');
+              }
+            `,
+          }}
+        />
         <NavigationLoader>
         <ConfirmProvider>
         <nav className="border-b border-gray-800 bg-gray-950 sticky top-0 z-50">
