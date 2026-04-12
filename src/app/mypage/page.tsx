@@ -8,6 +8,7 @@ import LogoutButton from "./_components/LogoutButton";
 import RecentSearches from "./_components/RecentSearches";
 import CancelSubscriptionButton from "./_components/CancelSubscriptionButton";
 import DeleteAccountButton from "./_components/DeleteAccountButton";
+import ReferralSection from "./_components/ReferralSection";
 
 export default async function MyPage({
   searchParams,
@@ -197,6 +198,9 @@ export default async function MyPage({
               </div>
             </div>
           )}
+
+          {/* 친구 초대 */}
+          <ReferralSection />
 
           {/* 최근 검색 키워드 */}
           <RecentSearches />

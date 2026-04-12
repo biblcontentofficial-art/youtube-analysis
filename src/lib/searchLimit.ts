@@ -186,11 +186,15 @@ export async function getSearchUsage(): Promise<UsageResult> {
   const planData = PLANS[plan];
   const r = await getRedis();
 
-  // Free: 일별 추적
+  // Free: 일별 추적 + 추천 보너스
   if (plan === "free") {
     const key = dailyKey(userId);
     const used = await getCount(key, r);
-    return { used, limit: planData.dailySearchLimit!, plan, isMonthly: false, unlimited: false };
+    let bonus = 0;
+    if (r) {
+      try { bonus = await r.get<number>(`ref:bonus:${userId}`) ?? 0; } catch {}
+    }
+    return { used, limit: planData.dailySearchLimit! + bonus, plan, isMonthly: false, unlimited: false };
   }
 
   // Business/Admin: 무제한 (통계용 월별 카운트)

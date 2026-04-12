@@ -6,6 +6,7 @@ export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
   const next = searchParams.get("next") ?? "/search";
+  const refCode = searchParams.get("ref");
 
   if (!code) {
     return NextResponse.redirect(`${origin}/sign-in?error=no_code`);
@@ -43,6 +44,15 @@ export async function GET(request: NextRequest) {
   } catch (e) {
     console.error("[Auth Callback] Migration error:", e);
     // 마이그레이션 실패해도 로그인은 진행
+  }
+
+  // 추천 코드 적용 (쿠키에 저장 → 클라이언트에서 API 호출)
+  if (refCode) {
+    response.cookies.set("bibl_ref_code", refCode, {
+      maxAge: 60 * 60, // 1시간
+      path: "/",
+      httpOnly: false,
+    });
   }
 
   return response;

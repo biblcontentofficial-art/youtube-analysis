@@ -4,6 +4,7 @@ import SearchUsageBadge from "./_components/SearchUsageBadge";
 import NavigationLoader from "./_components/NavigationLoader";
 import { ConfirmProvider } from "./_components/ConfirmDialog";
 import NavUser from "./_components/NavUser";
+import ReferralApply from "./_components/ReferralApply";
 import "./globals.css";
 
 
@@ -387,6 +388,7 @@ export default async function RootLayout({
           </div>
         </nav>
         {children}
+        <ReferralApply />
         {DevToolbar && <DevToolbar />}
         <footer className="border-t border-gray-800 bg-gray-950 mt-16">
 

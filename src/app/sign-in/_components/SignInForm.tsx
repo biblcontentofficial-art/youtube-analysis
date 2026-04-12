@@ -44,10 +44,14 @@ export default function SignInForm() {
     setLoading(provider);
     try {
       const supabase = createSupabaseBrowser();
+      // 추천 코드가 URL에 있으면 auth callback으로 전달
+      const urlParams = new URLSearchParams(window.location.search);
+      const ref = urlParams.get("ref");
+      const callbackUrl = `${window.location.origin}/auth/callback?next=/search${ref ? `&ref=${ref}` : ""}`;
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
-          redirectTo: `${window.location.origin}/auth/callback?next=/search`,
+          redirectTo: callbackUrl,
         },
       });
       if (error) {
