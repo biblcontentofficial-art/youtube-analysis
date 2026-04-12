@@ -746,7 +746,7 @@ function PriceCard() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M17 20h5v-2a4 4 0 00-5.916-3.519M9 20H4v-2a4 4 0 015.916-3.519M15 7a4 4 0 11-8 0 4 4 0 018 0zm6 4a3 3 0 11-6 0 3 3 0 016 0zM3 11a3 3 0 116 0 3 3 0 01-6 0z" />
                 </svg>
               ),
-              label: "모집 정원", value: "15명 한정",
+              label: "모집 정원", value: "10명 한정",
             },
             {
               icon: (
