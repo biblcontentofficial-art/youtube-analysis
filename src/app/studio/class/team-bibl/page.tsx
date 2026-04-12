@@ -482,7 +482,7 @@ export default function TeamBiblPage() {
                 <div className="flex items-center gap-1 text-amber-400 text-sm">
                   {"★★★★★"}
                   <span className="text-white font-bold ml-1">5.0</span>
-                  <span className="text-gray-500 ml-1">({REVIEWS.length}개의 리뷰)</span>
+                  <span className="text-gray-500 ml-1">({FEATURED_REVIEWS.length + REVIEWS.length}개의 리뷰)</span>
                 </div>
                 <span className="w-px h-4 bg-gray-700" />
                 <span className="text-xs text-gray-500">동영상 160개 · 총 40주 커리큘럼</span>
