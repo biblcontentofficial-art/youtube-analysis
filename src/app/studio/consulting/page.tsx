@@ -7,7 +7,6 @@ import Link from "next/link";
 const SOURCE_OPTIONS = ["유튜브", "인스타그램", "스레드", "지인 소개", "블로그/검색"];
 const SERVICE_OPTIONS = [
   { value: "채널 대행 (기획·촬영·편집·업로드 전 과정)", label: "채널 대행 풀패키지", desc: "기획·촬영·편집·업로드·분석 전 과정" },
-  { value: "기획만 (촬영·편집·업로드 직접)", label: "기획만", desc: "기획만 비블에게 전달받고, 촬영·편집·업로드는 직접하는 과정" },
 ];
 const GOAL_OPTIONS = [
   { value: "사업·브랜드 홍보 및 매출 연결", label: "사업·브랜드 홍보", desc: "유튜브로 고객·매출 만들기" },
