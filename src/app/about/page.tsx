@@ -197,9 +197,9 @@ export default function AboutPage() {
                 <tbody className="divide-y divide-gray-900">
                   {[
                     { plan: "Free", price: "무료", search: "2회/일", channel: "1회/일" },
-                    { plan: "Starter", price: "₩49,000", search: "50회/월", channel: "30회/월" },
-                    { plan: "Pro", price: "₩199,000", search: "500회/월", channel: "500회/월" },
-                    { plan: "Business", price: "₩490,000", search: "무제한", channel: "무제한" },
+                    { plan: "Starter", price: "₩29,000", search: "50회/월", channel: "30회/월" },
+                    { plan: "Pro", price: "₩49,000", search: "500회/월", channel: "500회/월" },
+                    { plan: "Team bibl", price: "₩310,000", search: "무제한", channel: "무제한" },
                   ].map((row) => (
                     <tr key={row.plan}>
                       <td className="py-3 pr-6 font-medium text-white">{row.plan}</td>

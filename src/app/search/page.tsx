@@ -290,7 +290,7 @@ export default async function SearchPage({ searchParams }: Props) {
                 Starter 플랜으로 업그레이드하면 <span className="text-teal-400 font-semibold">월 50회 검색</span>이 가능합니다
               </p>
               <p className="text-gray-600 text-xs mb-6">
-                {isMonthly ? "또는 다음달 초기화까지 기다리세요" : "또는 내일 자정 초기화까지 기다리세요"} · Starter ₩49,000/월부터
+                {isMonthly ? "또는 다음달 초기화까지 기다리세요" : "또는 내일 자정 초기화까지 기다리세요"} · Starter ₩29,000/월부터
               </p>
 
               {/* 플랜 혜택 비교 */}
@@ -384,7 +384,7 @@ export default async function SearchPage({ searchParams }: Props) {
                   </div>
                   <div>
                     <p className="text-sm font-semibold text-teal-300">Starter 플랜으로 월 50회 검색 + 알고리즘 확률</p>
-                    <p className="text-xs text-gray-500 mt-0.5">월 ₩49,000 · 언제든지 취소 · 즉시 적용</p>
+                    <p className="text-xs text-gray-500 mt-0.5">월 ₩29,000 · 언제든지 취소 · 즉시 적용</p>
                   </div>
                 </div>
                 <Link href="/pricing" className="shrink-0 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold px-4 py-2 rounded-lg transition whitespace-nowrap">

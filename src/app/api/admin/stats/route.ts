@@ -5,9 +5,9 @@ import { isAdminEmail } from "@/lib/adminAuth";
 
 const PLAN_PRICE: Record<string, number> = {
   free: 0,
-  starter: 49000,
-  pro: 199000,
-  business: 490000,
+  starter: 29000,
+  pro: 49000,
+  business: 310000,
   team: 0,   // 매출 집계 제외
   admin: 0,  // 매출 집계 제외
 };

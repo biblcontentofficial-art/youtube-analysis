@@ -41,7 +41,7 @@ export default async function MyPage({
     free: "Free",
     starter: "Starter",
     pro: "Pro",
-    business: "Business",
+    business: "Team bibl",
   };
 
   const planColors: Record<string, string> = {

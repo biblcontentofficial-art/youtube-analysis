@@ -47,9 +47,9 @@ const PLANS: PlanData[] = [
   },
   {
     name: "Starter",
-    monthlyPrice: 70000,
-    yearlyMonthlyPrice: 49000,
-    yearlyTotal: 588000,
+    monthlyPrice: 39000,
+    yearlyMonthlyPrice: 29000,
+    yearlyTotal: 348000,
     desc: "주 2~3회 키워드를 분석하는 크리에이터",
     color: "border-gray-600",
     badge: null,
@@ -72,9 +72,9 @@ const PLANS: PlanData[] = [
   },
   {
     name: "Pro",
-    monthlyPrice: 140000,
-    yearlyMonthlyPrice: 99000,
-    yearlyTotal: 1188000,
+    monthlyPrice: 59000,
+    yearlyMonthlyPrice: 49000,
+    yearlyTotal: 588000,
     desc: "매일 트렌드를 선점하는 전문 크리에이터",
     color: "border-teal-500",
     badge: "추천",
@@ -97,11 +97,11 @@ const PLANS: PlanData[] = [
     planKey: "pro",
   },
   {
-    name: "Business",
-    monthlyPrice: 700000,
-    yearlyMonthlyPrice: 490000,
-    yearlyTotal: 5880000,
-    desc: "마케터 · MCN · 에이전시",
+    name: "Team bibl",
+    monthlyPrice: 390000,
+    yearlyMonthlyPrice: 310000,
+    yearlyTotal: 3720000,
+    desc: "비블과 함께 성장하는 크리에이터",
     color: "border-purple-600",
     badge: null,
     usage: [
@@ -110,10 +110,11 @@ const PLANS: PlanData[] = [
     ],
     features: [
       { text: "Pro 모든 기능 포함" },
-      { text: "65만+ 유튜버 비블 월 1회 1시간 미팅" },
-      { text: "채널 심화 분석 리포트 제공" },
+      { text: "매주 1회 30분 비블 미팅" },
+      { text: "160강 VOD 제공 (주차별 오픈)" },
+      { text: "비블 VIP 오프라인 커뮤니티 초대권 월1회" },
     ],
-    cta: "Business 시작하기",
+    cta: "Team bibl 시작하기",
     ctaStyle: "bg-purple-600 hover:bg-purple-500 text-white",
     planKey: "business",
   },
@@ -156,7 +157,7 @@ export default function PricingCards() {
                 ? "bg-teal-500/20 text-teal-400 border border-teal-500/40"
                 : "bg-gray-800 text-gray-500"
             }`}>
-              30% 할인
+              최대 26% 할인
             </span>
           </button>
         </div>

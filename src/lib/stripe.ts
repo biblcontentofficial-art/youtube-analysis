@@ -91,7 +91,7 @@ export const PLANS: Record<PlanKey, PlanConfig> = {
     canThreadsViralScore: true,
   },
   business: {
-    name: "Business",
+    name: "Team bibl",
     priceId: process.env.STRIPE_BUSINESS_PRICE_ID,
     dailySearchLimit: null,
     monthlySearchLimit: null,

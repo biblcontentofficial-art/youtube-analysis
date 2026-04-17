@@ -70,9 +70,9 @@ const PLAN_BADGE: Record<string, string> = {
 
 const PLAN_PRICE: Record<string, number> = {
   free: 0,
-  starter: 49000,
-  pro: 199000,
-  business: 490000,
+  starter: 29000,
+  pro: 49000,
+  business: 310000,
   admin: 0,  // 매출 집계 제외
   team: 0,   // 팀비블 — 매출 집계 제외
 };
@@ -81,7 +81,7 @@ const PLAN_LABEL: Record<string, string> = {
   free: "Free",
   starter: "Starter",
   pro: "Pro",
-  business: "Business",
+  business: "Team bibl",
   admin: "Admin",
   team: "팀비블",
 };
