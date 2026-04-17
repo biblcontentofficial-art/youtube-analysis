@@ -43,6 +43,17 @@ function isProtectedRoute(pathname: string): boolean {
 }
 
 export default async function middleware(req: NextRequest) {
+  // 🚨 점검 모드: Vercel 환경변수 MAINTENANCE_MODE=true 설정 시 활성화
+  if (process.env.MAINTENANCE_MODE === "true") {
+    const { pathname } = req.nextUrl;
+    // 점검 페이지 자체와 정적 파일은 통과
+    if (pathname !== "/maintenance" && !pathname.startsWith("/_next") && !pathname.startsWith("/api/cron")) {
+      const url = req.nextUrl.clone();
+      url.pathname = "/maintenance";
+      return NextResponse.rewrite(url);
+    }
+  }
+
   // www → non-www 리다이렉트
   const wwwRedirect = handleWwwRedirect(req);
   if (wwwRedirect) return wwwRedirect;
