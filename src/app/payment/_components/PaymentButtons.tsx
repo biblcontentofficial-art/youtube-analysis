@@ -44,29 +44,65 @@ export default function PaymentButtons({ plan, userId, userEmail, userName, peri
     try {
       const storeId = process.env.NEXT_PUBLIC_PORTONE_STORE_ID;
       const channelKey = process.env.NEXT_PUBLIC_PORTONE_KAKAOPAY_CHANNEL_KEY;
-      if (!storeId || !channelKey) { alert("카카오페이 설정이 필요합니다."); return; }
+      console.log("[kakao] storeId:", storeId, "channelKey:", channelKey);
+      if (!storeId || !channelKey) {
+        alert("카카오페이 설정이 필요합니다. (환경변수 누락)");
+        return;
+      }
       const { requestIssueBillingKey } = await import("@portone/browser-sdk/v2");
       const planData = PORTONE_PLANS[plan];
       const issueId = `kko_${userId.slice(-10)}_${Date.now().toString(36)}`;
+      const redirectUrl = `${window.location.origin}/payment/success?plan=${plan}&pgType=kakaopay`;
+
+      console.log("[kakao] requestIssueBillingKey 호출", { issueId, amount: planData.amount });
+
       const res = await requestIssueBillingKey({
-        storeId, channelKey,
+        storeId,
+        channelKey,
         billingKeyMethod: "EASY_PAY",
-        issueId, issueName: planData.orderName,
+        issueId,
+        issueName: planData.orderName,
         displayAmount: planData.amount,
         currency: "KRW",
-        customer: { customerId: userId, fullName: userName || "고객", email: userEmail },
+        customer: {
+          customerId: userId,
+          fullName: userName || "고객",
+          email: userEmail,
+        },
         easyPay: { easyPayProvider: "KAKAOPAY" },
+        redirectUrl,
       } as Parameters<typeof requestIssueBillingKey>[0]);
-      if (!res || "code" in res) { alert((res as { message?: string })?.message || "카카오페이 등록 실패"); return; }
+
+      console.log("[kakao] 응답:", res);
+
+      if (!res) {
+        alert("카카오페이 창이 닫혔거나 응답이 없습니다. 팝업 차단을 해제해주세요.");
+        return;
+      }
+      if ("code" in res) {
+        const err = res as { code?: string; message?: string };
+        alert(`카카오페이 등록 실패\n${err.message || err.code || "알 수 없는 오류"}`);
+        return;
+      }
       const billingKey = (res as { billingKey: string }).billingKey;
+      if (!billingKey) {
+        alert("빌링키를 받지 못했습니다. 다시 시도해주세요.");
+        return;
+      }
       const confirmRes = await fetch("/api/portone/billing/confirm", {
-        method: "POST", headers: { "Content-Type": "application/json" },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ billingKey, plan, pgType: "kakaopay", customerName: userName, customerEmail: userEmail }),
       });
-      if (!confirmRes.ok) { const err = await confirmRes.json().catch(() => ({})); alert((err as { message?: string }).message || "결제 실패"); return; }
+      if (!confirmRes.ok) {
+        const err = await confirmRes.json().catch(() => ({}));
+        alert((err as { message?: string }).message || "결제 승인 실패");
+        return;
+      }
       window.location.href = "/search?upgraded=1";
     } catch (e) {
       console.error("[kakao] 결제 오류:", e);
+      alert(`카카오페이 결제 중 오류가 발생했습니다.\n${e instanceof Error ? e.message : String(e)}`);
     } finally {
       setLoading(null);
     }
