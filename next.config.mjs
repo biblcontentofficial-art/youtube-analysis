@@ -25,7 +25,7 @@ const securityHeaders = [
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com",
       "img-src 'self' data: blob: https://i.ytimg.com https://yt3.ggpht.com https://yt3.googleusercontent.com https://lh3.googleusercontent.com https://k.kakaocdn.net https://*.kakaocdn.net",
-      "frame-src 'self' https://pay.toss.im https://cpay.payple.kr https://testcpay.payple.kr https://accounts.google.com",
+      "frame-src 'self' https://pay.toss.im https://cpay.payple.kr https://testcpay.payple.kr https://accounts.google.com https://www.youtube.com https://www.youtube-nocookie.com",
       "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.upstash.io",
       "media-src 'self' https://www.youtube.com",
     ].join("; "),

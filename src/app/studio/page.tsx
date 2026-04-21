@@ -314,6 +314,29 @@ export default function StudioPage() {
       </section>
 
       {/* ══════════════════════════════════════════════════════════════ */}
+      {/* YouTube 영상                                                  */}
+      {/* ══════════════════════════════════════════════════════════════ */}
+      <section className="border-b border-gray-800">
+        <div className="max-w-screen-lg mx-auto px-4 py-20">
+          <p data-animate="up" className="text-sm text-gray-500 uppercase tracking-widest mb-3 text-center">비블이 직접 말합니다</p>
+          <h2 data-animate="up" data-delay="80" className="text-3xl md:text-5xl font-bold mb-10 text-center">
+            영상으로 만나보세요
+          </h2>
+          <div data-animate="up" data-delay="160" className="relative w-full overflow-hidden rounded-2xl border border-gray-800 shadow-2xl shadow-teal-500/5" style={{ paddingTop: "56.25%" }}>
+            <iframe
+              className="absolute top-0 left-0 w-full h-full"
+              src="https://www.youtube.com/embed/hnI4iidFLeE"
+              title="비블 소개 영상"
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              referrerPolicy="strict-origin-when-cross-origin"
+              allowFullScreen
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════════════════════════ */}
       {/* 포트폴리오                                                    */}
       {/* ══════════════════════════════════════════════════════════════ */}
       <section className="border-b border-gray-800">
