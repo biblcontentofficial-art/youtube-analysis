@@ -9,16 +9,16 @@ export const PAYPLE_CONFIG = {
 export const PLANS = {
   starter: {
     name: 'Starter',
-    amount: 29000,           // 연간 월환산 (기본)
-    monthlyAmount: 39000,    // 월간 결제
-    yearlyAmount: 348000,    // 연간 일시불 (29000 × 12)
+    amount: 15000,           // 연간 월환산 (기본)
+    monthlyAmount: 19000,    // 월간 결제
+    yearlyAmount: 180000,    // 연간 일시불 (15000 × 12)
     searchLimit: 10,
   },
   pro: {
     name: 'Pro',
-    amount: 49000,
-    monthlyAmount: 59000,    // 월간 결제
-    yearlyAmount: 588000,    // 연간 일시불 (49000 × 12)
+    amount: 39000,
+    monthlyAmount: 45000,    // 월간 결제
+    yearlyAmount: 468000,    // 연간 일시불 (39000 × 12)
     searchLimit: 50,
   },
   business: {

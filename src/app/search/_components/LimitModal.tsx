@@ -83,7 +83,7 @@ export default function LimitModal({ show, limit }: { show: boolean; limit: numb
             <p className="text-gray-400 text-sm mb-1">
               Starter 플랜으로 <span className="text-teal-400 font-semibold">월 50회 검색</span>이 가능합니다
             </p>
-            <p className="text-gray-600 text-xs mb-6">내일 자정 초기화 · Starter ₩29,000/월부터</p>
+            <p className="text-gray-600 text-xs mb-6">내일 자정 초기화 · Starter ₩15,000/월부터</p>
 
             <div className="bg-gray-800/60 border border-gray-700 rounded-xl px-4 py-3 mb-6 text-left space-y-2">
               {[

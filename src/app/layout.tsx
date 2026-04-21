@@ -132,7 +132,7 @@ export default async function RootLayout({
         {
           "@type": "Offer",
           name: "Starter 플랜",
-          price: "29000",
+          price: "15000",
           priceCurrency: "KRW",
           description: "영상 검색 50회/월, 채널 검색 30회/월, 검색 기록 30일 저장",
           billingIncrement: "P1M",
@@ -140,7 +140,7 @@ export default async function RootLayout({
         {
           "@type": "Offer",
           name: "Pro 플랜",
-          price: "49000",
+          price: "39000",
           priceCurrency: "KRW",
           description: "영상 검색 500회/월, 채널 검색 500회/월, 영상 수집·CSV 내보내기",
           billingIncrement: "P1M",
@@ -220,7 +220,7 @@ export default async function RootLayout({
           name: "비블랩은 무료로 사용할 수 있나요?",
           acceptedAnswer: {
             "@type": "Answer",
-            text: "네, 비블랩은 무료 Free 플랜으로 시작할 수 있습니다. 하루 2회 영상 검색, 1회 채널 검색이 무료로 제공됩니다. 더 많은 검색이 필요하면 Starter(월 29,000원), Pro(월 49,000원), Team bibl(월 310,000원) 플랜으로 업그레이드할 수 있습니다.",
+            text: "네, 비블랩은 무료 Free 플랜으로 시작할 수 있습니다. 하루 2회 영상 검색, 1회 채널 검색이 무료로 제공됩니다. 더 많은 검색이 필요하면 Starter(월 15,000원), Pro(월 39,000원), Team bibl(월 310,000원) 플랜으로 업그레이드할 수 있습니다.",
           },
         },
         {

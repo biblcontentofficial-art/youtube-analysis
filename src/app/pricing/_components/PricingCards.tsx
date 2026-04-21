@@ -47,9 +47,9 @@ const PLANS: PlanData[] = [
   },
   {
     name: "Starter",
-    monthlyPrice: 39000,
-    yearlyMonthlyPrice: 29000,
-    yearlyTotal: 348000,
+    monthlyPrice: 19000,
+    yearlyMonthlyPrice: 15000,
+    yearlyTotal: 180000,
     desc: "주 2~3회 키워드를 분석하는 크리에이터",
     color: "border-gray-600",
     badge: null,
@@ -72,9 +72,9 @@ const PLANS: PlanData[] = [
   },
   {
     name: "Pro",
-    monthlyPrice: 59000,
-    yearlyMonthlyPrice: 49000,
-    yearlyTotal: 588000,
+    monthlyPrice: 45000,
+    yearlyMonthlyPrice: 39000,
+    yearlyTotal: 468000,
     desc: "매일 트렌드를 선점하는 전문 크리에이터",
     color: "border-teal-500",
     badge: "추천",
@@ -157,7 +157,7 @@ export default function PricingCards() {
                 ? "bg-teal-500/20 text-teal-400 border border-teal-500/40"
                 : "bg-gray-800 text-gray-500"
             }`}>
-              최대 26% 할인
+              최대 21% 할인
             </span>
           </button>
         </div>
