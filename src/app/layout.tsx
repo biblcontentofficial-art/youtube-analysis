@@ -150,7 +150,7 @@ export default async function RootLayout({
           name: "Team bibl 플랜",
           price: "310000",
           priceCurrency: "KRW",
-          description: "영상·채널 검색 무제한, 매주 1회 30분 비블 미팅, 160강 VOD, VIP 오프라인 커뮤니티",
+          description: "영상·채널 검색 무제한, 매주 1회 1:1 비블 컨설팅, 160강 VOD, 비블 오프라인 커뮤니티",
           billingIncrement: "P1M",
         },
       ],
