@@ -325,7 +325,7 @@ export default function StudioPage() {
           <div data-animate="up" data-delay="160" className="relative w-full overflow-hidden rounded-2xl border border-gray-800 shadow-2xl shadow-teal-500/5" style={{ paddingTop: "56.25%" }}>
             <iframe
               className="absolute top-0 left-0 w-full h-full"
-              src="https://www.youtube.com/embed/hnI4iidFLeE?autoplay=1&mute=1&playsinline=1&rel=0&loop=1&playlist=hnI4iidFLeE"
+              src="https://www.youtube.com/embed/hnI4iidFLeE?autoplay=1&mute=0&playsinline=1&rel=0&loop=1&playlist=hnI4iidFLeE"
               title="비블 소개 영상"
               frameBorder="0"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
