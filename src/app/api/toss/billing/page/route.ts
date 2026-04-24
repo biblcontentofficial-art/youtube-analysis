@@ -90,12 +90,35 @@ export async function GET(req: NextRequest) {
     // 토스페이먼츠 v2 SDK 초기화 (공식 가이드와 동일)
     var clientKey = ${safeClientKey};
     var customerKey = ${safeUserId};
-    var tossPayments = TossPayments(clientKey.trim());
-    var payment = tossPayments.payment({ customerKey: customerKey.trim() });
+    // customerKey 정규화: 영문/숫자/-_=.@ 만 허용 (Toss 규격)
+    var safeCustomerKey = customerKey.trim().replace(/[^A-Za-z0-9\\-_=.@]/g, "_");
+    if (safeCustomerKey.length < 2) safeCustomerKey = "user_" + safeCustomerKey;
+    if (safeCustomerKey.length > 300) safeCustomerKey = safeCustomerKey.substring(0, 300);
+
+    console.log("[Toss] Init", { clientKeyPrefix: clientKey.substring(0, 10), customerKey: safeCustomerKey });
+
+    var tossPayments, payment;
+    try {
+      tossPayments = TossPayments(clientKey.trim());
+      payment = tossPayments.payment({ customerKey: safeCustomerKey });
+      console.log("[Toss] SDK 초기화 완료");
+    } catch (initErr) {
+      console.error("[Toss] SDK 초기화 실패:", initErr);
+      document.getElementById("error").textContent = "결제 모듈 초기화 실패. 페이지를 새로고침해주세요. (" + (initErr.message || initErr) + ")";
+      document.getElementById("error").style.display = "block";
+    }
 
     function requestBilling() {
       var errorEl = document.getElementById("error");
       errorEl.style.display = "none";
+
+      if (!payment) {
+        errorEl.textContent = "결제 모듈이 준비되지 않았습니다. 페이지를 새로고침해주세요.";
+        errorEl.style.display = "block";
+        return;
+      }
+
+      console.log("[Toss] requestBillingAuth 호출");
 
       payment.requestBillingAuth({
         method: "CARD",
@@ -104,9 +127,30 @@ export async function GET(req: NextRequest) {
         customerEmail: ${safeEmail},
         customerName: ${safeName},
       }).catch(function(e) {
-        errorEl.textContent = "결제 오류 [" + (e.code || "UNKNOWN") + "]: " + (e.message || "에러 발생");
+        console.error("[Toss] requestBillingAuth 에러 (전체):", e);
+        console.error("[Toss] 에러 세부:", { code: e && e.code, message: e && e.message, name: e && e.name, stack: e && e.stack });
+
+        var code = (e && e.code) || "UNKNOWN";
+        var msg = (e && e.message) || "알 수 없는 에러가 발생했습니다.";
+
+        if (code === "USER_CANCEL" || code === "PAY_PROCESS_CANCELED") return;
+
+        // 사용자 친화적 메시지로 변환
+        var friendly = msg;
+        if (code === "UNKNOWN" || !e || !e.code) {
+          friendly = "결제창을 열 수 없습니다. 아래 사항을 확인해주세요:\\n" +
+                     "1) 브라우저 팝업 차단을 해제해주세요\\n" +
+                     "2) 광고 차단 확장프로그램을 일시 중지해주세요\\n" +
+                     "3) 다른 브라우저(Chrome 권장)에서 시도해주세요\\n" +
+                     "4) 문제가 지속되면 bibl.content.official@gmail.com 으로 고객키와 함께 문의해주세요\\n\\n" +
+                     "고객키: " + safeCustomerKey;
+        } else if (code === "INVALID_CARD" || code === "NOT_SUPPORTED_CARD") {
+          friendly = "지원하지 않는 카드입니다. 다른 카드를 사용해주세요.\\n(원본 메시지: " + msg + ")";
+        }
+
+        errorEl.textContent = "결제 오류 [" + code + "]: " + friendly;
         errorEl.style.display = "block";
-        console.error("[Toss]", e);
+        errorEl.style.whiteSpace = "pre-line";
       });
     }
   </script>
