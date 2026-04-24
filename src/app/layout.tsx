@@ -366,8 +366,8 @@ export default async function RootLayout({
                 } />
                 <>
                   <div className="w-px h-4 bg-gray-700 mx-1" />
-                  <NavTab href="/studio" label="올인원 유튜브 채널 대행" isStudio />
                   <NavTab href="/studio/class/team-bibl" label="팀비블 1:1 유튜브 컨설팅" isStudio />
+                  <NavTab href="/studio" label="올인원 유튜브 채널 대행" isStudio />
                 </>
               </div>
             </div>
@@ -384,6 +384,24 @@ export default async function RootLayout({
                 요금제
               </a>
               <NavUser />
+            </div>
+          </div>
+          {/* 모바일 전용: 스튜디오 링크 행 */}
+          <div className="md:hidden border-t border-gray-800/60 bg-gray-950">
+            <div className="max-w-screen-2xl mx-auto px-4 py-2 flex items-center justify-center gap-2 overflow-x-auto scrollbar-hide">
+              <a
+                href="/studio/class/team-bibl"
+                className="text-xs text-teal-400 hover:text-teal-300 font-medium px-3 py-1.5 rounded-md whitespace-nowrap"
+              >
+                팀비블 1:1 컨설팅
+              </a>
+              <span className="w-px h-3 bg-gray-700" />
+              <a
+                href="/studio"
+                className="text-xs text-teal-400 hover:text-teal-300 font-medium px-3 py-1.5 rounded-md whitespace-nowrap"
+              >
+                올인원 채널 대행
+              </a>
             </div>
           </div>
         </nav>
