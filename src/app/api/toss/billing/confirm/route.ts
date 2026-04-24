@@ -119,6 +119,7 @@ export async function GET(req: NextRequest) {
         plan,
         billingKey,
         customerKey,
+        period,
       }),
       insertPayment({
         userId,

@@ -91,6 +91,7 @@ export async function POST(req: NextRequest) {
       plan: plan as PortonePlanKey,
       billingKey: storedBillingKey,
       customerKey: userId,
+      period,
     }),
     insertPayment({
       userId,

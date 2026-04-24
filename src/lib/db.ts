@@ -49,17 +49,25 @@ export async function upsertSubscription(params: {
   plan: string;
   billingKey: string;
   customerKey: string;
+  period?: "monthly" | "yearly";
 }) {
   const db = getSupabase();
   if (!db) return; // DB 없으면 스킵 (서비스 계속 동작)
 
+  const period = params.period === "monthly" ? "monthly" : "yearly";
   const nextBillingAt = new Date();
-  nextBillingAt.setMonth(nextBillingAt.getMonth() + 1);
+  // 갱신 주기: yearly = 12개월 후, monthly = 1개월 후
+  if (period === "yearly") {
+    nextBillingAt.setFullYear(nextBillingAt.getFullYear() + 1);
+  } else {
+    nextBillingAt.setMonth(nextBillingAt.getMonth() + 1);
+  }
 
   const { error } = await db.from("subscriptions").upsert(
     {
       user_id: params.userId,
       plan: params.plan,
+      period,
       billing_key: params.billingKey,
       customer_key: params.customerKey,
       status: "active",

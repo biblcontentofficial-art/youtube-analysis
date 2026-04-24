@@ -104,6 +104,11 @@ async function chargeToss(
     return;
   }
 
+  // period에 따라 결제 금액 결정 (기본값: yearly로 안전하게 처리)
+  const period = sub.period === "monthly" ? "monthly" : "yearly";
+  const chargeAmount = period === "yearly" ? planData.yearlyAmount : planData.monthlyAmount;
+  const orderNameSuffix = period === "yearly" ? " (연간)" : " (월간)";
+
   const secretKey = process.env.TOSS_SECRET_KEY || "";
   const base64    = Buffer.from(`${secretKey}:`).toString("base64");
   const dateSuffix = new Date().toISOString().slice(0, 10).replace(/-/g, "");
@@ -124,9 +129,9 @@ async function chargeToss(
         },
         body: JSON.stringify({
           customerKey: sub.customer_key || sub.user_id,
-          amount: planData.amount,
+          amount: chargeAmount,
           orderId,
-          orderName: planData.orderName,
+          orderName: planData.orderName + orderNameSuffix,
           customerEmail,
         }),
       }
@@ -136,16 +141,21 @@ async function chargeToss(
 
     if (!chargeRes.ok) {
       console.error(`[cron/billing/toss] 결제 실패 userId=${sub.user_id}:`, chargeData);
-      await insertPayment({ userId: sub.user_id, plan, amount: planData.amount, orderId, status: "failed", raw: chargeData });
+      await insertPayment({ userId: sub.user_id, plan, amount: chargeAmount, orderId, status: "failed", raw: chargeData });
       results.push({ userId: sub.user_id, status: "failed", pg: "toss", reason: chargeData.message });
       return;
     }
 
+    // 다음 갱신 시점: yearly = 12개월 후, monthly = 1개월 후
     const nextBillingAt = new Date();
-    nextBillingAt.setMonth(nextBillingAt.getMonth() + 1);
+    if (period === "yearly") {
+      nextBillingAt.setFullYear(nextBillingAt.getFullYear() + 1);
+    } else {
+      nextBillingAt.setMonth(nextBillingAt.getMonth() + 1);
+    }
 
     await db.from("subscriptions").update({ next_billing_at: nextBillingAt.toISOString(), updated_at: now }).eq("user_id", sub.user_id);
-    await insertPayment({ userId: sub.user_id, plan, amount: planData.amount, orderId, paymentKey: chargeData.paymentKey, status: "success", raw: chargeData });
+    await insertPayment({ userId: sub.user_id, plan, amount: chargeAmount, orderId, paymentKey: chargeData.paymentKey, status: "success", raw: chargeData });
 
     results.push({ userId: sub.user_id, status: "success", pg: "toss" });
   } catch (e) {
@@ -177,6 +187,11 @@ async function chargePortone(
     return;
   }
 
+  // period에 따라 결제 금액 결정 (기본값: yearly)
+  const period = sub.period === "monthly" ? "monthly" : "yearly";
+  const chargeAmount = period === "yearly" ? planData.yearlyAmount : planData.monthlyAmount;
+  const orderNameSuffix = period === "yearly" ? " (연간)" : " (월간)";
+
   // "portone:" prefix 제거하여 실제 빌링키 추출
   const actualBillingKey = (sub.billing_key as string).slice(PORTONE_BILLING_KEY_PREFIX.length);
   const dateSuffix       = new Date().toISOString().slice(0, 10).replace(/-/g, "");
@@ -198,8 +213,8 @@ async function chargePortone(
         },
         body: JSON.stringify({
           billingKey: actualBillingKey,
-          orderName: planData.orderName,
-          amount:    { total: planData.amount },
+          orderName: planData.orderName + orderNameSuffix,
+          amount:    { total: chargeAmount },
           currency:  "KRW",
           customer: {
             id:    sub.user_id,
@@ -214,16 +229,21 @@ async function chargePortone(
 
     if (!chargeRes.ok) {
       console.error(`[cron/billing/portone] 결제 실패 userId=${sub.user_id}:`, chargeData);
-      await insertPayment({ userId: sub.user_id, plan, amount: planData.amount, orderId: paymentId, status: "failed", raw: chargeData });
+      await insertPayment({ userId: sub.user_id, plan, amount: chargeAmount, orderId: paymentId, status: "failed", raw: chargeData });
       results.push({ userId: sub.user_id, status: "failed", pg: "portone", reason: chargeData.message });
       return;
     }
 
+    // 다음 갱신 시점: yearly = 12개월 후, monthly = 1개월 후
     const nextBillingAt = new Date();
-    nextBillingAt.setMonth(nextBillingAt.getMonth() + 1);
+    if (period === "yearly") {
+      nextBillingAt.setFullYear(nextBillingAt.getFullYear() + 1);
+    } else {
+      nextBillingAt.setMonth(nextBillingAt.getMonth() + 1);
+    }
 
     await db.from("subscriptions").update({ next_billing_at: nextBillingAt.toISOString(), updated_at: now }).eq("user_id", sub.user_id);
-    await insertPayment({ userId: sub.user_id, plan, amount: planData.amount, orderId: paymentId, paymentKey: chargeData.id ?? paymentId, status: "success", raw: chargeData });
+    await insertPayment({ userId: sub.user_id, plan, amount: chargeAmount, orderId: paymentId, paymentKey: chargeData.id ?? paymentId, status: "success", raw: chargeData });
 
     results.push({ userId: sub.user_id, status: "success", pg: "portone" });
   } catch (e) {
