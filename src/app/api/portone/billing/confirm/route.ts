@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
-  const { billingKey, plan, pgType, customerName, customerEmail } = await req.json();
+  const { billingKey, plan, pgType, customerName, customerEmail, period: rawPeriod } = await req.json();
 
   if (!billingKey || !plan || !PORTONE_PLANS[plan as PortonePlanKey]) {
     return NextResponse.json({ message: "잘못된 요청" }, { status: 400 });
@@ -31,6 +31,10 @@ export async function POST(req: NextRequest) {
   const planData  = PORTONE_PLANS[plan as PortonePlanKey];
   const pg        = pgType || "card";
   const paymentId = `portone_${pg}_${userId}_${plan}_${Date.now()}`;
+  // period에 따라 결제 금액 결정 (yearly: 연간 일시불 / monthly: 월간 금액)
+  const period = rawPeriod === "monthly" ? "monthly" : "yearly";
+  const chargeAmount = period === "yearly" ? planData.yearlyAmount : planData.monthlyAmount;
+  const orderNameSuffix = period === "yearly" ? " (연간)" : " (월간)";
 
   // 빌링키로 즉시 결제 실행
   const chargeRes = await fetch(
@@ -43,8 +47,8 @@ export async function POST(req: NextRequest) {
       },
       body: JSON.stringify({
         billingKey,
-        orderName: planData.orderName,
-        amount:    { total: planData.amount },
+        orderName: planData.orderName + orderNameSuffix,
+        amount:    { total: chargeAmount },
         currency:  "KRW",
         customer: {
           id:          userId,
@@ -61,7 +65,7 @@ export async function POST(req: NextRequest) {
     await insertPayment({
       userId,
       plan: plan as PortonePlanKey,
-      amount: planData.amount,
+      amount: chargeAmount,
       orderId: paymentId,
       status: "failed",
       raw: err,
@@ -91,7 +95,7 @@ export async function POST(req: NextRequest) {
     insertPayment({
       userId,
       plan: plan as PortonePlanKey,
-      amount: planData.amount,
+      amount: chargeAmount,
       orderId: paymentId,
       paymentKey: payment.id ?? paymentId,
       status: "success",

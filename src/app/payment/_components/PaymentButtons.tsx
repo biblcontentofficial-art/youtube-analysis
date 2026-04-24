@@ -52,16 +52,17 @@ export default function PaymentButtons({ plan, userId, userEmail, userName, peri
       const planData = PORTONE_PLANS[plan];
       const issueId = `kko_${userId.slice(-10)}_${Date.now().toString(36)}`;
       const redirectUrl = `${window.location.origin}/payment/success?plan=${plan}&pgType=kakaopay`;
+      const displayAmount = period === "yearly" ? planData.yearlyAmount : planData.monthlyAmount;
 
-      console.log("[kakao] requestIssueBillingKey 호출", { issueId, amount: planData.amount });
+      console.log("[kakao] requestIssueBillingKey 호출", { issueId, amount: displayAmount, period });
 
       const res = await requestIssueBillingKey({
         storeId,
         channelKey,
         billingKeyMethod: "EASY_PAY",
         issueId,
-        issueName: planData.orderName,
-        displayAmount: planData.amount,
+        issueName: planData.orderName + (period === "yearly" ? " (연간)" : " (월간)"),
+        displayAmount,
         currency: "KRW",
         customer: {
           customerId: userId,
@@ -91,7 +92,7 @@ export default function PaymentButtons({ plan, userId, userEmail, userName, peri
       const confirmRes = await fetch("/api/portone/billing/confirm", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ billingKey, plan, pgType: "kakaopay", customerName: userName, customerEmail: userEmail }),
+        body: JSON.stringify({ billingKey, plan, period, pgType: "kakaopay", customerName: userName, customerEmail: userEmail }),
       });
       if (!confirmRes.ok) {
         const err = await confirmRes.json().catch(() => ({}));
@@ -134,11 +135,13 @@ export default function PaymentButtons({ plan, userId, userEmail, userName, peri
       const planData = PORTONE_PLANS[plan];
       const prefix = isKcp ? "kcp" : isDanal ? "danal" : "ini";
       const issueId = `${prefix}_${userId.slice(-10)}_${Date.now().toString(36)}`;
+      // period에 따라 표시 금액 결정
+      const displayAmount = period === "yearly" ? planData.yearlyAmount : planData.monthlyAmount;
 
       const res = await requestIssueBillingKey({
         storeId, channelKey, billingKeyMethod: "CARD",
-        issueId, issueName: planData.orderName,
-        displayAmount: planData.amount,
+        issueId, issueName: planData.orderName + (period === "yearly" ? " (연간)" : " (월간)"),
+        displayAmount,
         currency: "KRW",
         customer: { customerId: userId, fullName: name.trim(), phoneNumber: phone.trim(), email: userEmail },
       } as Parameters<typeof requestIssueBillingKey>[0]);
@@ -146,7 +149,7 @@ export default function PaymentButtons({ plan, userId, userEmail, userName, peri
       const billingKey = (res as { billingKey: string }).billingKey;
       const confirmRes = await fetch("/api/portone/billing/confirm", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ billingKey, plan, customerName: name.trim(), customerPhone: phone.trim() }),
+        body: JSON.stringify({ billingKey, plan, period, customerName: name.trim(), customerPhone: phone.trim() }),
       });
       if (!confirmRes.ok) { const err = await confirmRes.json().catch(() => ({})); alert((err as { message?: string }).message || "결제 실패"); return; }
       window.location.href = "/search?upgraded=1";

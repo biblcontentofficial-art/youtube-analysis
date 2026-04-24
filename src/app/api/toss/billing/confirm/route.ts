@@ -22,6 +22,7 @@ export async function GET(req: NextRequest) {
   const authKey = req.nextUrl.searchParams.get("authKey");
   const customerKey = req.nextUrl.searchParams.get("customerKey");
   const plan = req.nextUrl.searchParams.get("plan") as TossPlanKey;
+  const period = req.nextUrl.searchParams.get("period") === "monthly" ? "monthly" : "yearly";
 
   if (!authKey || !customerKey || !plan || !TOSS_PLANS[plan] || !userId) {
     return NextResponse.redirect(new URL("/pricing?error=billing", req.url));
@@ -35,6 +36,9 @@ export async function GET(req: NextRequest) {
 
   const base64 = Buffer.from(`${secretKey}:`).toString("base64");
   const planData = TOSS_PLANS[plan];
+  // period에 따라 실제 결제 금액 결정 (yearly: 연간 일시불 / monthly: 월간 금액)
+  const chargeAmount = period === "yearly" ? planData.yearlyAmount : planData.monthlyAmount;
+  const orderNameSuffix = period === "yearly" ? " (연간)" : " (월간)";
 
   // 이메일 조회 (결제 영수증용)
   const authUser = await currentUser().catch(() => null);
@@ -76,9 +80,9 @@ export async function GET(req: NextRequest) {
         },
         body: JSON.stringify({
           customerKey,
-          amount: planData.amount,
+          amount: chargeAmount,
           orderId,
-          orderName: planData.orderName,
+          orderName: planData.orderName + orderNameSuffix,
           customerEmail,
         }),
       }
