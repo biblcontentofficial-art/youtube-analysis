@@ -28,11 +28,10 @@ export default function PaymentButtons({ plan, userId, userEmail, userName, peri
   const handleSelect = (id: PayMethod) => {
     if (loading) return;
     if (id === "toss" && !tossEnabled) return; // 비활성 시 무시
+    if (id === "kakao") return; // 카카오페이 일시 비활성
     if (id === "card") {
       setExpanded(expanded === id ? null : id);
       setFormError("");
-    } else if (id === "kakao") {
-      handleKakaoPay();
     } else if (id === "toss") {
       handleTossPay();
     }
@@ -194,6 +193,7 @@ export default function PaymentButtons({ plan, userId, userEmail, userName, peri
       id: "kakao",
       name: "카카오페이",
       desc: "카카오 계정으로 간편 결제",
+      preparing: true,
       logo: (
         <svg viewBox="0 0 40 40" className="w-8 h-8">
           <rect width="40" height="40" rx="10" fill="#FEE500" />
