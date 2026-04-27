@@ -1,7 +1,7 @@
 import { currentUser } from "@/lib/auth";
 import { NextResponse } from "next/server";
 
-import { isAdminEmail } from "@/lib/adminAuth";
+import { isAdmin } from "@/lib/adminAuth";
 import { getSupabase } from "@/lib/supabase";
 
 export type AdminUser = {
@@ -24,7 +24,7 @@ export async function GET() {
   }
 
   const email = user.email ?? "";
-  if (!isAdminEmail(email)) {
+  if (!isAdmin({ email, plan: user.plan })) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

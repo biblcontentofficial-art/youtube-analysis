@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import AdminDashboard from "./_components/AdminDashboard";
 
-import { isAdminEmail } from "@/lib/adminAuth";
+import { isAdmin } from "@/lib/adminAuth";
 
 export default async function AdminPage() {
   const user = await currentUser();
@@ -13,7 +13,7 @@ export default async function AdminPage() {
   }
 
   const email = user.email ?? "";
-  if (!isAdminEmail(email)) {
+  if (!isAdmin({ email, plan: user.plan })) {
     redirect("/");
   }
 
