@@ -18,26 +18,114 @@ if (process.env.NODE_ENV === "development") {
 const C = rawContent;
 
 export const metadata: Metadata = {
-  title: "유튜브 채널 대행 — 비블 TMK STUDIO",
+  title: "유튜브 채널 대행 1위 | 65만 구독자 비블의 TMK STUDIO",
   description:
-    "총 65만 구독자 채널을 운영한 비블이 여러분의 채널을 직접 운영합니다. " +
-    "기획·촬영·편집·업로드·분석까지 전 과정 올인원 채널 대행.",
+    "구독자 0명에서 24만까지. 총 65만+ 구독자 채널을 운영한 유튜브 전문가 비블이 기획·촬영·편집·업로드·분석까지 전 과정을 책임집니다. 무료 채널 진단부터 시작하세요.",
+  keywords: [
+    "유튜브 채널 대행",
+    "유튜브 대행",
+    "유튜브 운영 대행",
+    "유튜브 컨설팅",
+    "유튜브 마케팅 대행사",
+    "유튜브 채널 운영",
+    "유튜브 기획 대행",
+    "유튜브 편집 대행",
+    "유튜브 채널 키우기",
+    "유튜브 성장 대행",
+    "MCN",
+    "TMK STUDIO",
+    "비블",
+    "bibl lab",
+    "유튜브 마케팅",
+    "브랜디드 콘텐츠",
+    "유튜브 SEO",
+  ],
+  alternates: {
+    canonical: "https://bibllab.com/studio",
+  },
   openGraph: {
-    title: "유튜브 채널 대행 — 비블 TMK STUDIO",
+    title: "유튜브 채널 대행 1위 | 65만 구독자 비블의 TMK STUDIO",
     description:
-      "총 65만 구독자 채널을 운영한 비블이 여러분의 채널을 직접 운영합니다. 기획·촬영·편집·업로드·분석까지 전 과정 올인원 채널 대행.",
+      "구독자 0명에서 24만까지. 총 65만+ 구독자 채널을 운영한 유튜브 전문가 비블이 기획·촬영·편집·업로드·분석까지 전 과정을 책임집니다.",
     url: "https://bibllab.com/studio",
+    siteName: "비블랩 (bibl lab)",
     images: [
       {
         url: "https://bibllab.com/studio/silver-play-button.jpg",
         width: 1200,
         height: 630,
-        alt: "비블 TMK STUDIO 유튜브 채널 대행",
+        alt: "비블 TMK STUDIO — 유튜브 채널 대행 전문",
       },
     ],
     locale: "ko_KR",
     type: "website",
   },
+  twitter: {
+    card: "summary_large_image",
+    title: "유튜브 채널 대행 1위 | 비블 TMK STUDIO",
+    description: "구독자 0명에서 24만까지. 65만+ 구독자 채널 운영 비블이 직접 운영합니다.",
+    images: ["https://bibllab.com/studio/silver-play-button.jpg"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+};
+
+// JSON-LD: Service 스키마 (구글이 "유튜브 채널 대행" 검색 시 노출)
+const studioJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Service",
+  name: "비블 TMK STUDIO — 유튜브 채널 대행",
+  serviceType: "유튜브 채널 운영 대행",
+  description:
+    "총 65만+ 구독자 채널을 운영한 비블이 직접 기획·촬영·편집·업로드·분석까지 전 과정을 대행합니다. " +
+    "구독자 0명부터 24만까지 성장시킨 검증된 노하우로 여러분의 유튜브 채널을 키웁니다.",
+  provider: {
+    "@type": "Organization",
+    name: "비블랩 (bibl lab)",
+    url: "https://bibllab.com",
+    logo: "https://bibllab.com/og-image.png",
+    sameAs: ["https://www.youtube.com/@biblcontent"],
+  },
+  areaServed: { "@type": "Country", name: "South Korea" },
+  hasOfferCatalog: {
+    "@type": "OfferCatalog",
+    name: "유튜브 채널 대행 서비스",
+    itemListElement: [
+      {
+        "@type": "Offer",
+        itemOffered: {
+          "@type": "Service",
+          name: "올인원 유튜브 채널 대행",
+          description: "기획·촬영·편집·업로드·분석 전 과정 대행",
+        },
+      },
+      {
+        "@type": "Offer",
+        itemOffered: {
+          "@type": "Service",
+          name: "팀비블 1:1 유튜브 컨설팅",
+          description: "주 1회 30분 1:1 컨설팅 + 160강 VOD + 오프라인 커뮤니티",
+        },
+      },
+    ],
+  },
+  aggregateRating: {
+    "@type": "AggregateRating",
+    ratingValue: "5.0",
+    reviewCount: "14",
+    bestRating: "5",
+    worstRating: "1",
+  },
+  url: "https://bibllab.com/studio",
 };
 
 const CHANNELS = [
@@ -176,6 +264,11 @@ const FAQS = [
 export default function StudioPage() {
   return (
     <main className="min-h-screen bg-gray-950 text-white">
+      {/* JSON-LD: 구글이 "유튜브 채널 대행" 검색 시 풍부한 결과(Service) 노출 */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(studioJsonLd) }}
+      />
       <StudioGuard />
       <AnimationObserver />
       {DevEditor && <DevEditor />}
