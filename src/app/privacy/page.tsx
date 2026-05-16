@@ -11,9 +11,22 @@ export default function PrivacyPage() {
     <main className="min-h-screen bg-gray-950 text-white py-16 px-4">
       <div className="max-w-3xl mx-auto">
         <h1 className="text-3xl font-bold mb-2">개인정보처리방침</h1>
-        <p className="text-gray-500 text-sm mb-10">최종 수정일: 2026년 3월 30일</p>
+        <p className="text-gray-500 text-sm mb-10">최종 수정일: 2026년 5월 16일</p>
 
         <div className="space-y-10 text-sm text-gray-400 leading-relaxed">
+          <section className="bg-gray-900 border border-amber-700/40 rounded-xl p-5">
+            <h2 className="text-lg font-semibold text-white mb-3">제0조 (YouTube API Services 및 Google 개인정보처리방침)</h2>
+            <p>본 서비스(bibl lab)는 <strong className="text-white">YouTube API Services</strong>를 사용하여 YouTube의 공개 데이터를 조회·표시합니다. 이용자가 본 서비스를 이용함으로써:</p>
+            <ul className="list-disc list-inside mt-3 space-y-2 pl-2">
+              <li>본 서비스는 <a href="https://developers.google.com/youtube/terms/api-services-terms-of-service" target="_blank" rel="noopener noreferrer" className="text-teal-400 underline">YouTube API Services Terms of Service</a>를 준수합니다.</li>
+              <li>본 서비스는 <a href="https://www.youtube.com/t/terms" target="_blank" rel="noopener noreferrer" className="text-teal-400 underline">YouTube Terms of Service</a>에 따라 운영됩니다.</li>
+              <li>YouTube API Services를 통해 처리되는 데이터는 <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="text-teal-400 underline">Google 개인정보처리방침(Google Privacy Policy)</a>에 따라 처리됩니다.</li>
+              <li>이용자는 언제든지 <a href="https://security.google.com/settings/security/permissions" target="_blank" rel="noopener noreferrer" className="text-teal-400 underline">Google 보안 설정 페이지</a>에서 본 서비스가 액세스하는 데이터의 권한을 철회할 수 있습니다.</li>
+              <li>본 서비스가 YouTube API Services를 통해 수집하는 데이터: YouTube 공개 영상 메타데이터(제목, 설명, 조회수, 좋아요 수, 채널명, 채널 구독자 수, 게시일 등). 비공개 데이터나 인증 토큰은 수집하지 않습니다.</li>
+              <li>YouTube API Services 사용 관련 문의는 bibl.content.official@gmail.com으로 연락주시기 바랍니다.</li>
+            </ul>
+          </section>
+
           <section>
             <h2 className="text-lg font-semibold text-white mb-3">제1조 (개인정보의 처리 목적)</h2>
             <p>세모골프(이하 "회사")가 운영하는 bibl lab(이하 "서비스")은 다음의 목적을 위하여 개인정보를 처리합니다. 처리하고 있는 개인정보는 다음의 목적 이외의 용도로는 이용되지 않으며, 이용 목적이 변경되는 경우에는 관련 법령에 따라 별도의 동의를 받는 등 필요한 조치를 이행할 예정입니다.</p>

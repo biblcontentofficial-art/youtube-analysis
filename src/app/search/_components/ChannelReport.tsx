@@ -107,7 +107,7 @@ export default function ChannelReport({ videos, onClose }: Props) {
                 <th className="text-right px-4 py-3 whitespace-nowrap">영상 수</th>
                 <th className="text-right px-4 py-3 whitespace-nowrap">평균 조회수</th>
                 <th className="text-right px-4 py-3 whitespace-nowrap">Good 수</th>
-                <th className="text-right px-4 py-3 whitespace-nowrap">최대 아웃라이어</th>
+                <th className="text-right px-4 py-3 whitespace-nowrap" title="화면 표시용 비공식 비율 (사용자 측 계산). YouTube의 공식 메트릭이 아닙니다.">최대 비율</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-800/60">

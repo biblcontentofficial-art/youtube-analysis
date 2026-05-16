@@ -444,8 +444,15 @@ export default async function RootLayout({
               </div>
             </div>
 
-            <div className="mt-8 pt-6 border-t border-gray-900 text-xs text-gray-700 text-center">
-              © {new Date().getFullYear()} 세모골프. All Rights Reserved. bibl lab은 세모골프의 서비스입니다.
+            <div className="mt-8 pt-6 border-t border-gray-900 text-xs text-gray-700 text-center space-y-2">
+              <p>
+                본 서비스는 YouTube API Services를 사용합니다. 이용 시{" "}
+                <a href="https://www.youtube.com/t/terms" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-gray-300 underline">YouTube 서비스 약관</a>
+                {" "}및{" "}
+                <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-gray-300 underline">Google 개인정보처리방침</a>
+                에 동의한 것으로 간주됩니다.
+              </p>
+              <p>© {new Date().getFullYear()} 세모골프. All Rights Reserved. bibl lab은 세모골프의 서비스입니다.</p>
             </div>
           </div>
         </footer>

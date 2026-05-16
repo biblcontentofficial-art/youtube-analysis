@@ -383,14 +383,14 @@ export default function SearchResultList({
         <div onClick={() => handleSort("subscriberCountRaw")} className="cursor-pointer hover:text-white flex items-center justify-center">
           구독자 {renderSortIcon("subscriberCountRaw")}
         </div>
-        <ColHeader label="아웃라이어" sortable sortKeyName="performanceRatioRaw"
-          tip="해당 채널의 평균 조회수보다 몇 배 높은 영상인지를 수치로 나타냅니다">
+        <ColHeader label="조회수 비율" sortable sortKeyName="performanceRatioRaw"
+          tip="화면 표시용 비공식 비율 (사용자 측 계산). 영상 조회수 ÷ 채널 평균 조회수. YouTube의 공식 메트릭이 아닙니다.">
           {renderSortIcon("performanceRatioRaw")}
         </ColHeader>
         {/* 알고리즘 확률 — 항상 표시, 잠금 여부만 다름 */}
         {canAlgorithm ? (
           <ColHeader label="알고리즘 🔥" sortable sortKeyName="algorithmScore"
-            tip="지금 이 영상이 알고리즘을 타고 올라갈 확률입니다">
+            tip="화면 표시용 비공식 점수 (사용자 측 계산). 공개된 메타데이터(조회수, 게시일 등)를 바탕으로 추정한 값으로, YouTube의 공식 메트릭이 아닙니다.">
             {renderSortIcon("algorithmScore")}
           </ColHeader>
         ) : (

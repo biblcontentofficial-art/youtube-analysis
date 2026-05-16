@@ -11,12 +11,24 @@ export default function TermsPage() {
     <main className="min-h-screen bg-gray-950 text-white py-16 px-4">
       <div className="max-w-3xl mx-auto">
         <h1 className="text-3xl font-bold mb-2">이용약관</h1>
-        <p className="text-gray-500 text-sm mb-10">최종 수정일: 2026년 3월 19일 &nbsp;|&nbsp; 시행일: 2026년 3월 19일</p>
+        <p className="text-gray-500 text-sm mb-10">최종 수정일: 2026년 5월 16일 &nbsp;|&nbsp; 시행일: 2026년 5월 16일</p>
 
         <div className="space-y-10 text-sm text-gray-400 leading-relaxed">
           <section>
             <h2 className="text-lg font-semibold text-white mb-3">제1조 (목적)</h2>
             <p>이 약관은 세모골프(이하 "회사")가 운영하는 bibl lab 서비스(이하 "서비스")의 이용과 관련하여 회사와 이용자의 권리·의무 및 책임 사항을 규정함을 목적으로 합니다.</p>
+          </section>
+
+          <section className="bg-gray-900 border border-amber-700/40 rounded-xl p-5">
+            <h2 className="text-lg font-semibold text-white mb-3">제1조의2 (YouTube API Services 이용 동의)</h2>
+            <p>본 서비스는 YouTube API Services를 사용하여 YouTube에서 제공하는 공개 데이터를 조회·표시합니다. 이용자는 본 서비스를 이용함으로써 다음 사항에 동의하는 것으로 간주됩니다.</p>
+            <ul className="list-disc list-inside mt-3 space-y-2 pl-2">
+              <li>이용자는 본 서비스를 사용함으로써 <a href="https://www.youtube.com/t/terms" target="_blank" rel="noopener noreferrer" className="text-teal-400 underline">YouTube 서비스 약관(YouTube Terms of Service)</a>에 구속되는 것에 동의합니다.</li>
+              <li>본 서비스는 YouTube API Services를 통해 조회한 데이터를 표시하며, 이용자는 해당 데이터를 YouTube의 정책 및 약관에 따라 이용해야 합니다.</li>
+              <li>이용자는 <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="text-teal-400 underline">Google 개인정보처리방침(Google Privacy Policy)</a>을 함께 검토하시기 바랍니다.</li>
+              <li>YouTube API Services의 정책 변경, 서비스 중단, 데이터 정확성 변경 등으로 인해 발생하는 손해에 대해 회사는 책임을 지지 않습니다.</li>
+              <li>이용자는 언제든 <a href="https://security.google.com/settings/security/permissions" target="_blank" rel="noopener noreferrer" className="text-teal-400 underline">Google 보안 설정 페이지</a>에서 본 서비스의 데이터 접근 권한을 철회할 수 있습니다.</li>
+            </ul>
           </section>
 
           <section>
