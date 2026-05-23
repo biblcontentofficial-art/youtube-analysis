@@ -1,9 +1,9 @@
 "use client";
 // next/image 대신 <img> 사용 — Vercel Image Optimization 비용 절감
 // YouTube 썸네일은 YouTube CDN이 이미 최적화해서 제공하므로 재최적화 불필요
+// YouTube ToS III.E.4h 준수: ScoreBadge, AlgorithmBadge, ViewTrendGraph 등 파생 지표 표시 컴포넌트 제거
 import { useState } from "react";
 import { Video } from "@/types";
-import ViewTrendGraph from "./ViewTrendGraph";
 
 interface Props {
   video: Video;
@@ -11,88 +11,6 @@ interface Props {
   onCheck: () => void;
   onClick: () => void;
   canAlgorithm: boolean;
-}
-
-function ScoreBadge({ score }: { score: "Good" | "Normal" | "Bad" }) {
-  const styles = {
-    Good: "text-emerald-400 bg-emerald-950/60 border-emerald-800",
-    Normal: "text-gray-400 bg-gray-800/60 border-gray-700",
-    Bad: "text-red-400 bg-red-950/60 border-red-900",
-  };
-  const dots = { Good: 4, Normal: 3, Bad: 2 };
-  return (
-    <div className={`inline-flex flex-col items-center px-2.5 py-1.5 rounded-lg border text-[10px] font-semibold gap-0.5 ${styles[score]}`}>
-      <div className="flex gap-0.5">
-        {Array.from({ length: dots[score] }).map((_, i) => (
-          <span key={i} className="w-1 h-1 rounded-full bg-current" />
-        ))}
-      </div>
-      <span>{score}</span>
-    </div>
-  );
-}
-
-function AlgorithmBadge({ score }: { score: number }) {
-  let color: string;
-  let label: string;
-  let barColor: string;
-
-  if (score >= 70) {
-    color = "text-orange-400";
-    label = "🔥 " + score + "%";
-    barColor = "bg-orange-500";
-  } else if (score >= 50) {
-    color = "text-yellow-400";
-    label = "⚡ " + score + "%";
-    barColor = "bg-yellow-500";
-  } else if (score >= 30) {
-    color = "text-teal-400";
-    label = score + "%";
-    barColor = "bg-teal-500";
-  } else {
-    color = "text-gray-500";
-    label = score + "%";
-    barColor = "bg-gray-600";
-  }
-
-  return (
-    <div className="flex flex-col items-center gap-1">
-      <span className={`text-sm font-bold ${color}`}>{label}</span>
-      <div className="w-14 h-1 bg-gray-800 rounded-full overflow-hidden">
-        <div className={`h-full rounded-full ${barColor}`} style={{ width: `${score}%` }} />
-      </div>
-    </div>
-  );
-}
-
-// ─── 잠금 뱃지 (프리 플랜) ──────────────────────────────────────────────────
-function LockedAlgorithmBadge({
-  onClickLock,
-}: {
-  score: number;
-  onClickLock: () => void;
-}) {
-  return (
-    <button
-      onClick={(e) => { e.stopPropagation(); onClickLock(); }}
-      className="group flex flex-col items-center gap-1 cursor-pointer"
-      title="Starter 플랜 이상에서 확인 가능"
-    >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className="w-4 h-4 text-gray-600 group-hover:text-gray-400 transition-colors"
-      >
-        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-      </svg>
-    </button>
-  );
 }
 
 // ─── 업그레이드 유도 모달 ─────────────────────────────────────────────────────
