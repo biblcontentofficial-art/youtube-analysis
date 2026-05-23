@@ -100,14 +100,13 @@ export default function ChannelReport({ videos, onClose }: Props) {
         <div className="overflow-auto flex-1">
           <table className="w-full text-sm border-collapse">
             <thead className="sticky top-0 bg-gray-900 border-b border-gray-800">
+              {/* YouTube ToS III.E.4h 준수: 파생/계산 지표 컬럼(Good 수, 최대 비율) 제거 */}
               <tr className="text-[11px] text-gray-500 font-medium">
                 <th className="text-left px-4 py-3 w-8">#</th>
                 <th className="text-left px-4 py-3">채널</th>
                 <th className="text-right px-4 py-3 whitespace-nowrap">구독자</th>
                 <th className="text-right px-4 py-3 whitespace-nowrap">영상 수</th>
                 <th className="text-right px-4 py-3 whitespace-nowrap">평균 조회수</th>
-                <th className="text-right px-4 py-3 whitespace-nowrap">Good 수</th>
-                <th className="text-right px-4 py-3 whitespace-nowrap" title="화면 표시용 비공식 비율 (사용자 측 계산). YouTube의 공식 메트릭이 아닙니다.">최대 비율</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-800/60">
@@ -143,23 +142,6 @@ export default function ChannelReport({ videos, onClose }: Props) {
                   </td>
                   <td className="px-4 py-3 text-right text-gray-300 text-xs tabular-nums">
                     {formatNum(ch.avgViews)}회
-                  </td>
-                  <td className="px-4 py-3 text-right text-xs tabular-nums">
-                    {ch.goodCount > 0 ? (
-                      <span className="text-green-400 font-semibold">{ch.goodCount}</span>
-                    ) : (
-                      <span className="text-gray-600">0</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-right text-xs tabular-nums">
-                    <span className={
-                      ch.maxRatio >= 3.0 ? "text-purple-400 font-semibold" :
-                      ch.maxRatio >= 1.5 ? "text-red-400 font-semibold" :
-                      ch.maxRatio >= 0.8 ? "text-green-400" :
-                      "text-gray-500"
-                    }>
-                      {ch.maxRatio > 0 ? ch.maxRatio.toFixed(1) + "x" : "-"}
-                    </span>
                   </td>
                 </tr>
               ))}

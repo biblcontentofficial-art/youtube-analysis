@@ -17,13 +17,13 @@ export const metadata: Metadata = {
     template: "%s | 비블랩 (bibl lab)",
   },
   description:
-    "비블, 비블랩(bibl lab) — 유튜브 키워드로 트렌드를 선점하세요. 조회수·구독자·반응도를 한눈에 분석하고, 성장하는 채널을 발견합니다. 유튜버·크리에이터를 위한 무료 데이터 분석 도구.",
+    "비블, 비블랩(bibl lab) — 유튜브 키워드로 트렌드를 선점하세요. 조회수·구독자·게시일을 한눈에 확인하고, 성장하는 채널을 발견합니다. 유튜버·크리에이터를 위한 무료 데이터 도구.",
   keywords: [
     "비블", "비블랩", "비블 랩", "bibl lab", "bibllab",
-    "유튜브 분석", "유튜브 키워드 분석", "유튜브 트렌드", "유튜브 채널 찾기",
-    "유튜브 반응도", "유튜브 조회수 분석", "유튜브 영상 검색", "유튜브 아웃라이어",
-    "크리에이터 도구", "유튜브 콘텐츠 전략", "유튜브 SEO", "구독자 분석",
-    "유튜브 채널 분석", "유튜브 영상 수집", "콘텐츠 마케팅 도구",
+    "유튜브 키워드 검색", "유튜브 트렌드", "유튜브 채널 찾기",
+    "유튜브 조회수 확인", "유튜브 영상 검색",
+    "크리에이터 도구", "유튜브 콘텐츠 전략", "유튜브 SEO",
+    "유튜브 영상 수집", "콘텐츠 마케팅 도구",
   ],
   authors: [{ name: "bibl lab", url: "https://bibllab.com" }],
   creator: "bibl lab",
@@ -115,7 +115,7 @@ export default async function RootLayout({
       alternateName: ["비블", "비블 랩", "bibl lab", "bibllab", "비블 랩 유튜브 분석"],
       url: "https://bibllab.com",
       description:
-        "비블랩(bibl lab)은 유튜버·크리에이터를 위한 유튜브 키워드 분석, 채널 찾기, 영상 반응도 분석 SaaS 서비스입니다. 조회수·구독자 비율로 영상 성과를 Good/Normal/Bad로 즉시 판단하고, 성장 중인 채널을 발견합니다.",
+        "비블랩(bibl lab)은 유튜버·크리에이터를 위한 유튜브 키워드 검색 및 채널 찾기 SaaS 서비스입니다. YouTube API Services를 통해 공개된 조회수·구독자 수·게시일 등의 데이터를 한 곳에 정리해 보여줍니다.",
       applicationCategory: "BusinessApplication",
       applicationSubCategory: "YouTubeAnalytics",
       operatingSystem: "Web",
@@ -155,11 +155,9 @@ export default async function RootLayout({
         },
       ],
       featureList: [
-        "유튜브 키워드 검색 및 트렌드 분석",
-        "영상 반응도 Good/Normal/Bad 판단",
-        "조회수 아웃라이어 탐지",
-        "알고리즘 상승 확률 분석",
-        "유튜브 채널 찾기 및 성장 채널 발견",
+        "유튜브 키워드 검색",
+        "유튜브 채널 찾기",
+        "조회수·구독자 수·게시일 한눈에 보기",
         "영상 수집 및 CSV 내보내기",
         "검색 기록 저장 및 관리",
         "쇼츠·일반 영상 필터",
@@ -212,7 +210,7 @@ export default async function RootLayout({
           name: "비블랩(bibl lab)이란 무엇인가요?",
           acceptedAnswer: {
             "@type": "Answer",
-            text: "비블랩(bibl lab)은 유튜버와 크리에이터를 위한 유튜브 키워드 분석 SaaS 서비스입니다. 키워드를 검색하면 최신 유튜브 영상 데이터를 실시간으로 수집하고, 조회수·구독자 비율 기반의 반응도(Good/Normal/Bad), 아웃라이어 탐지, 알고리즘 상승 확률을 분석해줍니다.",
+            text: "비블랩(bibl lab)은 유튜버와 크리에이터를 위한 유튜브 키워드 검색·채널 찾기 SaaS 서비스입니다. YouTube API Services를 통해 공개된 영상 데이터를 키워드별로 수집해 조회수, 구독자 수, 게시일을 한 곳에서 확인할 수 있게 정리해 보여줍니다.",
           },
         },
         {
@@ -228,15 +226,15 @@ export default async function RootLayout({
           name: "유튜브 키워드 분석을 어떻게 사용하나요?",
           acceptedAnswer: {
             "@type": "Answer",
-            text: "비블랩 메인 페이지에서 분석하고 싶은 유튜브 키워드를 입력하세요. 예: '캠핑', '영어 공부', '다이어트'. 검색하면 해당 키워드의 최신 유튜브 영상 목록과 함께 각 영상의 반응도(Good/Normal/Bad), 조회수, 구독자 수, 알고리즘 상승 확률을 즉시 확인할 수 있습니다.",
+            text: "비블랩 메인 페이지에서 검색하고 싶은 유튜브 키워드를 입력하세요. 예: '캠핑', '영어 공부', '다이어트'. 검색하면 해당 키워드의 최신 유튜브 영상 목록과 함께 각 영상의 조회수, 채널 구독자 수, 게시일을 즉시 확인할 수 있습니다.",
           },
         },
         {
           "@type": "Question",
-          name: "반응도(Good/Normal/Bad)는 어떻게 계산되나요?",
+          name: "비블랩이 제공하는 데이터는 무엇인가요?",
           acceptedAnswer: {
             "@type": "Answer",
-            text: "반응도는 채널의 구독자 수 대비 영상 조회수 비율로 계산됩니다. 구독자 수보다 훨씬 많은 조회수를 기록한 영상은 알고리즘 추천을 받은 아웃라이어로 'Good' 등급을 받습니다. 이를 통해 어떤 주제와 형식이 유튜브 알고리즘에서 잘 작동하는지 파악할 수 있습니다.",
+            text: "비블랩은 YouTube API Services를 통해 공개된 데이터만 표시합니다. 영상 제목·설명, 조회수, 좋아요 수, 댓글 수, 채널명, 채널 구독자 수, 게시일 등이 포함됩니다. 비공식 메트릭은 제공하지 않습니다.",
           },
         },
         {

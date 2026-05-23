@@ -42,7 +42,7 @@ export default function ShareButton({ query }: ShareButtonProps) {
       objectType: "feed",
       content: {
         title: shareText,
-        description: "유튜브 키워드 반응도, 아웃라이어, 알고리즘 확률을 한눈에 분석하세요.",
+        description: "유튜브 키워드로 최신 영상을 찾고 조회수·구독자·게시일을 한눈에 확인하세요.",
         imageUrl: "https://bibllab.com/og-image.png",
         link: { mobileWebUrl: shareUrl, webUrl: shareUrl },
       },

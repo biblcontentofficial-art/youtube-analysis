@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: '비블랩 (bibl lab) - 유튜브 키워드·채널 분석 도구',
     short_name: '비블랩',
-    description: '유튜브 키워드 분석, 채널 찾기, 영상 반응도 분석. 크리에이터를 위한 데이터 인사이트.',
+    description: '유튜브 키워드 검색·채널 찾기. YouTube 공식 데이터를 한눈에 정리해 보여드립니다.',
     start_url: '/',
     display: 'standalone',
     background_color: '#030712',

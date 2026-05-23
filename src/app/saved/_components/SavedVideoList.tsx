@@ -7,7 +7,7 @@ interface Props {
   initialVideos: SavedVideo[];
 }
 
-type SortOption = "saved_at_desc" | "saved_at_asc" | "view_count_desc" | "score";
+type SortOption = "saved_at_desc" | "saved_at_asc" | "view_count_desc";
 
 export default function SavedVideoList({ initialVideos }: Props) {
   const [videos, setVideos] = useState<SavedVideo[]>(initialVideos);
@@ -20,13 +20,12 @@ export default function SavedVideoList({ initialVideos }: Props) {
 
   const handleExportCsv = () => {
     const rows = [
-      ["제목", "채널", "조회수", "구독자", "반응도", "업로드일", "검색키워드", "수집일", "YouTube URL"],
+      ["제목", "채널", "조회수", "구독자", "업로드일", "검색키워드", "수집일", "YouTube URL"],
       ...filtered.map((v) => [
         `"${(v.title || "").replace(/"/g, '""')}"`,
         `"${(v.channel_title || "").replace(/"/g, '""')}"`,
         v.view_count ?? "",
         v.subscriber_count ?? "",
-        v.score ?? "",
         v.published_at?.slice(0, 10) ?? "",
         `"${(v.query || "").replace(/"/g, '""')}"`,
         v.saved_at?.slice(0, 10) ?? "",
@@ -43,8 +42,6 @@ export default function SavedVideoList({ initialVideos }: Props) {
     URL.revokeObjectURL(url);
   };
 
-  const scoreOrder: Record<string, number> = { Good: 0, Normal: 1, Bad: 2 };
-
   const filtered = videos
     .filter((v) => {
       const matchSearch = !search || v.title.toLowerCase().includes(search.toLowerCase()) || v.channel_title?.toLowerCase().includes(search.toLowerCase());
@@ -57,8 +54,6 @@ export default function SavedVideoList({ initialVideos }: Props) {
           return (a.saved_at ?? "").localeCompare(b.saved_at ?? "");
         case "view_count_desc":
           return (b.view_count ?? 0) - (a.view_count ?? 0);
-        case "score":
-          return (scoreOrder[a.score ?? ""] ?? 9) - (scoreOrder[b.score ?? ""] ?? 9);
         default: // saved_at_desc
           return (b.saved_at ?? "").localeCompare(a.saved_at ?? "");
       }
@@ -66,7 +61,6 @@ export default function SavedVideoList({ initialVideos }: Props) {
 
   // 통계
   const totalViews = videos.reduce((sum, v) => sum + (v.view_count ?? 0), 0);
-  const goodCount = videos.filter((v) => v.score === "Good").length;
 
   const handleDelete = async (videoId: string) => {
     setDeleting(videoId);
@@ -121,8 +115,8 @@ export default function SavedVideoList({ initialVideos }: Props) {
           <p className="text-xs text-gray-500 mt-1">총 조회수 합계</p>
         </div>
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 text-center">
-          <p className="text-2xl font-bold text-yellow-400">{goodCount}</p>
-          <p className="text-xs text-gray-500 mt-1">Good 반응도</p>
+          <p className="text-2xl font-bold text-yellow-400">{Math.round((totalViews / Math.max(videos.length, 1)) / 1000)}K</p>
+          <p className="text-xs text-gray-500 mt-1">평균 조회수</p>
         </div>
       </div>
 
@@ -155,7 +149,6 @@ export default function SavedVideoList({ initialVideos }: Props) {
           <option value="saved_at_desc">최신 수집순</option>
           <option value="saved_at_asc">오래된 수집순</option>
           <option value="view_count_desc">조회수 높은순</option>
-          <option value="score">반응도순</option>
         </select>
         <span className="text-xs text-gray-500 ml-auto">총 {filtered.length}개</span>
         <button
@@ -181,7 +174,6 @@ export default function SavedVideoList({ initialVideos }: Props) {
               <th className="px-3 py-3 text-left">영상</th>
               <th className="px-3 py-3 text-right">조회수</th>
               <th className="px-3 py-3 text-right hidden md:table-cell">구독자</th>
-              <th className="px-3 py-3 text-center hidden md:table-cell">반응도</th>
               <th className="px-3 py-3 text-center hidden lg:table-cell">검색 키워드</th>
               <th className="px-3 py-3 text-center hidden lg:table-cell">수집일</th>
               <th className="px-3 py-3 text-center w-10"></th>
@@ -220,17 +212,6 @@ export default function SavedVideoList({ initialVideos }: Props) {
                 </td>
                 <td className="px-3 py-3 text-right text-gray-400 whitespace-nowrap hidden md:table-cell">
                   {v.subscriber_count || "-"}
-                </td>
-                <td className="px-3 py-3 text-center hidden md:table-cell">
-                  {v.score ? (
-                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
-                      v.score === "Good" ? "bg-teal-900/50 text-teal-400" :
-                      v.score === "Normal" ? "bg-yellow-900/50 text-yellow-400" :
-                      "bg-gray-800 text-gray-500"
-                    }`}>
-                      {v.score}
-                    </span>
-                  ) : "-"}
                 </td>
                 <td className="px-3 py-3 text-center hidden lg:table-cell">
                   {v.query ? (

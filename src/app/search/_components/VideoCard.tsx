@@ -231,22 +231,7 @@ export default function VideoCard({ video, checked, onCheck, onClick, canAlgorit
           <span className="text-[11px] text-gray-500">{video.subscriberCount}명</span>
         </div>
 
-        {/* 아웃라이어 */}
-        <div className="text-center">
-          <span className={`text-base font-bold ${video.performanceColor}`}>{video.performanceRatio}</span>
-        </div>
-
-        {/* 알고리즘 확률 — 항상 컬럼 렌더링, 플랜에 따라 내용 다름 */}
-        <div className="flex justify-center">
-          {canAlgorithm ? (
-            <AlgorithmBadge score={video.algorithmScore} />
-          ) : (
-            <LockedAlgorithmBadge
-              score={video.algorithmScore}
-              onClickLock={() => setShowUpgradeModal(true)}
-            />
-          )}
-        </div>
+        {/* YouTube ToS III.E.4h 준수: 파생/계산 메트릭 (조회수 비율, 알고리즘 확률) 컬럼 제거 */}
 
         {/* 게시일 */}
         <div className="text-center">
@@ -299,19 +284,10 @@ export default function VideoCard({ video, checked, onCheck, onClick, canAlgorit
             <span className="text-[11px] text-gray-500 truncate">{video.channelTitle}</span>
           </div>
 
-          {/* 지표 */}
+          {/* 지표 (YouTube 공식 메트릭만) — III.E.4h 준수로 파생 지표 제거 */}
           <div className="flex items-center flex-wrap gap-2 mt-0.5">
             <span className="text-xs font-bold text-white">{video.viewCountFormatted}</span>
-            <span className={`text-xs font-bold ${video.performanceColor}`}>{video.performanceRatio}</span>
-            <ScoreBadge score={video.score} />
-            {canAlgorithm ? (
-              <AlgorithmBadge score={video.algorithmScore} />
-            ) : (
-              <LockedAlgorithmBadge
-                score={video.algorithmScore}
-                onClickLock={() => setShowUpgradeModal(true)}
-              />
-            )}
+            <span className="text-[11px] text-gray-500">{video.subscriberCount}명</span>
           </div>
 
           {/* 게시일 */}

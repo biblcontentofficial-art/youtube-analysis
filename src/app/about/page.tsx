@@ -4,7 +4,7 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "비블랩 소개 — 유튜브 키워드·채널 분석 도구",
   description:
-    "비블랩(bibl lab)은 유튜버와 크리에이터가 유튜브 알고리즘을 이해하고 성공적인 콘텐츠 전략을 수립할 수 있도록 돕는 데이터 분석 SaaS입니다. 반응도 분석, 아웃라이어 탐지, 채널 찾기 기능을 제공합니다.",
+    "비블랩(bibl lab)은 유튜버와 크리에이터를 위한 유튜브 키워드 검색·채널 찾기 도구입니다. YouTube API Services를 통해 공개된 영상 데이터를 한 곳에 정리해 보여드립니다.",
   keywords: [
     "비블랩 소개", "비블 소개", "bibl lab 소개", "유튜브 분석 도구 소개",
     "유튜브 키워드 분석 서비스", "크리에이터 데이터 도구",
@@ -20,15 +20,11 @@ export const metadata: Metadata = {
 const faqData = [
   {
     q: "비블랩(bibl lab)이 무엇인가요?",
-    a: "비블랩은 유튜버·크리에이터·마케터가 콘텐츠 전략을 데이터로 수립할 수 있도록 돕는 유튜브 분석 SaaS입니다. 키워드를 검색하면 최신 영상 데이터를 수집하고, 조회수·구독자 비율 기반의 반응도 분석, 아웃라이어 탐지, 알고리즘 상승 확률을 제공합니다.",
+    a: "비블랩은 유튜버·크리에이터·마케터가 콘텐츠 전략을 데이터로 수립할 수 있도록 돕는 유튜브 키워드 검색·채널 찾기 도구입니다. YouTube API Services를 통해 공개된 영상 데이터(조회수, 구독자 수, 게시일 등)를 한 곳에 정리해 보여줍니다.",
   },
   {
-    q: "반응도(Good/Normal/Bad)는 어떻게 계산되나요?",
-    a: "반응도는 채널 구독자 수 대비 영상 조회수 비율로 판단합니다. 같은 주제라도 구독자가 적은 채널에서 높은 조회수를 기록한 영상이 'Good' 등급을 받습니다. 이는 유튜브 알고리즘이 외부 시청자에게 적극 추천하고 있다는 신호입니다.",
-  },
-  {
-    q: "아웃라이어(Outlier)란 무엇인가요?",
-    a: "아웃라이어는 같은 채널의 다른 영상들과 비교해 이례적으로 높은 조회수를 기록한 영상입니다. 알고리즘 추천을 받고 있다는 강력한 신호이므로, 해당 영상의 주제·썸네일·제목 패턴을 벤치마킹하면 효과적인 콘텐츠 전략을 수립할 수 있습니다.",
+    q: "어떤 데이터를 보여주나요?",
+    a: "YouTube가 공식적으로 제공하는 데이터만 표시합니다. 영상 제목·설명, 조회수, 좋아요 수, 댓글 수, 채널명, 채널 구독자 수, 게시일 등이 포함됩니다. 비공식 메트릭은 제공하지 않습니다.",
   },
   {
     q: "무료로 사용할 수 있나요?",
@@ -89,30 +85,14 @@ export default function AboutPage() {
 
           {/* 핵심 개념 */}
           <section>
-            <h2 className="text-2xl font-bold mb-6">비블랩이 분석하는 것들</h2>
+            <h2 className="text-2xl font-bold mb-6">비블랩이 제공하는 것들</h2>
             <div className="grid gap-5">
               <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
-                <h3 className="text-lg font-bold text-teal-400 mb-2">반응도 분석 (Good / Normal / Bad)</h3>
+                <h3 className="text-lg font-bold text-teal-400 mb-2">키워드 검색</h3>
                 <p className="text-gray-400 text-sm leading-relaxed">
-                  채널 구독자 수 대비 영상 조회수 비율을 계산해 영상 성과를 3단계로 판단합니다.
-                  구독자가 1만 명인 채널의 영상이 50만 조회수를 기록했다면, 유튜브 알고리즘이
-                  외부 시청자에게 적극 추천하고 있다는 의미입니다. 이런 영상이 <strong className="text-white">'Good'</strong> 등급입니다.
-                  같은 키워드에서 어떤 주제·형식의 영상이 알고리즘 선택을 받는지 파악할 수 있습니다.
-                </p>
-              </div>
-              <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
-                <h3 className="text-lg font-bold text-amber-400 mb-2">아웃라이어 탐지</h3>
-                <p className="text-gray-400 text-sm leading-relaxed">
-                  같은 채널의 다른 영상들과 비교해 이례적으로 높은 조회수를 기록한 영상을 탐지합니다.
-                  아웃라이어 영상은 유튜브 알고리즘 추천을 받고 있다는 강력한 신호입니다.
-                  이 영상의 주제·썸네일·제목·길이를 분석하면 <strong className="text-white">성공 패턴</strong>을 발견할 수 있습니다.
-                </p>
-              </div>
-              <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
-                <h3 className="text-lg font-bold text-purple-400 mb-2">알고리즘 상승 확률</h3>
-                <p className="text-gray-400 text-sm leading-relaxed">
-                  여러 지표를 종합해 해당 키워드에서 영상이 유튜브 알고리즘 추천을 받을 가능성을
-                  수치로 제공합니다. 영상 기획 전 키워드별 잠재력을 미리 파악할 수 있습니다.
+                  관심 키워드를 입력하면 YouTube Data API v3를 통해 최신 영상 목록을 가져옵니다.
+                  검색 결과에는 YouTube가 제공하는 영상 제목, 설명, 채널명, 조회수, 좋아요 수,
+                  게시일 등이 포함됩니다.
                 </p>
               </div>
               <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
@@ -121,6 +101,13 @@ export default function AboutPage() {
                   특정 주제·분야에서 성장 중인 유튜브 채널을 발견합니다.
                   구독자 급상승 채널, 신생 채널 필터를 통해 아직 덜 알려진 잠재력 있는 채널을 찾을 수 있습니다.
                   협업 파트너를 찾거나 성장 공식을 벤치마킹할 때 활용됩니다.
+                </p>
+              </div>
+              <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
+                <h3 className="text-lg font-bold text-purple-400 mb-2">영상 수집 · CSV 내보내기</h3>
+                <p className="text-gray-400 text-sm leading-relaxed">
+                  마음에 드는 영상을 컬렉션에 저장하고, CSV 파일로 한 번에 내보낼 수 있습니다.
+                  벤치마킹·레퍼런스 관리에 유용합니다.
                 </p>
               </div>
             </div>

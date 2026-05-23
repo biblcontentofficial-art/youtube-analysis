@@ -364,7 +364,7 @@ export default function SearchResultList({
       {/* 테이블 헤더 */}
       <div
         className="hidden md:grid items-center gap-2 px-3 py-2.5 bg-gray-900 border border-gray-800 text-xs text-gray-500 font-medium rounded-t-lg select-none"
-        style={{ gridTemplateColumns: "32px 40px 130px 1fr 90px 155px 85px 95px 95px" }}
+        style={{ gridTemplateColumns: "32px 40px 130px 1fr 90px 155px 95px" }}
       >
         <div className="flex justify-center">
           <input
@@ -383,25 +383,7 @@ export default function SearchResultList({
         <div onClick={() => handleSort("subscriberCountRaw")} className="cursor-pointer hover:text-white flex items-center justify-center">
           구독자 {renderSortIcon("subscriberCountRaw")}
         </div>
-        <ColHeader label="조회수 비율" sortable sortKeyName="performanceRatioRaw"
-          tip="화면 표시용 비공식 비율 (사용자 측 계산). 영상 조회수 ÷ 채널 평균 조회수. YouTube의 공식 메트릭이 아닙니다.">
-          {renderSortIcon("performanceRatioRaw")}
-        </ColHeader>
-        {/* 알고리즘 확률 — 항상 표시, 잠금 여부만 다름 */}
-        {canAlgorithm ? (
-          <ColHeader label="알고리즘 🔥" sortable sortKeyName="algorithmScore"
-            tip="화면 표시용 비공식 점수 (사용자 측 계산). 공개된 메타데이터(조회수, 게시일 등)를 바탕으로 추정한 값으로, YouTube의 공식 메트릭이 아닙니다.">
-            {renderSortIcon("algorithmScore")}
-          </ColHeader>
-        ) : (
-          <div className="flex items-center justify-center gap-1 text-gray-600 cursor-default" title="Starter 플랜 이상에서 사용 가능">
-            알고리즘&nbsp;
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5 inline-block mb-0.5">
-              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-            </svg>
-          </div>
-        )}
+        {/* YouTube ToS III.E.4h 준수: 파생/계산 메트릭 (조회수 비율, 알고리즘 확률) 컬럼 제거 */}
         <div onClick={() => handleSort("publishedAtRaw")} className="cursor-pointer hover:text-white flex items-center justify-center">
           게시일 {renderSortIcon("publishedAtRaw")}
         </div>

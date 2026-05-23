@@ -87,7 +87,7 @@ export default function LimitModal({ show, limit }: { show: boolean; limit: numb
 
             <div className="bg-gray-800/60 border border-gray-700 rounded-xl px-4 py-3 mb-6 text-left space-y-2">
               {[
-                { plan: "Starter", color: "text-teal-400", desc: "월 50회 · 알고리즘 확률 · 채널 찾기" },
+                { plan: "Starter", color: "text-teal-400", desc: "월 50회 · 채널 찾기 · 검색 기록 30일 저장" },
                 { plan: "Pro", color: "text-purple-400",  desc: "월 500회 · 영상 수집 · CSV 내보내기" },
               ].map(({ plan, color, desc }) => (
                 <div key={plan} className="flex items-center gap-2">

@@ -150,8 +150,8 @@ export default function Home() {
               <span className="text-teal-400">유튜브 트렌드</span>를 파악하세요
             </h1>
             <p className="text-gray-400 text-lg max-w-xl mx-auto leading-relaxed">
-              조회수·구독자·반응도를 한눈에 분석해<br className="hidden sm:block" />
-              경쟁력 있는 콘텐츠 주제를 찾아드립니다
+              조회수·구독자·게시일을 한눈에 확인하고<br className="hidden sm:block" />
+              경쟁력 있는 콘텐츠 주제를 발견해 보세요
             </p>
           </div>
 
@@ -208,8 +208,8 @@ export default function Home() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941" />
               </svg>
             }
-            title="반응도 분석"
-            desc="조회수·구독자 비율로 실제 성과를 Good / Normal / Bad 로 즉시 판단합니다"
+            title="공식 메트릭 한눈에"
+            desc="YouTube가 제공하는 조회수·구독자·게시일·좋아요 수를 깔끔하게 정리해 보여드립니다"
           />
           <FeatureCard
             icon={
@@ -248,7 +248,7 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
             <StepCard step={1} title="키워드 입력" desc="분석하고 싶은 유튜브 키워드를 검색창에 입력하세요" />
             <StepCard step={2} title="실시간 분석" desc="YouTube 최신 영상 데이터를 수집·분석합니다" />
-            <StepCard step={3} title="인사이트 확인" desc="반응도, 조회수, 채널분석을 토대로 내 채널에 맞게 기획해보세요" />
+            <StepCard step={3} title="인사이트 확인" desc="조회수와 채널 정보를 바탕으로 내 채널에 맞는 콘텐츠를 기획해보세요" />
           </div>
         </div>
       </div>

@@ -49,7 +49,7 @@ export default function OgImage() {
           유튜브 키워드·채널 분석 도구
         </p>
         <p style={{ fontSize: 18, color: "#6b7280", margin: "12px 0 0 0", textAlign: "center" }}>
-          트렌드 선점 · 반응도 분석 · 채널 찾기 · 영상 수집
+          트렌드 선점 · 키워드 검색 · 채널 찾기 · 영상 수집
         </p>
       </div>
     ),

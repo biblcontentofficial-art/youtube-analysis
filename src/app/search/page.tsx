@@ -4,17 +4,17 @@ import type { Metadata } from "next";
 import { searchVideos } from "@/lib/youtube";
 
 export const metadata: Metadata = {
-  title: "유튜브 영상 찾기 · 키워드 트렌드 분석",
+  title: "유튜브 영상 찾기 · 키워드 검색",
   description:
-    "비블랩 영상 찾기 — 유튜브 키워드로 최신 트렌드 영상을 검색하고 조회수·반응도·아웃라이어를 분석합니다. 경쟁력 있는 콘텐츠 주제를 발견하세요.",
+    "비블랩 영상 찾기 — 유튜브 키워드로 최신 영상을 검색하고 조회수·구독자 수·게시일을 한눈에 확인합니다. 경쟁력 있는 콘텐츠 주제를 발견하세요.",
   keywords: [
-    "비블랩 영상검색", "유튜브 키워드 분석", "유튜브 트렌드 영상", "유튜브 반응도",
-    "유튜브 아웃라이어", "유튜브 조회수 분석", "콘텐츠 주제 발굴", "유튜브 알고리즘 분석",
+    "비블랩 영상검색", "유튜브 키워드 검색", "유튜브 트렌드 영상",
+    "유튜브 조회수 확인", "콘텐츠 주제 발굴", "유튜브 영상 검색",
   ],
   alternates: { canonical: "https://bibllab.com/search" },
   openGraph: {
-    title: "유튜브 영상 찾기 · 키워드 트렌드 분석 | 비블랩",
-    description: "유튜브 키워드로 트렌드 영상을 검색하고 조회수·반응도를 분석하세요.",
+    title: "유튜브 영상 찾기 · 키워드 검색 | 비블랩",
+    description: "유튜브 키워드로 최신 영상을 검색하고 조회수·구독자·게시일을 확인하세요.",
     url: "https://bibllab.com/search",
   },
 };
@@ -383,7 +383,7 @@ export default async function SearchPage({ searchParams }: Props) {
                     </svg>
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-teal-300">Starter 플랜으로 월 50회 검색 + 알고리즘 확률</p>
+                    <p className="text-sm font-semibold text-teal-300">Starter 플랜으로 월 50회 검색 + 채널 찾기</p>
                     <p className="text-xs text-gray-500 mt-0.5">월 ₩15,000 · 언제든지 취소 · 즉시 적용</p>
                   </div>
                 </div>
