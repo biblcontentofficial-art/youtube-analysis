@@ -364,7 +364,7 @@ export default function SearchResultList({
       {/* 테이블 헤더 */}
       <div
         className="hidden md:grid items-center gap-2 px-3 py-2.5 bg-gray-900 border border-gray-800 text-xs text-gray-500 font-medium rounded-t-lg select-none"
-        style={{ gridTemplateColumns: "32px 40px 130px 1fr 90px 155px 95px" }}
+        style={{ gridTemplateColumns: "32px 40px 160px 1fr 110px 180px 110px" }}
       >
         <div className="flex justify-center">
           <input

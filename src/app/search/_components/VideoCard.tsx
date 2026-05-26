@@ -102,7 +102,7 @@ export default function VideoCard({ video, checked, onCheck, onClick, canAlgorit
         className={`hidden md:grid items-center gap-2 px-3 py-4 transition-colors group ${
           checked ? "bg-teal-950/20" : "hover:bg-gray-900/60"
         }`}
-        style={{ gridTemplateColumns: "32px 40px 130px 1fr 90px 155px 85px 95px 95px" }}
+        style={{ gridTemplateColumns: "32px 40px 160px 1fr 110px 180px 110px" }}
       >
         {/* 체크박스 */}
         <div className="flex justify-center" onClick={(e) => e.stopPropagation()}>
