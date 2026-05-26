@@ -11,6 +11,19 @@ interface Props {
   onCheck: () => void;
   onClick: () => void;
   canAlgorithm: boolean;
+  probEnabled?: boolean;
+}
+
+// ─── 확률 라벨 계산 (사용자 옵트인 후 클라이언트 사이드 단순 산술) ───
+// performanceRatioRaw = 영상 조회수 ÷ 채널 평균 조회수
+// 임계값은 사용자 가이드라인 (YouTube 공식 메트릭 아님)
+function calcProbabilityLabel(ratio: number | undefined): { label: string; color: string } {
+  const r = ratio ?? 0;
+  if (r >= 5) return { label: "Great", color: "text-emerald-400" };
+  if (r >= 2) return { label: "Good", color: "text-green-400" };
+  if (r >= 0.5) return { label: "Normal", color: "text-gray-400" };
+  if (r >= 0.1) return { label: "Bad", color: "text-red-400" };
+  return { label: "Worst", color: "text-red-500" };
 }
 
 // ─── 업그레이드 유도 모달 ─────────────────────────────────────────────────────
@@ -89,9 +102,12 @@ function UpgradeModal({ onClose }: { onClose: () => void }) {
 
 // ─── VideoCard ────────────────────────────────────────────────────────────────
 
-export default function VideoCard({ video, checked, onCheck, onClick, canAlgorithm }: Props) {
+export default function VideoCard({ video, checked, onCheck, onClick, canAlgorithm, probEnabled }: Props) {
   const isShorts = (video.durationSeconds ?? 9999) <= 180;
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+
+  // 사용자가 확률 계산기를 활성화했을 때만 라벨 산출 (클라이언트 사이드)
+  const probInfo = probEnabled ? calcProbabilityLabel(video.performanceRatioRaw) : null;
 
   return (
     <>
@@ -102,7 +118,7 @@ export default function VideoCard({ video, checked, onCheck, onClick, canAlgorit
         className={`hidden md:grid items-center gap-2 px-3 py-4 transition-colors group ${
           checked ? "bg-teal-950/20" : "hover:bg-gray-900/60"
         }`}
-        style={{ gridTemplateColumns: "32px 40px 160px 1fr 110px 180px 110px" }}
+        style={{ gridTemplateColumns: "32px 40px 160px 1fr 100px 160px 110px 100px" }}
       >
         {/* 체크박스 */}
         <div className="flex justify-center" onClick={(e) => e.stopPropagation()}>
@@ -149,13 +165,23 @@ export default function VideoCard({ video, checked, onCheck, onClick, canAlgorit
           <span className="text-[11px] text-gray-500">{video.subscriberCount}명</span>
         </div>
 
-        {/* YouTube ToS III.E.4h 준수: 파생/계산 메트릭 (조회수 비율, 알고리즘 확률) 컬럼 제거 */}
-
         {/* 게시일 */}
         <div className="text-center">
           <div className="text-xs text-gray-500 bg-gray-900 px-2 py-1 rounded-md border border-gray-800 whitespace-nowrap">
             {video.publishedAt}
           </div>
+        </div>
+
+        {/* 확률 계산기 — 사용자 옵트인 후에만 표시 */}
+        <div className="text-center" title={probInfo ? "사용자 자가 계산값 (YouTube 공식 메트릭 아님)" : "확률 계산기 비활성"}>
+          {probInfo ? (
+            <div className="flex flex-col items-center gap-0.5">
+              <span className="text-[8px] text-gray-500">···</span>
+              <span className={`text-sm font-bold ${probInfo.color}`}>{probInfo.label}</span>
+            </div>
+          ) : (
+            <span className="text-gray-700 text-xs">-</span>
+          )}
         </div>
       </div>
 
