@@ -81,8 +81,10 @@ function formatDuration(seconds: number): string {
 
 export default function KeywordInsights({ videos, query }: Props) {
   // ─── AI 진단 상태 ───
-  const [aiLoading, setAiLoading] = useState(false);
+  type Provider = "openai" | "anthropic" | "gemini" | "grok";
+  const [aiLoading, setAiLoading] = useState<Provider | null>(null);
   const [aiResult, setAiResult] = useState<string | null>(null);
+  const [aiProvider, setAiProvider] = useState<string | null>(null);
   const [aiError, setAiError] = useState<string | null>(null);
 
   // ─── 패턴 분석 옵트인 ───
@@ -96,11 +98,12 @@ export default function KeywordInsights({ videos, query }: Props) {
 
   if (videos.length === 0) return null;
 
-  // ─── 핸들러: AI 진단 ───
-  async function handleAiDiagnose() {
-    setAiLoading(true);
+  // ─── 핸들러: AI 진단 (provider 선택) ───
+  async function handleAiDiagnose(provider: Provider) {
+    setAiLoading(provider);
     setAiError(null);
     setAiResult(null);
+    setAiProvider(null);
     try {
       const sorted = [...videos].sort((a, b) => b.viewCount - a.viewCount);
       const top10 = sorted.slice(0, 10);
@@ -113,6 +116,7 @@ export default function KeywordInsights({ videos, query }: Props) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           query,
+          provider,
           totalResults: videos.length,
           topAvgViews: avgViews,
           recentRatio: recentCount / videos.length,
@@ -126,10 +130,11 @@ export default function KeywordInsights({ videos, query }: Props) {
         return;
       }
       setAiResult(data.text);
+      setAiProvider(data.providerLabel || provider);
     } catch (e) {
       setAiError(e instanceof Error ? e.message : "AI 진단 중 오류가 발생했습니다.");
     } finally {
-      setAiLoading(false);
+      setAiLoading(null);
     }
   }
 
@@ -242,24 +247,53 @@ export default function KeywordInsights({ videos, query }: Props) {
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <button
-              onClick={handleAiDiagnose}
-              disabled={aiLoading}
-              className="group relative overflow-hidden flex items-center justify-center gap-2.5 px-4 py-4 bg-gradient-to-br from-violet-500/[0.08] to-fuchsia-500/[0.05] hover:from-violet-500/20 hover:to-fuchsia-500/15 disabled:opacity-50 disabled:cursor-not-allowed border border-violet-400/20 hover:border-violet-400/50 text-violet-200 hover:text-white text-sm font-semibold rounded-xl transition"
-            >
-              {aiLoading ? (
-                <>
-                  <span className="w-4 h-4 border-2 border-violet-300 border-t-transparent rounded-full animate-spin" />
-                  AI 진단 중...
-                </>
-              ) : (
-                <>
-                  {Icon.brain("w-5 h-5")}
-                  AI에게 진단 받기
-                </>
-              )}
-            </button>
+          {/* ─ AI 진단 (4개 provider 중 선택) ─ */}
+          <div className="mb-3">
+            <div className="flex items-center gap-2 mb-2.5">
+              <div className="w-6 h-6 rounded-md bg-violet-500/15 border border-violet-400/25 flex items-center justify-center text-violet-300">
+                {Icon.brain("w-3.5 h-3.5")}
+              </div>
+              <p className="text-sm font-semibold text-violet-200">AI에게 진단 받기</p>
+              <span className="text-[11px] text-slate-500">— 원하는 AI를 선택하세요</span>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+              {([
+                { id: "openai", label: "ChatGPT", sub: "OpenAI", color: "emerald" },
+                { id: "gemini", label: "Gemini", sub: "Google", color: "sky" },
+                { id: "anthropic", label: "Claude", sub: "Anthropic", color: "orange" },
+                { id: "grok", label: "Grok", sub: "xAI", color: "slate" },
+              ] as const).map((p) => {
+                const isLoading = aiLoading === p.id;
+                const anyLoading = aiLoading !== null;
+                const colorMap: Record<string, string> = {
+                  emerald: "from-emerald-500/[0.08] to-teal-500/[0.05] hover:from-emerald-500/20 hover:to-teal-500/15 border-emerald-400/20 hover:border-emerald-400/50 text-emerald-200",
+                  sky: "from-sky-500/[0.08] to-blue-500/[0.05] hover:from-sky-500/20 hover:to-blue-500/15 border-sky-400/20 hover:border-sky-400/50 text-sky-200",
+                  orange: "from-orange-500/[0.08] to-amber-500/[0.05] hover:from-orange-500/20 hover:to-amber-500/15 border-orange-400/20 hover:border-orange-400/50 text-orange-200",
+                  slate: "from-slate-500/[0.10] to-zinc-500/[0.06] hover:from-slate-500/25 hover:to-zinc-500/20 border-slate-400/25 hover:border-slate-300/50 text-slate-200",
+                };
+                return (
+                  <button
+                    key={p.id}
+                    onClick={() => handleAiDiagnose(p.id)}
+                    disabled={anyLoading}
+                    className={`group flex flex-col items-center justify-center gap-1 px-3 py-3.5 bg-gradient-to-br ${colorMap[p.color]} disabled:opacity-40 disabled:cursor-not-allowed border rounded-xl transition hover:text-white`}
+                  >
+                    {isLoading ? (
+                      <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin my-1.5" />
+                    ) : (
+                      <span className="text-sm font-bold tracking-tight">{p.label}</span>
+                    )}
+                    <span className="text-[10px] uppercase tracking-wider opacity-60">
+                      {isLoading ? "분석 중..." : p.sub}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* ─ 그 외 도구 (패턴, 연관 키워드) ─ */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <button
               onClick={() => setPatternsEnabled(true)}
               disabled={patternsEnabled}
@@ -299,12 +333,15 @@ export default function KeywordInsights({ videos, query }: Props) {
                 <div className="w-8 h-8 rounded-lg bg-violet-500/15 border border-violet-400/25 flex items-center justify-center text-violet-300">
                   {Icon.brain("w-4 h-4")}
                 </div>
-                <h3 className="text-base font-bold text-violet-200">AI 키워드 진단</h3>
+                <h3 className="text-base font-bold text-violet-200">
+                  AI 키워드 진단
+                  {aiProvider && <span className="ml-2 text-xs font-medium text-violet-300/70">by {aiProvider}</span>}
+                </h3>
               </div>
-              <button onClick={() => setAiResult(null)} className="text-slate-500 hover:text-slate-300 transition">{Icon.close()}</button>
+              <button onClick={() => { setAiResult(null); setAiProvider(null); }} className="text-slate-500 hover:text-slate-300 transition">{Icon.close()}</button>
             </div>
             <p className="text-[11px] text-slate-500 mb-4">
-              외부 AI(OpenAI/Anthropic)가 생성한 텍스트입니다. bibl lab의 평가/메트릭이 아닙니다.
+              외부 AI({aiProvider || "OpenAI/Anthropic/Google/xAI"})가 생성한 텍스트입니다. bibl lab의 평가/메트릭이 아닙니다.
             </p>
             <div className="text-[15px] text-slate-200 whitespace-pre-wrap leading-relaxed">{aiResult}</div>
           </div>
