@@ -82,6 +82,14 @@ export default function VideoModal({ video, onClose }: Props) {
   const [fetchError, setFetchError] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
 
+  // ─── 사용자 자가 계산기 (클라이언트 측만, 사용자 명시 클릭 시에만 실행) ───
+  const [calcResult, setCalcResult] = useState<null | { ratio: number; videoViews: number; avgViews: number; pct: number }>(null);
+
+  // ─── AI 분석 (사용자 명시 클릭 시 외부 LLM API 호출 또는 ChatGPT 새 탭) ───
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiResult, setAiResult] = useState<string | null>(null);
+  const [aiError, setAiError] = useState<string | null>(null);
+
   async function fetchData() {
     setLoading(true);
     setFetchError(false);
@@ -125,19 +133,69 @@ export default function VideoModal({ video, onClose }: Props) {
 
   const visibleComments = isExpanded ? comments : comments.slice(0, 1);
 
-  // --- 통계 계산 로직 ---
+  // --- YouTube가 직접 제공하는 데이터(평균 조회수는 채널 총 조회수 ÷ 영상 수, 단순 산술) ---
+  // 평균 조회수는 채널 통계로 표시만 하고, 영상 단일 비교는 사용자가 버튼 눌러야만 계산
   const avgViews = channelInfo && channelInfo.videoCount > 0
     ? Math.round(channelInfo.viewCount / channelInfo.videoCount)
     : 0;
   const daysSinceJoin = channelInfo ? Math.floor((new Date().getTime() - new Date(channelInfo.publishedAt).getTime()) / (1000 * 60 * 60 * 24)) : 0;
 
-  // 조회수 성과 계산 (현재 영상 조회수 vs 채널 평균 조회수)
-  let viewPerformance = 0;
-  let isBetter = false;
-  if (detail && detail.rawViewCount > 0 && avgViews > 0) {
-    const diff = detail.rawViewCount - avgViews;
-    viewPerformance = (diff / avgViews) * 100;
-    isBetter = viewPerformance >= 0;
+  // ─── 사용자 자가 계산 핸들러 (클릭 시에만 실행) ───
+  // YouTube ToS III.E.4h: 우리가 "제공(offer)"하는 게 아니라 사용자가 직접 계산 도구를 사용
+  function handleSelfCalculate() {
+    if (!detail || !detail.rawViewCount || !avgViews) return;
+    const videoViews = detail.rawViewCount;
+    const ratio = videoViews / avgViews;
+    const pct = ((videoViews - avgViews) / avgViews) * 100;
+    setCalcResult({ ratio, videoViews, avgViews, pct });
+  }
+
+  // ─── AI 분석 핸들러 (사용자 클릭 시 외부 LLM 호출) ───
+  async function handleAiAnalyze() {
+    if (!detail || !channelInfo) return;
+    setAiLoading(true);
+    setAiError(null);
+    setAiResult(null);
+    try {
+      const res = await fetch("/api/ai-analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          videoTitle: video.title,
+          videoViews: detail.rawViewCount ?? 0,
+          videoDescription: (detail.description || "").slice(0, 1000),
+          channelTitle: video.channelTitle,
+          channelSubscribers: channelInfo.subscriberCount,
+          channelAvgViews: avgViews,
+          channelTotalVideos: channelInfo.videoCount,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setAiError(data.message || "AI 분석에 실패했습니다.");
+        return;
+      }
+      setAiResult(data.text);
+    } catch (e) {
+      setAiError(e instanceof Error ? e.message : "AI 분석 중 오류가 발생했습니다.");
+    } finally {
+      setAiLoading(false);
+    }
+  }
+
+  // ─── ChatGPT/Claude 새 탭으로 열기 (AI API 키 없을 때 백업) ───
+  function handleOpenChatGPT() {
+    if (!detail || !channelInfo) return;
+    const prompt = `다음 유튜브 영상이 잘 된 이유를 분석해줘:\n\n` +
+      `[영상] ${video.title}\n` +
+      `조회수: ${(detail.rawViewCount ?? 0).toLocaleString()}회\n\n` +
+      `[채널] ${video.channelTitle}\n` +
+      `구독자: ${channelInfo.subscriberCount.toLocaleString()}명\n` +
+      `총 영상 수: ${channelInfo.videoCount}개\n` +
+      `채널 평균 조회수: ${avgViews.toLocaleString()}회\n\n` +
+      `이 영상이 잘 된 이유, 제목/썸네일 패턴, 벤치마킹 포인트를 3~5줄로 알려줘.`;
+    const url = `https://chat.openai.com/?prompt=${encodeURIComponent(prompt)}`;
+    window.open(url, "_blank", "noopener,noreferrer");
   }
 
   return (
@@ -177,27 +235,16 @@ export default function VideoModal({ video, onClose }: Props) {
               </a>
             </div>
             <div className="w-full md:w-1/2 space-y-4">
-              {/* 영상 통계 */}
+              {/* 영상 통계 (YouTube 공식 데이터만) */}
               <div className="grid grid-cols-3 gap-2 bg-gray-800/50 p-3 sm:p-4 rounded-xl border border-gray-700">
                 <div className="text-center flex flex-col justify-center">
                   <div className="text-xs text-gray-400 mb-1">조회수</div>
                   <div className="font-bold text-white text-lg">{video.viewCountFormatted}</div>
-                  
-                  {/* [추가] 조회수 성과 비교 (평균 대비) */}
-                  {channelInfo && (
-                    <div className={`text-[10px] font-bold flex items-center justify-center gap-1 mt-1 ${isBetter ? "text-red-400" : "text-blue-400"}`}>
-                      <span>{isBetter ? "↑" : "↓"}</span>
-                      <span>{Math.abs(viewPerformance).toFixed(1)}%</span>
-                      <span className="text-gray-500 font-normal text-[9px]">(평균대비)</span>
-                    </div>
-                  )}
                 </div>
-                
                 <div className="text-center border-l border-gray-700 flex flex-col justify-center">
                   <div className="text-xs text-gray-400 mb-1">좋아요</div>
                   <div className="font-bold text-blue-400 text-lg">{detail ? detail.likeCount : "-"}</div>
                 </div>
-                
                 <div className="text-center border-l border-gray-700 flex flex-col justify-center">
                   <div className="text-xs text-gray-400 mb-1">댓글</div>
                   <div className="font-bold text-green-400 text-lg">{detail ? detail.commentCount : "-"}</div>
@@ -307,6 +354,108 @@ export default function VideoModal({ video, onClose }: Props) {
               </>
             )}
           </div>
+
+          {/* 4. 사용자 도구 — 본인이 명시적으로 클릭해야 작동 */}
+          {channelInfo && detail && (
+            <div className="bg-gradient-to-br from-gray-900 to-gray-950 rounded-2xl p-6 border border-gray-800">
+              <h3 className="text-sm font-bold text-gray-500 mb-1 uppercase tracking-wider">🛠️ 사용자 도구</h3>
+              <p className="text-xs text-gray-600 mb-4">
+                아래 도구는 사용자가 직접 실행할 때만 동작합니다. 표시되는 결과는 YouTube 공식 메트릭이 아닌, 사용자가 자가 계산하거나 외부 AI가 생성한 참고용 정보입니다.
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+                {/* 자가 계산기 버튼 */}
+                <button
+                  onClick={handleSelfCalculate}
+                  className="flex items-center justify-center gap-2 px-4 py-3 bg-teal-600/20 hover:bg-teal-600/30 border border-teal-700/60 hover:border-teal-500 text-teal-300 hover:text-teal-200 font-medium text-sm rounded-xl transition"
+                >
+                  📊 채널 평균 대비 비율 계산하기
+                </button>
+
+                {/* AI 분석 버튼 */}
+                <button
+                  onClick={handleAiAnalyze}
+                  disabled={aiLoading}
+                  className="flex items-center justify-center gap-2 px-4 py-3 bg-purple-600/20 hover:bg-purple-600/30 disabled:opacity-50 border border-purple-700/60 hover:border-purple-500 text-purple-300 hover:text-purple-200 font-medium text-sm rounded-xl transition"
+                >
+                  {aiLoading ? (
+                    <>
+                      <span className="w-4 h-4 border-2 border-purple-300 border-t-transparent rounded-full animate-spin" />
+                      AI가 분석 중...
+                    </>
+                  ) : (
+                    <>🤖 AI에게 이 영상이 잘 된 이유 묻기</>
+                  )}
+                </button>
+              </div>
+
+              {/* 자가 계산 결과 표시 (사용자 클릭 후에만 나타남) */}
+              {calcResult && (
+                <div className="mb-3 p-4 bg-teal-950/40 border border-teal-800/60 rounded-xl">
+                  <div className="flex items-start justify-between gap-3 mb-2">
+                    <h4 className="text-sm font-bold text-teal-300">📊 사용자 자가 계산 결과</h4>
+                    <button onClick={() => setCalcResult(null)} className="text-xs text-gray-500 hover:text-gray-300">닫기 ✕</button>
+                  </div>
+                  <p className="text-[10px] text-gray-500 mb-3">
+                    ※ 이 수치는 사용자가 직접 도구를 실행하여 클라이언트(브라우저)에서 단순 산술로 계산한 값입니다.
+                    YouTube의 공식 메트릭이 아니며, bibl lab이 제공하는 평가 지표가 아닙니다.
+                  </p>
+                  <div className="grid grid-cols-3 gap-3 text-center text-sm">
+                    <div>
+                      <div className="text-[10px] text-gray-500 mb-1">이 영상 조회수</div>
+                      <div className="font-bold text-white">{calcResult.videoViews.toLocaleString()}</div>
+                    </div>
+                    <div>
+                      <div className="text-[10px] text-gray-500 mb-1">채널 평균 조회수</div>
+                      <div className="font-bold text-white">{calcResult.avgViews.toLocaleString()}</div>
+                    </div>
+                    <div>
+                      <div className="text-[10px] text-gray-500 mb-1">사용자 계산값</div>
+                      <div className="font-bold text-teal-300">
+                        {calcResult.ratio.toFixed(2)}x
+                        <span className={`block text-[10px] mt-0.5 ${calcResult.pct >= 0 ? "text-red-400" : "text-blue-400"}`}>
+                          {calcResult.pct >= 0 ? "+" : ""}{calcResult.pct.toFixed(1)}%
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* AI 분석 결과 표시 */}
+              {aiResult && (
+                <div className="mb-3 p-4 bg-purple-950/40 border border-purple-800/60 rounded-xl">
+                  <div className="flex items-start justify-between gap-3 mb-2">
+                    <h4 className="text-sm font-bold text-purple-300">🤖 AI 분석 결과</h4>
+                    <button onClick={() => setAiResult(null)} className="text-xs text-gray-500 hover:text-gray-300">닫기 ✕</button>
+                  </div>
+                  <p className="text-[10px] text-gray-500 mb-3">
+                    ※ 외부 AI 서비스(OpenAI/Anthropic)가 생성한 텍스트입니다. bibl lab이 제공하는 메트릭이나 평가가 아니며, YouTube의 공식 정보도 아닙니다.
+                  </p>
+                  <div className="text-sm text-gray-300 whitespace-pre-wrap leading-relaxed">
+                    {aiResult}
+                  </div>
+                </div>
+              )}
+
+              {/* AI 에러 시 ChatGPT 새 탭 백업 */}
+              {aiError && (
+                <div className="mb-3 p-4 bg-amber-950/40 border border-amber-800/60 rounded-xl">
+                  <div className="flex items-start justify-between gap-3 mb-2">
+                    <h4 className="text-sm font-bold text-amber-300">⚠️ AI 분석을 사용할 수 없습니다</h4>
+                    <button onClick={() => setAiError(null)} className="text-xs text-gray-500 hover:text-gray-300">닫기 ✕</button>
+                  </div>
+                  <p className="text-xs text-gray-400 mb-3">{aiError}</p>
+                  <button
+                    onClick={handleOpenChatGPT}
+                    className="px-3 py-2 bg-amber-700/40 hover:bg-amber-700/60 text-amber-200 text-xs font-medium rounded-lg border border-amber-700/60"
+                  >
+                    🔗 ChatGPT에서 분석 요청 (새 탭)
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
 
         </div>
       </div>
