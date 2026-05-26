@@ -54,7 +54,7 @@ export default function SearchResultList({
   const [collectToast, setCollectToast] = useState<{ count: number } | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // ─── 확률 계산기 (사용자 옵트인) ───
+  // ─── 알고리즘 확률 (사용자 옵트인) ───
   // 기본: 비활성. 헤더 버튼 클릭 → 확인 모달 → 확인 시에만 활성화
   // ToS III.E.4h 회피: 우리가 자동으로 표시하지 않음. 사용자 명시 동의 후만 사용자 본인 브라우저에서 계산.
   const [probEnabled, setProbEnabled] = useState(false);
@@ -392,7 +392,7 @@ export default function SearchResultList({
         <div onClick={() => handleSort("publishedAtRaw")} className="cursor-pointer hover:text-white flex items-center justify-center">
           게시일 {renderSortIcon("publishedAtRaw")}
         </div>
-        {/* 확률 계산기 — 옵트인 컬럼 (사용자가 명시 동의해야만 활성) */}
+        {/* 알고리즘 확률 — 옵트인 컬럼 (사용자가 명시 동의해야만 활성) */}
         <div className="flex items-center justify-center">
           {probEnabled ? (
             <span
@@ -400,7 +400,7 @@ export default function SearchResultList({
               onClick={() => setProbConfirmOpen(true)}
               title="다시 확인"
             >
-              확률 계산기
+              알고리즘 확률
               <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
@@ -410,7 +410,7 @@ export default function SearchResultList({
               onClick={() => setProbConfirmOpen(true)}
               className="px-2.5 py-1 border border-teal-700/60 hover:border-teal-500 text-teal-400 hover:text-teal-300 rounded-md text-[11px] font-medium transition"
             >
-              확률 계산기
+              알고리즘 확률
             </button>
           )}
         </div>
@@ -431,23 +431,23 @@ export default function SearchResultList({
         ))}
       </div>
 
-      {/* 확률 계산기 활성 시 디스클레이머 배너 */}
+      {/* 알고리즘 확률 활성 시 디스클레이머 배너 */}
       {probEnabled && (
         <div className="mt-3 p-3 bg-amber-950/30 border border-amber-800/40 rounded-lg text-[11px] text-gray-400 leading-relaxed">
-          ※ <strong className="text-amber-300">확률 계산기는 사용자가 직접 활성화한 자가 계산 도구</strong>입니다.
+          ※ <strong className="text-amber-300">알고리즘 확률는 사용자가 직접 활성화한 자가 계산 도구</strong>입니다.
           표시되는 등급은 YouTube가 제공하는 공식 메트릭이 아니며, bibl lab의 평가/예측이 아닙니다.
           공개된 메타데이터(조회수, 채널 평균 조회수, 게시일)를 사용자의 브라우저에서 단순 산술로 처리한 참고 값입니다.
         </div>
       )}
 
-      {/* 확률 계산기 — 활성화 확인 모달 */}
+      {/* 알고리즘 확률 — 활성화 확인 모달 */}
       {probConfirmOpen && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-fadeIn">
           <div className="absolute inset-0" onClick={() => setProbConfirmOpen(false)} />
           <div className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl p-6 sm:p-8">
-            <h3 className="text-lg font-bold text-gray-900 text-center mb-3">확률 계산기 활성화</h3>
+            <h3 className="text-lg font-bold text-gray-900 text-center mb-3">알고리즘 확률 분석</h3>
             <p className="text-sm text-gray-600 text-center leading-relaxed mb-2">
-              확률 계산을 진행하시겠습니까?
+              알고리즘 확률 분석을 진행하시겠습니까?
             </p>
             <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 my-4">
               <p className="text-[11px] text-amber-800 leading-relaxed">
