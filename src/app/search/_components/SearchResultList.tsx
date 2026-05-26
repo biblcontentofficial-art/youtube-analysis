@@ -395,16 +395,13 @@ export default function SearchResultList({
         {/* 알고리즘 확률 — 옵트인 컬럼 (사용자가 명시 동의해야만 활성) */}
         <div className="flex items-center justify-center">
           {probEnabled ? (
-            <span
-              className="text-teal-400 cursor-pointer hover:text-teal-300 flex items-center gap-1"
-              onClick={() => setProbConfirmOpen(true)}
-              title="다시 확인"
+            <div
+              onClick={() => handleSort("performanceRatioRaw")}
+              className="cursor-pointer hover:text-white flex items-center gap-1 text-teal-400"
+              title="좋음/나쁨 순서로 정렬 (사용자 자가 계산값, YouTube 공식 메트릭 아님)"
             >
-              알고리즘 확률
-              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </span>
+              알고리즘 확률 {renderSortIcon("performanceRatioRaw")}
+            </div>
           ) : (
             <button
               onClick={() => setProbConfirmOpen(true)}

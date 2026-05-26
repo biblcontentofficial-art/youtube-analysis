@@ -19,10 +19,15 @@ interface Props {
 // 임계값은 사용자 가이드라인 (YouTube 공식 메트릭 아님)
 function calcProbabilityLabel(ratio: number | undefined): { label: string; color: string } {
   const r = ratio ?? 0;
-  if (r >= 5) return { label: "Great", color: "text-emerald-400" };
-  if (r >= 2) return { label: "Good", color: "text-green-400" };
+  // Great: 보라색 (프리미엄 느낌, 다른 등급과 시각적으로 명확히 구분)
+  if (r >= 5) return { label: "Great", color: "text-purple-400" };
+  // Good: 청록색 (긍정, Great와 색 구분 명확)
+  if (r >= 2) return { label: "Good", color: "text-teal-400" };
+  // Normal: 회색
   if (r >= 0.5) return { label: "Normal", color: "text-gray-400" };
-  if (r >= 0.1) return { label: "Bad", color: "text-red-400" };
+  // Bad: 주황 (Worst와 구분)
+  if (r >= 0.1) return { label: "Bad", color: "text-orange-400" };
+  // Worst: 빨강
   return { label: "Worst", color: "text-red-500" };
 }
 
