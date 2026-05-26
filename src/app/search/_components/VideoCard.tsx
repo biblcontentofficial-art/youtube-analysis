@@ -12,6 +12,7 @@ interface Props {
   onClick: () => void;
   canAlgorithm: boolean;
   probEnabled?: boolean;
+  onClickProbActivate?: () => void;
 }
 
 // ─── 확률 라벨 계산 (사용자 옵트인 후 클라이언트 사이드 단순 산술) ───
@@ -107,7 +108,7 @@ function UpgradeModal({ onClose }: { onClose: () => void }) {
 
 // ─── VideoCard ────────────────────────────────────────────────────────────────
 
-export default function VideoCard({ video, checked, onCheck, onClick, canAlgorithm, probEnabled }: Props) {
+export default function VideoCard({ video, checked, onCheck, onClick, canAlgorithm, probEnabled, onClickProbActivate }: Props) {
   const isShorts = (video.durationSeconds ?? 9999) <= 180;
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
@@ -177,15 +178,27 @@ export default function VideoCard({ video, checked, onCheck, onClick, canAlgorit
           </div>
         </div>
 
-        {/* 확률 계산기 — 사용자 옵트인 후에만 표시 */}
-        <div className="text-center" title={probInfo ? "사용자 자가 계산값 (YouTube 공식 메트릭 아님)" : "확률 계산기 비활성"}>
+        {/* 알고리즘 확률 — 사용자 옵트인 후에만 라벨 표시, 그 전엔 클릭 가능한 버튼 */}
+        <div className="text-center" onClick={(e) => e.stopPropagation()}>
           {probInfo ? (
-            <div className="flex flex-col items-center gap-0.5">
+            <div
+              className="flex flex-col items-center gap-0.5"
+              title="사용자 자가 계산값 (YouTube 공식 메트릭 아님)"
+            >
               <span className="text-[8px] text-gray-500">···</span>
               <span className={`text-sm font-bold ${probInfo.color}`}>{probInfo.label}</span>
             </div>
           ) : (
-            <span className="text-gray-700 text-xs">-</span>
+            <button
+              onClick={onClickProbActivate}
+              className="px-2 py-1 border border-teal-700/60 hover:border-teal-500 hover:bg-teal-950/40 text-teal-400 hover:text-teal-300 text-[10px] font-medium rounded-md transition flex items-center gap-1 mx-auto"
+              title="알고리즘 확률 분석 활성화"
+            >
+              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+              분석
+            </button>
           )}
         </div>
       </div>

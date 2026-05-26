@@ -424,6 +424,7 @@ export default function SearchResultList({
             onClick={() => setSelectedVideo(video)}
             canAlgorithm={canAlgorithm}
             probEnabled={probEnabled}
+            onClickProbActivate={() => setProbConfirmOpen(true)}
           />
         ))}
       </div>
