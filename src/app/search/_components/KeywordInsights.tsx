@@ -235,9 +235,9 @@ export default function KeywordInsights({ videos, query }: Props) {
             <Link
               href={`/studio/consulting?source=keyword&query=${encodeURIComponent(query)}`}
               className="group inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-400 hover:to-emerald-400 text-white text-sm font-bold rounded-xl transition shadow-lg shadow-teal-900/30 whitespace-nowrap"
-              title="비블에게 직접 키워드 컨설팅 받기"
+              title="이 키워드로 유튜브 채널 대행 문의하기"
             >
-              비블에게 컨설팅 받기
+              유튜브 채널 대행 문의
               <span className="transition-transform group-hover:translate-x-0.5">{Icon.arrow("w-4 h-4")}</span>
             </Link>
           </div>
