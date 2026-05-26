@@ -18,15 +18,15 @@ interface Props {
 // ─── 확률 라벨 계산 (사용자 옵트인 후 클라이언트 사이드 단순 산술) ───
 // performanceRatioRaw = 영상 조회수 ÷ 채널 평균 조회수
 // 임계값은 사용자 가이드라인 (YouTube 공식 메트릭 아님)
-function calcProbabilityLabel(ratio: number | undefined): { label: string; color: string } {
+function calcProbabilityLabel(ratio: number | undefined): { label: string; color: string; emoji?: string } {
   const r = ratio ?? 0;
-  // Great: 보라색 (프리미엄 느낌, 다른 등급과 시각적으로 명확히 구분)
-  if (r >= 5) return { label: "Great", color: "text-purple-400" };
-  // Good: 청록색 (긍정, Great와 색 구분 명확)
+  // Great: 에메랄드 + 🔥 불꽃 이모지 (최고 등급, 즉시 인지)
+  if (r >= 5) return { label: "Great", color: "text-emerald-400", emoji: "🔥" };
+  // Good: 청록색
   if (r >= 2) return { label: "Good", color: "text-teal-400" };
   // Normal: 회색
   if (r >= 0.5) return { label: "Normal", color: "text-gray-400" };
-  // Bad: 주황 (Worst와 구분)
+  // Bad: 주황
   if (r >= 0.1) return { label: "Bad", color: "text-orange-400" };
   // Worst: 빨강
   return { label: "Worst", color: "text-red-500" };
@@ -186,7 +186,10 @@ export default function VideoCard({ video, checked, onCheck, onClick, canAlgorit
               title="사용자 자가 계산값 (YouTube 공식 메트릭 아님)"
             >
               <span className="text-[8px] text-gray-500">···</span>
-              <span className={`text-sm font-bold ${probInfo.color}`}>{probInfo.label}</span>
+              <span className={`text-sm font-bold flex items-center gap-1 ${probInfo.color}`}>
+                {probInfo.emoji && <span>{probInfo.emoji}</span>}
+                {probInfo.label}
+              </span>
             </div>
           ) : (
             <button
