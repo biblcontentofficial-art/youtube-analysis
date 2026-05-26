@@ -6,6 +6,7 @@ import VideoCard from "./VideoCard";
 import VideoModal from "./VideoModal";
 import ChannelReport from "./ChannelReport";
 import KeywordCompetition from "./KeywordCompetition";
+import KeywordInsights from "./KeywordInsights";
 import TitlePatternAnalysis from "./TitlePatternAnalysis";
 import { Video } from "@/types";
 import { getMoreVideos } from "../actions";
@@ -316,6 +317,11 @@ export default function SearchResultList({
 
   return (
     <div className="w-full mt-4 pb-12">
+
+      {/* 키워드 인사이트 (AI 진단 + 패턴 + 연관 키워드 + 컨설팅 CTA) — 모든 사용자에게 표시 */}
+      <div className="mb-4">
+        <KeywordInsights videos={videos} query={query} />
+      </div>
 
       {/* 키워드 경쟁도 + 제목 패턴 분석 — Starter 이상 */}
       {canAlgorithm ? (

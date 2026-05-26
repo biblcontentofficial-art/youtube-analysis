@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 
 // ── 질문 데이터 ──────────────────────────────────────────────
 const SOURCE_OPTIONS = ["유튜브", "인스타그램", "스레드", "지인 소개", "블로그/검색"];
@@ -95,12 +96,33 @@ function TextInput({
 }
 
 // ── 메인 페이지 ──────────────────────────────────────────────
-export default function ConsultingPage() {
+export default function ConsultingPageWrapper() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gray-950" />}>
+      <ConsultingPage />
+    </Suspense>
+  );
+}
+
+function ConsultingPage() {
   const [step, setStep] = useState(0);
   const [form, setForm] = useState<FormData>(INIT);
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState("");
+  const searchParams = useSearchParams();
+
+  // 검색 페이지에서 키워드 컨설팅 요청 시 메시지 자동 채우기 (Phase 3.8)
+  useEffect(() => {
+    const source = searchParams.get("source");
+    const query = searchParams.get("query");
+    if (source === "keyword" && query) {
+      setForm((f) => ({
+        ...f,
+        message: `[키워드 컨설팅 요청]\n검색 키워드: "${query}"\n\n위 키워드와 관련된 유튜브 채널 전략에 대해 비블의 의견을 듣고 싶습니다.\n\n구체적으로 궁금한 점:\n- \n- `,
+      }));
+    }
+  }, [searchParams]);
 
   const set = (key: keyof FormData) => (v: string) => setForm((f) => ({ ...f, [key]: v }));
 
