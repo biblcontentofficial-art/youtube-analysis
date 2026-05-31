@@ -17,9 +17,18 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 async function findPost(slugOrId: string) {
   const db = getSupabase();
   if (!db) return { db: null, post: null };
-  const column = UUID_RE.test(slugOrId) ? "id" : "slug";
-  const { data } = await db.from("posts").select("*").eq(column, slugOrId).maybeSingle();
-  return { db, post: data };
+  if (UUID_RE.test(slugOrId)) {
+    const { data } = await db.from("posts").select("*").eq("id", slugOrId).maybeSingle();
+    return { db, post: data };
+  }
+  // 한글 slug 인코딩 대응: 원본/디코딩/인코딩 후보 모두 시도
+  const dec = (() => { try { return decodeURIComponent(slugOrId); } catch { return slugOrId; } })();
+  const enc = (() => { try { return encodeURIComponent(slugOrId); } catch { return slugOrId; } })();
+  for (const s of Array.from(new Set([slugOrId, dec, enc]))) {
+    const { data } = await db.from("posts").select("*").eq("slug", s).maybeSingle();
+    if (data) return { db, post: data };
+  }
+  return { db, post: null };
 }
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ slug: string }> }) {

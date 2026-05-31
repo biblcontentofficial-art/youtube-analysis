@@ -19,11 +19,29 @@ import PostRenderer from "../_components/PostRenderer";
 export const revalidate = 60;
 export const dynamic = "force-dynamic";
 
-async function fetchPost(slug: string): Promise<Post | null> {
+async function fetchPost(rawSlug: string): Promise<Post | null> {
   const db = getSupabase();
   if (!db) return null;
-  const { data } = await db.from("posts").select("*").eq("slug", slug).maybeSingle();
-  return data as Post | null;
+
+  // 한글 slug는 URL 인코딩되어 들어올 수 있음 → 원본/디코딩 후보 모두 시도
+  const candidates = Array.from(new Set([
+    rawSlug,
+    safeDecode(rawSlug),
+    safeEncode(rawSlug),
+  ].filter(Boolean))) as string[];
+
+  for (const s of candidates) {
+    const { data } = await db.from("posts").select("*").eq("slug", s).maybeSingle();
+    if (data) return data as Post;
+  }
+  return null;
+}
+
+function safeDecode(s: string): string {
+  try { return decodeURIComponent(s); } catch { return s; }
+}
+function safeEncode(s: string): string {
+  try { return encodeURIComponent(s); } catch { return s; }
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
