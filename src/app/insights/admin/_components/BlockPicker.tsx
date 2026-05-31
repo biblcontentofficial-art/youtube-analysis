@@ -236,7 +236,7 @@ export default function BlockPicker({ onPick, onClose, initialQuery = "", anchor
           <span className="text-[10px] text-slate-600 hidden sm:inline">ESC</span>
         </div>
       </div>
-      <div ref={listRef} className="overflow-y-auto" style={{ maxHeight: mode === "popover" ? 320 : 480 }}>
+      <div ref={listRef} className="overflow-y-auto" style={{ maxHeight: mode === "popover" ? 284 : 480 }}>
         {filtered.length === 0 ? (
           <div className="px-4 py-8 text-center text-sm text-slate-500">결과 없음</div>
         ) : (
