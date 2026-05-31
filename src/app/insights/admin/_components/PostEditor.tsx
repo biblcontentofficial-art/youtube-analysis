@@ -11,7 +11,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import type { Post, PostBlock } from "@/lib/posts";
-import { extractYouTubeId, slugify } from "@/lib/posts";
+import { extractYouTubeId, slugify, summarize, blocksToPlainText } from "@/lib/posts";
 import PostRenderer from "../../_components/PostRenderer";
 
 interface Props {
@@ -85,10 +85,7 @@ export default function PostEditor({ initial }: Props) {
 
   const [title, setTitle] = useState(initial?.title ?? "");
   const [subtitle, setSubtitle] = useState(initial?.subtitle ?? "");
-  const [description, setDescription] = useState(initial?.description ?? "");
-  const [tagsText, setTagsText] = useState((initial?.tags ?? []).join(", "));
   const [coverImage, setCoverImage] = useState(initial?.cover_image ?? "");
-  const [slug, setSlug] = useState(initial?.slug ?? "");
   const [blocks, setBlocks] = useState<PostBlock[]>(
     Array.isArray(initial?.content) && initial!.content.length > 0
       ? (initial!.content as PostBlock[])
@@ -96,17 +93,42 @@ export default function PostEditor({ initial }: Props) {
   );
   const [status, setStatus] = useState<"draft" | "published">((initial?.status as "draft" | "published") ?? "draft");
 
+  // SEO 메타: 사용자가 직접 수정하기 전까지는 title+본문에서 자동 생성
+  // touched=true → 수동 입력값 사용 / false → autoXxx 사용
+  const [description, setDescription] = useState(initial?.description ?? "");
+  const [descTouched, setDescTouched] = useState(!!initial?.description);
+  const [tagsText, setTagsText] = useState((initial?.tags ?? []).join(", "));
+  const [tagsTouched, setTagsTouched] = useState(!!(initial?.tags && initial.tags.length > 0));
+  const [slug, setSlug] = useState(initial?.slug ?? "");
+  const [slugTouched, setSlugTouched] = useState(!!initial?.slug);
+
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
   const [coverUploading, setCoverUploading] = useState(false);
 
-  // 자동 slug 생성 (편집 모드 아닐 때만)
+  // ─── 자동 생성 값 ───
+  const autoSlug = title ? slugify(title) : "";
+  // description: 부제목 우선, 없으면 본문 요약
+  const autoDescription = subtitle?.trim() || summarize(blocks, 155);
+  const autoTags = extractAutoTags(title, blocks);
+
+  // 실제 사용 값 (저장/표시)
+  const effectiveSlug = slugTouched ? slug : autoSlug;
+  const effectiveDescription = descTouched ? description : autoDescription;
+  const effectiveTagsText = tagsTouched ? tagsText : autoTags.join(", ");
+
+  // touched 안 됐을 때, 입력 필드의 보이는 값도 자동값으로 sync (수동 입력 보존)
   useEffect(() => {
-    if (!isEdit && title && !slug) {
-      setSlug(slugify(title));
-    }
-  }, [title, isEdit, slug]);
+    if (!slugTouched) setSlug(autoSlug);
+  }, [autoSlug, slugTouched]);
+  useEffect(() => {
+    if (!descTouched) setDescription(autoDescription);
+  }, [autoDescription, descTouched]);
+  const autoTagsJoined = autoTags.join(", ");
+  useEffect(() => {
+    if (!tagsTouched) setTagsText(autoTagsJoined);
+  }, [autoTagsJoined, tagsTouched]);
 
   function updateBlock(i: number, patch: Partial<PostBlock>) {
     setBlocks((prev) => {
@@ -163,16 +185,16 @@ export default function PostEditor({ initial }: Props) {
     }
     setSaving(true);
     const newStatus = asStatus ?? status;
-    const tags = tagsText.split(",").map((t) => t.trim()).filter(Boolean);
+    const tags = effectiveTagsText.split(",").map((t) => t.trim()).filter(Boolean);
     const payload = {
       title: title.trim(),
       subtitle: subtitle.trim() || null,
-      description: description.trim() || null,
+      description: effectiveDescription.trim() || null,
       cover_image: coverImage || null,
       content: blocks,
       tags,
       status: newStatus,
-      slug: slug.trim() || undefined,
+      slug: effectiveSlug.trim() || undefined,
     };
 
     try {
@@ -320,33 +342,67 @@ export default function PostEditor({ initial }: Props) {
               className="w-full bg-transparent text-lg text-slate-300 placeholder-slate-700 outline-none"
             />
             <details className="text-sm text-slate-400">
-              <summary className="cursor-pointer text-slate-500 hover:text-white">SEO/메타 설정</summary>
-              <div className="mt-3 space-y-2">
-                <label className="block">
-                  <span className="text-xs text-slate-500">SEO description (검색 결과에 노출되는 설명, 160자 권장)</span>
+              <summary className="cursor-pointer text-slate-500 hover:text-white">
+                SEO/메타 설정
+                <span className="ml-2 text-[10px] uppercase tracking-wider font-bold px-1.5 py-0.5 rounded bg-teal-500/15 text-teal-300 border border-teal-400/20">
+                  자동 생성
+                </span>
+              </summary>
+              <p className="mt-2 text-[11px] text-slate-500 leading-relaxed">
+                제목·부제목·본문을 쓰면 아래 항목은 자동으로 채워집니다. 직접 입력하면 수동값으로 고정되고, <b className="text-slate-400">[자동으로 되돌리기]</b> 를 누르면 다시 자동 추출됩니다.
+              </p>
+              <div className="mt-3 space-y-3">
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs text-slate-500">
+                      SEO description <span className="text-slate-600">(검색 결과 설명, 155자 권장)</span>
+                    </span>
+                    <AutoBadge touched={descTouched} onReset={() => { setDescTouched(false); setDescription(autoDescription); }} />
+                  </div>
                   <textarea
                     value={description}
-                    onChange={(e) => setDescription(e.target.value)}
+                    onChange={(e) => { setDescTouched(true); setDescription(e.target.value); }}
                     rows={2}
-                    className="w-full mt-1 bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-teal-400/40"
+                    placeholder={autoDescription || "본문이 생기면 자동으로 채워집니다"}
+                    className={`w-full bg-white/[0.03] border rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-teal-400/40 ${
+                      descTouched ? "border-white/[0.10]" : "border-teal-400/15"
+                    }`}
                   />
-                </label>
-                <label className="block">
-                  <span className="text-xs text-slate-500">태그 (쉼표 구분, 예: 유튜브, 1인기업, 마케팅)</span>
+                  <div className="mt-1 text-[10px] text-slate-600 text-right">{(descTouched ? description : autoDescription).length} / 160</div>
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs text-slate-500">
+                      태그 <span className="text-slate-600">(쉼표 구분, 자동 추출 최대 5개)</span>
+                    </span>
+                    <AutoBadge touched={tagsTouched} onReset={() => { setTagsTouched(false); setTagsText(autoTagsJoined); }} />
+                  </div>
                   <input
                     value={tagsText}
-                    onChange={(e) => setTagsText(e.target.value)}
-                    className="w-full mt-1 bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-teal-400/40"
+                    onChange={(e) => { setTagsTouched(true); setTagsText(e.target.value); }}
+                    placeholder={autoTagsJoined || "예: 유튜브, 1인기업, 마케팅"}
+                    className={`w-full bg-white/[0.03] border rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-teal-400/40 ${
+                      tagsTouched ? "border-white/[0.10]" : "border-teal-400/15"
+                    }`}
                   />
-                </label>
-                <label className="block">
-                  <span className="text-xs text-slate-500">URL slug (영문/한글, 자동 생성됨)</span>
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs text-slate-500">URL slug</span>
+                    <AutoBadge touched={slugTouched} onReset={() => { setSlugTouched(false); setSlug(autoSlug); }} />
+                  </div>
                   <input
                     value={slug}
-                    onChange={(e) => setSlug(e.target.value)}
-                    className="w-full mt-1 bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-teal-400/40 font-mono"
+                    onChange={(e) => { setSlugTouched(true); setSlug(e.target.value); }}
+                    placeholder={autoSlug || "post-slug"}
+                    className={`w-full bg-white/[0.03] border rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-teal-400/40 font-mono ${
+                      slugTouched ? "border-white/[0.10]" : "border-teal-400/15"
+                    }`}
                   />
-                </label>
+                  <div className="mt-1 text-[10px] text-slate-600">/insights/{effectiveSlug || "..."}</div>
+                </div>
               </div>
             </details>
           </section>
@@ -378,6 +434,56 @@ export default function PostEditor({ initial }: Props) {
       )}
     </div>
   );
+}
+
+// ─────────────────────────────────────────────────────────────────────
+function AutoBadge({ touched, onReset }: { touched: boolean; onReset: () => void }) {
+  if (!touched) {
+    return (
+      <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wider font-bold px-1.5 py-0.5 rounded bg-teal-500/15 text-teal-300 border border-teal-400/20">
+        <svg className="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" /></svg>
+        자동
+      </span>
+    );
+  }
+  return (
+    <button
+      type="button"
+      onClick={onReset}
+      className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wider font-bold px-1.5 py-0.5 rounded bg-white/[0.05] hover:bg-teal-500/15 hover:text-teal-300 text-slate-400 border border-white/[0.10] hover:border-teal-400/30 transition"
+      title="제목·본문에서 다시 자동 추출"
+    >
+      <svg className="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><path d="M23 4v6h-6M1 20v-6h6" /><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" /></svg>
+      자동으로
+    </button>
+  );
+}
+
+// ─── 자동 태그 추출 (한글/영문 단어 빈도 기반 상위 5개) ───
+const STOP_WORDS = new Set([
+  // 한글 조사·대명사·일반어
+  "이", "그", "저", "것", "수", "들", "및", "와", "과", "의", "을", "를", "에", "은", "는", "이", "가", "도", "만", "더", "또", "안", "내", "내가", "우리", "당신", "어떤", "하나", "하지", "있다", "없다", "하다", "되다", "있는", "없는", "하는", "되는", "그런", "이런", "저런", "에서", "으로", "에게", "처럼", "보다", "또는", "그리고", "하지만", "그러나", "왜냐하면", "때문", "정도", "경우", "방법", "사람", "오늘", "지금", "여기",
+  // 영문
+  "the", "a", "an", "of", "in", "on", "is", "are", "to", "for", "with", "and", "or", "but", "this", "that", "it", "as", "be", "at", "by", "from", "you", "we", "they", "i", "my", "your", "our", "their",
+]);
+
+function extractAutoTags(title: string, blocks: PostBlock[]): string[] {
+  const all = (title + " " + blocksToPlainText(blocks))
+    .toLowerCase()
+    .replace(/[^\w\s가-힣]/g, " ")
+    .split(/\s+/)
+    .filter((w) => w.length >= 2 && !STOP_WORDS.has(w) && !/^\d+$/.test(w));
+
+  if (all.length === 0) return [];
+
+  const count: Record<string, number> = {};
+  for (const w of all) count[w] = (count[w] ?? 0) + 1;
+
+  return Object.entries(count)
+    .filter(([, c]) => c >= 2) // 최소 2회 등장
+    .sort(([, a], [, b]) => b - a)
+    .slice(0, 5)
+    .map(([w]) => w);
 }
 
 // ─────────────────────────────────────────────────────────────────────
