@@ -1,10 +1,11 @@
 import { MetadataRoute } from 'next'
+import { getSupabase } from '@/lib/supabase'
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://bibllab.com'
   const now = new Date()
 
-  return [
+  const staticUrls: MetadataRoute.Sitemap = [
     // 주력: 유튜브 채널 대행 (TMK STUDIO)
     {
       url: `${baseUrl}/studio`,
@@ -44,10 +45,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.85,
     },
     {
-      url: `${baseUrl}/threads`,
+      url: `${baseUrl}/insights`,
       lastModified: now,
       changeFrequency: 'daily',
-      priority: 0.8,
+      priority: 0.85,
     },
     {
       url: `${baseUrl}/pricing`,
@@ -87,4 +88,29 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.3,
     },
   ]
+
+  // 발행된 인사이트 글 동적 추가
+  try {
+    const db = getSupabase()
+    if (db) {
+      const { data: posts } = await db
+        .from('posts')
+        .select('slug, updated_at, published_at')
+        .eq('status', 'published')
+        .order('published_at', { ascending: false })
+        .limit(500)
+
+      const postUrls: MetadataRoute.Sitemap = (posts ?? []).map((p) => ({
+        url: `${baseUrl}/insights/${p.slug}`,
+        lastModified: new Date(p.updated_at || p.published_at || now),
+        changeFrequency: 'weekly' as const,
+        priority: 0.7,
+      }))
+      return [...staticUrls, ...postUrls]
+    }
+  } catch (e) {
+    console.error('[sitemap] posts fetch failed', e)
+  }
+
+  return staticUrls
 }
