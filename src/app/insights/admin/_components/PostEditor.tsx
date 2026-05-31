@@ -114,6 +114,16 @@ export default function PostEditor({ initial }: Props) {
     });
   }
 
+  // 엔터: 단락을 커서 기준으로 분리 → 현재 블록=앞부분, 새 단락=뒷부분
+  function splitParagraph(i: number, before: string, after: string) {
+    setBlocks((prev) => {
+      const next = [...prev];
+      next[i] = { type: "paragraph", text: before };
+      next.splice(i + 1, 0, { type: "paragraph", text: after });
+      return next;
+    });
+  }
+
   // BlockPicker가 블록을 선택했을 때
   function handlePick(block: PostBlock) {
     if (!picker) return;
@@ -418,6 +428,7 @@ export default function PostEditor({ initial }: Props) {
                 onSlash={(rect) => setPicker({ mode: "slash", index: i, rect })}
                 onAddAfter={(rect) => setPicker({ mode: "insert", after: i, rect })}
                 onEnterAddBelow={() => insertBlockAfter(i, { type: "paragraph", text: "" })}
+                onSplit={(before, after) => splitParagraph(i, before, after)}
                 canMoveUp={i > 0}
                 canMoveDown={i < blocks.length - 1}
               />
@@ -540,7 +551,7 @@ function FileButton({
 // ─────────────────────────────────────────────────────────────────────
 function BlockRow({
   index, block, onUpdate, onReplace, onDelete, onMoveUp, onMoveDown, canMoveUp, canMoveDown,
-  onUpload, onSlash, onAddAfter, onEnterAddBelow,
+  onUpload, onSlash, onAddAfter, onEnterAddBelow, onSplit,
 }: {
   index: number;
   block: PostBlock;
@@ -555,6 +566,7 @@ function BlockRow({
   onSlash: (rect: DOMRect | null) => void;
   onAddAfter: (rect: DOMRect | null) => void;
   onEnterAddBelow: () => void;
+  onSplit: (before: string, after: string) => void;
 }) {
   const [uploading, setUploading] = useState(false);
   void index;
@@ -617,13 +629,38 @@ function BlockRow({
           value={block.text}
           onChange={handleParagraphChange}
           onKeyDown={(e) => {
-            if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+            // Shift+Enter: 같은 블록 안에서 줄바꿈 (기본 동작 유지)
+            if (e.key === "Enter" && e.shiftKey) return;
+            // Enter: 커서 기준으로 단락 분리 → 새 독립 블록
+            if (e.key === "Enter") {
               e.preventDefault();
-              onEnterAddBelow();
+              const ta = e.currentTarget;
+              const pos = ta.selectionStart ?? ta.value.length;
+              const before = ta.value.slice(0, pos);
+              const after = ta.value.slice(pos);
+              onSplit(before, after);
+              // 새 블록(아래)로 포커스 이동
+              requestAnimationFrame(() => {
+                const root = ta.closest("section");
+                const areas = root?.querySelectorAll<HTMLTextAreaElement>("textarea");
+                if (!areas) return;
+                const idx = Array.from(areas).indexOf(ta);
+                const nextTa = areas[idx + 1];
+                if (nextTa) {
+                  nextTa.focus();
+                  nextTa.setSelectionRange(0, 0);
+                }
+              });
+              return;
+            }
+            // Backspace: 빈 단락이면 위 블록과 병합되도록 삭제
+            if (e.key === "Backspace" && block.text === "" && canMoveUp) {
+              e.preventDefault();
+              onDelete();
             }
           }}
-          placeholder="여기에 글을 작성하세요. '/' 입력 시 블록 메뉴…"
-          rows={Math.max(2, block.text.split("\n").length)}
+          placeholder="여기에 글을 작성하세요. Enter로 문단 분리, '/' 입력 시 블록 메뉴…"
+          rows={Math.max(1, block.text.split("\n").length)}
           className="w-full bg-transparent text-[17px] leading-[1.85] text-slate-200 placeholder-slate-700 outline-none resize-none p-2"
         />
       )}
