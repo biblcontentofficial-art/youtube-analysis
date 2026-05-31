@@ -16,6 +16,7 @@ import { extractYouTubeId, slugify, summarize, blocksToPlainText, POST_CATEGORIE
 import PostRenderer from "../../_components/PostRenderer";
 import BlockPicker from "./BlockPicker";
 import YouTubeImport from "./YouTubeImport";
+import ThreadsImport from "./ThreadsImport";
 
 interface Props {
   initial?: Partial<Post>;
@@ -49,6 +50,7 @@ export default function PostEditor({ initial }: Props) {
   const [showPreview, setShowPreview] = useState(false);
   const [coverUploading, setCoverUploading] = useState(false);
   const [showYtImport, setShowYtImport] = useState(false);
+  const [showThreadsImport, setShowThreadsImport] = useState(false);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [dropIndex, setDropIndex] = useState<number | null>(null);
 
@@ -249,14 +251,24 @@ export default function PostEditor({ initial }: Props) {
           </div>
           <div className="flex items-center gap-2">
             {!isEdit && (
-              <button
-                onClick={() => setShowYtImport(true)}
-                className="inline-flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg bg-red-500/15 hover:bg-red-500/25 border border-red-400/30 text-red-200 font-semibold"
-                title="유튜브 영상 자막으로 칼럼 초안 생성"
-              >
-                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="#FF0000"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814z" /><path fill="#fff" d="M9.545 15.568V8.432L15.818 12z" /></svg>
-                유튜브에서 가져오기
-              </button>
+              <>
+                <button
+                  onClick={() => setShowYtImport(true)}
+                  className="inline-flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg bg-red-500/15 hover:bg-red-500/25 border border-red-400/30 text-red-200 font-semibold"
+                  title="유튜브 영상 자막으로 칼럼 초안 생성"
+                >
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="#FF0000"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814z" /><path fill="#fff" d="M9.545 15.568V8.432L15.818 12z" /></svg>
+                  유튜브에서
+                </button>
+                <button
+                  onClick={() => setShowThreadsImport(true)}
+                  className="inline-flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg bg-white/[0.08] hover:bg-white/[0.15] border border-white/[0.15] text-white font-semibold"
+                  title="스레드 글을 붙여넣어 칼럼 초안 생성"
+                >
+                  <svg className="w-4 h-4" viewBox="0 0 192 192" fill="currentColor"><path d="M141.5 88.4c-.7-.3-1.4-.7-2.1-1-1.2-22.8-13.7-35.9-34.7-36-9.5 0-17.4 4-23.1 11.7l11.4 7.8c4-5.4 8.5-6.5 11.7-6.5 4.2 0 8.3 1.6 10.4 4.4 1.6 2 2.6 4.7 3.1 8.2-6-1-12.4-1.3-19.3-.9-19.4 1.1-31.9 12.4-31.1 28.1.4 8 4.4 14.9 11.2 19.4 5.8 3.8 13.2 5.7 20.9 5.3 10.2-.6 18.2-4.5 23.8-11.6 4.2-5.4 6.9-12.4 8.1-21.2 4.9 3 8.5 6.9 10.5 11.6 3.4 8 3.6 21.2-7.1 31.9-9.4 9.4-20.7 13.5-37.7 13.6-18.9-.1-33.2-6.2-42.5-18-8.7-11.1-13.2-27.1-13.4-47.6.2-20.5 4.7-36.5 13.4-47.6 9.3-11.9 23.6-17.9 42.5-18 19 .1 33.5 6.2 43.1 18.1 4.7 5.9 8.3 13.2 10.6 21.8l13.4-3.6c-2.8-10.6-7.2-19.8-13.3-27.4C160.7 11.2 142.6 2.2 118.4 2h-.1C94.3 2.2 76.4 11.2 64.6 26.7 54 40.6 48.6 59.8 48.4 83.6v.8c.2 23.8 5.6 43 16.2 56.9 11.8 15.5 29.7 24.5 53.9 24.7h.1c21.5-.2 36.6-5.8 49.1-18.3 16.4-16.3 15.9-36.8 10.5-49.4-3.9-9-11.3-16.3-21.2-21.1Zm-39.3 35.4c-8.5.5-17.4-3.4-17.8-11.4-.3-5.9 4.2-12.5 18.3-13.3 1.6-.1 3.2-.1 4.7-.1 5.1 0 9.9.5 14.3 1.5-1.6 20.4-11.2 22.9-19.5 23.3Z"/></svg>
+                  스레드에서
+                </button>
+              </>
             )}
             <button
               onClick={() => setShowPreview((p) => !p)}
@@ -496,6 +508,9 @@ export default function PostEditor({ initial }: Props) {
 
       {/* 유튜브 → 칼럼 변환 모달 */}
       {showYtImport && <YouTubeImport onClose={() => setShowYtImport(false)} />}
+
+      {/* 스레드 → 칼럼 변환 모달 */}
+      {showThreadsImport && <ThreadsImport onClose={() => setShowThreadsImport(false)} />}
 
       {/* 인라인 서식 툴바 (텍스트 드래그 선택 시) */}
       <InlineFormatToolbar />
