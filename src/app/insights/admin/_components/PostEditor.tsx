@@ -15,6 +15,7 @@ import type { Post, PostBlock } from "@/lib/posts";
 import { extractYouTubeId, slugify, summarize, blocksToPlainText, POST_CATEGORIES, DEFAULT_CATEGORY, normalizeCategory, type PostCategory } from "@/lib/posts";
 import PostRenderer from "../../_components/PostRenderer";
 import BlockPicker from "./BlockPicker";
+import YouTubeImport from "./YouTubeImport";
 
 interface Props {
   initial?: Partial<Post>;
@@ -47,6 +48,7 @@ export default function PostEditor({ initial }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
   const [coverUploading, setCoverUploading] = useState(false);
+  const [showYtImport, setShowYtImport] = useState(false);
 
   // 블록 추가 메뉴 상태
   // target: "end" → 맨 끝에 추가 / number → 해당 인덱스 뒤에 추가 / {replace} → 슬래시 입력 중인 블록 교체
@@ -223,6 +225,16 @@ export default function PostEditor({ initial }: Props) {
             </span>
           </div>
           <div className="flex items-center gap-2">
+            {!isEdit && (
+              <button
+                onClick={() => setShowYtImport(true)}
+                className="inline-flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg bg-red-500/15 hover:bg-red-500/25 border border-red-400/30 text-red-200 font-semibold"
+                title="유튜브 영상 자막으로 칼럼 초안 생성"
+              >
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="#FF0000"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814z" /><path fill="#fff" d="M9.545 15.568V8.432L15.818 12z" /></svg>
+                유튜브에서 가져오기
+              </button>
+            )}
             <button
               onClick={() => setShowPreview((p) => !p)}
               className="text-sm px-3 py-1.5 rounded-lg bg-white/[0.05] hover:bg-white/[0.10] border border-white/[0.08] text-white"
@@ -443,6 +455,9 @@ export default function PostEditor({ initial }: Props) {
           variant={picker.rect ? "popover" : "panel"}
         />
       )}
+
+      {/* 유튜브 → 칼럼 변환 모달 */}
+      {showYtImport && <YouTubeImport onClose={() => setShowYtImport(false)} />}
     </div>
   );
 }
