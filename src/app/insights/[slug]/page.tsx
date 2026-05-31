@@ -208,23 +208,18 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
             <h3 className="text-xl md:text-2xl font-bold text-white tracking-tight mb-2">
               유튜브 채널 운영, 비블이 함께 합니다
             </h3>
-            <p className="text-slate-400 text-sm leading-relaxed mb-5">
-              1:1 컨설팅부터 채널 대행까지. 비블이 직접 운영해서 검증한 전략으로 도와드립니다.
+            <p className="text-slate-400 text-sm leading-relaxed mb-6">
+              기획부터 촬영·편집·업로드까지. 비블이 직접 운영해서 검증한 전략으로 채널을 통째로 맡아드립니다.
             </p>
-            <div className="flex flex-wrap gap-3">
-              <Link
-                href="/studio/class/team-bibl"
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-teal-500 hover:bg-teal-400 text-black text-sm font-bold transition"
-              >
-                팀비블 1:1 컨설팅
-              </Link>
-              <Link
-                href="/studio"
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.10] border border-white/[0.10] text-sm font-semibold text-white transition"
-              >
-                올인원 채널 대행
-              </Link>
-            </div>
+            <Link
+              href="/studio"
+              className="group inline-flex items-center gap-2.5 px-7 py-3.5 rounded-xl bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-400 hover:to-emerald-400 text-black text-base font-bold transition shadow-lg shadow-teal-900/30"
+            >
+              올인원 유튜브 채널 대행 알아보기
+              <svg className="w-5 h-5 transition-transform group-hover:translate-x-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round">
+                <path d="M5 12h14M13 5l7 7-7 7" />
+              </svg>
+            </Link>
           </div>
         </div>
       </article>
