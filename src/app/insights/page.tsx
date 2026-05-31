@@ -82,8 +82,9 @@ export default async function InsightsPage() {
         {/* ─── 프로필 헤더 (메일리 스타일) ─── */}
         <header className="pb-8 border-b border-white/[0.07]">
           <div className="flex items-start gap-4">
-            <div className="w-16 h-16 md:w-20 md:h-20 shrink-0 rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center shadow-lg shadow-teal-900/30">
-              <span className="text-black font-black text-2xl md:text-3xl tracking-tighter">B</span>
+            <div className="w-16 h-16 md:w-20 md:h-20 shrink-0 rounded-full overflow-hidden border border-white/[0.10] shadow-lg shadow-black/40">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/studio/instructor.jpg" alt="비블" className="w-full h-full object-cover" />
             </div>
             <div className="flex-1 min-w-0 pt-1">
               <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight">비블의 인사이트</h1>
