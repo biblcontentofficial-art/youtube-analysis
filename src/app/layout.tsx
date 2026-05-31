@@ -275,7 +275,7 @@ export default async function RootLayout({
         { "@type": "ListItem", position: 1, name: "홈", item: "https://bibllab.com" },
         { "@type": "ListItem", position: 2, name: "영상 찾기", item: "https://bibllab.com/search" },
         { "@type": "ListItem", position: 3, name: "채널 찾기", item: "https://bibllab.com/channels" },
-        { "@type": "ListItem", position: 4, name: "인사이트", item: "https://bibllab.com/insights" },
+        { "@type": "ListItem", position: 4, name: "비블의 인사이트", item: "https://bibllab.com/insights" },
         { "@type": "ListItem", position: 5, name: "요금제", item: "https://bibllab.com/pricing" },
         { "@type": "ListItem", position: 6, name: "스튜디오", item: "https://bibllab.com/studio" },
       ],
@@ -348,12 +348,6 @@ export default async function RootLayout({
                     <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" /><polyline points="17 21 17 13 7 13 7 21" /><polyline points="7 3 7 8 15 8" />
                   </svg>
                 } />
-                {/* 인사이트 (비즈니스 칼럼) */}
-                <NavTab href="/insights" label="인사이트" icon={
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
-                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
-                  </svg>
-                } />
                 {/* 요금제 */}
                 <NavTab href="/pricing" label="요금제" icon={
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
@@ -364,6 +358,12 @@ export default async function RootLayout({
                   <div className="w-px h-4 bg-gray-700 mx-1" />
                   <NavTab href="/studio/class/team-bibl" label="팀비블 1:1 유튜브 컨설팅" isStudio />
                   <NavTab href="/studio" label="올인원 유튜브 채널 대행" isStudio />
+                  {/* 비블의 인사이트 (비즈니스 칼럼) — 가장 우측 */}
+                  <NavTab href="/insights" label="비블의 인사이트" icon={
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
+                      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+                    </svg>
+                  } />
                 </>
               </div>
             </div>
