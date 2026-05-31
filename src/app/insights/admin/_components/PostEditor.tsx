@@ -49,6 +49,8 @@ export default function PostEditor({ initial }: Props) {
   const [showPreview, setShowPreview] = useState(false);
   const [coverUploading, setCoverUploading] = useState(false);
   const [showYtImport, setShowYtImport] = useState(false);
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [dropIndex, setDropIndex] = useState<number | null>(null);
 
   // 블록 추가 메뉴 상태
   // target: "end" → 맨 끝에 추가 / number → 해당 인덱스 뒤에 추가 / {replace} → 슬래시 입력 중인 블록 교체
@@ -102,6 +104,17 @@ export default function PostEditor({ initial }: Props) {
       const j = i + dir;
       if (j < 0 || j >= next.length) return prev;
       [next[i], next[j]] = [next[j], next[i]];
+      return next;
+    });
+  }
+  // 드래그앤드롭: from 위치 블록을 to 위치로 이동
+  function moveBlockTo(from: number, to: number) {
+    setBlocks((prev) => {
+      if (from === to || from < 0 || from >= prev.length) return prev;
+      const next = [...prev];
+      const [moved] = next.splice(from, 1);
+      const insertAt = from < to ? to - 1 : to;
+      next.splice(insertAt, 0, moved);
       return next;
     });
   }
@@ -413,7 +426,10 @@ export default function PostEditor({ initial }: Props) {
           </section>
 
           {/* 블록 편집 영역 */}
-          <section className="space-y-1">
+          <section
+            className="space-y-1"
+            onDragOver={(e) => { if (dragIndex !== null) e.preventDefault(); }}
+          >
             {blocks.map((b, i) => (
               <BlockRow
                 key={i}
@@ -431,6 +447,17 @@ export default function PostEditor({ initial }: Props) {
                 onSplit={(before, after) => splitParagraph(i, before, after)}
                 canMoveUp={i > 0}
                 canMoveDown={i < blocks.length - 1}
+                isDragging={dragIndex === i}
+                showDropLine={dropIndex === i && dragIndex !== null && dragIndex !== i}
+                onDragStart={() => setDragIndex(i)}
+                onDragEnterRow={() => { if (dragIndex !== null) setDropIndex(i); }}
+                onDragEndRow={() => {
+                  if (dragIndex !== null && dropIndex !== null && dragIndex !== dropIndex) {
+                    moveBlockTo(dragIndex, dropIndex > dragIndex ? dropIndex + 1 : dropIndex);
+                  }
+                  setDragIndex(null);
+                  setDropIndex(null);
+                }}
               />
             ))}
 
@@ -469,6 +496,9 @@ export default function PostEditor({ initial }: Props) {
 
       {/* 유튜브 → 칼럼 변환 모달 */}
       {showYtImport && <YouTubeImport onClose={() => setShowYtImport(false)} />}
+
+      {/* 인라인 서식 툴바 (텍스트 드래그 선택 시) */}
+      <InlineFormatToolbar />
     </div>
   );
 }
@@ -594,6 +624,7 @@ function AutoTextarea({
 function BlockRow({
   index, block, onUpdate, onReplace, onDelete, onMoveUp, onMoveDown, canMoveUp, canMoveDown,
   onUpload, onSlash, onAddAfter, onEnterAddBelow, onSplit,
+  isDragging, showDropLine, onDragStart, onDragEnterRow, onDragEndRow,
 }: {
   index: number;
   block: PostBlock;
@@ -609,9 +640,15 @@ function BlockRow({
   onAddAfter: (rect: DOMRect | null) => void;
   onEnterAddBelow: () => void;
   onSplit: (before: string, after: string) => void;
+  isDragging: boolean;
+  showDropLine: boolean;
+  onDragStart: () => void;
+  onDragEnterRow: () => void;
+  onDragEndRow: () => void;
 }) {
   const [uploading, setUploading] = useState(false);
-  void index;
+  const [dragArmed, setDragArmed] = useState(false);
+  void index; void onMoveUp; void onMoveDown; void canMoveDown;
 
   async function handleUpload(file: File) {
     setUploading(true);
@@ -642,9 +679,30 @@ function BlockRow({
   }
 
   return (
-    <div className="group relative rounded-lg hover:bg-white/[0.015] transition">
-      {/* 좌측 호버 핸들: + 추가 / 이동 / 삭제 */}
-      <div className="absolute -left-14 top-1.5 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition">
+    <div
+      className={`group relative rounded-lg transition ${isDragging ? "opacity-40" : "hover:bg-white/[0.015]"}`}
+      draggable={dragArmed}
+      onDragStart={(e) => { e.dataTransfer.effectAllowed = "move"; onDragStart(); }}
+      onDragEnter={onDragEnterRow}
+      onDragEnd={() => { setDragArmed(false); onDragEndRow(); }}
+      onDrop={(e) => { e.preventDefault(); setDragArmed(false); onDragEndRow(); }}
+    >
+      {/* 드롭 위치 표시선 */}
+      {showDropLine && (
+        <div className="absolute -top-1 left-0 right-0 h-0.5 bg-teal-400 rounded-full z-10 pointer-events-none" />
+      )}
+
+      {/* 좌측 호버 핸들: 드래그 / + 추가 / 삭제 */}
+      <div className="absolute -left-16 top-1.5 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition">
+        {/* 드래그 핸들 (⋮⋮) */}
+        <button
+          onMouseDown={() => setDragArmed(true)}
+          onMouseUp={() => setDragArmed(false)}
+          className="w-6 h-6 rounded text-slate-500 hover:text-white hover:bg-white/[0.08] flex items-center justify-center cursor-grab active:cursor-grabbing"
+          title="드래그해서 이동"
+        >
+          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.6"/><circle cx="15" cy="5" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="19" r="1.6"/><circle cx="15" cy="19" r="1.6"/></svg>
+        </button>
         <button
           onClick={(e) => onAddAfter((e.currentTarget as HTMLElement).getBoundingClientRect())}
           className="w-6 h-6 rounded text-slate-500 hover:text-teal-300 hover:bg-teal-500/10 flex items-center justify-center"
@@ -652,14 +710,6 @@ function BlockRow({
         >
           <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14" /></svg>
         </button>
-        <div className="flex flex-col">
-          <button onClick={onMoveUp} disabled={!canMoveUp} className="w-5 h-3.5 rounded text-slate-600 hover:text-white disabled:opacity-20 flex items-center justify-center" title="위로">
-            <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><path d="M18 15l-6-6-6 6" /></svg>
-          </button>
-          <button onClick={onMoveDown} disabled={!canMoveDown} className="w-5 h-3.5 rounded text-slate-600 hover:text-white disabled:opacity-20 flex items-center justify-center" title="아래로">
-            <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><path d="M6 9l6 6 6-6" /></svg>
-          </button>
-        </div>
         <button onClick={onDelete} className="w-6 h-6 rounded text-red-400/60 hover:text-red-300 hover:bg-red-500/10 flex items-center justify-center" title="삭제">
           <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m-9 0v14a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V6" /></svg>
         </button>
@@ -1019,6 +1069,71 @@ function YouTubeBlockEditor({
         placeholder="캡션 (선택)"
         className="w-full bg-transparent text-sm text-slate-500 placeholder-slate-700 outline-none px-1"
       />
+    </div>
+  );
+}
+
+// ─── 인라인 서식 툴바: textarea에서 텍스트를 선택하면 굵게/기울임/링크 팝업 ───
+function InlineFormatToolbar() {
+  const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
+  const targetRef = useRef<HTMLTextAreaElement | null>(null);
+
+  useEffect(() => {
+    function onSelect() {
+      const el = document.activeElement as HTMLElement | null;
+      if (!el || el.tagName !== "TEXTAREA") { setPos(null); return; }
+      const ta = el as HTMLTextAreaElement;
+      const start = ta.selectionStart ?? 0;
+      const end = ta.selectionEnd ?? 0;
+      if (end <= start) { setPos(null); return; }
+      targetRef.current = ta;
+      const r = ta.getBoundingClientRect();
+      // 선택 영역 정확 좌표 계산은 복잡 → textarea 상단 중앙에 표시
+      setPos({ top: r.top - 44, left: r.left + r.width / 2 });
+    }
+    document.addEventListener("selectionchange", onSelect);
+    return () => document.removeEventListener("selectionchange", onSelect);
+  }, []);
+
+  function wrap(prefix: string, suffix: string, placeholder = "") {
+    const ta = targetRef.current;
+    if (!ta) return;
+    const start = ta.selectionStart ?? 0;
+    const end = ta.selectionEnd ?? 0;
+    const val = ta.value;
+    const sel = val.slice(start, end) || placeholder;
+    const next = val.slice(0, start) + prefix + sel + suffix + val.slice(end);
+    // React 제어 컴포넌트 값 강제 갱신 (네이티브 setter + input 이벤트)
+    const setter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, "value")?.set;
+    setter?.call(ta, next);
+    ta.dispatchEvent(new Event("input", { bubbles: true }));
+    // 선택 유지
+    requestAnimationFrame(() => {
+      ta.focus();
+      ta.setSelectionRange(start + prefix.length, start + prefix.length + sel.length);
+    });
+    setPos(null);
+  }
+
+  function addLink() {
+    const url = window.prompt("링크 URL을 입력하세요", "https://");
+    if (!url) return;
+    wrap("[", `](${url})`, "링크");
+  }
+
+  if (!pos) return null;
+
+  return (
+    <div
+      className="fixed z-[120] -translate-x-1/2 flex items-center gap-0.5 px-1 py-1 rounded-lg bg-slate-800 border border-white/[0.12] shadow-xl shadow-black/50"
+      style={{ top: pos.top, left: pos.left }}
+      onMouseDown={(e) => e.preventDefault()} // 선택 유지
+    >
+      <button onClick={() => wrap("**", "**", "굵게")} className="w-8 h-8 rounded hover:bg-white/[0.10] text-white font-bold text-sm" title="굵게">B</button>
+      <button onClick={() => wrap("*", "*", "기울임")} className="w-8 h-8 rounded hover:bg-white/[0.10] text-white italic text-sm" title="기울임">i</button>
+      <button onClick={addLink} className="w-8 h-8 rounded hover:bg-white/[0.10] text-white flex items-center justify-center" title="링크">
+        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.07 0l3.54-3.54a5 5 0 0 0-7.07-7.07l-1.41 1.41M14 11a5 5 0 0 0-7.07 0L3.39 14.54a5 5 0 0 0 7.07 7.07l1.41-1.41" /></svg>
+      </button>
     </div>
   );
 }
