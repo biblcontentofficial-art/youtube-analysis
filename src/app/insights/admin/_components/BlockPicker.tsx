@@ -192,19 +192,28 @@ export default function BlockPicker({ onPick, onClose, initialQuery = "", anchor
     el?.scrollIntoView({ block: "nearest" });
   }, [active]);
 
-  // 좌표 계산 (popover)
+  // 좌표 계산 (popover) — 커서가 있는 칸 바로 아래에 viewport 고정으로 표시
+  const MENU_W = 340;
+  const MENU_MAX_H = 380;
   const popStyle: React.CSSProperties = {};
   if (mode === "popover" && anchorRect) {
-    const top = anchorRect.bottom + window.scrollY + 6;
-    const left = Math.min(
-      anchorRect.left + window.scrollX,
-      window.innerWidth - 360
-    );
-    popStyle.position = "absolute";
+    // getBoundingClientRect()는 viewport 좌표 → position:fixed 와 그대로 매칭
+    let left = anchorRect.left;
+    if (left + MENU_W > window.innerWidth - 8) left = window.innerWidth - MENU_W - 8;
+    if (left < 8) left = 8;
+
+    // 아래 공간이 부족하면 칸 위쪽으로 띄움
+    let top = anchorRect.bottom + 6;
+    if (top + MENU_MAX_H > window.innerHeight - 8) {
+      const above = anchorRect.top - MENU_MAX_H - 6;
+      top = above > 8 ? above : Math.max(8, window.innerHeight - MENU_MAX_H - 8);
+    }
+
+    popStyle.position = "fixed";
     popStyle.top = top;
-    popStyle.left = Math.max(8, left);
-    popStyle.width = 340;
-    popStyle.maxHeight = 380;
+    popStyle.left = left;
+    popStyle.width = MENU_W;
+    popStyle.maxHeight = MENU_MAX_H;
   }
 
   const panel = (
