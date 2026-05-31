@@ -324,6 +324,12 @@ export default async function RootLayout({
               </a>
 
               <div className="hidden md:flex items-center gap-1 text-sm whitespace-nowrap">
+                {/* 비블의 인사이트 (비즈니스 칼럼) — 가장 왼쪽 */}
+                <NavTab href="/insights" label="비블의 인사이트" icon={
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
+                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+                  </svg>
+                } />
                 {/* 영상 찾기 */}
                 <NavTab href="/search" label="영상 찾기" icon={
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
@@ -358,12 +364,6 @@ export default async function RootLayout({
                   <div className="w-px h-4 bg-gray-700 mx-1" />
                   <NavTab href="/studio/class/team-bibl" label="팀비블 1:1 유튜브 컨설팅" isStudio />
                   <NavTab href="/studio" label="올인원 유튜브 채널 대행" isStudio />
-                  {/* 비블의 인사이트 (비즈니스 칼럼) — 가장 우측 */}
-                  <NavTab href="/insights" label="비블의 인사이트" icon={
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
-                      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
-                    </svg>
-                  } />
                 </>
               </div>
             </div>

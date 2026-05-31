@@ -9,11 +9,14 @@ export type PostBlock =
   | { type: "heading"; level: 1 | 2 | 3; text: string }
   | { type: "image"; src: string; alt?: string; caption?: string }
   | { type: "video"; src: string; caption?: string } // self-hosted mp4
-  | { type: "youtube"; videoId: string; caption?: string }
+  | { type: "youtube"; videoId: string; caption?: string; title?: string }
   | { type: "divider" }
   | { type: "quote"; text: string; cite?: string }
   | { type: "code"; lang?: string; text: string }
-  | { type: "callout"; emoji?: string; text: string };
+  | { type: "callout"; emoji?: string; text: string }
+  | { type: "list"; ordered?: boolean; items: string[] }
+  | { type: "button"; label: string; url: string; align?: "left" | "center" | "right" }
+  | { type: "html"; html: string };
 
 export interface Post {
   id: string;
@@ -77,8 +80,16 @@ export function blocksToPlainText(blocks: PostBlock[]): string {
           return b.text;
         case "image":
         case "video":
-        case "youtube":
           return b.caption ?? "";
+        case "youtube":
+          return [b.title, b.caption].filter(Boolean).join(" ");
+        case "list":
+          return b.items.join(" ");
+        case "button":
+          return b.label;
+        case "html":
+          // strip tags loosely
+          return b.html.replace(/<[^>]*>/g, " ");
         default:
           return "";
       }

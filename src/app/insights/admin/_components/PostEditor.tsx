@@ -1,10 +1,11 @@
 "use client";
 
 /**
- * 노션 스타일 블록 에디터
- * - 위에 블록을 클릭하여 추가
- * - 각 블록은 인라인 편집
- * - 글/사진/영상/유튜브/구분선/인용/콜아웃/코드 지원
+ * 메일리/노션 스타일 블록 에디터
+ * - 본문에서 '/' 입력 시 블록 메뉴 (BlockPicker)
+ * - 각 블록 왼쪽 호버 '+' / '⠿' 핸들로 블록 추가·이동·삭제
+ * - YouTube URL 붙여넣으면 썸네일+재생버튼 카드로 자동 변환
+ * - SEO 메타 자동 생성 (제목·본문 기반)
  */
 
 import { useEffect, useRef, useState } from "react";
@@ -13,70 +14,10 @@ import Link from "next/link";
 import type { Post, PostBlock } from "@/lib/posts";
 import { extractYouTubeId, slugify, summarize, blocksToPlainText } from "@/lib/posts";
 import PostRenderer from "../../_components/PostRenderer";
+import BlockPicker from "./BlockPicker";
 
 interface Props {
   initial?: Partial<Post>;
-}
-
-const NEW_BLOCKS: { label: string; icon: JSX.Element; create: () => PostBlock }[] = [
-  {
-    label: "단락",
-    icon: <Ico path="M4 6h16M4 12h16M4 18h10" />,
-    create: () => ({ type: "paragraph", text: "" }),
-  },
-  {
-    label: "제목 H2",
-    icon: <Ico path="M4 12h8m0-7v14m8-14v14" />,
-    create: () => ({ type: "heading", level: 2, text: "" }),
-  },
-  {
-    label: "제목 H3",
-    icon: <Ico path="M4 12h6m0-6v12m6-12v12M16 18h4M16 6h4" />,
-    create: () => ({ type: "heading", level: 3, text: "" }),
-  },
-  {
-    label: "이미지",
-    icon: <Ico path="M3 5h18v14H3zM8.5 11a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zM21 15l-5-5L5 21" />,
-    create: () => ({ type: "image", src: "", alt: "", caption: "" }),
-  },
-  {
-    label: "영상 (mp4)",
-    icon: <Ico path="M23 7l-7 5 7 5V7zM14 5H3v14h11V5z" />,
-    create: () => ({ type: "video", src: "", caption: "" }),
-  },
-  {
-    label: "YouTube",
-    icon: <Ico path="M22 12s0-4-1-5c-.5-.5-1-1-2-1H5c-1 0-1.5.5-2 1-1 1-1 5-1 5s0 4 1 5c.5.5 1 1 2 1h14c1 0 1.5-.5 2-1 1-1 1-5 1-5zM10 9l5 3-5 3V9z" />,
-    create: () => ({ type: "youtube", videoId: "", caption: "" }),
-  },
-  {
-    label: "인용",
-    icon: <Ico path="M6 17h3l2-4V7H5v6h3zm8 0h3l2-4V7h-6v6h3z" />,
-    create: () => ({ type: "quote", text: "", cite: "" }),
-  },
-  {
-    label: "콜아웃",
-    icon: <Ico path="M12 2L2 22h20L12 2zM12 9v4M12 17h.01" />,
-    create: () => ({ type: "callout", emoji: "💡", text: "" }),
-  },
-  {
-    label: "코드",
-    icon: <Ico path="M16 18l6-6-6-6M8 6l-6 6 6 6" />,
-    create: () => ({ type: "code", lang: "", text: "" }),
-  },
-  {
-    label: "구분선",
-    icon: <Ico path="M5 12h14" />,
-    create: () => ({ type: "divider" }),
-  },
-];
-
-function Ico({ path }: { path: string }) {
-  return (
-    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-      <path d={path} />
-    </svg>
-  );
 }
 
 export default function PostEditor({ initial }: Props) {
@@ -94,7 +35,6 @@ export default function PostEditor({ initial }: Props) {
   const [status, setStatus] = useState<"draft" | "published">((initial?.status as "draft" | "published") ?? "draft");
 
   // SEO 메타: 사용자가 직접 수정하기 전까지는 title+본문에서 자동 생성
-  // touched=true → 수동 입력값 사용 / false → autoXxx 사용
   const [description, setDescription] = useState(initial?.description ?? "");
   const [descTouched, setDescTouched] = useState(!!initial?.description);
   const [tagsText, setTagsText] = useState((initial?.tags ?? []).join(", "));
@@ -107,29 +47,35 @@ export default function PostEditor({ initial }: Props) {
   const [showPreview, setShowPreview] = useState(false);
   const [coverUploading, setCoverUploading] = useState(false);
 
+  // 블록 추가 메뉴 상태
+  // target: "end" → 맨 끝에 추가 / number → 해당 인덱스 뒤에 추가 / {replace} → 슬래시 입력 중인 블록 교체
+  const [picker, setPicker] = useState<
+    | null
+    | { mode: "insert"; after: number | "end"; rect: DOMRect | null }
+    | { mode: "slash"; index: number; rect: DOMRect | null }
+  >(null);
+
   // ─── 자동 생성 값 ───
   const autoSlug = title ? slugify(title) : "";
-  // description: 부제목 우선, 없으면 본문 요약
   const autoDescription = subtitle?.trim() || summarize(blocks, 155);
   const autoTags = extractAutoTags(title, blocks);
+  const autoTagsJoined = autoTags.join(", ");
 
-  // 실제 사용 값 (저장/표시)
   const effectiveSlug = slugTouched ? slug : autoSlug;
   const effectiveDescription = descTouched ? description : autoDescription;
-  const effectiveTagsText = tagsTouched ? tagsText : autoTags.join(", ");
+  const effectiveTagsText = tagsTouched ? tagsText : autoTagsJoined;
 
-  // touched 안 됐을 때, 입력 필드의 보이는 값도 자동값으로 sync (수동 입력 보존)
   useEffect(() => {
     if (!slugTouched) setSlug(autoSlug);
   }, [autoSlug, slugTouched]);
   useEffect(() => {
     if (!descTouched) setDescription(autoDescription);
   }, [autoDescription, descTouched]);
-  const autoTagsJoined = autoTags.join(", ");
   useEffect(() => {
     if (!tagsTouched) setTagsText(autoTagsJoined);
   }, [autoTagsJoined, tagsTouched]);
 
+  // ─── 블록 조작 ───
   function updateBlock(i: number, patch: Partial<PostBlock>) {
     setBlocks((prev) => {
       const next = [...prev];
@@ -137,8 +83,15 @@ export default function PostEditor({ initial }: Props) {
       return next;
     });
   }
+  function replaceBlock(i: number, block: PostBlock) {
+    setBlocks((prev) => {
+      const next = [...prev];
+      next[i] = block;
+      return next;
+    });
+  }
   function deleteBlock(i: number) {
-    setBlocks((prev) => prev.filter((_, idx) => idx !== i));
+    setBlocks((prev) => (prev.length <= 1 ? [{ type: "paragraph", text: "" }] : prev.filter((_, idx) => idx !== i)));
   }
   function moveBlock(i: number, dir: -1 | 1) {
     setBlocks((prev) => {
@@ -149,14 +102,28 @@ export default function PostEditor({ initial }: Props) {
       return next;
     });
   }
-  function insertBlock(afterIdx: number, block: PostBlock) {
+  function insertBlockAfter(afterIdx: number | "end", block: PostBlock) {
     setBlocks((prev) => {
       const next = [...prev];
-      next.splice(afterIdx + 1, 0, block);
+      const at = afterIdx === "end" ? next.length : afterIdx + 1;
+      next.splice(at, 0, block);
       return next;
     });
   }
 
+  // BlockPicker가 블록을 선택했을 때
+  function handlePick(block: PostBlock) {
+    if (!picker) return;
+    if (picker.mode === "slash") {
+      // 슬래시로 띄운 경우: 현재 빈 단락을 교체
+      replaceBlock(picker.index, block);
+    } else {
+      insertBlockAfter(picker.after, block);
+    }
+    setPicker(null);
+  }
+
+  // ─── 업로드 ───
   async function uploadFile(file: File): Promise<{ url: string; kind: "image" | "video" } | null> {
     const form = new FormData();
     form.append("file", file);
@@ -177,6 +144,7 @@ export default function PostEditor({ initial }: Props) {
     if (r) setCoverImage(r.url);
   }
 
+  // ─── 저장 ───
   async function save(asStatus?: "draft" | "published") {
     setError(null);
     if (!title.trim()) {
@@ -207,11 +175,8 @@ export default function PostEditor({ initial }: Props) {
         const data = await res.json();
         if (!res.ok) throw new Error(data.message || "저장 실패");
         setStatus(newStatus);
-        if (newStatus === "published") {
-          router.push(`/insights/${data.post.slug}`);
-        } else {
-          alert("임시저장 완료");
-        }
+        if (newStatus === "published") router.push(`/insights/${data.post.slug}`);
+        else alert("임시저장 완료");
       } else {
         const res = await fetch("/api/posts", {
           method: "POST",
@@ -220,11 +185,8 @@ export default function PostEditor({ initial }: Props) {
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.message || "저장 실패");
-        if (newStatus === "published") {
-          router.push(`/insights/${data.post.slug}`);
-        } else {
-          router.push(`/insights/admin/${data.post.id}`);
-        }
+        if (newStatus === "published") router.push(`/insights/${data.post.slug}`);
+        else router.push(`/insights/admin/${data.post.id}`);
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "저장 중 오류");
@@ -408,29 +370,57 @@ export default function PostEditor({ initial }: Props) {
           </section>
 
           {/* 블록 편집 영역 */}
-          <section className="space-y-2">
+          <section className="space-y-1">
             {blocks.map((b, i) => (
-              <BlockEditor
+              <BlockRow
                 key={i}
                 index={i}
                 block={b}
                 onUpdate={(p) => updateBlock(i, p)}
+                onReplace={(blk) => replaceBlock(i, blk)}
                 onDelete={() => deleteBlock(i)}
                 onMoveUp={() => moveBlock(i, -1)}
                 onMoveDown={() => moveBlock(i, 1)}
                 onUpload={uploadFile}
+                onSlash={(rect) => setPicker({ mode: "slash", index: i, rect })}
+                onAddAfter={(rect) => setPicker({ mode: "insert", after: i, rect })}
+                onEnterAddBelow={() => insertBlockAfter(i, { type: "paragraph", text: "" })}
                 canMoveUp={i > 0}
                 canMoveDown={i < blocks.length - 1}
               />
             ))}
-            <AddBlockButton onAdd={(block) => insertBlock(blocks.length - 1, block)} />
+
+            {/* 맨 끝 + 블록 추가 버튼 */}
+            <div className="pt-3">
+              <button
+                onClick={(e) => setPicker({ mode: "insert", after: "end", rect: (e.currentTarget as HTMLElement).getBoundingClientRect() })}
+                className="group w-full flex items-center gap-2 py-3 px-3 rounded-xl border border-dashed border-white/[0.10] hover:border-teal-400/40 hover:bg-teal-500/[0.04] text-slate-500 hover:text-teal-300 text-sm font-semibold transition"
+              >
+                <span className="w-6 h-6 rounded-md bg-white/[0.05] group-hover:bg-teal-500/15 flex items-center justify-center">
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14" /></svg>
+                </span>
+                블록 추가
+                <span className="ml-auto text-[11px] text-slate-600">또는 본문에서 <kbd className="px-1 py-0.5 rounded bg-white/[0.05]">/</kbd> 입력</span>
+              </button>
+            </div>
           </section>
 
           <p className="mt-12 text-xs text-slate-600 leading-relaxed">
-            팁: <code className="text-slate-400">**굵게**</code>, <code className="text-slate-400">*기울임*</code>, <code className="text-slate-400">[링크](url)</code> 인라인 마크다운 지원.
-            이미지·영상은 드래그할 수도 있어요 (각 블록 우측 ↕ 버튼으로 순서 변경).
+            팁: 본문에 <kbd className="px-1 py-0.5 rounded bg-white/[0.05] text-slate-400">/</kbd> 를 입력하면 블록 메뉴가 열립니다.
+            <code className="text-slate-400 ml-1">**굵게**</code>, <code className="text-slate-400">*기울임*</code>, <code className="text-slate-400">[링크](url)</code> 인라인 마크다운 지원.
+            YouTube 주소를 붙여넣으면 썸네일 카드로 자동 변환됩니다.
           </p>
         </div>
+      )}
+
+      {/* 블록 추가 메뉴 */}
+      {picker && (
+        <BlockPicker
+          onPick={handlePick}
+          onClose={() => setPicker(null)}
+          anchorRect={picker.rect}
+          variant={picker.rect ? "popover" : "panel"}
+        />
       )}
     </div>
   );
@@ -459,11 +449,9 @@ function AutoBadge({ touched, onReset }: { touched: boolean; onReset: () => void
   );
 }
 
-// ─── 자동 태그 추출 (한글/영문 단어 빈도 기반 상위 5개) ───
+// ─── 자동 태그 추출 ───
 const STOP_WORDS = new Set([
-  // 한글 조사·대명사·일반어
   "이", "그", "저", "것", "수", "들", "및", "와", "과", "의", "을", "를", "에", "은", "는", "이", "가", "도", "만", "더", "또", "안", "내", "내가", "우리", "당신", "어떤", "하나", "하지", "있다", "없다", "하다", "되다", "있는", "없는", "하는", "되는", "그런", "이런", "저런", "에서", "으로", "에게", "처럼", "보다", "또는", "그리고", "하지만", "그러나", "왜냐하면", "때문", "정도", "경우", "방법", "사람", "오늘", "지금", "여기",
-  // 영문
   "the", "a", "an", "of", "in", "on", "is", "are", "to", "for", "with", "and", "or", "but", "this", "that", "it", "as", "be", "at", "by", "from", "you", "we", "they", "i", "my", "your", "our", "their",
 ]);
 
@@ -473,14 +461,11 @@ function extractAutoTags(title: string, blocks: PostBlock[]): string[] {
     .replace(/[^\w\s가-힣]/g, " ")
     .split(/\s+/)
     .filter((w) => w.length >= 2 && !STOP_WORDS.has(w) && !/^\d+$/.test(w));
-
   if (all.length === 0) return [];
-
   const count: Record<string, number> = {};
   for (const w of all) count[w] = (count[w] ?? 0) + 1;
-
   return Object.entries(count)
-    .filter(([, c]) => c >= 2) // 최소 2회 등장
+    .filter(([, c]) => c >= 2)
     .sort(([, a], [, b]) => b - a)
     .slice(0, 5)
     .map(([w]) => w);
@@ -517,89 +502,91 @@ function FileButton({
 }
 
 // ─────────────────────────────────────────────────────────────────────
-function AddBlockButton({ onAdd }: { onAdd: (b: PostBlock) => void }) {
-  const [open, setOpen] = useState(false);
-  return (
-    <div className="pt-3">
-      {open ? (
-        <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-3">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs uppercase tracking-wider font-semibold text-slate-400">블록 추가</span>
-            <button onClick={() => setOpen(false)} className="text-xs text-slate-500 hover:text-white">닫기</button>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-            {NEW_BLOCKS.map((nb) => (
-              <button
-                key={nb.label}
-                onClick={() => {
-                  onAdd(nb.create());
-                  setOpen(false);
-                }}
-                className="flex flex-col items-center gap-1.5 p-3 rounded-lg bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.06] hover:border-teal-400/30 text-slate-300 hover:text-white transition"
-              >
-                {nb.icon}
-                <span className="text-xs font-semibold">{nb.label}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-      ) : (
-        <button
-          onClick={() => setOpen(true)}
-          className="w-full py-3 rounded-xl border border-dashed border-white/[0.10] hover:border-teal-400/30 hover:bg-teal-500/[0.04] text-slate-500 hover:text-teal-300 text-sm font-semibold transition"
-        >
-          + 블록 추가
-        </button>
-      )}
-    </div>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────────────
-function BlockEditor({
-  index, block, onUpdate, onDelete, onMoveUp, onMoveDown, canMoveUp, canMoveDown, onUpload,
+function BlockRow({
+  index, block, onUpdate, onReplace, onDelete, onMoveUp, onMoveDown, canMoveUp, canMoveDown,
+  onUpload, onSlash, onAddAfter, onEnterAddBelow,
 }: {
   index: number;
   block: PostBlock;
   onUpdate: (p: Partial<PostBlock>) => void;
+  onReplace: (b: PostBlock) => void;
   onDelete: () => void;
   onMoveUp: () => void;
   onMoveDown: () => void;
   canMoveUp: boolean;
   canMoveDown: boolean;
   onUpload: (f: File) => Promise<{ url: string; kind: "image" | "video" } | null>;
+  onSlash: (rect: DOMRect | null) => void;
+  onAddAfter: (rect: DOMRect | null) => void;
+  onEnterAddBelow: () => void;
 }) {
   const [uploading, setUploading] = useState(false);
+  void index;
 
-  async function handleUpload(file: File, expect: "image" | "video") {
+  async function handleUpload(file: File) {
     setUploading(true);
     const r = await onUpload(file);
     setUploading(false);
-    if (!r) return;
-    if (expect === "image") onUpdate({ src: r.url } as Partial<PostBlock>);
-    else onUpdate({ src: r.url } as Partial<PostBlock>);
+    if (r) onUpdate({ src: r.url } as Partial<PostBlock>);
+  }
+
+  // 단락: '/' 입력 감지 → 슬래시 메뉴, YouTube URL 붙여넣기 감지 → 자동 변환
+  function handleParagraphChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
+    const val = e.target.value;
+    // 빈 단락에서 '/' 한 글자만 입력 → 슬래시 메뉴
+    if (val === "/") {
+      const rect = e.target.getBoundingClientRect();
+      onSlash(rect);
+      // '/' 는 본문에 남기지 않음
+      onUpdate({ text: "" } as Partial<PostBlock>);
+      return;
+    }
+    // YouTube URL을 통째로 붙여넣은 경우 자동 변환
+    const trimmed = val.trim();
+    const ytId = extractYouTubeId(trimmed);
+    if (ytId && /(youtube\.com|youtu\.be)/.test(trimmed) && trimmed.split(/\s+/).length === 1) {
+      onReplace({ type: "youtube", videoId: ytId, caption: "" });
+      return;
+    }
+    onUpdate({ text: val } as Partial<PostBlock>);
   }
 
   return (
-    <div className="group relative rounded-lg hover:bg-white/[0.02] transition pl-1 -ml-1">
-      {/* 좌측 핸들 */}
-      <div className="absolute -left-12 top-2 flex flex-col gap-0.5 opacity-0 group-hover:opacity-100 transition">
-        <button onClick={onMoveUp} disabled={!canMoveUp} className="w-6 h-6 rounded text-slate-500 hover:text-white hover:bg-white/[0.06] disabled:opacity-20 flex items-center justify-center" title="위로">
-          <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><path d="M18 15l-6-6-6 6" /></svg>
+    <div className="group relative rounded-lg hover:bg-white/[0.015] transition">
+      {/* 좌측 호버 핸들: + 추가 / 이동 / 삭제 */}
+      <div className="absolute -left-14 top-1.5 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition">
+        <button
+          onClick={(e) => onAddAfter((e.currentTarget as HTMLElement).getBoundingClientRect())}
+          className="w-6 h-6 rounded text-slate-500 hover:text-teal-300 hover:bg-teal-500/10 flex items-center justify-center"
+          title="아래에 블록 추가"
+        >
+          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14" /></svg>
         </button>
-        <button onClick={onMoveDown} disabled={!canMoveDown} className="w-6 h-6 rounded text-slate-500 hover:text-white hover:bg-white/[0.06] disabled:opacity-20 flex items-center justify-center" title="아래로">
-          <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><path d="M6 9l6 6 6-6" /></svg>
-        </button>
-        <button onClick={onDelete} className="w-6 h-6 rounded text-red-400/70 hover:text-red-300 hover:bg-red-500/10 flex items-center justify-center" title="삭제">
-          <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m-9 0v14a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V6" /></svg>
+        <div className="flex flex-col">
+          <button onClick={onMoveUp} disabled={!canMoveUp} className="w-5 h-3.5 rounded text-slate-600 hover:text-white disabled:opacity-20 flex items-center justify-center" title="위로">
+            <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><path d="M18 15l-6-6-6 6" /></svg>
+          </button>
+          <button onClick={onMoveDown} disabled={!canMoveDown} className="w-5 h-3.5 rounded text-slate-600 hover:text-white disabled:opacity-20 flex items-center justify-center" title="아래로">
+            <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><path d="M6 9l6 6 6-6" /></svg>
+          </button>
+        </div>
+        <button onClick={onDelete} className="w-6 h-6 rounded text-red-400/60 hover:text-red-300 hover:bg-red-500/10 flex items-center justify-center" title="삭제">
+          <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m-9 0v14a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V6" /></svg>
         </button>
       </div>
 
+      {/* ── 블록 타입별 에디터 ── */}
       {block.type === "paragraph" && (
         <textarea
           value={block.text}
-          onChange={(e) => onUpdate({ text: e.target.value })}
-          placeholder="여기에 글을 작성하세요…"
+          onChange={handleParagraphChange}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+              e.preventDefault();
+              onEnterAddBelow();
+            }
+          }}
+          placeholder="여기에 글을 작성하세요. '/' 입력 시 블록 메뉴…"
           rows={Math.max(2, block.text.split("\n").length)}
           className="w-full bg-transparent text-[17px] leading-[1.85] text-slate-200 placeholder-slate-700 outline-none resize-none p-2"
         />
@@ -627,6 +614,47 @@ function BlockEditor({
         </div>
       )}
 
+      {block.type === "list" && (
+        <div className="p-2 space-y-1.5">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-[11px] text-slate-500">{block.ordered ? "번호 목록" : "글머리 목록"}</span>
+            <button
+              onClick={() => onUpdate({ ordered: !block.ordered } as Partial<PostBlock>)}
+              className="text-[10px] px-2 py-0.5 rounded bg-white/[0.05] hover:bg-white/[0.10] text-slate-400"
+            >
+              {block.ordered ? "→ 글머리로" : "→ 번호로"}
+            </button>
+          </div>
+          {block.items.map((it, j) => (
+            <div key={j} className="flex items-center gap-2">
+              <span className="text-slate-600 text-sm w-5 text-right">{block.ordered ? `${j + 1}.` : "•"}</span>
+              <input
+                value={it}
+                onChange={(e) => {
+                  const items = [...block.items];
+                  items[j] = e.target.value;
+                  onUpdate({ items } as Partial<PostBlock>);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    const items = [...block.items];
+                    items.splice(j + 1, 0, "");
+                    onUpdate({ items } as Partial<PostBlock>);
+                  } else if (e.key === "Backspace" && it === "" && block.items.length > 1) {
+                    e.preventDefault();
+                    const items = block.items.filter((_, k) => k !== j);
+                    onUpdate({ items } as Partial<PostBlock>);
+                  }
+                }}
+                placeholder="항목 입력 (Enter로 다음 항목)"
+                className="flex-1 bg-transparent text-[16px] text-slate-200 placeholder-slate-700 outline-none py-0.5"
+              />
+            </div>
+          ))}
+        </div>
+      )}
+
       {block.type === "image" && (
         <div className="p-2 space-y-2">
           {block.src ? (
@@ -635,7 +663,7 @@ function BlockEditor({
           ) : (
             <div className="rounded-xl border border-dashed border-white/[0.10] bg-white/[0.02] p-8 text-center">
               <p className="text-sm text-slate-500 mb-3">이미지를 업로드하거나 URL을 붙여넣으세요</p>
-              <FileButton label={uploading ? "업로드 중..." : "이미지 선택"} accept="image/*" disabled={uploading} onPick={(f) => handleUpload(f, "image")} />
+              <FileButton label={uploading ? "업로드 중..." : "이미지 선택"} accept="image/*" disabled={uploading} onPick={handleUpload} />
             </div>
           )}
           <input
@@ -660,7 +688,7 @@ function BlockEditor({
           ) : (
             <div className="rounded-xl border border-dashed border-white/[0.10] bg-white/[0.02] p-8 text-center">
               <p className="text-sm text-slate-500 mb-3">영상 파일(mp4/webm)을 업로드하세요 (최대 30MB)</p>
-              <FileButton label={uploading ? "업로드 중..." : "영상 선택"} accept="video/*" disabled={uploading} onPick={(f) => handleUpload(f, "video")} />
+              <FileButton label={uploading ? "업로드 중..." : "영상 선택"} accept="video/*" disabled={uploading} onPick={handleUpload} />
             </div>
           )}
           <input
@@ -679,36 +707,7 @@ function BlockEditor({
       )}
 
       {block.type === "youtube" && (
-        <div className="p-2 space-y-2">
-          {block.videoId ? (
-            <div className="relative w-full" style={{ paddingTop: "56.25%" }}>
-              <iframe
-                src={`https://www.youtube.com/embed/${block.videoId}`}
-                className="absolute inset-0 w-full h-full rounded-xl border border-white/[0.06] bg-black"
-                allowFullScreen
-              />
-            </div>
-          ) : (
-            <div className="rounded-xl border border-dashed border-white/[0.10] bg-white/[0.02] p-8 text-center">
-              <p className="text-sm text-slate-500">YouTube URL을 붙여넣으세요</p>
-            </div>
-          )}
-          <input
-            value={block.videoId}
-            onChange={(e) => {
-              const id = extractYouTubeId(e.target.value) ?? e.target.value;
-              onUpdate({ videoId: id });
-            }}
-            placeholder="YouTube URL 또는 videoId"
-            className="w-full bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-1.5 text-xs text-slate-300 outline-none font-mono"
-          />
-          <input
-            value={block.caption ?? ""}
-            onChange={(e) => onUpdate({ caption: e.target.value })}
-            placeholder="캡션 (선택)"
-            className="w-full bg-transparent text-sm text-slate-500 placeholder-slate-700 outline-none px-1"
-          />
-        </div>
+        <YouTubeBlockEditor block={block} onUpdate={onUpdate} />
       )}
 
       {block.type === "quote" && (
@@ -739,10 +738,44 @@ function BlockEditor({
           <textarea
             value={block.text}
             onChange={(e) => onUpdate({ text: e.target.value })}
-            placeholder="콜아웃 내용"
+            placeholder="글 박스 내용"
             rows={2}
             className="flex-1 bg-transparent text-slate-200 placeholder-slate-700 outline-none resize-none"
           />
+        </div>
+      )}
+
+      {block.type === "button" && (
+        <div className="p-2 space-y-2 rounded-xl border border-white/[0.06] bg-white/[0.02]">
+          <div className="text-[11px] text-slate-500">버튼 (CTA)</div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <input
+              value={block.label}
+              onChange={(e) => onUpdate({ label: e.target.value })}
+              placeholder="버튼 텍스트"
+              className="bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-2 text-sm text-white outline-none"
+            />
+            <input
+              value={block.url}
+              onChange={(e) => onUpdate({ url: e.target.value })}
+              placeholder="링크 URL"
+              className="bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-2 text-sm text-white outline-none font-mono"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] text-slate-500">정렬:</span>
+            {(["left", "center", "right"] as const).map((a) => (
+              <button
+                key={a}
+                onClick={() => onUpdate({ align: a } as Partial<PostBlock>)}
+                className={`text-xs px-2 py-1 rounded ${
+                  (block.align ?? "center") === a ? "bg-teal-500/20 text-teal-200" : "bg-white/[0.05] text-slate-400"
+                }`}
+              >
+                {a === "left" ? "왼쪽" : a === "center" ? "가운데" : "오른쪽"}
+              </button>
+            ))}
+          </div>
         </div>
       )}
 
@@ -764,11 +797,116 @@ function BlockEditor({
         </div>
       )}
 
+      {block.type === "html" && (
+        <div className="p-2 space-y-2">
+          <div className="text-[11px] text-amber-400/80 flex items-center gap-1">
+            <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM12 9v4M12 17h.01" /></svg>
+            HTML 직접 삽입 — iframe·임베드 코드를 붙여넣으세요
+          </div>
+          <textarea
+            value={block.html}
+            onChange={(e) => onUpdate({ html: e.target.value })}
+            placeholder='<iframe src="..."></iframe>'
+            rows={4}
+            className="w-full bg-slate-900 border border-white/[0.06] rounded-lg p-3 text-sm text-slate-200 outline-none font-mono"
+          />
+          {block.html && (
+            <div className="rounded-lg border border-white/[0.06] p-3 bg-black/30">
+              <div className="text-[10px] text-slate-600 mb-2">미리보기</div>
+              <div dangerouslySetInnerHTML={{ __html: block.html }} />
+            </div>
+          )}
+        </div>
+      )}
+
       {block.type === "divider" && (
         <div className="py-4 px-2">
           <hr className="border-white/[0.10]" />
         </div>
       )}
+    </div>
+  );
+}
+
+// ─── YouTube 블록 에디터 (URL 입력 → videoId 추출 + 제목 자동 fetch + 썸네일 미리보기) ───
+function YouTubeBlockEditor({
+  block, onUpdate,
+}: {
+  block: Extract<PostBlock, { type: "youtube" }>;
+  onUpdate: (p: Partial<PostBlock>) => void;
+}) {
+  const [input, setInput] = useState(block.videoId ? `https://youtu.be/${block.videoId}` : "");
+  const [fetching, setFetching] = useState(false);
+
+  async function applyUrl(raw: string) {
+    const id = extractYouTubeId(raw.trim());
+    if (!id) {
+      onUpdate({ videoId: "" });
+      return;
+    }
+    onUpdate({ videoId: id });
+    // 제목 자동 가져오기
+    setFetching(true);
+    try {
+      const res = await fetch(`/api/posts/youtube-meta?videoId=${id}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.title) onUpdate({ videoId: id, title: data.title } as Partial<PostBlock>);
+      }
+    } catch {
+      /* ignore */
+    } finally {
+      setFetching(false);
+    }
+  }
+
+  return (
+    <div className="p-2 space-y-2">
+      {block.videoId ? (
+        <div className="relative w-full overflow-hidden rounded-xl border border-white/[0.06] bg-black" style={{ paddingTop: "56.25%" }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={`https://i.ytimg.com/vi/${block.videoId}/hqdefault.jpg`}
+            alt={block.title || "YouTube 썸네일"}
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+            <div className="w-16 h-16 rounded-full bg-red-600 flex items-center justify-center shadow-2xl">
+              <svg className="w-7 h-7 text-white ml-1" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
+            </div>
+          </div>
+          {block.title && (
+            <div className="absolute top-2 left-2 right-2 text-white text-sm font-semibold drop-shadow-lg line-clamp-2">
+              {block.title}
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="rounded-xl border border-dashed border-white/[0.10] bg-white/[0.02] p-8 text-center">
+          <p className="text-sm text-slate-500">YouTube URL을 붙여넣으면 썸네일 카드가 만들어집니다</p>
+        </div>
+      )}
+      <input
+        value={input}
+        onChange={(e) => {
+          setInput(e.target.value);
+          applyUrl(e.target.value);
+        }}
+        placeholder="https://www.youtube.com/watch?v=… 또는 https://youtu.be/…"
+        className="w-full bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-2 text-sm text-slate-300 outline-none font-mono focus:border-teal-400/40"
+      />
+      <input
+        value={block.title ?? ""}
+        onChange={(e) => onUpdate({ title: e.target.value } as Partial<PostBlock>)}
+        placeholder={fetching ? "제목 불러오는 중…" : "영상 제목 (자동으로 채워짐, 수정 가능)"}
+        className="w-full bg-transparent text-sm text-slate-300 placeholder-slate-700 outline-none px-1"
+      />
+      <input
+        value={block.caption ?? ""}
+        onChange={(e) => onUpdate({ caption: e.target.value })}
+        placeholder="캡션 (선택)"
+        className="w-full bg-transparent text-sm text-slate-500 placeholder-slate-700 outline-none px-1"
+      />
     </div>
   );
 }
