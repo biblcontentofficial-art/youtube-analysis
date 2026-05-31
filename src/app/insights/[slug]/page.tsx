@@ -136,14 +136,17 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
           )}
         </div>
 
-        {/* 태그 */}
-        {post.tags && post.tags.length > 0 && (
-          <div className="flex flex-wrap gap-2 mb-4">
-            {post.tags.map((t) => (
-              <span key={t} className="text-xs font-semibold text-teal-300/90">#{t}</span>
-            ))}
-          </div>
-        )}
+        {/* 카테고리 + 태그 */}
+        <div className="flex flex-wrap items-center gap-2 mb-4">
+          {post.category && (
+            <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-teal-500/15 text-teal-200 border border-teal-400/30">
+              {post.category}
+            </span>
+          )}
+          {post.tags?.map((t) => (
+            <span key={t} className="text-xs font-semibold text-teal-300/90">#{t}</span>
+          ))}
+        </div>
 
         {/* 타이틀 */}
         <h1 className="text-3xl md:text-5xl font-bold text-white tracking-tight leading-[1.15]">

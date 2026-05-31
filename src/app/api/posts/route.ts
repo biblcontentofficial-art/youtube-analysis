@@ -7,7 +7,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { currentUser } from "@/lib/auth";
 import { getSupabase } from "@/lib/supabase";
 import { isAdmin } from "@/lib/adminAuth";
-import { slugify } from "@/lib/posts";
+import { slugify, normalizeCategory } from "@/lib/posts";
 
 export async function GET(req: NextRequest) {
   const db = getSupabase();
@@ -71,6 +71,7 @@ export async function POST(req: NextRequest) {
     cover_image: body.cover_image ? String(body.cover_image) : null,
     content: Array.isArray(body.content) ? body.content : [],
     description: body.description ? String(body.description).slice(0, 300) : null,
+    category: normalizeCategory(body.category),
     tags: Array.isArray(body.tags) ? body.tags.slice(0, 10).map(String) : [],
     status,
     published_at: status === "published" ? new Date().toISOString() : null,

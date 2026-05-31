@@ -41,7 +41,7 @@ async function fetchPosts(includeDrafts: boolean): Promise<PostSummary[]> {
 
   let q = db
     .from("posts")
-    .select("id, slug, title, subtitle, cover_image, description, tags, status, published_at, view_count, author_name, created_at")
+    .select("id, slug, title, subtitle, cover_image, description, category, tags, status, published_at, view_count, author_name, created_at")
     .order("published_at", { ascending: false, nullsFirst: false })
     .order("created_at", { ascending: false })
     .limit(200);

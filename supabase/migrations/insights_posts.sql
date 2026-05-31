@@ -16,6 +16,8 @@ create table if not exists public.posts (
   cover_image   text,
   -- 블록 기반 컨텐츠 (JSON 배열) — 노션 스타일
   content       jsonb         not null default '[]'::jsonb,
+  -- 카테고리 (고정 4개: 유튜브/비즈니스/마케팅/브랜딩)
+  category      text          not null default '유튜브',
   -- SEO
   description   text,
   tags          text[]        default '{}',

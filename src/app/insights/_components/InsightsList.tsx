@@ -7,6 +7,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { POST_CATEGORIES, type PostCategory } from "@/lib/posts";
 
 export interface PostSummary {
   id: string;
@@ -15,6 +16,7 @@ export interface PostSummary {
   subtitle: string | null;
   cover_image: string | null;
   description: string | null;
+  category: PostCategory;
   tags: string[];
   status: string;
   published_at: string | null;
@@ -30,23 +32,20 @@ function formatDate(iso: string | null): string {
 }
 
 export default function InsightsList({ posts, admin }: { posts: PostSummary[]; admin: boolean }) {
-  const [activeTag, setActiveTag] = useState<string>("전체");
+  const [activeCat, setActiveCat] = useState<string>("전체");
   const [search, setSearch] = useState("");
 
-  // 태그 빈도 집계 → 상위 태그를 필터 칩으로
-  const topTags = useMemo(() => {
-    const count: Record<string, number> = {};
-    posts.forEach((p) => p.tags?.forEach((t) => { count[t] = (count[t] ?? 0) + 1; }));
-    return Object.entries(count)
-      .sort(([, a], [, b]) => b - a)
-      .slice(0, 6)
-      .map(([t]) => t);
+  // 고정 카테고리 + 각 카테고리 글 수
+  const catCounts = useMemo(() => {
+    const c: Record<string, number> = {};
+    posts.forEach((p) => { if (p.category) c[p.category] = (c[p.category] ?? 0) + 1; });
+    return c;
   }, [posts]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return posts.filter((p) => {
-      if (activeTag !== "전체" && !(p.tags ?? []).includes(activeTag)) return false;
+      if (activeCat !== "전체" && p.category !== activeCat) return false;
       if (!q) return true;
       return (
         p.title.toLowerCase().includes(q) ||
@@ -55,29 +54,28 @@ export default function InsightsList({ posts, admin }: { posts: PostSummary[]; a
         (p.tags ?? []).some((t) => t.toLowerCase().includes(q))
       );
     });
-  }, [posts, activeTag, search]);
+  }, [posts, activeCat, search]);
 
   return (
     <div>
       {/* 필터 + 검색 */}
       <div className="flex flex-col gap-3 mb-6">
-        {(topTags.length > 0) && (
-          <div className="flex flex-wrap gap-2">
-            {["전체", ...topTags].map((t) => (
-              <button
-                key={t}
-                onClick={() => setActiveTag(t)}
-                className={`px-3.5 py-1.5 rounded-full text-sm font-medium border transition ${
-                  activeTag === t
-                    ? "bg-teal-500/15 text-teal-200 border-teal-400/40"
-                    : "bg-white/[0.03] text-slate-400 border-white/[0.08] hover:border-white/[0.20] hover:text-white"
-                }`}
-              >
-                {t === "전체" ? t : `#${t}`}
-              </button>
-            ))}
-          </div>
-        )}
+        <div className="flex flex-wrap gap-2">
+          {["전체", ...POST_CATEGORIES].map((t) => (
+            <button
+              key={t}
+              onClick={() => setActiveCat(t)}
+              className={`px-4 py-1.5 rounded-full text-sm font-semibold border transition ${
+                activeCat === t
+                  ? "bg-teal-500/15 text-teal-200 border-teal-400/40"
+                  : "bg-white/[0.03] text-slate-400 border-white/[0.08] hover:border-white/[0.20] hover:text-white"
+              }`}
+            >
+              {t}
+              {t !== "전체" && catCounts[t] ? <span className="ml-1.5 text-xs opacity-60">{catCounts[t]}</span> : null}
+            </button>
+          ))}
+        </div>
         <div className="relative">
           <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
             <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
@@ -130,9 +128,9 @@ export default function InsightsList({ posts, admin }: { posts: PostSummary[]; a
                           DRAFT
                         </span>
                       )}
-                      {p.tags?.slice(0, 1).map((t) => (
-                        <span key={t} className="text-[12px] font-semibold text-teal-300/90">{t}</span>
-                      ))}
+                      {p.category && (
+                        <span className="text-[12px] font-semibold text-teal-300/90">{p.category}</span>
+                      )}
                     </div>
                     <h2 className="text-lg md:text-xl font-bold text-white tracking-tight group-hover:text-teal-200 transition leading-snug">
                       {p.title}

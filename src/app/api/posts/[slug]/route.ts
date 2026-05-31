@@ -10,7 +10,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { currentUser } from "@/lib/auth";
 import { getSupabase } from "@/lib/supabase";
 import { isAdmin } from "@/lib/adminAuth";
-import { slugify } from "@/lib/posts";
+import { slugify, normalizeCategory } from "@/lib/posts";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -57,6 +57,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ sl
   if (body.cover_image !== undefined) update.cover_image = body.cover_image ? String(body.cover_image) : null;
   if (Array.isArray(body.content)) update.content = body.content;
   if (body.description !== undefined) update.description = body.description ? String(body.description).slice(0, 300) : null;
+  if (body.category !== undefined) update.category = normalizeCategory(body.category);
   if (Array.isArray(body.tags)) update.tags = body.tags.slice(0, 10).map(String);
   if (body.slug !== undefined) update.slug = slugify(String(body.slug));
 

@@ -12,7 +12,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import type { Post, PostBlock } from "@/lib/posts";
-import { extractYouTubeId, slugify, summarize, blocksToPlainText } from "@/lib/posts";
+import { extractYouTubeId, slugify, summarize, blocksToPlainText, POST_CATEGORIES, DEFAULT_CATEGORY, normalizeCategory, type PostCategory } from "@/lib/posts";
 import PostRenderer from "../../_components/PostRenderer";
 import BlockPicker from "./BlockPicker";
 
@@ -26,6 +26,7 @@ export default function PostEditor({ initial }: Props) {
 
   const [title, setTitle] = useState(initial?.title ?? "");
   const [subtitle, setSubtitle] = useState(initial?.subtitle ?? "");
+  const [category, setCategory] = useState<PostCategory>(normalizeCategory(initial?.category) ?? DEFAULT_CATEGORY);
   const [coverImage, setCoverImage] = useState(initial?.cover_image ?? "");
   const [blocks, setBlocks] = useState<PostBlock[]>(
     Array.isArray(initial?.content) && initial!.content.length > 0
@@ -157,6 +158,7 @@ export default function PostEditor({ initial }: Props) {
     const payload = {
       title: title.trim(),
       subtitle: subtitle.trim() || null,
+      category,
       description: effectiveDescription.trim() || null,
       cover_image: coverImage || null,
       content: blocks,
@@ -303,6 +305,25 @@ export default function PostEditor({ initial }: Props) {
               placeholder="부제목 (선택)"
               className="w-full bg-transparent text-lg text-slate-300 placeholder-slate-700 outline-none"
             />
+
+            {/* 카테고리 선택 (필수) */}
+            <div className="flex items-center gap-2 flex-wrap pt-1">
+              <span className="text-xs text-slate-500 mr-1">카테고리</span>
+              {POST_CATEGORIES.map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => setCategory(c)}
+                  className={`px-3.5 py-1.5 rounded-full text-sm font-semibold border transition ${
+                    category === c
+                      ? "bg-teal-500/20 text-teal-200 border-teal-400/50"
+                      : "bg-white/[0.03] text-slate-400 border-white/[0.08] hover:border-white/[0.20] hover:text-white"
+                  }`}
+                >
+                  {c}
+                </button>
+              ))}
+            </div>
             <details className="text-sm text-slate-400">
               <summary className="cursor-pointer text-slate-500 hover:text-white">
                 SEO/메타 설정

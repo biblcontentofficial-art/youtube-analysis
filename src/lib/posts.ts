@@ -18,6 +18,15 @@ export type PostBlock =
   | { type: "button"; label: string; url: string; align?: "left" | "center" | "right" }
   | { type: "html"; html: string };
 
+/** 인사이트 카테고리 (고정 4개) */
+export const POST_CATEGORIES = ["유튜브", "비즈니스", "마케팅", "브랜딩"] as const;
+export type PostCategory = (typeof POST_CATEGORIES)[number];
+export const DEFAULT_CATEGORY: PostCategory = "유튜브";
+
+export function normalizeCategory(v: unknown): PostCategory {
+  return POST_CATEGORIES.includes(v as PostCategory) ? (v as PostCategory) : DEFAULT_CATEGORY;
+}
+
 export interface Post {
   id: string;
   slug: string;
@@ -26,6 +35,7 @@ export interface Post {
   cover_image: string | null;
   content: PostBlock[];
   description: string | null;
+  category: PostCategory;
   tags: string[];
   status: "draft" | "published";
   published_at: string | null;
