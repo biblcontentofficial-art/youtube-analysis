@@ -124,9 +124,20 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
     keywords: post.tags?.join(", "),
   };
 
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "홈", item: "https://bibllab.com" },
+      { "@type": "ListItem", position: 2, name: "비블의 인사이트", item: "https://bibllab.com/insights" },
+      { "@type": "ListItem", position: 3, name: post.title, item: `https://bibllab.com/insights/${post.slug}` },
+    ],
+  };
+
   return (
     <main className="min-h-screen bg-gray-950">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
 
       <article className="max-w-3xl mx-auto px-4 md:px-6 py-10 md:py-16">
         {/* 상단 메타 + 어드민 액션 */}

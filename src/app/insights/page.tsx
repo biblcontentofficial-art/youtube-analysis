@@ -134,6 +134,30 @@ export default async function InsightsPage() {
         <section className="mt-8">
           <InsightsList posts={posts} admin={admin} />
         </section>
+
+        {/* ─── 하단 내부링크 CTA (SEO: /studio 토픽 권위 강화) ─── */}
+        <section className="mt-14">
+          <div className="rounded-2xl bg-gradient-to-br from-teal-500/[0.08] to-emerald-500/[0.05] border border-teal-400/20 p-6 md:p-8">
+            <p className="text-sm font-semibold text-teal-300 mb-2">유튜브 채널 대행</p>
+            <h2 className="text-xl md:text-2xl font-bold text-white tracking-tight mb-2">
+              채널 운영이 막막하다면, 비블랩의 올인원 유튜브 채널 대행
+            </h2>
+            <p className="text-slate-400 text-sm leading-relaxed mb-5">
+              인사이트에서 다루는 전략을, 비블이 직접 당신의 채널에 적용합니다.
+              기획·촬영·편집·업로드·운영까지 전 과정을 대행하는 <strong className="text-slate-200">유튜브 채널 대행</strong> 서비스로
+              시행착오 없이 채널을 성장시키세요.
+            </p>
+            <Link
+              href="/studio"
+              className="group inline-flex items-center gap-2.5 px-6 py-3 rounded-xl bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-400 hover:to-emerald-400 text-black text-base font-bold transition shadow-lg shadow-teal-900/30"
+            >
+              올인원 유튜브 채널 대행 알아보기
+              <svg className="w-5 h-5 transition-transform group-hover:translate-x-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round">
+                <path d="M5 12h14M13 5l7 7-7 7" />
+              </svg>
+            </Link>
+          </div>
+        </section>
       </div>
     </main>
   );
