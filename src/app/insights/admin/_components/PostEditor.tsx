@@ -548,6 +548,48 @@ function FileButton({
   );
 }
 
+// ─── 내용 높이에 맞춰 자동으로 늘어나는 textarea (잘림 방지) ───
+function AutoTextarea({
+  value,
+  className,
+  onChange,
+  onKeyDown,
+  placeholder,
+}: {
+  value: string;
+  className?: string;
+  onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+  onKeyDown?: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
+  placeholder?: string;
+}) {
+  const ref = useRef<HTMLTextAreaElement>(null);
+
+  const resize = () => {
+    const el = ref.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${el.scrollHeight}px`;
+  };
+
+  useEffect(() => {
+    resize();
+  }, [value]);
+
+  return (
+    <textarea
+      ref={ref}
+      value={value}
+      rows={1}
+      onChange={(e) => { onChange(e); resize(); }}
+      onKeyDown={onKeyDown}
+      onInput={resize}
+      placeholder={placeholder}
+      className={className}
+      style={{ overflow: "hidden", resize: "none" }}
+    />
+  );
+}
+
 // ─────────────────────────────────────────────────────────────────────
 function BlockRow({
   index, block, onUpdate, onReplace, onDelete, onMoveUp, onMoveDown, canMoveUp, canMoveDown,
@@ -625,7 +667,7 @@ function BlockRow({
 
       {/* ── 블록 타입별 에디터 ── */}
       {block.type === "paragraph" && (
-        <textarea
+        <AutoTextarea
           value={block.text}
           onChange={handleParagraphChange}
           onKeyDown={(e) => {
@@ -660,8 +702,7 @@ function BlockRow({
             }
           }}
           placeholder="여기에 글을 작성하세요. Enter로 문단 분리, '/' 입력 시 블록 메뉴…"
-          rows={Math.max(1, block.text.split("\n").length)}
-          className="w-full bg-transparent text-[17px] leading-[1.85] text-slate-200 placeholder-slate-700 outline-none resize-none p-2"
+          className="w-full bg-transparent text-[17px] leading-[1.85] text-slate-200 placeholder-slate-700 outline-none p-2"
         />
       )}
 
@@ -785,12 +826,11 @@ function BlockRow({
 
       {block.type === "quote" && (
         <div className="p-2 border-l-4 border-teal-400/50 pl-4 space-y-1">
-          <textarea
+          <AutoTextarea
             value={block.text}
             onChange={(e) => onUpdate({ text: e.target.value })}
             placeholder="인용문"
-            rows={2}
-            className="w-full bg-transparent italic text-slate-300 placeholder-slate-700 outline-none resize-none"
+            className="w-full bg-transparent italic text-slate-300 placeholder-slate-700 outline-none"
           />
           <input
             value={block.cite ?? ""}
@@ -808,12 +848,11 @@ function BlockRow({
             onChange={(e) => onUpdate({ emoji: e.target.value })}
             className="w-10 bg-transparent text-2xl outline-none text-center"
           />
-          <textarea
+          <AutoTextarea
             value={block.text}
             onChange={(e) => onUpdate({ text: e.target.value })}
             placeholder="글 박스 내용"
-            rows={2}
-            className="flex-1 bg-transparent text-slate-200 placeholder-slate-700 outline-none resize-none"
+            className="flex-1 bg-transparent text-slate-200 placeholder-slate-700 outline-none"
           />
         </div>
       )}
