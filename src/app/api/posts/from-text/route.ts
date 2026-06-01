@@ -10,7 +10,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { currentUser } from "@/lib/auth";
 import { getSupabase } from "@/lib/supabase";
-import { isAdmin } from "@/lib/adminAuth";
+import { canEditInsights } from "@/lib/adminAuth";
 import { slugify, normalizeCategory, POST_CATEGORIES, type PostBlock } from "@/lib/posts";
 
 export const runtime = "nodejs";
@@ -37,7 +37,7 @@ interface GeneratedPost {
 
 export async function POST(req: NextRequest) {
   const user = await currentUser();
-  if (!user || !isAdmin({ email: user.email, plan: user.plan })) {
+  if (!user || !canEditInsights({ email: user.email, plan: user.plan })) {
     return NextResponse.json({ message: "관리자 권한이 필요합니다." }, { status: 403 });
   }
 

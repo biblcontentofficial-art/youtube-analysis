@@ -12,7 +12,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getSupabase } from "@/lib/supabase";
 import { currentUser } from "@/lib/auth";
-import { isAdmin } from "@/lib/adminAuth";
+import { canEditInsights } from "@/lib/adminAuth";
 import { summarize, readingTimeMinutes, type Post } from "@/lib/posts";
 import PostRenderer from "../_components/PostRenderer";
 
@@ -92,7 +92,7 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
   if (!post) notFound();
 
   const user = await currentUser();
-  const admin = isAdmin({ email: user?.email, plan: user?.plan });
+  const admin = canEditInsights({ email: user?.email, plan: user?.plan });
 
   // draft 비공개
   if (post.status !== "published" && !admin) notFound();

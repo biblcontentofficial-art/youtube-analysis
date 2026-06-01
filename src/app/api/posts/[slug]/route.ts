@@ -9,7 +9,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { currentUser } from "@/lib/auth";
 import { getSupabase } from "@/lib/supabase";
-import { isAdmin } from "@/lib/adminAuth";
+import { canEditInsights } from "@/lib/adminAuth";
 import { slugify, normalizeCategory } from "@/lib/posts";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -39,7 +39,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ slu
   // draft 인 경우 어드민만 조회 가능
   if (post.status !== "published") {
     const user = await currentUser();
-    if (!isAdmin({ email: user?.email, plan: user?.plan })) {
+    if (!canEditInsights({ email: user?.email, plan: user?.plan })) {
       return NextResponse.json({ message: "비공개 글입니다." }, { status: 404 });
     }
   } else if (db) {
@@ -53,7 +53,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ slu
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const user = await currentUser();
-  if (!user || !isAdmin({ email: user.email, plan: user.plan })) {
+  if (!user || !canEditInsights({ email: user.email, plan: user.plan })) {
     return NextResponse.json({ message: "관리자 권한이 필요합니다." }, { status: 403 });
   }
   const { db, post } = await findPost(slug);
@@ -89,7 +89,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ sl
 export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const user = await currentUser();
-  if (!user || !isAdmin({ email: user.email, plan: user.plan })) {
+  if (!user || !canEditInsights({ email: user.email, plan: user.plan })) {
     return NextResponse.json({ message: "관리자 권한이 필요합니다." }, { status: 403 });
   }
   const { db, post } = await findPost(slug);

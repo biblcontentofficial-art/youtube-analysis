@@ -1,6 +1,6 @@
 import { redirect, notFound } from "next/navigation";
 import { currentUser } from "@/lib/auth";
-import { isAdmin } from "@/lib/adminAuth";
+import { canEditInsights } from "@/lib/adminAuth";
 import { getSupabase } from "@/lib/supabase";
 import type { Post } from "@/lib/posts";
 import PostEditor from "../_components/PostEditor";
@@ -16,7 +16,7 @@ export default async function EditPostPage({ params }: { params: Promise<{ id: s
   const { id } = await params;
   const user = await currentUser();
   if (!user) redirect("/sign-in?next=/insights/admin");
-  if (!isAdmin({ email: user.email, plan: user.plan })) {
+  if (!canEditInsights({ email: user.email, plan: user.plan })) {
     return (
       <main className="min-h-screen flex items-center justify-center bg-gray-950">
         <p className="text-slate-400">관리자만 접근 가능합니다.</p>

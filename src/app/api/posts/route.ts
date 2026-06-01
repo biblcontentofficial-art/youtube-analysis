@@ -6,7 +6,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { currentUser } from "@/lib/auth";
 import { getSupabase } from "@/lib/supabase";
-import { isAdmin } from "@/lib/adminAuth";
+import { canEditInsights } from "@/lib/adminAuth";
 import { slugify, normalizeCategory } from "@/lib/posts";
 
 export async function GET(req: NextRequest) {
@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
   if (includeDrafts) {
     // 어드민만 drafts 포함 가능
     const user = await currentUser();
-    if (!isAdmin({ email: user?.email, plan: user?.plan })) {
+    if (!canEditInsights({ email: user?.email, plan: user?.plan })) {
       return NextResponse.json({ message: "관리자만 임시저장 글을 볼 수 있습니다." }, { status: 403 });
     }
   } else {
@@ -42,7 +42,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const user = await currentUser();
   if (!user) return NextResponse.json({ message: "로그인이 필요합니다." }, { status: 401 });
-  if (!isAdmin({ email: user.email, plan: user.plan })) {
+  if (!canEditInsights({ email: user.email, plan: user.plan })) {
     return NextResponse.json({ message: "관리자만 작성할 수 있습니다." }, { status: 403 });
   }
 

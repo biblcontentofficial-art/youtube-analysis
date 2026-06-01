@@ -8,7 +8,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { getSupabase } from "@/lib/supabase";
 import { currentUser } from "@/lib/auth";
-import { isAdmin } from "@/lib/adminAuth";
+import { canEditInsights } from "@/lib/adminAuth";
 import InsightsList, { type PostSummary } from "./_components/InsightsList";
 
 export const revalidate = 60;
@@ -54,7 +54,7 @@ async function fetchPosts(includeDrafts: boolean): Promise<PostSummary[]> {
 
 export default async function InsightsPage() {
   const user = await currentUser();
-  const admin = isAdmin({ email: user?.email, plan: user?.plan });
+  const admin = canEditInsights({ email: user?.email, plan: user?.plan });
   const posts = await fetchPosts(admin);
 
   const publishedCount = posts.filter((p) => p.status === "published").length;
