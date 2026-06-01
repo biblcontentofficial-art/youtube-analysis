@@ -144,7 +144,7 @@ async function generateColumn(
   let raw = "";
   if (provider === "anthropic") {
     const key = process.env.ANTHROPIC_API_KEY;
-    if (!key) throw new Error("ANTHROPIC_API_KEY가 설정되지 않았습니다.");
+    if (!key) throw new Error("Claude(ANTHROPIC_API_KEY)가 서버에 설정되지 않았습니다. console.anthropic.com에서 키를 발급받아 Vercel 환경변수 ANTHROPIC_API_KEY에 등록 후 재배포하세요. (또는 ChatGPT·Gemini를 선택하세요)");
     const res = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: { "Content-Type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01" },
@@ -160,7 +160,7 @@ async function generateColumn(
     raw = d?.content?.[0]?.text || "";
   } else if (provider === "openai") {
     const key = process.env.OPENAI_API_KEY;
-    if (!key) throw new Error("OPENAI_API_KEY가 설정되지 않았습니다.");
+    if (!key) throw new Error("ChatGPT(OPENAI_API_KEY)가 서버에 설정되지 않았습니다. platform.openai.com/api-keys에서 키를 발급받아 Vercel 환경변수 OPENAI_API_KEY에 등록 후 재배포하세요.");
     const res = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
@@ -180,7 +180,7 @@ async function generateColumn(
     raw = d?.choices?.[0]?.message?.content || "";
   } else {
     const key = process.env.GEMINI_API_KEY;
-    if (!key) throw new Error("GEMINI_API_KEY가 설정되지 않았습니다.");
+    if (!key) throw new Error("Gemini(GEMINI_API_KEY)가 서버에 설정되지 않았습니다. aistudio.google.com/apikey에서 무료 키를 발급받아 Vercel 환경변수 GEMINI_API_KEY에 등록 후 재배포하세요.");
     const res = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`,
       {
