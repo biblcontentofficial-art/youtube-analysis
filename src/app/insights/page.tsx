@@ -8,7 +8,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { getSupabase } from "@/lib/supabase";
 import { currentUser } from "@/lib/auth";
-import { canEditInsights } from "@/lib/adminAuth";
+import { canEditInsights, isAdmin } from "@/lib/adminAuth";
 import InsightsList, { type PostSummary } from "./_components/InsightsList";
 
 export const revalidate = 60;
@@ -55,6 +55,7 @@ async function fetchPosts(includeDrafts: boolean): Promise<PostSummary[]> {
 export default async function InsightsPage() {
   const user = await currentUser();
   const admin = canEditInsights({ email: user?.email, plan: user?.plan });
+  const fullAdmin = isAdmin({ email: user?.email, plan: user?.plan });
   const posts = await fetchPosts(admin);
 
   const publishedCount = posts.filter((p) => p.status === "published").length;
@@ -92,14 +93,16 @@ export default async function InsightsPage() {
             </div>
             {admin && (
               <div className="hidden sm:flex items-center gap-2">
-                <Link
-                  href="/insights/admin/traffic"
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white/[0.05] hover:bg-white/[0.10] border border-white/[0.10] text-white text-sm font-semibold transition"
-                  title="인사이트 트래픽 소스 보기"
-                >
-                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v18h18" /><path d="M7 15l4-6 4 4 5-8" /></svg>
-                  트래픽
-                </Link>
+                {fullAdmin && (
+                  <Link
+                    href="/insights/admin/traffic"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white/[0.05] hover:bg-white/[0.10] border border-white/[0.10] text-white text-sm font-semibold transition"
+                    title="인사이트 트래픽 소스 보기 (관리자 전용)"
+                  >
+                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v18h18" /><path d="M7 15l4-6 4 4 5-8" /></svg>
+                    트래픽
+                  </Link>
+                )}
                 <Link
                   href="/insights/admin"
                   className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-teal-500 hover:bg-teal-400 text-black text-sm font-bold transition shadow-lg shadow-teal-900/30"

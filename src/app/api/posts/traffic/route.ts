@@ -7,14 +7,14 @@
 
 import { NextResponse } from "next/server";
 import { currentUser } from "@/lib/auth";
-import { canEditInsights } from "@/lib/adminAuth";
+import { isAdmin } from "@/lib/adminAuth";
 import { getSupabase } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   const user = await currentUser();
-  if (!user || !canEditInsights({ email: user.email, plan: user.plan })) {
+  if (!user || !isAdmin({ email: user.email, plan: user.plan })) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
