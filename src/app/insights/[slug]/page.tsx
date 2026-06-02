@@ -10,9 +10,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { getSupabase } from "@/lib/supabase";
 import { currentUser } from "@/lib/auth";
 import { canEditInsights } from "@/lib/adminAuth";
+import { trackVisit } from "@/lib/trackVisit";
 import { summarize, readingTimeMinutes, type Post } from "@/lib/posts";
 import PostRenderer from "../_components/PostRenderer";
 
@@ -97,10 +99,16 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
   // draft 비공개
   if (post.status !== "published" && !admin) notFound();
 
-  // 조회수 증가 (best-effort)
+  // 조회수 증가 + 트래픽 소스 기록 (best-effort, 어드민/에디터 본인 조회는 제외)
   const db = getSupabase();
-  if (db && post.status === "published") {
+  if (db && post.status === "published" && !admin) {
     db.from("posts").update({ view_count: (post.view_count ?? 0) + 1 }).eq("id", post.id).then(() => {});
+    try {
+      const h = await headers();
+      const referrer = h.get("referer");
+      // page = "insight:<slug>" 형태로 글별 유입 소스 추적
+      trackVisit(`insight:${post.slug}`, referrer);
+    } catch { /* 추적 실패 무시 */ }
   }
 
   const desc = post.description || summarize(post.content, 200);

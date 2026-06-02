@@ -91,13 +91,23 @@ export default async function InsightsPage() {
               <p className="mt-1 text-sm text-slate-400">bibl.content.official@gmail.com</p>
             </div>
             {admin && (
-              <Link
-                href="/insights/admin"
-                className="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-teal-500 hover:bg-teal-400 text-black text-sm font-bold transition shadow-lg shadow-teal-900/30"
-              >
-                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14" /></svg>
-                새 글 작성
-              </Link>
+              <div className="hidden sm:flex items-center gap-2">
+                <Link
+                  href="/insights/admin/traffic"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white/[0.05] hover:bg-white/[0.10] border border-white/[0.10] text-white text-sm font-semibold transition"
+                  title="인사이트 트래픽 소스 보기"
+                >
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v18h18" /><path d="M7 15l4-6 4 4 5-8" /></svg>
+                  트래픽
+                </Link>
+                <Link
+                  href="/insights/admin"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-teal-500 hover:bg-teal-400 text-black text-sm font-bold transition shadow-lg shadow-teal-900/30"
+                >
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14" /></svg>
+                  새 글 작성
+                </Link>
+              </div>
             )}
           </div>
 
