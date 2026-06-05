@@ -82,6 +82,15 @@ body {
   --tw-duration: 0.3s;
 }
 
+/* 비블의 인사이트 nav 강조: 천천히 깜박이는 효과 */
+@keyframes biblSlowBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+.animate-slow-blink {
+  animation: biblSlowBlink 2.4s ease-in-out infinite;
+}
+
 /* ─── Studio Page 스크롤 애니메이션 ─────────────────────────────── */
 
 /* 기본: 보이지 않는 상태 */

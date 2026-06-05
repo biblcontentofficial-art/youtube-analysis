@@ -483,12 +483,12 @@ function NavTab({
     Pro:     "bg-purple-950/60 text-purple-400 border border-purple-800/70",
   };
 
-  // 강조 탭 (비블의 인사이트) — 기존 teal 테마 기반, 은은한 글로우
+  // 강조 탭 (비블의 인사이트) — 테두리 없이 천천히 깜박이는 효과
   if (highlight) {
     return (
       <a
         href={href}
-        className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-semibold transition bg-gradient-to-r from-teal-500/15 to-emerald-500/10 text-teal-300 hover:text-teal-200 border border-teal-400/25 hover:border-teal-400/50 hover:from-teal-500/25 hover:to-emerald-500/20 shadow-[0_0_12px_-2px_rgba(45,212,191,0.25)]"
+        className="animate-slow-blink flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-semibold text-teal-300 hover:text-teal-200 hover:bg-teal-950/30 transition-colors"
       >
         {icon}
         {label}
