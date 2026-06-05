@@ -324,8 +324,8 @@ export default async function RootLayout({
               </a>
 
               <div className="hidden md:flex items-center gap-1 text-sm whitespace-nowrap">
-                {/* 비블의 인사이트 (비즈니스 칼럼) — 가장 왼쪽 */}
-                <NavTab href="/insights" label="비블의 인사이트" icon={
+                {/* 비블의 인사이트 (비즈니스 칼럼) — 가장 왼쪽, 강조 */}
+                <NavTab href="/insights" label="비블의 인사이트" highlight icon={
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
                     <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
                   </svg>
@@ -467,12 +467,14 @@ function NavTab({
   icon,
   requiredPlan,
   isStudio,
+  highlight,
 }: {
   href: string;
   label: string;
   icon?: React.ReactNode;
   requiredPlan?: "Starter" | "Pro";
   isStudio?: boolean;
+  highlight?: boolean;
 }) {
   const locked = !!requiredPlan;
 
@@ -480,6 +482,19 @@ function NavTab({
     Starter: "bg-amber-950/60 text-amber-400 border border-amber-800/70",
     Pro:     "bg-purple-950/60 text-purple-400 border border-purple-800/70",
   };
+
+  // 강조 탭 (비블의 인사이트) — 기존 teal 테마 기반, 은은한 글로우
+  if (highlight) {
+    return (
+      <a
+        href={href}
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-semibold transition bg-gradient-to-r from-teal-500/15 to-emerald-500/10 text-teal-300 hover:text-teal-200 border border-teal-400/25 hover:border-teal-400/50 hover:from-teal-500/25 hover:to-emerald-500/20 shadow-[0_0_12px_-2px_rgba(45,212,191,0.25)]"
+      >
+        {icon}
+        {label}
+      </a>
+    );
+  }
 
   if (isStudio) {
     return (
