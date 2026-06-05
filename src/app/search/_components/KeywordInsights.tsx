@@ -80,13 +80,6 @@ function formatDuration(seconds: number): string {
 }
 
 export default function KeywordInsights({ videos, query }: Props) {
-  // ─── AI 진단 상태 ───
-  type Provider = "openai" | "anthropic" | "gemini" | "grok";
-  const [aiLoading, setAiLoading] = useState<Provider | null>(null);
-  const [aiResult, setAiResult] = useState<string | null>(null);
-  const [aiProvider, setAiProvider] = useState<string | null>(null);
-  const [aiError, setAiError] = useState<string | null>(null);
-
   // ─── 패턴 분석 옵트인 ───
   const [patternsEnabled, setPatternsEnabled] = useState(false);
   const patterns = useMemo(() => (patternsEnabled ? computePatterns(videos) : null), [videos, patternsEnabled]);
@@ -97,57 +90,6 @@ export default function KeywordInsights({ videos, query }: Props) {
   const [relatedError, setRelatedError] = useState<string | null>(null);
 
   if (videos.length === 0) return null;
-
-  // ─── 핸들러: AI 진단 (provider 선택) ───
-  async function handleAiDiagnose(provider: Provider) {
-    setAiLoading(provider);
-    setAiError(null);
-    setAiResult(null);
-    setAiProvider(null);
-    try {
-      const sorted = [...videos].sort((a, b) => b.viewCount - a.viewCount);
-      const top10 = sorted.slice(0, 10);
-      const avgViews = Math.round(top10.reduce((s, v) => s + v.viewCount, 0) / top10.length);
-      const recentCount = videos.filter((v) => Date.now() - (v.publishedAtRaw ?? 0) < 30 * 24 * 60 * 60 * 1000).length;
-      const bigCh = videos.filter((v) => (v.subscriberCountRaw ?? 0) >= 100_000).length;
-
-      const res = await fetch("/api/keyword-insight", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          query,
-          provider,
-          totalResults: videos.length,
-          topAvgViews: avgViews,
-          recentRatio: recentCount / videos.length,
-          bigChannelRatio: bigCh / videos.length,
-          topVideoTitles: top10.map((v) => v.title),
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setAiError(data.message || "AI 진단에 실패했습니다.");
-        return;
-      }
-      setAiResult(data.text);
-      setAiProvider(data.providerLabel || provider);
-    } catch (e) {
-      setAiError(e instanceof Error ? e.message : "AI 진단 중 오류가 발생했습니다.");
-    } finally {
-      setAiLoading(null);
-    }
-  }
-
-  // ─── 핸들러: ChatGPT 새 탭 백업 ───
-  function handleOpenChatGPT() {
-    const sorted = [...videos].sort((a, b) => b.viewCount - a.viewCount).slice(0, 10);
-    const prompt =
-      `유튜브 키워드 "${query}" 시장 진단:\n` +
-      `검색 결과 ${videos.length}개, 상위 10개 영상 제목:\n` +
-      sorted.map((v, i) => `${i + 1}. ${v.title}`).join("\n") +
-      `\n\n이 키워드의 (1) 시장 포화도, (2) 차별화 앵글 3가지, (3) 추천 영상 형식, (4) 흔한 실수를 한국어로 간단히 분석해줘.`;
-    window.open(`https://chat.openai.com/?prompt=${encodeURIComponent(prompt)}`, "_blank", "noopener,noreferrer");
-  }
 
   // ─── 핸들러: 관련 키워드 (YouTube autocomplete) ───
   async function handleRelated() {
@@ -247,52 +189,7 @@ export default function KeywordInsights({ videos, query }: Props) {
             </Link>
           </div>
 
-          {/* ─ AI 진단 (4개 provider 중 선택) ─ */}
-          <div className="mb-3">
-            <div className="flex items-center gap-2 mb-2.5">
-              <div className="w-6 h-6 rounded-md bg-violet-500/15 border border-violet-400/25 flex items-center justify-center text-violet-300">
-                {Icon.brain("w-3.5 h-3.5")}
-              </div>
-              <p className="text-sm font-semibold text-violet-200">AI에게 진단 받기</p>
-              <span className="text-[11px] text-slate-500">— 원하는 AI를 선택하세요</span>
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-              {([
-                { id: "openai", label: "ChatGPT", sub: "OpenAI", color: "emerald" },
-                { id: "gemini", label: "Gemini", sub: "Google", color: "sky" },
-                { id: "anthropic", label: "Claude", sub: "Anthropic", color: "orange" },
-                { id: "grok", label: "Grok", sub: "xAI", color: "slate" },
-              ] as const).map((p) => {
-                const isLoading = aiLoading === p.id;
-                const anyLoading = aiLoading !== null;
-                const colorMap: Record<string, string> = {
-                  emerald: "from-emerald-500/[0.08] to-teal-500/[0.05] hover:from-emerald-500/20 hover:to-teal-500/15 border-emerald-400/20 hover:border-emerald-400/50 text-emerald-200",
-                  sky: "from-sky-500/[0.08] to-blue-500/[0.05] hover:from-sky-500/20 hover:to-blue-500/15 border-sky-400/20 hover:border-sky-400/50 text-sky-200",
-                  orange: "from-orange-500/[0.08] to-amber-500/[0.05] hover:from-orange-500/20 hover:to-amber-500/15 border-orange-400/20 hover:border-orange-400/50 text-orange-200",
-                  slate: "from-slate-500/[0.10] to-zinc-500/[0.06] hover:from-slate-500/25 hover:to-zinc-500/20 border-slate-400/25 hover:border-slate-300/50 text-slate-200",
-                };
-                return (
-                  <button
-                    key={p.id}
-                    onClick={() => handleAiDiagnose(p.id)}
-                    disabled={anyLoading}
-                    className={`group flex flex-col items-center justify-center gap-1 px-3 py-3.5 bg-gradient-to-br ${colorMap[p.color]} disabled:opacity-40 disabled:cursor-not-allowed border rounded-xl transition hover:text-white`}
-                  >
-                    {isLoading ? (
-                      <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin my-1.5" />
-                    ) : (
-                      <span className="text-sm font-bold tracking-tight">{p.label}</span>
-                    )}
-                    <span className="text-[10px] uppercase tracking-wider opacity-60">
-                      {isLoading ? "분석 중..." : p.sub}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* ─ 그 외 도구 (패턴, 연관 키워드) ─ */}
+          {/* ─ 도구 (패턴, 연관 키워드) ─ */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <button
               onClick={() => setPatternsEnabled(true)}
@@ -322,50 +219,6 @@ export default function KeywordInsights({ videos, query }: Props) {
           </div>
         </div>
       </div>
-
-      {/* ─── AI 진단 결과 ─── */}
-      {aiResult && (
-        <div className="relative overflow-hidden rounded-2xl border border-violet-400/15 bg-gradient-to-br from-violet-950/40 via-slate-950 to-slate-950 p-6">
-          <div className="pointer-events-none absolute -top-16 -right-16 w-56 h-56 rounded-full bg-violet-500/[0.06] blur-3xl" />
-          <div className="relative">
-            <div className="flex items-start justify-between gap-3 mb-3">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-violet-500/15 border border-violet-400/25 flex items-center justify-center text-violet-300">
-                  {Icon.brain("w-4 h-4")}
-                </div>
-                <h3 className="text-base font-bold text-violet-200">
-                  AI 키워드 진단
-                  {aiProvider && <span className="ml-2 text-xs font-medium text-violet-300/70">by {aiProvider}</span>}
-                </h3>
-              </div>
-              <button onClick={() => { setAiResult(null); setAiProvider(null); }} className="text-slate-500 hover:text-slate-300 transition">{Icon.close()}</button>
-            </div>
-            <p className="text-[11px] text-slate-500 mb-4">
-              외부 AI({aiProvider || "OpenAI/Anthropic/Google/xAI"})가 생성한 텍스트입니다. bibl lab의 평가/메트릭이 아닙니다.
-            </p>
-            <div className="text-[15px] text-slate-200 whitespace-pre-wrap leading-relaxed">{aiResult}</div>
-          </div>
-        </div>
-      )}
-
-      {aiError && (
-        <div className="rounded-2xl border border-amber-400/20 bg-gradient-to-br from-amber-950/30 to-slate-950 p-5">
-          <div className="flex items-start justify-between gap-3 mb-3">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-amber-500/15 border border-amber-400/25 flex items-center justify-center text-amber-300">
-                {Icon.warning("w-4 h-4")}
-              </div>
-              <h3 className="text-base font-bold text-amber-200">AI 진단을 사용할 수 없습니다</h3>
-            </div>
-            <button onClick={() => setAiError(null)} className="text-slate-500 hover:text-slate-300 transition">{Icon.close()}</button>
-          </div>
-          <p className="text-sm text-slate-400 mb-4">{aiError}</p>
-          <button onClick={handleOpenChatGPT} className="inline-flex items-center gap-2 px-4 py-2.5 bg-amber-500/15 hover:bg-amber-500/25 text-amber-200 text-sm font-semibold rounded-lg border border-amber-400/30 hover:border-amber-400/50 transition">
-            {Icon.external()}
-            ChatGPT에서 분석 요청 (새 탭)
-          </button>
-        </div>
-      )}
 
       {/* ─── 상위 영상 패턴 (Phase 1.2) ─── */}
       {patterns && (
