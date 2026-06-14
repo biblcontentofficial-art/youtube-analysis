@@ -26,11 +26,13 @@ export const metadata: Metadata = {
     type: "website",
     siteName: "bibl lab",
     locale: "ko_KR",
+    images: [{ url: "https://bibllab.com/og-image.png", width: 1200, height: 630, alt: "비블의 인사이트 — 유튜브·1인 비즈니스 칼럼" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "비블의 인사이트",
     description: "유튜브·1인 비즈니스 실전 칼럼",
+    images: ["https://bibllab.com/og-image.png"],
   },
   keywords: ["비블", "bibl lab", "유튜브 컨설팅", "1인 기업", "프리랜서", "콘텐츠 마케팅", "유튜브 운영", "비즈니스 칼럼"],
 };
