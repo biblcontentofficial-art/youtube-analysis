@@ -46,6 +46,53 @@ function safeEncode(s: string): string {
   try { return encodeURIComponent(s); } catch { return s; }
 }
 
+interface RelatedPost {
+  slug: string;
+  title: string;
+  category: string | null;
+  cover_image: string | null;
+  published_at: string | null;
+  created_at: string;
+}
+
+// 관련 글: 같은 카테고리 우선 → 부족하면 최신 글로 채움 (현재 글 제외, 최대 3개)
+async function fetchRelated(currentSlug: string, category: string | null): Promise<RelatedPost[]> {
+  const db = getSupabase();
+  if (!db) return [];
+  const cols = "slug, title, category, cover_image, published_at, created_at";
+  const out: RelatedPost[] = [];
+  const seen = new Set<string>([currentSlug]);
+
+  if (category) {
+    const { data } = await db
+      .from("posts")
+      .select(cols)
+      .eq("status", "published")
+      .eq("category", category)
+      .neq("slug", currentSlug)
+      .order("published_at", { ascending: false, nullsFirst: false })
+      .limit(4);
+    for (const p of (data ?? []) as RelatedPost[]) {
+      if (!seen.has(p.slug)) { out.push(p); seen.add(p.slug); }
+      if (out.length >= 3) return out;
+    }
+  }
+
+  if (out.length < 3) {
+    const { data } = await db
+      .from("posts")
+      .select(cols)
+      .eq("status", "published")
+      .order("published_at", { ascending: false, nullsFirst: false })
+      .limit(8);
+    for (const p of (data ?? []) as RelatedPost[]) {
+      if (!seen.has(p.slug)) { out.push(p); seen.add(p.slug); }
+      if (out.length >= 3) break;
+    }
+  }
+  return out;
+}
+
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
   const post = await fetchPost(slug);
@@ -102,7 +149,7 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
   // 조회수 증가 + 트래픽 소스 기록 (best-effort, 어드민/에디터 본인 조회는 제외)
   const db = getSupabase();
   if (db && post.status === "published" && !admin) {
-    db.from("posts").update({ view_count: (post.view_count ?? 0) + 1 }).eq("id", post.id).then(() => {});
+    db.from("posts").update({ view_count: (post.view_count ?? 0) + 1 }).eq("id", post.id).then(() => {}, () => {});
     try {
       const h = await headers();
       const referrer = h.get("referer");
@@ -113,6 +160,7 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
 
   const desc = post.description || summarize(post.content, 200);
   const readingMin = readingTimeMinutes(post.content);
+  const related = await fetchRelated(post.slug, post.category ?? null);
 
   const articleJsonLd = {
     "@context": "https://schema.org",
@@ -219,6 +267,37 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
         <div className="mt-10">
           <PostRenderer blocks={post.content} />
         </div>
+
+        {/* 관련 글 (SEO 내부링크) */}
+        {related.length > 0 && (
+          <section className="mt-16 pt-10 border-t border-white/[0.06]">
+            <h2 className="text-lg font-bold text-white tracking-tight mb-5">함께 읽으면 좋은 글</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {related.map((r) => (
+                <Link
+                  key={r.slug}
+                  href={`/insights/${r.slug}`}
+                  className="group block rounded-xl border border-white/[0.07] hover:border-white/[0.16] bg-white/[0.015] hover:bg-white/[0.03] overflow-hidden transition"
+                >
+                  {r.cover_image ? (
+                    <div className="aspect-[16/9] overflow-hidden bg-slate-900">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={r.cover_image} alt={r.title} className="w-full h-full object-cover group-hover:scale-[1.03] transition duration-500" loading="lazy" />
+                    </div>
+                  ) : (
+                    <div className="aspect-[16/9] bg-gradient-to-br from-slate-800/50 to-slate-900 flex items-center justify-center">
+                      <span className="text-teal-400/40 text-xl font-black tracking-tighter">bibl</span>
+                    </div>
+                  )}
+                  <div className="p-4">
+                    {r.category && <span className="text-[11px] font-semibold text-teal-300/90">{r.category}</span>}
+                    <h3 className="mt-1 text-sm font-bold text-white leading-snug line-clamp-2 group-hover:text-teal-200 transition">{r.title}</h3>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* 푸터 CTA */}
         <div className="mt-16 pt-10 border-t border-white/[0.06]">

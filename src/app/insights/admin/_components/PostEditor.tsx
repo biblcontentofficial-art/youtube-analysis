@@ -249,7 +249,7 @@ export default function PostEditor({ initial }: Props) {
               {status === "published" ? "PUBLISHED" : "DRAFT"}
             </span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap justify-end">
             {!isEdit && (
               <>
                 <button
@@ -329,7 +329,7 @@ export default function PostEditor({ initial }: Props) {
               {coverImage ? (
                 <div className="space-y-2">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={coverImage} alt="cover" className="w-full max-h-64 object-cover rounded-lg" />
+                  <img src={coverImage} alt={title || "글 커버 이미지"} className="w-full max-h-64 object-cover rounded-lg" />
                   <div className="flex gap-2">
                     <FileButton label="커버 교체" accept="image/*" disabled={coverUploading} onPick={handleCoverUpload} />
                     <button onClick={() => setCoverImage("")} className="text-xs px-3 py-1.5 rounded-md bg-white/[0.05] hover:bg-white/[0.10] text-slate-300">제거</button>

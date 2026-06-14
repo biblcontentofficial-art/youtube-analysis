@@ -44,7 +44,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ slu
     }
   } else if (db) {
     // 조회수 증가 (non-blocking, best-effort)
-    db.from("posts").update({ view_count: (post.view_count ?? 0) + 1 }).eq("id", post.id).then(() => {});
+    db.from("posts").update({ view_count: (post.view_count ?? 0) + 1 }).eq("id", post.id).then(() => {}, () => {});
   }
 
   return NextResponse.json({ post });

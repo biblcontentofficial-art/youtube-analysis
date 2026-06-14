@@ -135,7 +135,7 @@ export default function PostRenderer({ blocks }: { blocks: PostBlock[] }) {
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={b.src}
-                  alt={b.alt || b.caption || ""}
+                  alt={b.alt || b.caption || "본문 이미지"}
                   className="w-full rounded-xl border border-white/[0.06]"
                   loading="lazy"
                 />
