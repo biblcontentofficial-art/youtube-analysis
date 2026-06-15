@@ -32,15 +32,23 @@ export async function GET() {
     const db = getSupabase();
     if (!db) return NextResponse.json({ error: "DB not configured" }, { status: 500 });
 
-    const { data: profiles, error: dbError } = await db
-      .from("profiles")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(500);
+    // 전체 회원을 페이지네이션으로 모두 가져온다 (Supabase 단일 응답 상한 회피)
+    const PAGE = 1000;
+    const profiles: Record<string, unknown>[] = [];
+    for (let from = 0; ; from += PAGE) {
+      const { data: chunk, error: dbError } = await db
+        .from("profiles")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .range(from, from + PAGE - 1);
 
-    if (dbError) {
-      console.error("Profiles query error:", dbError);
-      return NextResponse.json({ error: "Failed to fetch users" }, { status: 500 });
+      if (dbError) {
+        console.error("Profiles query error:", dbError);
+        return NextResponse.json({ error: "Failed to fetch users" }, { status: 500 });
+      }
+      if (!chunk || chunk.length === 0) break;
+      profiles.push(...(chunk as Record<string, unknown>[]));
+      if (chunk.length < PAGE) break;
     }
 
     // Supabase Auth에서 사용자 메타데이터(프로필 사진) 가져오기
