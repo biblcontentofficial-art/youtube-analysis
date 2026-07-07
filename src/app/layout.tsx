@@ -362,7 +362,7 @@ export default async function RootLayout({
                 } />
                 <>
                   <div className="w-px h-4 bg-gray-700 mx-1" />
-                  <NavTab href="/studio/class/team-bibl" label="팀비블 1:1 유튜브 컨설팅" isStudio />
+                  <NavTab href="/studio/class/team-bibl" label="1:1 유튜브 컨설팅" isStudio />
                   <NavTab href="/studio" label="올인원 유튜브 채널 대행" isStudio />
                 </>
               </div>
@@ -389,7 +389,7 @@ export default async function RootLayout({
                 href="/studio/class/team-bibl"
                 className="text-xs text-teal-400 hover:text-teal-300 font-medium px-3 py-1.5 rounded-md whitespace-nowrap"
               >
-                팀비블 1:1 컨설팅
+                1:1 유튜브 컨설팅
               </a>
               <span className="w-px h-3 bg-gray-700" />
               <a

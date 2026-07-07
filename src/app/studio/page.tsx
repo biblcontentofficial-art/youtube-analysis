@@ -112,8 +112,8 @@ const studioJsonLd = {
         "@type": "Offer",
         itemOffered: {
           "@type": "Service",
-          name: "팀비블 1:1 유튜브 컨설팅",
-          description: "주 1회 30분 1:1 컨설팅 + 160강 VOD + 오프라인 커뮤니티",
+          name: "1:1 유튜브 컨설팅",
+          description: "65만+ 구독자 비블이 직접 진행하는 1:1 유튜브 브랜딩·비즈니스 컨설팅",
         },
       },
     ],
