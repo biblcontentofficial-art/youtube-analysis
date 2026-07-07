@@ -4,6 +4,10 @@ import { NextResponse } from "next/server";
 import { isAdmin } from "@/lib/adminAuth";
 import { getSupabase } from "@/lib/supabase";
 
+// 항상 최신 회원 수를 반환하도록 캐시 비활성화
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export type AdminUser = {
   id: string;
   email: string;
@@ -77,7 +81,10 @@ export async function GET() {
       avatarUrl: avatarMap[p.id as string] ?? null,
     }));
 
-    return NextResponse.json({ users, total: users.length });
+    return NextResponse.json(
+      { users, total: users.length },
+      { headers: { "Cache-Control": "no-store, max-age=0" } }
+    );
   } catch (err) {
     console.error("Admin users error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

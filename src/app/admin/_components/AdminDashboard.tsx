@@ -184,7 +184,7 @@ export default function AdminDashboard() {
 
   const fetchUsers = useCallback(() => {
     setUsersLoading(true);
-    fetch("/api/admin/users")
+    fetch("/api/admin/users", { cache: "no-store" })
       .then((r) => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json();

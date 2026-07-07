@@ -41,17 +41,25 @@ export async function GET() {
     const db = getSupabase();
     if (!db) return NextResponse.json({ error: "DB not configured" }, { status: 500 });
 
-    const { data: profileRows, error: profileError } = await db
-      .from("profiles")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(500);
-
-    if (profileError) {
-      console.error("Profiles query error:", profileError);
+    // 전체 회원을 페이지네이션으로 모두 가져온다 (500 제한 제거)
+    const PAGE = 1000;
+    const profileRows: Record<string, unknown>[] = [];
+    for (let from = 0; ; from += PAGE) {
+      const { data: chunk, error: profileError } = await db
+        .from("profiles")
+        .select("id, created_at, last_sign_in_at, plan")
+        .order("created_at", { ascending: false })
+        .range(from, from + PAGE - 1);
+      if (profileError) {
+        console.error("Profiles query error:", profileError);
+        break;
+      }
+      if (!chunk || chunk.length === 0) break;
+      profileRows.push(...(chunk as Record<string, unknown>[]));
+      if (chunk.length < PAGE) break;
     }
 
-    const allUsers = (profileRows ?? []).map((p: Record<string, unknown>) => ({
+    const allUsers = profileRows.map((p: Record<string, unknown>) => ({
       id: p.id as string,
       created_at: p.created_at ? new Date(p.created_at as string).getTime() : 0,
       last_active_at: p.last_sign_in_at ? new Date(p.last_sign_in_at as string).getTime() : null,
