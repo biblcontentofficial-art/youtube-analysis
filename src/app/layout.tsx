@@ -363,7 +363,7 @@ export default async function RootLayout({
                 <>
                   <div className="w-px h-4 bg-gray-700 mx-1" />
                   <NavTab href="/studio/class/consulting" label="1:1 유튜브 컨설팅" isStudio />
-                  <NavTab href="/studio" label="올인원 유튜브 채널 대행" isStudio />
+                  <NavTab href="/studio" label="유튜브 채널 대행 문의" isStudio />
                 </>
               </div>
             </div>
@@ -396,7 +396,7 @@ export default async function RootLayout({
                 href="/studio"
                 className="text-xs text-teal-400 hover:text-teal-300 font-medium px-3 py-1.5 rounded-md whitespace-nowrap"
               >
-                올인원 채널 대행
+                유튜브 채널 대행 문의
               </a>
             </div>
           </div>
