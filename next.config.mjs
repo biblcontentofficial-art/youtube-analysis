@@ -68,6 +68,12 @@ const nextConfig = {
         destination: "https://bibllab.com/:path*",
         permanent: true,
       },
+      {
+        // team-bibl → consulting 경로 변경 (기존 링크·SEO 보호)
+        source: "/studio/class/team-bibl",
+        destination: "/studio/class/consulting",
+        permanent: true,
+      },
     ];
   },
   experimental: {

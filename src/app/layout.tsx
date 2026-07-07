@@ -362,7 +362,7 @@ export default async function RootLayout({
                 } />
                 <>
                   <div className="w-px h-4 bg-gray-700 mx-1" />
-                  <NavTab href="/studio/class/team-bibl" label="1:1 유튜브 컨설팅" isStudio />
+                  <NavTab href="/studio/class/consulting" label="1:1 유튜브 컨설팅" isStudio />
                   <NavTab href="/studio" label="올인원 유튜브 채널 대행" isStudio />
                 </>
               </div>
@@ -386,7 +386,7 @@ export default async function RootLayout({
           <div className="md:hidden border-t border-gray-800/60 bg-gray-950">
             <div className="max-w-screen-2xl mx-auto px-4 py-2 flex items-center justify-center gap-2 overflow-x-auto scrollbar-hide">
               <a
-                href="/studio/class/team-bibl"
+                href="/studio/class/consulting"
                 className="text-xs text-teal-400 hover:text-teal-300 font-medium px-3 py-1.5 rounded-md whitespace-nowrap"
               >
                 1:1 유튜브 컨설팅

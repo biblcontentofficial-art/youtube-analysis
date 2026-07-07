@@ -8,7 +8,7 @@ export async function GET() {
     { title: "스레드 분석", url: "/threads", date: "2026-04-11" },
     { title: "요금제", url: "/pricing", date: "2026-04-11" },
     { title: "비블 TMK STUDIO", url: "/studio", date: "2026-04-11" },
-    { title: "팀비블 - 유튜브 1:1 컨설팅", url: "/studio/class/team-bibl", date: "2026-04-11" },
+    { title: "팀비블 - 유튜브 1:1 컨설팅", url: "/studio/class/consulting", date: "2026-04-11" },
     { title: "무료 상담 신청", url: "/studio/consulting", date: "2026-04-11" },
     { title: "비블랩 소개", url: "/about", date: "2026-04-11" },
   ];
