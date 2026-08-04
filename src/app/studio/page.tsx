@@ -132,9 +132,9 @@ const CHANNELS = [
   {
     name: "세계유명 골프정보",
     handle: "@세계유명골프정보",
-    subsNum: "24.8만",
+    subsNum: "25.8만",
     category: "골프",
-    result: "구독자 0→24만",
+    result: "구독자 0→25만",
     avatar: "https://yt3.googleusercontent.com/c1FBPCbt8LgbSD35amjUZOfgyqf-GjqpJ-XIx1rX37qyulT5Jscqumkqlk7SCCKWoj4xtdwaeQ4=s240-c-k-c0x00ffffff-no-rj",
     banner: "https://yt3.googleusercontent.com/fNxhkFCNtSBP1dtg0i3W5oZKlohCyLhkNY8vUA1X8qC28L7q_t0QR9j_Ui-qaIq7f5hyiNAcWg=w1280-fcrop64=1,00000000ffffffff",
     url: "https://www.youtube.com/@세계유명골프정보",
@@ -143,9 +143,9 @@ const CHANNELS = [
   {
     name: "영어 키위새",
     handle: "@eng_kiwi",
-    subsNum: "23.5만",
+    subsNum: "24.5만",
     category: "영어 교육",
-    result: "구독자 0→23만",
+    result: "구독자 0→24만",
     avatar: "https://yt3.googleusercontent.com/s0W_yZEOUs466pSMRDegQDGeEJF5Q-TaCGgj4_gQ_eSSpROj0fnvVFXzU3QwmXgyP7-xxyRe=s240-c-k-c0x00ffffff-no-rj",
     banner: "https://yt3.googleusercontent.com/-GU5UUOmKhc_zSCX2RCxc2FRG1ESh1EgLcS9A8AVUT5O9_RfRC4zFNH0pTyQXhisD4jrM6Xxww=w1280-fcrop64=1,00005a5afffffea",
     url: "https://www.youtube.com/@eng_kiwi",
@@ -154,7 +154,7 @@ const CHANNELS = [
   {
     name: "스윔클래스",
     handle: "@swim_class",
-    subsNum: "8.26만",
+    subsNum: "8.57만",
     category: "수영",
     result: "월 조회수 300만+",
     avatar: "https://yt3.googleusercontent.com/DxGEnYcDFNMqQ4rqQ7sYFZFlPksnfh7BJOPOtYM_gDWlTrumru1ohHXga8Pko_xkPsUsrfSq_Hw=s240-c-k-c0x00ffffff-no-rj",
@@ -165,7 +165,7 @@ const CHANNELS = [
   {
     name: "비블 bibl",
     handle: "@bibl_youtube",
-    subsNum: "3.52만",
+    subsNum: "4.2만",
     category: "사업·마케팅",
     result: "매출 연결 콘텐츠",
     avatar: "https://yt3.googleusercontent.com/1wD45zOpnfNTAG4Kq8qs2T27tNyxqXTKC5a23qB6N8zl5SNlU8ugdUCx2yywcrFnBqywfz2z9w=s240-c-k-c0x00ffffff-no-rj",
@@ -174,20 +174,9 @@ const CHANNELS = [
     color: "from-teal-900/80",
   },
   {
-    name: "배고팡",
-    handle: "@baegopang1",
-    subsNum: "3.31만",
-    category: "음식·다이어트",
-    result: "매출 40% 상승",
-    avatar: "https://yt3.googleusercontent.com/7lP38Oezdx8woNwzQcagjmiwMIjpacpOT3mXFetkFsKLetnyi9ymHenTMPUDMwIdjWaLkHYmIg=s240-c-k-c0x00ffffff-no-rj",
-    banner: "https://yt3.googleusercontent.com/oIYW7usbQ4Wp4MdOEmAYHPzFB28-l0chRQwLQ6MvI8cv3IkPbRdyApkwW4CFNrRLu43YO05rVW8=w1280-fcrop64=1,00000000ffffffff",
-    url: "https://www.youtube.com/@baegopang1",
-    color: "from-orange-900/80",
-  },
-  {
     name: "세계유명 골프레슨",
     handle: "@세계유명골프레슨",
-    subsNum: "1.16만",
+    subsNum: "1.84만",
     category: "골프 레슨",
     result: "6개월 내 수익화",
     avatar: "https://yt3.googleusercontent.com/JsHOMhsNg6GVEfeLgArKP5wappnficEWruFlxK8TRRf2_xpqBF3OQsbvkXu32srWaui02zppR_o=s240-c-k-c0x00ffffff-no-rj",
@@ -198,7 +187,7 @@ const CHANNELS = [
   {
     name: "Drawing MiMiSulSul",
     handle: "@MIMISULSUL",
-    subsNum: "0.85만",
+    subsNum: "0.95만",
     category: "드로잉",
     result: "해외 구독자 유입",
     avatar: "https://yt3.googleusercontent.com/_jdM4wQ5HYAvKioeArkYrDYILEcC6Z72HAB9CW8zt-7UPSdJ8nk4s0keAKoQrwMr3Ln4k2_AgHQ=s240-c-k-c0x00ffffff-no-rj",
@@ -207,6 +196,9 @@ const CHANNELS = [
     color: "from-pink-900/80",
   },
 ];
+
+// 비블 채널 (하단 소개 카드에서 사용 — 배열 순서 변경에도 안전)
+const BIBL_CHANNEL = CHANNELS.find((c) => c.handle === "@bibl_youtube")!;
 
 const FEATURES = [
   {
@@ -418,7 +410,7 @@ export default function StudioPage() {
           <div data-animate="up" data-delay="160" className="relative w-full overflow-hidden rounded-2xl border border-gray-800 shadow-2xl shadow-teal-500/5" style={{ paddingTop: "56.25%" }}>
             <iframe
               className="absolute top-0 left-0 w-full h-full"
-              src="https://www.youtube.com/embed/hnI4iidFLeE?autoplay=1&mute=1&playsinline=1&rel=0&loop=1&playlist=hnI4iidFLeE"
+              src="https://www.youtube.com/embed/ojLicBvcS4o?autoplay=1&mute=1&playsinline=1&rel=0&loop=1&playlist=ojLicBvcS4o"
               title="비블 소개 영상"
               frameBorder="0"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -442,7 +434,7 @@ export default function StudioPage() {
             총 <span className="text-teal-400 font-semibold">65만+ 구독자</span> 채널을 운영 및 공동 기획하고 있습니다.
           </p>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {CHANNELS.map((ch, i) => (
               <a
                 key={ch.handle}
@@ -453,29 +445,28 @@ export default function StudioPage() {
                 data-delay={String(i * 60)}
                 className="channel-card group rounded-2xl bg-gray-900 border border-gray-800"
               >
-                <div className="relative h-20 overflow-hidden rounded-t-2xl">
+                <div className="relative h-32 md:h-44 overflow-hidden rounded-t-2xl">
                   <Image src={ch.banner} alt={`${ch.name} 채널 배너`} fill className="object-cover group-hover:scale-105 transition-transform duration-500" unoptimized />
-                  <div className={`absolute inset-0 bg-gradient-to-t ${ch.color} to-transparent`} />
                   {/* 결과 배지 */}
-                  <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-sm text-teal-400 text-[9px] font-bold px-2 py-0.5 rounded-full border border-teal-800/50">
+                  <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-sm text-teal-400 text-xs font-bold px-3 py-1 rounded-full border border-teal-800/50">
                     {ch.result}
                   </div>
                 </div>
-                <div className="px-4 pt-0 pb-4">
-                  <div className="relative -mt-5 mb-2">
-                    <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-gray-900">
-                      <Image src={ch.avatar} alt={ch.name} width={40} height={40} className="object-cover w-full h-full" unoptimized />
+                <div className="px-6 pt-0 pb-6">
+                  <div className="relative -mt-8 mb-3">
+                    <div className="w-16 h-16 rounded-full overflow-hidden border-[3px] border-gray-900 shadow-lg">
+                      <Image src={ch.avatar} alt={ch.name} width={64} height={64} className="object-cover w-full h-full" unoptimized />
                     </div>
                   </div>
-                  <div className="space-y-0.5">
-                    <div className="font-semibold text-xs text-white group-hover:text-teal-400 transition leading-tight">{ch.name}</div>
-                    <div className="text-[10px] text-gray-500">{ch.handle}</div>
-                    <div className="flex items-center justify-between pt-1.5">
+                  <div className="space-y-1">
+                    <div className="font-bold text-base md:text-lg text-white group-hover:text-teal-400 transition leading-tight">{ch.name}</div>
+                    <div className="text-xs text-gray-500">{ch.handle}</div>
+                    <div className="flex items-center justify-between pt-2">
                       <div>
-                        <span className="text-base font-bold text-teal-400">{ch.subsNum}</span>
-                        <span className="text-[10px] text-gray-500 ml-1">구독자</span>
+                        <span className="text-2xl font-bold text-teal-400">{ch.subsNum}</span>
+                        <span className="text-xs text-gray-500 ml-1.5">구독자</span>
                       </div>
-                      <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-gray-800 text-gray-400">{ch.category}</span>
+                      <span className="text-xs px-2.5 py-1 rounded-full bg-gray-800 text-gray-400">{ch.category}</span>
                     </div>
                   </div>
                 </div>
@@ -729,12 +720,11 @@ export default function StudioPage() {
               className="channel-card group rounded-2xl border border-gray-800"
             >
               <div className="relative h-52 overflow-hidden rounded-t-2xl">
-                <Image src={CHANNELS[3].banner} alt="비블 bibl 채널 배너" fill className="object-cover group-hover:scale-105 transition-transform duration-500" unoptimized />
-                <div className="absolute inset-0 bg-gradient-to-t from-teal-900/70 to-transparent" />
+                <Image src={BIBL_CHANNEL.banner} alt="비블 bibl 채널 배너" fill className="object-cover group-hover:scale-105 transition-transform duration-500" unoptimized />
               </div>
               <div className="bg-gray-900 rounded-b-2xl px-5 pb-5 pt-10 relative">
                 <div className="absolute -top-7 left-5 w-14 h-14 rounded-full overflow-hidden border-[3px] border-gray-900 shadow-lg shrink-0">
-                  <Image src={CHANNELS[3].avatar} alt="비블" width={56} height={56} className="object-cover w-full h-full" unoptimized />
+                  <Image src={BIBL_CHANNEL.avatar} alt="비블" width={56} height={56} className="object-cover w-full h-full" unoptimized />
                 </div>
                 <div className="flex items-start justify-between mb-3">
                   <div>
@@ -742,11 +732,11 @@ export default function StudioPage() {
                     <div className="text-xs text-gray-500">@bibl_youtube</div>
                   </div>
                   <div className="text-right">
-                    <div className="text-teal-400 font-bold text-lg">3.52만</div>
+                    <div className="text-teal-400 font-bold text-lg">{BIBL_CHANNEL.subsNum}</div>
                     <div className="text-xs text-gray-500">구독자</div>
                   </div>
                 </div>
-                <p className="text-xs text-gray-500">사업하는 사람들의 이야기를 전합니다 · 동영상 158개</p>
+                <p className="text-xs text-gray-500">사업하는 사람들의 이야기를 전합니다 · 동영상 248개</p>
               </div>
             </a>
           </div>

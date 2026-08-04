@@ -2,32 +2,32 @@
 
 import { useEffect, useRef, useState } from "react";
 
-// ── 숏폼 제외, 일반 영상만 / 채널 라운드로빈 믹싱 ──
+// ── 숏폼 제외, 일반 영상만 / 4개 채널 랜덤 믹싱 (고정 셔플 — 같은 채널 연속 방지) ──
 const VIDEOS = [
+  { id: "Bnp0HyZXOAk",   channel: "비블 bibl",         color: "#134e4a" },
   { id: "l0IYxd-7mss",   channel: "세계유명 골프정보", color: "#14532d" },
-  { id: "kcyaIQXNpII",   channel: "비블 bibl",         color: "#134e4a" },
-  { id: "_5ELU7Bx_J4",   channel: "스윔클래스",        color: "#164e63" },
   { id: "-jWdORm55Kc",   channel: "영어 키위새",        color: "#1e3a5f" },
+  { id: "mxEU4Ui9RBo",   channel: "비블 bibl",         color: "#134e4a" },
+  { id: "_5ELU7Bx_J4",   channel: "스윔클래스",        color: "#164e63" },
   { id: "iIKbXHA3nJU",   channel: "세계유명 골프정보", color: "#14532d" },
-  { id: "vj6DQsMqH5A",   channel: "비블 bibl",         color: "#134e4a" },
-  { id: "ouwAdBTIJwA",   channel: "스윔클래스",        color: "#164e63" },
+  { id: "QH03aawbDXE",   channel: "비블 bibl",         color: "#134e4a" },
   { id: "vQo0-YChg6o",   channel: "영어 키위새",        color: "#1e3a5f" },
   { id: "ZZ4_kNOd5Bg",   channel: "세계유명 골프정보", color: "#14532d" },
-  { id: "Jp59Z7wiOaI",   channel: "비블 bibl",         color: "#134e4a" },
-  { id: "vSzQTivGf34",   channel: "스윔클래스",        color: "#164e63" },
+  { id: "ouwAdBTIJwA",   channel: "스윔클래스",        color: "#164e63" },
+  { id: "N_816X7TFRU",   channel: "비블 bibl",         color: "#134e4a" },
   { id: "7_7Lmix_BZw",   channel: "영어 키위새",        color: "#1e3a5f" },
   { id: "76mUJQrKsSY",   channel: "세계유명 골프정보", color: "#14532d" },
-  { id: "xXwgbvPo7yU",   channel: "비블 bibl",         color: "#134e4a" },
-  { id: "yaw140V8dcM",   channel: "스윔클래스",        color: "#164e63" },
+  { id: "OIDdJAKnOhs",   channel: "비블 bibl",         color: "#134e4a" },
+  { id: "vSzQTivGf34",   channel: "스윔클래스",        color: "#164e63" },
   { id: "JHeJYy_A0aw",   channel: "영어 키위새",        color: "#1e3a5f" },
   { id: "Y2s_QBuaZFk",   channel: "세계유명 골프정보", color: "#14532d" },
-  { id: "Z7Z9m0h9IsI",   channel: "비블 bibl",         color: "#134e4a" },
+  { id: "QvlqpiaFJEw",   channel: "비블 bibl",         color: "#134e4a" },
   { id: "Eni8cn5T1VU",   channel: "영어 키위새",        color: "#1e3a5f" },
+  { id: "yaw140V8dcM",   channel: "스윔클래스",        color: "#164e63" },
   { id: "D_dsbn0qFM4",   channel: "세계유명 골프정보", color: "#14532d" },
-  { id: "VbCvgL-ZvxI",   channel: "비블 bibl",         color: "#134e4a" },
+  { id: "0pyLmSNThh4",   channel: "비블 bibl",         color: "#134e4a" },
   { id: "4F2kGFDUo5M",   channel: "영어 키위새",        color: "#1e3a5f" },
-  { id: "nKonn6YGM9A",   channel: "비블 bibl",         color: "#134e4a" },
-  { id: "ZczdkpjTpXo",   channel: "영어 키위새",        color: "#1e3a5f" },
+  { id: "kcyaIQXNpII",   channel: "세계유명 골프정보", color: "#14532d" },
 ];
 
 // 두 행으로 분배
