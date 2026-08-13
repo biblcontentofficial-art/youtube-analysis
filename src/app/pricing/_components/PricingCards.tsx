@@ -18,6 +18,8 @@ type PlanData = {
   cta: string;
   ctaStyle: string;
   planKey: string;
+  monthlyOnly?: boolean; // true면 연간 옵션 없이 월간 가격만 표시
+  externalUrl?: string; // 있으면 자체 결제 대신 외부 링크로 이동
 };
 
 const PLANS: PlanData[] = [
@@ -94,11 +96,11 @@ const PLANS: PlanData[] = [
     planKey: "pro",
   },
   {
-    name: "Team bibl",
-    monthlyPrice: 390000,
-    yearlyMonthlyPrice: 310000,
-    yearlyTotal: 3720000,
-    desc: "비블과 함께 성장하는 크리에이터",
+    name: "TEAM BIBL",
+    monthlyPrice: 490000,
+    yearlyMonthlyPrice: 490000,
+    yearlyTotal: 5880000,
+    desc: "1:1 유튜브 비즈니스 컨설팅",
     color: "border-purple-600",
     badge: null,
     usage: [
@@ -108,12 +110,14 @@ const PLANS: PlanData[] = [
     features: [
       { text: "Pro의 모든 기능 포함" },
       { text: "매주 1회 1:1 비블 컨설팅" },
-      { text: "160강 VOD 제공 (주차별오픈)" },
+      { text: "100강 VOD 제공" },
       { text: "매월 비블 오프라인 커뮤니티 초대권" },
     ],
-    cta: "Team bibl 시작하기",
+    cta: "TEAM BIBL 시작하기",
     ctaStyle: "bg-purple-600 hover:bg-purple-500 text-white",
     planKey: "business",
+    monthlyOnly: true,
+    externalUrl: "https://www.latpeed.com/memberships/6969983ba5c296323a6eb78c/pay/eLjQa",
   },
 ];
 
@@ -164,12 +168,14 @@ export default function PricingCards() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         {PLANS.map((plan) => {
           const isFree = plan.planKey === "free";
+          // 월간 전용 플랜은 토글과 무관하게 항상 월간 가격
+          const showYearly = isYearly && !plan.monthlyOnly;
           const price = isFree
             ? 0
-            : isYearly
+            : showYearly
               ? plan.yearlyMonthlyPrice
               : plan.monthlyPrice;
-          const period = isFree ? "" : isYearly ? "/ 월" : "/ 월";
+          const period = isFree ? "" : "/ 월";
 
           return (
             <div
@@ -188,7 +194,7 @@ export default function PricingCards() {
                 <div className="text-xs text-gray-500 font-medium mb-1">{plan.desc}</div>
                 <div className="text-lg font-bold text-white mb-2">{plan.name}</div>
                 {/* 연간: 월간 원가 취소선 */}
-                {!isFree && isYearly && (
+                {!isFree && showYearly && (
                   <div className="text-lg text-gray-600 line-through">
                     {formatPrice(plan.monthlyPrice)}
                   </div>
@@ -198,10 +204,14 @@ export default function PricingCards() {
                   {period && <span className="text-gray-500 text-xs">{period}</span>}
                 </div>
                 {/* 연간: 절약 금액 */}
-                {!isFree && isYearly && (
+                {!isFree && showYearly && (
                   <div className="text-xs text-teal-400 mt-1">
                     월간 대비 {formatPrice((plan.monthlyPrice - plan.yearlyMonthlyPrice) * 12)} 절약
                   </div>
+                )}
+                {/* 월간 전용 안내 */}
+                {plan.monthlyOnly && (
+                  <div className="text-xs text-gray-500 mt-1">월간 결제만 제공됩니다</div>
                 )}
               </div>
 
@@ -236,12 +246,23 @@ export default function PricingCards() {
                 </ul>
               </div>
 
-              <PricingButton
-                plan={plan.planKey}
-                cta={plan.cta}
-                ctaStyle={plan.ctaStyle}
-                period={isFree ? undefined : (isYearly ? "yearly" : "monthly")}
-              />
+              {plan.externalUrl ? (
+                <a
+                  href={plan.externalUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`block w-full py-2.5 rounded-xl font-semibold text-center text-sm transition-all ${plan.ctaStyle}`}
+                >
+                  {plan.cta}
+                </a>
+              ) : (
+                <PricingButton
+                  plan={plan.planKey}
+                  cta={plan.cta}
+                  ctaStyle={plan.ctaStyle}
+                  period={isFree ? undefined : (isYearly ? "yearly" : "monthly")}
+                />
+              )}
             </div>
           );
         })}

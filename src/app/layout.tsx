@@ -148,9 +148,9 @@ export default async function RootLayout({
         {
           "@type": "Offer",
           name: "Team bibl 플랜",
-          price: "310000",
+          price: "490000",
           priceCurrency: "KRW",
-          description: "영상·채널 검색 무제한, 매주 1회 1:1 비블 컨설팅, 160강 VOD, 비블 오프라인 커뮤니티",
+          description: "영상·채널 검색 무제한, 매주 1회 1:1 비블 컨설팅, 100강 VOD, 비블 오프라인 커뮤니티",
           billingIncrement: "P1M",
         },
       ],
@@ -218,7 +218,7 @@ export default async function RootLayout({
           name: "비블랩은 무료로 사용할 수 있나요?",
           acceptedAnswer: {
             "@type": "Answer",
-            text: "네, 비블랩은 무료 Free 플랜으로 시작할 수 있습니다. 하루 2회 영상 검색, 1회 채널 검색이 무료로 제공됩니다. 더 많은 검색이 필요하면 Starter(월 15,000원), Pro(월 39,000원), Team bibl(월 310,000원) 플랜으로 업그레이드할 수 있습니다.",
+            text: "네, 비블랩은 무료 Free 플랜으로 시작할 수 있습니다. 하루 2회 영상 검색, 1회 채널 검색이 무료로 제공됩니다. 더 많은 검색이 필요하면 Starter(월 15,000원), Pro(월 39,000원), TEAM BIBL(월 490,000원) 플랜으로 업그레이드할 수 있습니다.",
           },
         },
         {

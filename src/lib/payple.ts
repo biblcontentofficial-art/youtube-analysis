@@ -23,9 +23,9 @@ export const PLANS = {
   },
   business: {
     name: 'Team bibl',
-    amount: 310000,
-    monthlyAmount: 390000,   // 월간 결제
-    yearlyAmount: 3720000,   // 연간 일시불 (310000 × 12)
+    amount: 490000,
+    monthlyAmount: 490000,   // 월간 결제
+    yearlyAmount: 5880000,   // 연간 일시불 (490000 × 12)
     searchLimit: -1, // unlimited
   },
 }

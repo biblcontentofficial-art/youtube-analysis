@@ -26,9 +26,9 @@ export const PORTONE_PLANS = {
     orderName: "bibl lab Pro 플랜",
   },
   business: {
-    amount: 310000,
-    monthlyAmount: 390000,
-    yearlyAmount: 3720000,
+    amount: 490000,
+    monthlyAmount: 490000,
+    yearlyAmount: 5880000,
     orderName: "bibl lab Team bibl 플랜",
   },
 } as const;
