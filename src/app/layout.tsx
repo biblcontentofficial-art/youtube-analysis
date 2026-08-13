@@ -275,7 +275,7 @@ export default async function RootLayout({
         { "@type": "ListItem", position: 1, name: "홈", item: "https://bibllab.com" },
         { "@type": "ListItem", position: 2, name: "영상 찾기", item: "https://bibllab.com/search" },
         { "@type": "ListItem", position: 3, name: "채널 찾기", item: "https://bibllab.com/channels" },
-        { "@type": "ListItem", position: 4, name: "비블의 인사이트", item: "https://bibllab.com/insights" },
+        { "@type": "ListItem", position: 4, name: "비블의 칼럼", item: "https://bibllab.com/insights" },
         { "@type": "ListItem", position: 5, name: "요금제", item: "https://bibllab.com/pricing" },
         { "@type": "ListItem", position: 6, name: "스튜디오", item: "https://bibllab.com/studio" },
       ],
@@ -324,8 +324,8 @@ export default async function RootLayout({
               </a>
 
               <div className="hidden md:flex items-center gap-1 text-sm whitespace-nowrap">
-                {/* 비블의 인사이트 (비즈니스 칼럼) — 가장 왼쪽, 강조 */}
-                <NavTab href="/insights" label="비블의 인사이트" highlight icon={
+                {/* 비블의 칼럼 (비즈니스 칼럼) — 가장 왼쪽, 강조 */}
+                <NavTab href="/insights" label="비블의 칼럼" highlight icon={
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
                     <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
                   </svg>
@@ -483,12 +483,12 @@ function NavTab({
     Pro:     "bg-purple-950/60 text-purple-400 border border-purple-800/70",
   };
 
-  // 강조 탭 (비블의 인사이트) — 테두리 없이 천천히 깜박이는 효과
+  // 강조 탭 (비블의 칼럼) — 은은한 필 배경으로 차분하게 강조
   if (highlight) {
     return (
       <a
         href={href}
-        className="animate-slow-blink flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-semibold text-teal-300 hover:text-teal-200 hover:bg-teal-950/30 transition-colors"
+        className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-sm font-semibold bg-white/[0.06] text-teal-300 hover:bg-white/[0.10] hover:text-teal-200 transition-colors"
       >
         {icon}
         {label}

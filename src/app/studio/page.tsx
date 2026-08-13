@@ -18,9 +18,9 @@ if (process.env.NODE_ENV === "development") {
 const C = rawContent;
 
 export const metadata: Metadata = {
-  title: "유튜브 채널 대행 1위 | 65만 구독자 비블의 TMK STUDIO",
+  title: "유튜브 채널 대행 1위 | 70만 구독자 비블의 TMK STUDIO",
   description:
-    "구독자 0명에서 24만까지. 총 65만+ 구독자 채널을 운영한 유튜브 전문가 비블이 기획·촬영·편집·업로드·분석까지 전 과정을 책임집니다. 무료 채널 진단부터 시작하세요.",
+    "구독자 0명에서 24만까지. 총 70만+ 구독자 채널을 운영한 유튜브 전문가 비블이 기획·촬영·편집·업로드·분석까지 전 과정을 책임집니다. 무료 채널 진단부터 시작하세요.",
   keywords: [
     "유튜브 채널 대행",
     "유튜브 대행",
@@ -44,9 +44,9 @@ export const metadata: Metadata = {
     canonical: "https://bibllab.com/studio",
   },
   openGraph: {
-    title: "유튜브 채널 대행 1위 | 65만 구독자 비블의 TMK STUDIO",
+    title: "유튜브 채널 대행 1위 | 70만 구독자 비블의 TMK STUDIO",
     description:
-      "구독자 0명에서 24만까지. 총 65만+ 구독자 채널을 운영한 유튜브 전문가 비블이 기획·촬영·편집·업로드·분석까지 전 과정을 책임집니다.",
+      "구독자 0명에서 24만까지. 총 70만+ 구독자 채널을 운영한 유튜브 전문가 비블이 기획·촬영·편집·업로드·분석까지 전 과정을 책임집니다.",
     url: "https://bibllab.com/studio",
     siteName: "비블랩 (bibl lab)",
     images: [
@@ -63,7 +63,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "유튜브 채널 대행 1위 | 비블 TMK STUDIO",
-    description: "구독자 0명에서 24만까지. 65만+ 구독자 채널 운영 비블이 직접 운영합니다.",
+    description: "구독자 0명에서 24만까지. 70만+ 구독자 채널 운영 비블이 직접 운영합니다.",
     images: ["https://bibllab.com/studio/silver-play-button.jpg"],
   },
   robots: {
@@ -86,7 +86,7 @@ const studioJsonLd = {
   name: "비블 TMK STUDIO — 유튜브 채널 대행",
   serviceType: "유튜브 채널 운영 대행",
   description:
-    "총 65만+ 구독자 채널을 운영한 비블이 직접 기획·촬영·편집·업로드·분석까지 전 과정을 대행합니다. " +
+    "총 70만+ 구독자 채널을 운영한 비블이 직접 기획·촬영·편집·업로드·분석까지 전 과정을 대행합니다. " +
     "구독자 0명부터 24만까지 성장시킨 검증된 노하우로 여러분의 유튜브 채널을 키웁니다.",
   provider: {
     "@type": "Organization",
@@ -113,7 +113,7 @@ const studioJsonLd = {
         itemOffered: {
           "@type": "Service",
           name: "1:1 유튜브 컨설팅",
-          description: "65만+ 구독자 비블이 직접 진행하는 1:1 유튜브 브랜딩·비즈니스 컨설팅",
+          description: "70만+ 구독자 비블이 직접 진행하는 1:1 유튜브 브랜딩·비즈니스 컨설팅",
         },
       },
     ],
@@ -431,7 +431,7 @@ export default function StudioPage() {
             말이 아닌, 결과로 증명합니다
           </h2>
           <p data-animate="up" data-delay="160" className="text-gray-400 mb-12 text-base md:text-lg">
-            총 <span className="text-teal-400 font-semibold">65만+ 구독자</span> 채널을 운영 및 공동 기획하고 있습니다.
+            총 <span className="text-teal-400 font-semibold">70만+ 구독자</span> 채널을 운영 및 공동 기획하고 있습니다.
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -647,7 +647,7 @@ export default function StudioPage() {
                   <p className="text-[11px] font-black uppercase tracking-widest text-teal-500 mb-2.5">온라인</p>
                   <div className="space-y-2">
                     {[
-                      "유튜브 총 65만+ 채널 운영 및 공동기획",
+                      "유튜브 총 70만+ 채널 운영 및 공동기획",
                       "세계유명골프정보, 영어키위새, 스윔클래스, 비블bibl 등",
                       "인스타그램 2.7만 @seyugolf",
                       "스레드 1.7만 @bibl_youtube",
@@ -778,48 +778,37 @@ export default function StudioPage() {
       {/* ══════════════════════════════════════════════════════════════ */}
       <section>
         <div className="max-w-screen-xl mx-auto px-4 py-28">
-          <div className="relative rounded-3xl border border-teal-800/40 bg-gradient-to-br from-teal-950/40 to-gray-900 overflow-hidden p-10 md:p-16 text-center">
-            {/* 배경 효과 */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-40 bg-teal-500/10 blur-3xl rounded-full pointer-events-none" />
-
-            <div data-animate="up" className="relative inline-block mb-8">
-              {/* 외부 ping 링 */}
-              <div className="absolute inset-0 rounded-2xl border border-red-500/60 animate-ping" style={{ animationDuration: "1.8s" }} />
-              {/* 글로우 pulse */}
-              <div className="absolute inset-0 rounded-2xl animate-pulse" style={{ boxShadow: "0 0 20px 4px rgba(239,68,68,0.25)" }} />
+          <div className="relative rounded-3xl border border-gray-800 bg-gray-950 p-10 md:p-16 text-center">
+            <div data-animate="up" className="mb-8">
               <a
                 href="/studio/consulting"
-                className="relative inline-flex flex-col items-center gap-1 border border-red-600/70 bg-red-950/50 hover:bg-red-950/70 rounded-2xl px-7 py-3.5 transition group"
+                className="inline-flex items-center gap-2.5 border border-gray-700 hover:border-gray-500 rounded-full px-5 py-2 transition group"
               >
-                <span className="flex items-center gap-2 text-sm font-bold text-red-400">
-                  <span className="w-2 h-2 bg-red-400 rounded-full animate-pulse shrink-0" />
-                  이번달 신규 대행 마감임박
-                </span>
-                <span className="text-sm font-semibold text-white group-hover:text-teal-300 transition">
-                  무료 상담을 남겨주세요 →
-                </span>
+                <span className="text-xs font-semibold text-gray-400 tracking-wide">이번달 신규 대행 마감임박</span>
+                <span className="w-px h-3 bg-gray-700" />
+                <span className="text-xs font-semibold text-white group-hover:text-gray-300 transition">무료 상담 남기기 →</span>
               </a>
             </div>
 
-            <h2 data-animate="up" data-delay="80" className="text-3xl md:text-5xl font-bold mb-6 leading-tight relative">
+            <h2 data-animate="up" data-delay="80" className="text-3xl md:text-5xl font-bold mb-6 leading-tight tracking-tight">
               지금 무료 상담을 신청해보세요.<br />
-              <span className="text-teal-400">비블이 직접 연락드립니다.</span>
+              비블이 직접 연락드립니다.
             </h2>
 
-            <p data-animate="up" data-delay="160" className="text-gray-400 mb-10 text-base md:text-lg relative max-w-xl mx-auto">
+            <p data-animate="up" data-delay="160" className="text-gray-500 mb-10 text-base md:text-lg max-w-xl mx-auto">
               여러분의 유튜브 성장 가능성을 무료로 확인해드립니다.
             </p>
 
-            <div data-animate="scale" data-delay="240" className="relative">
+            <div data-animate="scale" data-delay="240">
               <a
                 href="/studio/consulting"
-                className="inline-flex items-center gap-3 px-12 py-5 bg-teal-500 hover:bg-teal-400 text-white font-bold rounded-2xl transition text-lg shadow-2xl shadow-teal-900/50"
+                className="inline-flex items-center gap-3 px-12 py-5 bg-white hover:bg-gray-200 text-black font-bold rounded-2xl transition text-lg"
               >
                 무료 상담 바로가기
               </a>
             </div>
 
-            <div data-animate="fade" data-delay="400" className="relative mt-8 flex flex-wrap justify-center gap-6 text-xs text-gray-600">
+            <div data-animate="fade" data-delay="400" className="mt-8 flex flex-wrap justify-center gap-6 text-xs text-gray-600">
               <span>✓ 완전 무료</span>
               <span>✓ 채널 URL 하나면 OK</span>
             </div>

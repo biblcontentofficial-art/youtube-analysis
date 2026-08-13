@@ -10,7 +10,7 @@ interface Stat {
 }
 
 const STATS: Stat[] = [
-  { end: 65, suffix: "만+", label: "총 구독자" },
+  { end: 70, suffix: "만+", label: "총 구독자" },
   { end: 1.7, suffix: "억회+", label: "누적 조회수", decimals: 1 },
   { end: 10, suffix: "억원+", label: "유튜브 매출" },
 ];
