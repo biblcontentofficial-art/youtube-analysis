@@ -2,20 +2,17 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
-import ConsultingApplyForm from "./_components/ConsultingApplyForm";
 
 /**
- * 1:1 유튜브 컨설팅 상세 페이지
- * - 상세 이미지 4장 (public/studio/1on1-consulting/1~4.png)
- * - "1:1 컨설팅 신청" 버튼 → 신청 폼 모달 → bibl.content.official@gmail.com 메일
+ * 팀비블 1:1 유튜브 컨설팅 상세 페이지
+ * - 상세 이미지 7장 (public/studio/consulting/1~7.png)
+ * - "1:1 팀비블 신청하기" 클릭 → Latpeed 결제 페이지로 이동
  */
 
-const DETAIL_IMAGES = [1, 2, 3, 4];
+const DETAIL_IMAGES = [1, 2, 3, 4, 5, 6, 7];
+const APPLY_URL = "https://www.latpeed.com/memberships/6969983ba5c296323a6eb78c/pay/eLjQa";
 
-export default function OneOnOneConsultingPage() {
-  const [showForm, setShowForm] = useState(false);
-
+export default function TeamBiblConsultingPage() {
   return (
     <main className="min-h-screen bg-black text-white">
       {/* 상단 네비 */}
@@ -25,12 +22,14 @@ export default function OneOnOneConsultingPage() {
             ← 스튜디오
           </Link>
           <span className="text-sm font-bold text-white">1:1 유튜브 컨설팅</span>
-          <button
-            onClick={() => setShowForm(true)}
+          <a
+            href={APPLY_URL}
+            target="_blank"
+            rel="noopener noreferrer"
             className="text-xs font-bold text-teal-400 hover:text-teal-300 transition"
           >
             신청하기
-          </button>
+          </a>
         </div>
       </div>
 
@@ -39,8 +38,8 @@ export default function OneOnOneConsultingPage() {
         {DETAIL_IMAGES.map((n) => (
           <div key={n} className="w-full leading-[0]">
             <Image
-              src={`/studio/1on1-consulting/${n}.png`}
-              alt={`1:1 유튜브 컨설팅 상세 ${n}`}
+              src={`/studio/consulting/${n}.png`}
+              alt={`팀비블 1:1 유튜브 컨설팅 상세 ${n}`}
               width={1000}
               height={8000}
               className="w-full h-auto"
@@ -53,32 +52,34 @@ export default function OneOnOneConsultingPage() {
       {/* 하단 CTA */}
       <div className="max-w-2xl mx-auto px-4 py-14 text-center">
         <h2 className="text-2xl md:text-3xl font-black tracking-tight mb-3">
-          비블과 <span className="text-teal-400">1:1</span>로 시작하세요
+          <span className="text-teal-400">1:1 팀비블</span>과 시작하세요
         </h2>
         <p className="text-gray-400 text-sm leading-relaxed mb-8">
-          브랜딩부터 비즈니스 확장까지, 당신의 채널에 맞춘 1:1 맞춤 컨설팅입니다.
+          유튜브 채널 성장과 함께 사업을 성장시키는 방법까지, 비블이 1:1로 함께합니다.
         </p>
-        <button
-          onClick={() => setShowForm(true)}
+        <a
+          href={APPLY_URL}
+          target="_blank"
+          rel="noopener noreferrer"
           className="inline-flex items-center gap-2 px-8 py-4 bg-teal-500 hover:bg-teal-400 text-white font-black rounded-xl transition text-base shadow-lg shadow-teal-900/30"
         >
-          1:1 컨설팅 신청하기
+          1:1 팀비블 신청하기
           <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 5l7 7-7 7" /></svg>
-        </button>
-        <p className="text-xs text-gray-600 mt-4">영업일 기준 1~2일 내 연락드립니다</p>
+        </a>
+        <p className="text-xs text-gray-600 mt-4">신청 페이지로 이동합니다</p>
       </div>
 
       {/* 모바일 하단 고정 신청 버튼 */}
       <div className="sticky bottom-0 z-30 md:hidden bg-black/95 backdrop-blur border-t border-gray-900 p-3">
-        <button
-          onClick={() => setShowForm(true)}
-          className="w-full py-4 bg-teal-500 hover:bg-teal-400 text-white font-black rounded-xl transition text-sm"
+        <a
+          href={APPLY_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block w-full py-4 bg-teal-500 hover:bg-teal-400 text-white text-center font-black rounded-xl transition text-sm"
         >
-          1:1 컨설팅 신청하기
-        </button>
+          1:1 팀비블 신청하기
+        </a>
       </div>
-
-      {showForm && <ConsultingApplyForm onClose={() => setShowForm(false)} />}
     </main>
   );
 }

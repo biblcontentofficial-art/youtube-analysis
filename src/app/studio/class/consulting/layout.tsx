@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     siteName: "비블랩 (bibl lab)",
     images: [
       {
-        url: "https://bibllab.com/studio/1on1-consulting/1.png",
+        url: "https://bibllab.com/studio/consulting/1.png",
         width: 1000,
         height: 1000,
         alt: "1:1 유튜브 컨설팅",
@@ -39,7 +39,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "1:1 유튜브 컨설팅 | 비블의 맞춤 코칭",
     description: "65만+ 구독자 비블이 직접 진행하는 1:1 유튜브 컨설팅.",
-    images: ["https://bibllab.com/studio/1on1-consulting/1.png"],
+    images: ["https://bibllab.com/studio/consulting/1.png"],
   },
   robots: { index: true, follow: true },
 };
