@@ -18,7 +18,7 @@ if (process.env.NODE_ENV === "development") {
 const C = rawContent;
 
 export const metadata: Metadata = {
-  title: "유튜브 채널 대행 1위 | 70만 구독자 비블의 TMK STUDIO",
+  title: "유튜브 채널 대행 | 70만 구독자 비블의 TMK STUDIO",
   description:
     "구독자 0명에서 24만까지. 총 70만+ 구독자 채널을 운영한 유튜브 전문가 비블이 기획·촬영·편집·업로드·분석까지 전 과정을 책임집니다. 무료 채널 진단부터 시작하세요.",
   keywords: [
@@ -44,7 +44,7 @@ export const metadata: Metadata = {
     canonical: "https://bibllab.com/studio",
   },
   openGraph: {
-    title: "유튜브 채널 대행 1위 | 70만 구독자 비블의 TMK STUDIO",
+    title: "유튜브 채널 대행 | 70만 구독자 비블의 TMK STUDIO",
     description:
       "구독자 0명에서 24만까지. 총 70만+ 구독자 채널을 운영한 유튜브 전문가 비블이 기획·촬영·편집·업로드·분석까지 전 과정을 책임집니다.",
     url: "https://bibllab.com/studio",
@@ -62,7 +62,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "유튜브 채널 대행 1위 | 비블 TMK STUDIO",
+    title: "유튜브 채널 대행 | 비블 TMK STUDIO",
     description: "구독자 0명에서 24만까지. 70만+ 구독자 채널 운영 비블이 직접 운영합니다.",
     images: ["https://bibllab.com/studio/silver-play-button.jpg"],
   },
