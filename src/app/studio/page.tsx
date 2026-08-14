@@ -284,7 +284,12 @@ export default function StudioPage() {
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div>
               <p data-animate="up" className="text-sm md:text-base text-neutral-400 font-medium mb-4">
-                {C.hero.badge}
+                {C.hero.badge.split("70만+").map((part, idx, arr) => (
+                  <span key={idx}>
+                    {part}
+                    {idx < arr.length - 1 && <span className="text-[#E5484D] font-bold">70만+</span>}
+                  </span>
+                ))}
               </p>
 
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-black leading-[1.1] tracking-tight mb-6">
@@ -350,7 +355,7 @@ export default function StudioPage() {
           <SectionLabel label="PROBLEM" />
           <h2 data-animate="up" className="text-3xl md:text-5xl font-black leading-tight mb-14">
             <span className="text-neutral-400">유튜브 채널 운영,</span><br />
-            혼자 하면 이 3가지에서 막힙니다
+            혼자 하면 이 <span className="text-[#E5484D]">3가지</span>에서 막힙니다
           </h2>
 
           <div className="grid md:grid-cols-3 gap-6">
@@ -436,7 +441,7 @@ export default function StudioPage() {
             말이 아닌, 결과로 증명합니다
           </h2>
           <p data-animate="up" data-delay="160" className="text-neutral-400 mb-12 text-base md:text-lg">
-            총 <span className="text-[#FF1E1E] font-bold">70만+ 구독자</span> 채널을 운영 및 공동 기획하고 있습니다.
+            총 <span className="text-[#E5484D] font-bold">70만+ 구독자</span> 채널을 운영 및 공동 기획하고 있습니다.
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -504,7 +509,7 @@ export default function StudioPage() {
               ))}
             </div>
             <p className="mt-8 pt-6 border-t border-neutral-800 text-sm text-neutral-400 leading-relaxed">
-              채널 성과에서 끝나지 않습니다. 이 트래픽은 골프 쇼핑몰 <span className="text-white font-semibold">연 매출 7억+</span>으로 직접 연결됩니다.
+              채널 성과에서 끝나지 않습니다. 이 트래픽은 골프 쇼핑몰 <span className="text-[#E5484D] font-semibold">연 매출 7억+</span>으로 직접 연결됩니다.
               트래픽을 매출로 전환하는 비즈니스 설계 — 일반 대행사와 가장 다른 지점입니다.
             </p>
           </div>
@@ -519,7 +524,7 @@ export default function StudioPage() {
           <SectionLabel label="CONTENTS" />
           <h2 data-animate="up" className="text-2xl md:text-4xl font-black leading-snug">
             <span className="text-neutral-400">{C.marquee.titleLine1}</span><br />
-            <span className="text-[#FF1E1E]">
+            <span className="text-[#E5484D]">
               {C.marquee.titleHighlight}
             </span>{C.marquee.titleLine2}
           </h2>
@@ -542,7 +547,7 @@ export default function StudioPage() {
         <div className="max-w-screen-xl mx-auto px-4 py-20">
           <SectionLabel label="PROCESS" />
           <h2 data-animate="up" className="text-3xl md:text-5xl font-black leading-tight mb-4">
-            <span className="text-neutral-400">문의부터 운영까지,</span><br />7단계로 진행됩니다
+            <span className="text-neutral-400">문의부터 운영까지,</span><br /><span className="text-[#E5484D]">7단계</span>로 진행됩니다
           </h2>
           <p data-animate="up" data-delay="160" className="text-neutral-400 mb-16 text-base">
             여러분이 쓰는 시간은 월 촬영 하루 3~4시간, 질문지 답변 2~3시간이 전부입니다
@@ -647,7 +652,7 @@ export default function StudioPage() {
         <div className="max-w-screen-xl mx-auto px-4 py-20">
           <SectionLabel label="DIFFERENCE" />
           <h2 data-animate="up" className="text-3xl md:text-5xl font-black leading-tight">
-            <span className="text-neutral-400">기존 유튜브 대행사의</span><br />3가지 구조적 문제
+            <span className="text-neutral-400">기존 유튜브 대행사의</span><br /><span className="text-[#E5484D]">3가지</span> 구조적 문제
           </h2>
           <p data-animate="up" data-delay="160" className="text-neutral-400 mt-5 mb-14 text-base max-w-2xl">
             직접 이 사업에 뛰어들어 경쟁사를 깊이 분석한 결과, 업계에는 명확한 구조적 문제가 있었습니다.
@@ -736,7 +741,7 @@ export default function StudioPage() {
               >
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex gap-0.5 text-white text-sm">★★★★★</div>
-                  <span className="text-xs font-bold text-[#FF1E1E] border border-neutral-700 px-2.5 py-1 rounded-full">
+                  <span className="text-xs font-bold text-[#E5484D] border border-neutral-700 px-2.5 py-1 rounded-full">
                     {r.result}
                   </span>
                 </div>
@@ -757,7 +762,7 @@ export default function StudioPage() {
           <div className="grid md:grid-cols-2 gap-16 items-center">
             <div>
               <h2 data-animate="up" className="text-4xl md:text-5xl font-black mb-2">비블 (김태민)</h2>
-              <p data-animate="up" data-delay="160" className="text-[#FF1E1E] font-bold text-lg mb-8">TMK STUDIO 대표</p>
+              <p data-animate="up" data-delay="160" className="text-[#E5484D] font-bold text-lg mb-8">TMK STUDIO 대표</p>
 
               <div data-animate="up" data-delay="220" className="space-y-6 mb-8">
                 {/* 온라인 */}
@@ -959,7 +964,7 @@ export default function StudioPage() {
                 href="/studio/consulting"
                 className="inline-flex items-center gap-2.5 border border-neutral-700 hover:border-neutral-500 rounded-full px-5 py-2 transition group"
               >
-                <span className="text-xs font-semibold text-[#FF1E1E] tracking-wide">이번달 신규 대행 마감임박</span>
+                <span className="text-xs font-semibold text-[#E5484D] tracking-wide">이번달 신규 대행 마감임박</span>
                 <span className="w-px h-3 bg-neutral-700" />
                 <span className="text-xs font-semibold text-white group-hover:text-neutral-300 transition">채널 대행 문의 남기기 →</span>
               </a>

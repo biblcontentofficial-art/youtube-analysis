@@ -61,8 +61,8 @@ function Counter({ stat }: { stat: Stat }) {
     <div ref={ref} className="flex flex-col items-center text-center flex-1 min-w-[160px]">
       {/* 숫자 */}
       <div className="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight stat-num leading-none whitespace-nowrap">
-        <span className="text-white">{count}</span>
-        <span className="text-white">{stat.suffix}</span>
+        <span className="text-[#E5484D]">{count}</span>
+        <span className="text-[#E5484D]">{stat.suffix}</span>
       </div>
       {/* 레이블 */}
       <div className="mt-3 text-sm md:text-base text-neutral-400 font-medium tracking-wide">
