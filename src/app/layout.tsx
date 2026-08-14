@@ -5,6 +5,7 @@ import NavigationLoader from "./_components/NavigationLoader";
 import { ConfirmProvider } from "./_components/ConfirmDialog";
 import NavUser from "./_components/NavUser";
 import ReferralApply from "./_components/ReferralApply";
+import KakaoChatButton from "./_components/KakaoChatButton";
 import "./globals.css";
 
 
@@ -415,6 +416,7 @@ export default async function RootLayout({
         </nav>
         {children}
         <ReferralApply />
+        <KakaoChatButton />
         {DevToolbar && <DevToolbar />}
         <footer className="border-t border-gray-800 bg-gray-950 mt-16">
 
