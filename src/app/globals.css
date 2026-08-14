@@ -114,7 +114,7 @@ body {
   bottom: -4px;
   height: 3px;
   width: 0;
-  background: #e5484d;
+  background: #ffffff;
   border-radius: 2px;
   transition: width 1s cubic-bezier(0.16, 1, 0.3, 1);
 }

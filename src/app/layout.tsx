@@ -325,7 +325,11 @@ export default async function RootLayout({
               </a>
 
               <div className="hidden md:flex items-center gap-1 text-sm whitespace-nowrap">
-                {/* 비블의 칼럼 (비즈니스 칼럼) — 가장 왼쪽, 강조 */}
+                {/* 메인 서비스: 팀비블 컨설팅 · 채널 대행 — 네온 그린 강조 */}
+                <NavTab href="/studio/class/consulting" label="팀비블 1:1 유튜브 컨설팅" isStudio />
+                <NavTab href="/studio" label="유튜브 채널 대행 문의" isStudio />
+                <div className="w-px h-4 bg-neutral-700 mx-1" />
+                {/* 비블의 칼럼 (비즈니스 칼럼) — 화이트 필 강조 */}
                 <NavTab href="/insights" label="비블의 칼럼" highlight icon={
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
                     <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
@@ -336,7 +340,7 @@ export default async function RootLayout({
                   href="https://cafe.naver.com/businessblack"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm transition text-neutral-400 hover:text-white hover:bg-neutral-800"
+                  className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-sm font-semibold bg-white/[0.06] text-white hover:bg-white/[0.10] transition-colors"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="w-3 h-3" fill="currentColor" aria-label="네이버 카페">
                     <path d="M16.273 12.845L7.376 0H0v24h7.727V11.156L16.624 24H24V0h-7.727v12.845z" />
@@ -349,7 +353,7 @@ export default async function RootLayout({
                   target="_blank"
                   rel="noopener noreferrer"
                   title="참여코드 230000"
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm transition text-neutral-400 hover:text-white hover:bg-neutral-800"
+                  className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-sm font-semibold bg-white/[0.06] text-white hover:bg-white/[0.10] transition-colors"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
                     <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
@@ -387,11 +391,6 @@ export default async function RootLayout({
                     <rect x="1" y="4" width="22" height="16" rx="2" ry="2" /><line x1="1" y1="10" x2="23" y2="10" />
                   </svg>
                 } />
-                <>
-                  <div className="w-px h-4 bg-neutral-700 mx-1" />
-                  <NavTab href="/studio/class/consulting" label="팀비블 1:1 유튜브 컨설팅" isStudio />
-                  <NavTab href="/studio" label="유튜브 채널 대행 문의" isStudio />
-                </>
               </div>
             </div>
 
@@ -414,14 +413,14 @@ export default async function RootLayout({
             <div className="max-w-screen-2xl mx-auto px-4 py-2 flex items-center justify-center gap-2 overflow-x-auto scrollbar-hide">
               <a
                 href="/studio/class/consulting"
-                className="text-xs text-white hover:text-neutral-300 font-semibold px-3 py-1.5 rounded-md whitespace-nowrap"
+                className="text-xs text-[#00E676] hover:text-[#5CFFAD] font-semibold px-3 py-1.5 rounded-md whitespace-nowrap"
               >
                 팀비블 1:1 유튜브 컨설팅
               </a>
               <span className="w-px h-3 bg-neutral-700" />
               <a
                 href="/studio"
-                className="text-xs text-white hover:text-neutral-300 font-semibold px-3 py-1.5 rounded-md whitespace-nowrap"
+                className="text-xs text-[#00E676] hover:text-[#5CFFAD] font-semibold px-3 py-1.5 rounded-md whitespace-nowrap"
               >
                 유튜브 채널 대행 문의
               </a>
@@ -528,7 +527,7 @@ function NavTab({
     return (
       <a
         href={href}
-        className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm transition text-white hover:text-neutral-300 hover:bg-neutral-800 font-semibold"
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm transition text-[#00E676] hover:text-[#5CFFAD] hover:bg-neutral-900 font-semibold"
       >
         {icon}
         {label}
