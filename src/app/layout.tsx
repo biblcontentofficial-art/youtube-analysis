@@ -311,9 +311,9 @@ export default async function RootLayout({
         <NavigationLoader>
         <ConfirmProvider>
         <nav className="border-b border-neutral-800 bg-black sticky top-0 z-50">
-          <div className="max-w-screen-2xl mx-auto px-4 h-14 flex items-center justify-between min-w-0 overflow-x-auto scrollbar-hide">
+          <div className="w-full px-3 h-14 flex items-center justify-between min-w-0 overflow-x-auto scrollbar-hide">
             {/* 로고 + 탭 */}
-            <div className="flex items-center gap-6 shrink-0">
+            <div className="flex items-center gap-3 shrink-0">
               <a href="/" className="flex items-center gap-2 shrink-0">
                 <div className="w-8 h-8 bg-black border border-neutral-700 rounded-lg flex items-center justify-center">
                   <span style={{ color: "white", fontSize: 18, fontWeight: 900, lineHeight: 1, fontFamily: "sans-serif" }}>B</span>
@@ -340,7 +340,7 @@ export default async function RootLayout({
                   href="https://cafe.naver.com/businessblack"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-sm font-semibold bg-white/[0.06] text-white hover:bg-white/[0.10] transition-colors"
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-sm font-semibold bg-white/[0.06] text-white hover:bg-white/[0.10] transition-colors"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="w-3 h-3" fill="currentColor" aria-label="네이버 카페">
                     <path d="M16.273 12.845L7.376 0H0v24h7.727V11.156L16.624 24H24V0h-7.727v12.845z" />
@@ -353,7 +353,7 @@ export default async function RootLayout({
                   target="_blank"
                   rel="noopener noreferrer"
                   title="참여코드 230000"
-                  className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-sm font-semibold bg-white/[0.06] text-white hover:bg-white/[0.10] transition-colors"
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-sm font-semibold bg-white/[0.06] text-white hover:bg-white/[0.10] transition-colors"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
                     <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
@@ -361,28 +361,10 @@ export default async function RootLayout({
                   비블 오픈채팅방
                   <span className="text-[10px] font-bold px-1.5 py-0.5 rounded border border-neutral-700 text-neutral-500 leading-none">코드 230000</span>
                 </a>
-                {/* 영상 찾기 */}
-                <NavTab href="/search" label="영상 찾기" icon={
+                {/* 유튜브 트렌드 서치 — 분석 기능 허브 */}
+                <NavTab href="/trend-search" label="유튜브 트렌드 서치" icon={
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
                     <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
-                  </svg>
-                } />
-                {/* 채널 찾기 */}
-                <NavTab href="/channels" label="채널 찾기" requiredPlan={!isStarterPlus ? "Starter" : undefined} icon={
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
-                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                  </svg>
-                } />
-                {/* 채널 분석 */}
-                <NavTab href="/my-channel" label="채널 분석" requiredPlan={!isStarterPlus ? "Starter" : undefined} icon={
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
-                    <line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" />
-                  </svg>
-                } />
-                {/* 수집한 영상 */}
-                <NavTab href="/saved" label="수집한 영상" requiredPlan={!isProPlus ? "Pro" : undefined} icon={
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
-                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" /><polyline points="17 21 17 13 7 13 7 21" /><polyline points="7 3 7 8 15 8" />
                   </svg>
                 } />
                 {/* 요금제 */}
@@ -395,7 +377,7 @@ export default async function RootLayout({
             </div>
 
             {/* 우측 */}
-            <div className="flex items-center gap-2 shrink-0 ml-4">
+            <div className="flex items-center gap-2 shrink-0 ml-2">
               <SearchUsageBadge />
               {/* 모바일 전용: 요금제 링크 */}
               <a
@@ -515,7 +497,7 @@ function NavTab({
     return (
       <a
         href={href}
-        className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-sm font-semibold bg-white/[0.06] text-white hover:bg-white/[0.10] transition-colors"
+        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-sm font-semibold bg-white/[0.06] text-white hover:bg-white/[0.10] transition-colors"
       >
         {icon}
         {label}
@@ -527,7 +509,7 @@ function NavTab({
     return (
       <a
         href={href}
-        className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm transition text-[#00E5A0] hover:text-[#66FFCC] hover:bg-neutral-900 font-semibold"
+        className="flex items-center gap-1.5 px-2 py-1.5 rounded-md text-sm transition text-[#00E5A0] hover:text-[#66FFCC] hover:bg-neutral-900 font-semibold"
       >
         {icon}
         {label}
@@ -539,7 +521,7 @@ function NavTab({
     <a
       href={locked ? "/pricing" : href}
       title={locked ? `${requiredPlan} 플랜 이상에서 이용 가능` : undefined}
-      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm transition group ${
+      className={`flex items-center gap-1.5 px-2 py-1.5 rounded-md text-sm transition group ${
         locked
           ? "text-neutral-500 hover:text-neutral-300 hover:bg-neutral-800/50"
           : "text-neutral-400 hover:text-white hover:bg-neutral-800"
