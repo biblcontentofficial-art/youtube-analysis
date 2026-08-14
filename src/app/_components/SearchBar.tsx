@@ -264,7 +264,7 @@ export default function SearchBar() {
           value={keyword}
           onChange={(e) => setKeyword(e.target.value)}
           placeholder="키워드를 입력하세요"
-          className="w-full pl-5 pr-28 py-3 rounded-xl bg-gray-900 text-white border border-gray-700 focus:border-teal-500 focus:outline-none placeholder-gray-600 text-sm transition-colors"
+          className="w-full pl-5 pr-28 py-3 rounded-xl bg-neutral-900 text-white border border-neutral-700 focus:border-neutral-400 focus:outline-none placeholder-neutral-600 text-sm transition-colors"
         />
 
         {/* 국가 선택 버튼 */}
@@ -272,18 +272,18 @@ export default function SearchBar() {
           <button
             type="button"
             onClick={() => setShowRegionMenu((v) => !v)}
-            className="flex items-center gap-1 px-2 py-1 rounded-lg text-sm hover:bg-gray-700 transition-colors text-gray-300 hover:text-white"
+            className="flex items-center gap-1 px-2 py-1 rounded-lg text-sm hover:bg-neutral-700 transition-colors text-neutral-300 hover:text-white"
             title="검색 국가 선택"
           >
             <span>{currentRegion.flag}</span>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="w-3 h-3 text-gray-500">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="w-3 h-3 text-neutral-500">
               <path fillRule="evenodd" d="M4.22 6.22a.75.75 0 0 1 1.06 0L8 8.94l2.72-2.72a.75.75 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L4.22 7.28a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" />
             </svg>
           </button>
 
           {/* 드롭다운 */}
           {showRegionMenu && (
-            <div className="absolute right-0 top-full mt-1 w-36 bg-gray-900 border border-gray-700 rounded-xl shadow-xl z-50 overflow-hidden">
+            <div className="absolute right-0 top-full mt-1 w-36 bg-neutral-900 border border-neutral-700 rounded-xl shadow-xl z-50 overflow-hidden">
               {REGIONS.map((r) => (
                 <button
                   key={r.code}
@@ -294,13 +294,13 @@ export default function SearchBar() {
                   }}
                   className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm transition-colors text-left ${
                     region === r.code
-                      ? "bg-teal-900/50 text-teal-300"
-                      : "text-gray-300 hover:bg-gray-800 hover:text-white"
+                      ? "bg-neutral-700 text-white"
+                      : "text-neutral-300 hover:bg-neutral-800 hover:text-white"
                   }`}
                 >
                   <span className="text-base">{r.flag}</span>
                   <span>{r.label}</span>
-                  {region === r.code && <span className="ml-auto text-teal-400 text-xs">✓</span>}
+                  {region === r.code && <span className="ml-auto text-[#00E5A0] text-xs">✓</span>}
                 </button>
               ))}
             </div>
@@ -310,7 +310,7 @@ export default function SearchBar() {
         {/* 검색 버튼 */}
         <button
           type="submit"
-          className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+          className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-white transition-colors"
         >
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
             <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
@@ -320,23 +320,23 @@ export default function SearchBar() {
 
       {/* 검색 기록 — Starter 이상만 표시 */}
       {useServerHistory && history.length > 0 && (
-        <div className="w-full bg-gray-900/50 border border-gray-800 rounded-xl overflow-hidden">
+        <div className="w-full bg-neutral-900/50 border border-neutral-800 rounded-xl overflow-hidden">
           <div
             onClick={() => setIsExpanded(!isExpanded)}
-            className="flex items-center justify-between px-3 py-2 cursor-pointer bg-gray-800/40 hover:bg-gray-800/60 transition-colors select-none"
+            className="flex items-center justify-between px-3 py-2 cursor-pointer bg-neutral-800/40 hover:bg-neutral-800/60 transition-colors select-none"
           >
-            <div className="flex items-center gap-1.5 text-xs font-medium text-gray-400">
+            <div className="flex items-center gap-1.5 text-xs font-medium text-neutral-400">
               <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               최근 검색어
-              {useServerHistory && <span className="text-[10px] text-teal-600 bg-teal-950/40 border border-teal-900 px-1 py-0.5 rounded">서버 저장</span>}
+              {useServerHistory && <span className="text-[10px] text-[#00E5A0] border border-neutral-700 px-1 py-0.5 rounded">서버 저장</span>}
               <span className={`transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`}>▼</span>
             </div>
             {isExpanded && (
               <button
                 onClick={removeAllHistory}
-                className="text-xs text-gray-600 hover:text-red-400 transition-colors"
+                className="text-xs text-neutral-600 hover:text-red-400 transition-colors"
               >
                 전체 삭제
               </button>
@@ -344,23 +344,23 @@ export default function SearchBar() {
           </div>
 
           {isExpanded && (
-            <div className="px-3 py-3 border-t border-gray-800 max-h-[120px] overflow-y-auto">
+            <div className="px-3 py-3 border-t border-neutral-800 max-h-[120px] overflow-y-auto">
               <div className="flex flex-wrap gap-1.5">
                 {history.map((item, index) => (
                   <div
                     key={index}
-                    className="group flex items-center bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-teal-600 rounded-lg transition-all overflow-hidden"
+                    className="group flex items-center bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 hover:border-neutral-500 rounded-lg transition-all overflow-hidden"
                   >
                     <div
                       onClick={() => navigateFromHistory(item.term)}
                       className="flex items-center gap-1.5 px-2.5 py-1.5 cursor-pointer"
                     >
-                      <span className="text-xs font-medium text-gray-200">{item.term}</span>
+                      <span className="text-xs font-medium text-neutral-200">{item.term}</span>
                     </div>
                     <button
                       type="button"
                       onClick={() => void removeHistoryItem(item.term)}
-                      className="pr-2 pl-0.5 py-1.5 text-gray-600 hover:text-red-400 transition-colors self-stretch flex items-center"
+                      className="pr-2 pl-0.5 py-1.5 text-neutral-600 hover:text-red-400 transition-colors self-stretch flex items-center"
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5">
                         <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />

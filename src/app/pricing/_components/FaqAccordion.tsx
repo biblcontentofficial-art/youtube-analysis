@@ -39,7 +39,7 @@ export default function FaqAccordion() {
   return (
     <div className="mt-20 max-w-2xl mx-auto">
       <h2 className="text-xl font-bold text-white text-center mb-8">자주 묻는 질문</h2>
-      <div className="divide-y divide-gray-800 border-t border-gray-800">
+      <div className="divide-y divide-neutral-800 border-t border-neutral-800">
         {FAQS.map((faq, i) => {
           const isOpen = openIdx === i;
           return (
@@ -48,18 +48,18 @@ export default function FaqAccordion() {
                 onClick={() => setOpenIdx(isOpen ? null : i)}
                 className="w-full flex items-center justify-between py-4 text-left group"
               >
-                <span className={`text-sm font-medium transition ${isOpen ? "text-white" : "text-gray-300 group-hover:text-white"}`}>
+                <span className={`text-sm font-medium transition ${isOpen ? "text-white" : "text-neutral-300 group-hover:text-white"}`}>
                   {faq.q}
                 </span>
                 <svg
-                  className={`w-4 h-4 shrink-0 ml-4 transition-transform text-gray-500 ${isOpen ? "rotate-180" : ""}`}
+                  className={`w-4 h-4 shrink-0 ml-4 transition-transform text-neutral-500 ${isOpen ? "rotate-180" : ""}`}
                   viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2"
                 >
                   <path d="M3 6l5 5 5-5" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </button>
               {isOpen && (
-                <p className="pb-4 text-sm text-gray-400 leading-relaxed">
+                <p className="pb-4 text-sm text-neutral-400 leading-relaxed">
                   {faq.a}
                 </p>
               )}

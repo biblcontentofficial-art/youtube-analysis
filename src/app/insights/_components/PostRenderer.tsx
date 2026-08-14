@@ -18,7 +18,7 @@ function inline(text: string) {
     if (m.index > last) parts.push(text.slice(last, m.index));
     if (m[1]) parts.push(<strong key={key++} className="font-bold text-white">{m[1]}</strong>);
     else if (m[2]) parts.push(<em key={key++} className="italic">{m[2]}</em>);
-    else if (m[3] && m[4]) parts.push(<a key={key++} href={m[4]} target="_blank" rel="noopener noreferrer" className="text-teal-400 underline hover:text-teal-300">{m[3]}</a>);
+    else if (m[3] && m[4]) parts.push(<a key={key++} href={m[4]} target="_blank" rel="noopener noreferrer" className="text-[#00E5A0] underline hover:text-[#66FFCC]">{m[3]}</a>);
     last = re.lastIndex;
   }
   if (last < text.length) parts.push(text.slice(last));
@@ -97,23 +97,23 @@ function YouTubeEmbed({ videoId, title, caption }: { videoId: string; title?: st
           </button>
         )}
       </div>
-      {caption && <figcaption className="text-center text-sm text-slate-500 mt-2">{caption}</figcaption>}
+      {caption && <figcaption className="text-center text-sm text-neutral-500 mt-2">{caption}</figcaption>}
     </figure>
   );
 }
 
 export default function PostRenderer({ blocks }: { blocks: PostBlock[] }) {
   if (!blocks || blocks.length === 0) {
-    return <p className="text-slate-500 italic">아직 내용이 없습니다.</p>;
+    return <p className="text-neutral-500 italic">아직 내용이 없습니다.</p>;
   }
 
   return (
-    <div className="space-y-5 text-slate-200 leading-[1.85] text-[17px]">
+    <div className="space-y-5 text-neutral-200 leading-[1.85] text-[17px]">
       {blocks.map((b, i) => {
         switch (b.type) {
           case "paragraph":
             return (
-              <p key={i} className="text-slate-200">
+              <p key={i} className="text-neutral-200">
                 {paragraph(b.text)}
               </p>
             );
@@ -139,7 +139,7 @@ export default function PostRenderer({ blocks }: { blocks: PostBlock[] }) {
                   className="w-full rounded-xl border border-white/[0.06]"
                   loading="lazy"
                 />
-                {b.caption && <figcaption className="text-center text-sm text-slate-500 mt-2">{b.caption}</figcaption>}
+                {b.caption && <figcaption className="text-center text-sm text-neutral-500 mt-2">{b.caption}</figcaption>}
               </figure>
             );
 
@@ -152,7 +152,7 @@ export default function PostRenderer({ blocks }: { blocks: PostBlock[] }) {
                   className="w-full rounded-xl border border-white/[0.06] bg-black"
                   preload="metadata"
                 />
-                {b.caption && <figcaption className="text-center text-sm text-slate-500 mt-2">{b.caption}</figcaption>}
+                {b.caption && <figcaption className="text-center text-sm text-neutral-500 mt-2">{b.caption}</figcaption>}
               </figure>
             );
 
@@ -165,24 +165,24 @@ export default function PostRenderer({ blocks }: { blocks: PostBlock[] }) {
 
           case "quote":
             return (
-              <blockquote key={i} className="my-6 pl-5 border-l-4 border-teal-400/50 text-slate-300 italic">
+              <blockquote key={i} className="my-6 pl-5 border-l-4 border-neutral-500 text-neutral-300 italic">
                 <p>{inline(b.text)}</p>
-                {b.cite && <footer className="text-sm text-slate-500 mt-2 not-italic">— {b.cite}</footer>}
+                {b.cite && <footer className="text-sm text-neutral-500 mt-2 not-italic">— {b.cite}</footer>}
               </blockquote>
             );
 
           case "code":
             return (
-              <pre key={i} className="my-6 p-4 rounded-xl bg-slate-900 border border-white/[0.06] overflow-x-auto text-sm text-slate-200">
+              <pre key={i} className="my-6 p-4 rounded-xl bg-neutral-900 border border-white/[0.06] overflow-x-auto text-sm text-neutral-200">
                 <code>{b.text}</code>
               </pre>
             );
 
           case "callout":
             return (
-              <div key={i} className="my-6 flex gap-3 p-4 rounded-xl bg-teal-500/[0.06] border border-teal-400/20">
+              <div key={i} className="my-6 flex gap-3 p-4 rounded-xl bg-neutral-900 border border-neutral-700">
                 <div className="text-2xl shrink-0">{b.emoji || "💡"}</div>
-                <div className="text-slate-200">{paragraph(b.text)}</div>
+                <div className="text-neutral-200">{paragraph(b.text)}</div>
               </div>
             );
 
@@ -190,7 +190,7 @@ export default function PostRenderer({ blocks }: { blocks: PostBlock[] }) {
             const Tag = b.ordered ? "ol" : "ul";
             const cls = b.ordered ? "list-decimal" : "list-disc";
             return (
-              <Tag key={i} className={`${cls} pl-6 space-y-2 text-slate-200`}>
+              <Tag key={i} className={`${cls} pl-6 space-y-2 text-neutral-200`}>
                 {b.items.filter((t) => t.trim().length > 0).map((it, j) => (
                   <li key={j} className="leading-relaxed">{inline(it)}</li>
                 ))}
@@ -206,7 +206,7 @@ export default function PostRenderer({ blocks }: { blocks: PostBlock[] }) {
                   href={b.url}
                   target={b.url?.startsWith("http") ? "_blank" : undefined}
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-teal-500 hover:bg-teal-400 text-black text-base font-bold transition shadow-lg shadow-teal-900/20"
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white hover:bg-neutral-200 text-black text-base font-bold transition"
                 >
                   {b.label || "버튼"}
                   <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round">

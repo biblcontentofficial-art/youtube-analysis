@@ -29,7 +29,7 @@ const PLANS: PlanData[] = [
     yearlyMonthlyPrice: 0,
     yearlyTotal: 0,
     desc: "처음 시작하는 크리에이터",
-    color: "border-gray-800",
+    color: "border-neutral-800",
     badge: null,
     usage: [
       { text: "영상 검색 2회/일" },
@@ -43,7 +43,7 @@ const PLANS: PlanData[] = [
       { text: "영상 수집 · 내보내기", disabled: true },
     ],
     cta: "무료로 시작",
-    ctaStyle: "bg-gray-800 hover:bg-gray-700 text-white border border-gray-700",
+    ctaStyle: "bg-neutral-800 hover:bg-neutral-700 text-white border border-neutral-700",
     planKey: "free",
   },
   {
@@ -52,7 +52,7 @@ const PLANS: PlanData[] = [
     yearlyMonthlyPrice: 15000,
     yearlyTotal: 180000,
     desc: "주 2~3회 키워드를 분석하는 크리에이터",
-    color: "border-gray-600",
+    color: "border-neutral-600",
     badge: null,
     usage: [
       { text: "영상 검색 50회/월" },
@@ -67,7 +67,7 @@ const PLANS: PlanData[] = [
       { text: "팀 공유", disabled: true },
     ],
     cta: "Starter 시작하기",
-    ctaStyle: "bg-gray-700 hover:bg-gray-600 text-white",
+    ctaStyle: "bg-neutral-700 hover:bg-neutral-600 text-white",
     planKey: "starter",
   },
   {
@@ -76,7 +76,7 @@ const PLANS: PlanData[] = [
     yearlyMonthlyPrice: 39000,
     yearlyTotal: 468000,
     desc: "매일 트렌드를 선점하는 전문 크리에이터",
-    color: "border-teal-500",
+    color: "border-white/60",
     badge: "추천",
     usage: [
       { text: "영상 검색 500회/월" },
@@ -92,7 +92,7 @@ const PLANS: PlanData[] = [
       { text: "팀 공유", disabled: true },
     ],
     cta: "Pro 시작하기",
-    ctaStyle: "bg-teal-500 hover:bg-teal-400 text-white",
+    ctaStyle: "bg-white hover:bg-neutral-200 text-black font-bold",
     planKey: "pro",
   },
   {
@@ -101,7 +101,7 @@ const PLANS: PlanData[] = [
     yearlyMonthlyPrice: 490000,
     yearlyTotal: 5880000,
     desc: "1:1 유튜브 비즈니스 컨설팅",
-    color: "border-purple-600",
+    color: "border-neutral-500",
     badge: null,
     usage: [
       { text: "영상 검색 무제한" },
@@ -114,7 +114,7 @@ const PLANS: PlanData[] = [
       { text: "매월 비블 오프라인 커뮤니티 초대권" },
     ],
     cta: "TEAM BIBL 시작하기",
-    ctaStyle: "bg-purple-600 hover:bg-purple-500 text-white",
+    ctaStyle: "bg-neutral-800 hover:bg-neutral-700 text-white border border-neutral-600",
     planKey: "business",
     monthlyOnly: true,
     externalUrl: "https://www.latpeed.com/memberships/6969983ba5c296323a6eb78c/pay/eLjQa",
@@ -133,13 +133,13 @@ export default function PricingCards() {
     <>
       {/* 월간/연간 토글 (탭 스타일) */}
       <div className="flex justify-center mb-10">
-        <div className="inline-flex bg-gray-900 border border-gray-700 rounded-full p-1">
+        <div className="inline-flex bg-neutral-900 border border-neutral-700 rounded-full p-1">
           <button
             onClick={() => setIsYearly(false)}
             className={`px-8 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 ${
               !isYearly
-                ? "bg-gray-700 text-white"
-                : "text-gray-500 hover:text-gray-300"
+                ? "bg-neutral-700 text-white"
+                : "text-neutral-500 hover:text-neutral-300"
             }`}
           >
             월간
@@ -148,15 +148,15 @@ export default function PricingCards() {
             onClick={() => setIsYearly(true)}
             className={`px-8 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 flex items-center gap-2 ${
               isYearly
-                ? "bg-gray-700 text-white"
-                : "text-gray-500 hover:text-gray-300"
+                ? "bg-neutral-700 text-white"
+                : "text-neutral-500 hover:text-neutral-300"
             }`}
           >
             연간
             <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${
               isYearly
-                ? "bg-teal-500/20 text-teal-400 border border-teal-500/40"
-                : "bg-gray-800 text-gray-500"
+                ? "text-[#00E5A0] border border-neutral-600"
+                : "bg-neutral-800 text-neutral-500"
             }`}>
               최대 21% 할인
             </span>
@@ -180,47 +180,47 @@ export default function PricingCards() {
           return (
             <div
               key={plan.name}
-              className={`relative flex flex-col bg-gray-900 border-2 ${plan.color} rounded-2xl p-5`}
+              className={`relative flex flex-col bg-neutral-900 border-2 ${plan.color} rounded-2xl p-5`}
             >
               {plan.badge && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <span className="bg-teal-500 text-white text-xs font-bold px-3 py-1 rounded-full">
+                  <span className="bg-white text-black text-xs font-bold px-3 py-1 rounded-full">
                     {plan.badge}
                   </span>
                 </div>
               )}
 
               <div className="mb-5">
-                <div className="text-xs text-gray-500 font-medium mb-1">{plan.desc}</div>
+                <div className="text-xs text-neutral-500 font-medium mb-1">{plan.desc}</div>
                 <div className="text-lg font-bold text-white mb-2">{plan.name}</div>
                 {/* 연간: 월간 원가 취소선 */}
                 {!isFree && showYearly && (
-                  <div className="text-lg text-gray-600 line-through">
+                  <div className="text-lg text-neutral-600 line-through">
                     {formatPrice(plan.monthlyPrice)}
                   </div>
                 )}
                 <div className="flex items-baseline gap-1">
                   <span className="text-2xl font-extrabold text-white">{formatPrice(price)}</span>
-                  {period && <span className="text-gray-500 text-xs">{period}</span>}
+                  {period && <span className="text-neutral-500 text-xs">{period}</span>}
                 </div>
                 {/* 연간: 절약 금액 */}
                 {!isFree && showYearly && (
-                  <div className="text-xs text-teal-400 mt-1">
+                  <div className="text-xs text-[#00E5A0] mt-1">
                     월간 대비 {formatPrice((plan.monthlyPrice - plan.yearlyMonthlyPrice) * 12)} 절약
                   </div>
                 )}
                 {/* 월간 전용 안내 */}
                 {plan.monthlyOnly && (
-                  <div className="text-xs text-gray-500 mt-1">월간 결제만 제공됩니다</div>
+                  <div className="text-xs text-neutral-500 mt-1">월간 결제만 제공됩니다</div>
                 )}
               </div>
 
               <div className="mb-4">
-                <div className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-2">사용량</div>
+                <div className="text-[11px] font-semibold text-neutral-500 uppercase tracking-wider mb-2">사용량</div>
                 <ul className="space-y-1.5">
                   {plan.usage.map((u) => (
-                    <li key={u.text} className="flex items-center gap-2 text-sm text-gray-300">
-                      <span className="text-teal-400 shrink-0">✓</span>
+                    <li key={u.text} className="flex items-center gap-2 text-sm text-neutral-300">
+                      <span className="text-[#00E5A0] shrink-0">✓</span>
                       {u.text}
                     </li>
                   ))}
@@ -228,17 +228,17 @@ export default function PricingCards() {
               </div>
 
               <div className="flex-1 mb-6">
-                <div className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-2">기능</div>
+                <div className="text-[11px] font-semibold text-neutral-500 uppercase tracking-wider mb-2">기능</div>
                 <ul className="space-y-1.5">
                   {plan.features.map((f) => (
-                    <li key={f.text} className={`flex items-center gap-2 text-sm ${f.disabled ? "text-gray-600 line-through" : "text-gray-300"}`}>
-                      <span className={`shrink-0 ${f.disabled ? "text-gray-700" : "text-teal-400"}`}>
+                    <li key={f.text} className={`flex items-center gap-2 text-sm ${f.disabled ? "text-neutral-600 line-through" : "text-neutral-300"}`}>
+                      <span className={`shrink-0 ${f.disabled ? "text-neutral-700" : "text-[#00E5A0]"}`}>
                         {f.disabled ? "✕" : "✓"}
                       </span>
                       <span className="flex items-center gap-1.5 flex-wrap">
                         {f.text}
                         {f.comingSoon && (
-                          <span className="text-[10px] bg-gray-800 border border-gray-700 text-gray-500 px-1.5 py-0.5 rounded-full leading-none">준비중</span>
+                          <span className="text-[10px] bg-neutral-800 border border-neutral-700 text-neutral-500 px-1.5 py-0.5 rounded-full leading-none">준비중</span>
                         )}
                       </span>
                     </li>

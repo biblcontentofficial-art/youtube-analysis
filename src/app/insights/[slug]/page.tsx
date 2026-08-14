@@ -191,14 +191,14 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
   };
 
   return (
-    <main className="min-h-screen bg-gray-950">
+    <main className="min-h-screen bg-black">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
 
       <article className="max-w-3xl mx-auto px-4 md:px-6 py-10 md:py-16">
         {/* 상단 메타 + 어드민 액션 */}
         <div className="mb-8 flex items-center justify-between gap-4">
-          <Link href="/insights" className="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-white transition">
+          <Link href="/insights" className="inline-flex items-center gap-1.5 text-sm text-neutral-400 hover:text-white transition">
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
               <path d="M19 12H5M12 19l-7-7 7-7" />
             </svg>
@@ -224,12 +224,12 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
         {/* 카테고리 + 태그 */}
         <div className="flex flex-wrap items-center gap-2 mb-4">
           {post.category && (
-            <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-teal-500/15 text-teal-200 border border-teal-400/30">
+            <span className="text-xs font-bold px-2.5 py-1 rounded-full text-[#00E5A0] border border-neutral-700">
               {post.category}
             </span>
           )}
           {post.tags?.map((t) => (
-            <span key={t} className="text-xs font-semibold text-teal-300/90">#{t}</span>
+            <span key={t} className="text-xs font-semibold text-[#00E5A0]">#{t}</span>
           ))}
         </div>
 
@@ -238,16 +238,16 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
           {post.title}
         </h1>
         {post.subtitle && (
-          <p className="mt-4 text-lg md:text-xl text-slate-400 leading-relaxed">{post.subtitle}</p>
+          <p className="mt-4 text-lg md:text-xl text-neutral-400 leading-relaxed">{post.subtitle}</p>
         )}
 
         {/* 작성자/날짜 */}
-        <div className="mt-6 flex items-center gap-3 text-sm text-slate-500 border-b border-white/[0.06] pb-6">
-          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-teal-500 to-emerald-500 flex items-center justify-center text-black text-sm font-bold">
+        <div className="mt-6 flex items-center gap-3 text-sm text-neutral-500 border-b border-white/[0.06] pb-6">
+          <div className="w-9 h-9 rounded-full bg-white flex items-center justify-center text-black text-sm font-bold">
             {post.author_name.charAt(0)}
           </div>
           <div>
-            <div className="text-slate-200 font-semibold">{post.author_name}</div>
+            <div className="text-neutral-200 font-semibold">{post.author_name}</div>
             <div className="text-xs">
               {formatDate(post.published_at || post.created_at)} · {readingMin}분 분량
               {post.view_count > 0 && ` · 조회 ${post.view_count.toLocaleString()}`}
@@ -280,18 +280,18 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
                   className="group block rounded-xl border border-white/[0.07] hover:border-white/[0.16] bg-white/[0.015] hover:bg-white/[0.03] overflow-hidden transition"
                 >
                   {r.cover_image ? (
-                    <div className="aspect-[16/9] overflow-hidden bg-slate-900">
+                    <div className="aspect-[16/9] overflow-hidden bg-neutral-900">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={r.cover_image} alt={r.title} className="w-full h-full object-cover group-hover:scale-[1.03] transition duration-500" loading="lazy" />
                     </div>
                   ) : (
-                    <div className="aspect-[16/9] bg-gradient-to-br from-slate-800/50 to-slate-900 flex items-center justify-center">
-                      <span className="text-teal-400/40 text-xl font-black tracking-tighter">bibl</span>
+                    <div className="aspect-[16/9] bg-neutral-900 flex items-center justify-center">
+                      <span className="text-neutral-400/40 text-xl font-black tracking-tighter">bibl</span>
                     </div>
                   )}
                   <div className="p-4">
-                    {r.category && <span className="text-[11px] font-semibold text-teal-300/90">{r.category}</span>}
-                    <h3 className="mt-1 text-sm font-bold text-white leading-snug line-clamp-2 group-hover:text-teal-200 transition">{r.title}</h3>
+                    {r.category && <span className="text-[11px] font-semibold text-[#00E5A0]">{r.category}</span>}
+                    <h3 className="mt-1 text-sm font-bold text-white leading-snug line-clamp-2 group-hover:text-[#00E5A0] transition">{r.title}</h3>
                   </div>
                 </Link>
               ))}
@@ -301,20 +301,20 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
 
         {/* 푸터 CTA */}
         <div className="mt-16 pt-10 border-t border-white/[0.06]">
-          <div className="rounded-2xl bg-gradient-to-br from-teal-500/[0.08] to-emerald-500/[0.05] border border-teal-400/20 p-6 md:p-8">
-            <p className="text-sm font-semibold text-teal-300 mb-2">bibl lab</p>
+          <div className="rounded-2xl bg-neutral-950 border border-neutral-800 p-6 md:p-8">
+            <p className="text-sm font-semibold text-[#00E5A0] mb-2">bibl lab</p>
             <h3 className="text-xl md:text-2xl font-bold text-white tracking-tight mb-2">
               유튜브 채널 운영, 비블이 함께 합니다
             </h3>
-            <p className="text-slate-400 text-sm leading-relaxed mb-6">
+            <p className="text-neutral-400 text-sm leading-relaxed mb-6">
               기획부터 촬영·편집·업로드까지. 비블이 직접 운영해서 검증한 전략으로 채널을 통째로 맡아드립니다.
             </p>
             <Link
               href="/studio"
-              className="group inline-flex items-center gap-2.5 px-7 py-3.5 rounded-xl bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-400 hover:to-emerald-400 text-black text-base font-bold transition shadow-lg shadow-teal-900/30"
+              className="group inline-flex items-center gap-2.5 px-7 py-3.5 rounded-xl bg-white hover:bg-neutral-200 text-black text-base font-bold transition"
             >
               올인원 유튜브 채널 대행 알아보기
-              <svg className="w-5 h-5 transition-transform group-hover:translate-x-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round">
+              <svg className="w-5 h-5 transition-transform group-hover:tranneutral-x-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round">
                 <path d="M5 12h14M13 5l7 7-7 7" />
               </svg>
             </Link>

@@ -101,27 +101,22 @@ function ProgressBar({ visible }: { visible: boolean }) {
         className="h-[3px] relative"
         style={{
           width: `${width}%`,
-          background: "linear-gradient(to right, #2dd4bf, #34d399, #2dd4bf)",
+          background: "#ffffff",
           transition: visible
             ? "width 0.6s cubic-bezier(0.1, 0.5, 0.5, 1)"
             : "width 0.15s ease-out",
-          boxShadow: "0 0 12px 3px rgba(45,212,191,0.8), 0 0 4px 1px rgba(52,211,153,0.6)",
         }}
       >
         {/* 오른쪽 끝 빛 번짐 */}
         <span
           className="absolute right-0 top-1/2 -translate-y-1/2 w-24 h-[3px]"
           style={{
-            background: "linear-gradient(to left, rgba(45,212,191,0.9), transparent)",
-            filter: "blur(2px)",
+            background: "transparent",
           }}
         />
         {/* 끝점 원형 글로우 */}
         <span
-          className="absolute -right-1 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-teal-300"
-          style={{
-            boxShadow: "0 0 8px 3px rgba(45,212,191,0.9)",
-          }}
+          className="absolute -right-1 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-white"
         />
       </div>
     </div>
@@ -233,8 +228,8 @@ export default function NavigationLoader({
       {/* 검색 로딩 오버레이 (message 있을 때만) */}
       {loading && message && (
         <div className="fixed inset-0 z-[9998] flex items-center justify-center bg-black/60 backdrop-blur-sm pointer-events-none">
-          <div className="flex flex-col items-center gap-4 px-8 py-7 bg-gray-900/90 border border-gray-700 rounded-2xl shadow-2xl">
-            <div className="w-10 h-10 border-[3px] border-teal-400 border-t-transparent rounded-full animate-spin" />
+          <div className="flex flex-col items-center gap-4 px-8 py-7 bg-neutral-900/90 border border-neutral-700 rounded-2xl shadow-2xl">
+            <div className="w-10 h-10 border-[3px] border-white/30 border-t-white rounded-full animate-spin" />
             <p className="text-white text-sm font-medium">{message}</p>
           </div>
         </div>

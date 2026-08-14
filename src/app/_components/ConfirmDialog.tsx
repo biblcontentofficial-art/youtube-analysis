@@ -60,19 +60,19 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
           onClick={handleCancel}
         >
           <div
-            className="bg-gray-900 border border-gray-700 rounded-2xl p-6 w-full max-w-xs shadow-2xl"
+            className="bg-neutral-900 border border-neutral-700 rounded-2xl p-6 w-full max-w-xs shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             {/* 로고 */}
             <div className="flex items-center gap-1.5 mb-5">
-              <div className="w-6 h-6 bg-black border border-gray-700 rounded-md flex items-center justify-center shrink-0">
+              <div className="w-6 h-6 bg-black border border-neutral-700 rounded-md flex items-center justify-center shrink-0">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" className="w-3.5 h-3.5">
                   <path d="M8 5.14v14l11-7-11-7z" />
                 </svg>
               </div>
               <span className="text-sm font-bold tracking-tight">
                 <span className="text-white">bibl</span>
-                <span className="text-teal-400"> lab</span>
+                <span className="text-neutral-400"> lab</span>
               </span>
             </div>
 
@@ -80,7 +80,7 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
               {state.options.message}
             </p>
             {state.options.subMessage && (
-              <p className="text-gray-500 text-xs leading-relaxed mb-6">
+              <p className="text-neutral-500 text-xs leading-relaxed mb-6">
                 {state.options.subMessage}
               </p>
             )}
@@ -89,13 +89,13 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
             <div className="flex gap-2 justify-end">
               <button
                 onClick={handleCancel}
-                className="px-4 py-2 text-sm text-gray-400 hover:text-white bg-gray-800 hover:bg-gray-700 rounded-xl border border-gray-700 transition-colors"
+                className="px-4 py-2 text-sm text-neutral-400 hover:text-white bg-neutral-800 hover:bg-neutral-700 rounded-xl border border-neutral-700 transition-colors"
               >
                 {state.options.cancelText ?? "취소"}
               </button>
               <button
                 onClick={handleConfirm}
-                className="px-4 py-2 text-sm text-white bg-teal-600 hover:bg-teal-500 rounded-xl font-medium transition-colors"
+                className="px-4 py-2 text-sm text-black bg-white hover:bg-neutral-200 rounded-xl font-bold transition-colors"
               >
                 {state.options.confirmText ?? "확인"}
               </button>

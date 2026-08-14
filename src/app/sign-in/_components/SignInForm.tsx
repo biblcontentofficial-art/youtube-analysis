@@ -77,20 +77,20 @@ export default function SignInForm() {
   };
 
   return (
-    <main className="min-h-screen bg-gray-950 flex items-center justify-center px-4">
+    <main className="min-h-screen bg-black flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
         {/* 로고 */}
         <div className="flex items-center justify-center gap-2 mb-3">
-          <div className="w-9 h-9 bg-black border border-gray-700 rounded-lg flex items-center justify-center">
+          <div className="w-9 h-9 bg-black border border-neutral-700 rounded-lg flex items-center justify-center">
             <span style={{ color: "white", fontSize: 20, fontWeight: 900, lineHeight: 1, fontFamily: "-apple-system, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif" }}>B</span>
           </div>
           <span className="font-bold text-lg tracking-tight">
             <span className="text-white">bibl</span>
-            <span className="text-teal-400"> lab</span>
+            <span className="text-neutral-400"> lab</span>
           </span>
         </div>
 
-        <p className="text-center text-gray-500 text-sm mb-6">유튜브 트렌드 분석 도구</p>
+        <p className="text-center text-neutral-500 text-sm mb-6">유튜브 트렌드 분석 도구</p>
 
         {/* ── 인앱 브라우저 전용 안내 카드 ─────────────────────────────── */}
         {inAppInfo.isInApp && (
@@ -162,16 +162,16 @@ export default function SignInForm() {
           </div>
         )}
 
-        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-7">
+        <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-7">
           {step === "consent" ? (
             <>
               <h1 className="text-xl font-bold text-white text-center mb-1">시작하기 전에</h1>
-              <p className="text-gray-500 text-sm text-center mb-6">
+              <p className="text-neutral-500 text-sm text-center mb-6">
                 서비스 이용을 위한 동의가 필요합니다
               </p>
 
               {/* 전체 동의 */}
-              <label className="flex items-center gap-3 p-3.5 rounded-xl bg-gray-800/70 border border-gray-700 cursor-pointer select-none mb-4">
+              <label className="flex items-center gap-3 p-3.5 rounded-xl bg-neutral-800/70 border border-neutral-700 cursor-pointer select-none mb-4">
                 <input
                   type="checkbox"
                   checked={allChecked}
@@ -189,8 +189,8 @@ export default function SignInForm() {
                     onChange={(e) => setAgreeTerms(e.target.checked)}
                     className="w-3.5 h-3.5 accent-white shrink-0"
                   />
-                  <span className="text-sm text-gray-300 flex-1">[필수] 이용약관 동의</span>
-                  <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-xs text-gray-500 underline underline-offset-2 hover:text-gray-300 shrink-0">보기</a>
+                  <span className="text-sm text-neutral-300 flex-1">[필수] 이용약관 동의</span>
+                  <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-xs text-neutral-500 underline underline-offset-2 hover:text-neutral-300 shrink-0">보기</a>
                 </label>
                 <label className="flex items-center gap-3 cursor-pointer select-none">
                   <input
@@ -199,8 +199,8 @@ export default function SignInForm() {
                     onChange={(e) => setAgreePrivacy(e.target.checked)}
                     className="w-3.5 h-3.5 accent-white shrink-0"
                   />
-                  <span className="text-sm text-gray-300 flex-1">[필수] 개인정보 수집·이용 동의</span>
-                  <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-xs text-gray-500 underline underline-offset-2 hover:text-gray-300 shrink-0">보기</a>
+                  <span className="text-sm text-neutral-300 flex-1">[필수] 개인정보 수집·이용 동의</span>
+                  <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-xs text-neutral-500 underline underline-offset-2 hover:text-neutral-300 shrink-0">보기</a>
                 </label>
                 <label className="flex items-center gap-3 cursor-pointer select-none">
                   <input
@@ -209,7 +209,7 @@ export default function SignInForm() {
                     onChange={(e) => setMarketingOk(e.target.checked)}
                     className="w-3.5 h-3.5 accent-white shrink-0"
                   />
-                  <span className="text-sm text-gray-300 flex-1">[선택] 이벤트·혜택 등 마케팅 정보 수신 동의</span>
+                  <span className="text-sm text-neutral-300 flex-1">[선택] 이벤트·혜택 등 마케팅 정보 수신 동의</span>
                 </label>
               </div>
 
@@ -217,25 +217,25 @@ export default function SignInForm() {
                 type="button"
                 onClick={() => requiredOk && setStep("login")}
                 disabled={!requiredOk}
-                className="w-full py-3.5 rounded-xl font-bold text-sm transition bg-white hover:bg-gray-200 text-black disabled:opacity-40 disabled:cursor-not-allowed"
+                className="w-full py-3.5 rounded-xl font-bold text-sm transition bg-white hover:bg-neutral-200 text-black disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 동의하고 계속하기
               </button>
-              <p className="mt-3 text-center text-xs text-gray-600">
+              <p className="mt-3 text-center text-xs text-neutral-600">
                 선택 항목은 동의하지 않아도 서비스를 이용할 수 있습니다
               </p>
             </>
           ) : (
             <>
               <h1 className="text-xl font-bold text-white text-center mb-1">시작하기</h1>
-              <p className="text-gray-500 text-sm text-center mb-7">
+              <p className="text-neutral-500 text-sm text-center mb-7">
                 소셜 계정으로 3초 만에 로그인하세요
               </p>
 
               {/* 혜택 */}
               <div className="space-y-2 mb-6">
                 {["하루 2회 무료 검색", "조회수·구독자·게시일 한눈에 확인"].map((text) => (
-                  <div key={text} className="flex items-center gap-2.5 text-sm text-gray-400">
+                  <div key={text} className="flex items-center gap-2.5 text-sm text-neutral-400">
                     {text}
                   </div>
                 ))}
@@ -261,12 +261,12 @@ export default function SignInForm() {
           <button
             onClick={() => handleOAuth("google")}
             disabled={!!loading}
-            className={`w-full flex items-center justify-center gap-3 bg-white text-gray-800 font-semibold py-3.5 px-4 rounded-xl transition disabled:opacity-70 ${
-              inAppInfo.isInApp ? "opacity-40 cursor-not-allowed" : "hover:bg-gray-100"
+            className={`w-full flex items-center justify-center gap-3 bg-white text-neutral-800 font-semibold py-3.5 px-4 rounded-xl transition disabled:opacity-70 ${
+              inAppInfo.isInApp ? "opacity-40 cursor-not-allowed" : "hover:bg-neutral-100"
             }`}
           >
             {loading === "google" ? (
-              <span className="w-5 h-5 border-2 border-gray-300 border-t-gray-800 rounded-full animate-spin" />
+              <span className="w-5 h-5 border-2 border-neutral-300 border-t-neutral-800 rounded-full animate-spin" />
             ) : (
               <svg viewBox="0 0 24 24" className="w-5 h-5">
                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -276,17 +276,17 @@ export default function SignInForm() {
               </svg>
             )}
             {inAppInfo.isInApp ? (
-              <span className="text-gray-500">Google 로그인 (외부 브라우저 필요)</span>
+              <span className="text-neutral-500">Google 로그인 (외부 브라우저 필요)</span>
             ) : (
               "Google로 계속하기"
             )}
           </button>
 
-              <p className="mt-5 text-center text-xs text-gray-600">
+              <p className="mt-5 text-center text-xs text-neutral-600">
                 <button
                   type="button"
                   onClick={() => setStep("consent")}
-                  className="underline underline-offset-2 hover:text-gray-400 transition"
+                  className="underline underline-offset-2 hover:text-neutral-400 transition"
                 >
                   동의 항목 다시 보기
                 </button>
@@ -295,7 +295,7 @@ export default function SignInForm() {
           )}
         </div>
 
-        <p className="text-center text-xs text-gray-700 mt-6">
+        <p className="text-center text-xs text-neutral-700 mt-6">
           Free 플랜으로 즉시 이용 가능 · 카드 불필요
         </p>
       </div>

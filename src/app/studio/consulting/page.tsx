@@ -54,19 +54,19 @@ function RadioCard({
       onClick={onClick}
       className={`w-full text-left px-4 py-3.5 rounded-xl border transition-all duration-200 ${
         selected
-          ? "border-teal-500 bg-teal-950/40 text-white"
-          : "border-gray-700 bg-gray-900 text-gray-300 hover:border-gray-500"
+          ? "border-neutral-400 bg-neutral-900 text-white"
+          : "border-neutral-700 bg-neutral-900 text-neutral-300 hover:border-neutral-500"
       }`}
     >
       <div className="flex items-center gap-3">
         <div className={`w-4 h-4 rounded-full border-2 shrink-0 flex items-center justify-center transition-colors ${
-          selected ? "border-teal-400" : "border-gray-600"
+          selected ? "border-[#00E5A0]" : "border-neutral-600"
         }`}>
-          {selected && <div className="w-2 h-2 rounded-full bg-teal-400" />}
+          {selected && <div className="w-2 h-2 rounded-full bg-[#00E5A0]" />}
         </div>
         <div>
           <p className="font-semibold text-sm">{label}</p>
-          {desc && <p className="text-xs text-gray-500 mt-0.5">{desc}</p>}
+          {desc && <p className="text-xs text-neutral-500 mt-0.5">{desc}</p>}
         </div>
       </div>
     </button>
@@ -81,15 +81,15 @@ function TextInput({
 }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <label className="text-sm font-semibold text-gray-300">
-        {label}{required && <span className="text-teal-400 ml-0.5">*</span>}
+      <label className="text-sm font-semibold text-neutral-300">
+        {label}{required && <span className="text-[#00E5A0] ml-0.5">*</span>}
       </label>
       <input
         type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-teal-500 transition"
+        className="bg-neutral-900 border border-neutral-700 rounded-xl px-4 py-3 text-sm text-white placeholder-neutral-600 focus:outline-none focus:border-neutral-400 transition"
       />
     </div>
   );
@@ -98,7 +98,7 @@ function TextInput({
 // ── 메인 페이지 ──────────────────────────────────────────────
 export default function ConsultingPageWrapper() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-gray-950" />}>
+    <Suspense fallback={<div className="min-h-screen bg-black" />}>
       <ConsultingPage />
     </Suspense>
   );
@@ -159,14 +159,14 @@ function ConsultingPage() {
   // ── 완료 화면 ──
   if (done) {
     return (
-      <main className="min-h-screen bg-gray-950 text-white flex flex-col items-center justify-center px-4 text-center">
-        <div className="w-16 h-16 rounded-full bg-teal-500/20 border border-teal-500/40 flex items-center justify-center mb-6">
-          <svg className="w-8 h-8 text-teal-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <main className="min-h-screen bg-black text-white flex flex-col items-center justify-center px-4 text-center">
+        <div className="w-16 h-16 rounded-full border border-neutral-700 flex items-center justify-center mb-6">
+          <svg className="w-8 h-8 text-[#00E5A0]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
           </svg>
         </div>
         <h1 className="text-2xl md:text-3xl font-black mb-3">상담 신청이 완료됐습니다!</h1>
-        <p className="text-gray-400 text-base max-w-sm leading-relaxed mb-8">
+        <p className="text-neutral-400 text-base max-w-sm leading-relaxed mb-8">
           {form.name}님의 신청을 확인했습니다.<br />
           영업일 기준 1~2일 내 연락드리겠습니다.
         </p>
@@ -183,11 +183,11 @@ function ConsultingPage() {
           </svg>
           카카오톡으로 바로 문의하기
         </a>
-        <p className="text-xs text-gray-600 mb-6">더 빠른 답변을 원하시면 카카오톡을 이용해주세요</p>
+        <p className="text-xs text-neutral-600 mb-6">더 빠른 답변을 원하시면 카카오톡을 이용해주세요</p>
 
         <Link
           href="/studio"
-          className="px-6 py-3 border border-gray-700 hover:border-gray-500 rounded-xl text-sm font-semibold text-gray-300 hover:text-white transition"
+          className="px-6 py-3 border border-neutral-700 hover:border-neutral-500 rounded-xl text-sm font-semibold text-neutral-300 hover:text-white transition"
         >
           채널 대행 페이지로 돌아가기
         </Link>
@@ -196,22 +196,22 @@ function ConsultingPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-950 text-white">
+    <main className="min-h-screen bg-black text-white">
       {/* 상단 네비 */}
       <div className="max-w-xl mx-auto px-4 pt-8 pb-0 flex items-center justify-between">
-        <Link href="/studio" className="text-xs text-gray-500 hover:text-gray-300 transition flex items-center gap-1">
+        <Link href="/studio" className="text-xs text-neutral-500 hover:text-neutral-300 transition flex items-center gap-1">
           ← 채널 대행 페이지
         </Link>
-        <span className="text-xs text-gray-600">{step + 1} / {STEPS.length}</span>
+        <span className="text-xs text-neutral-600">{step + 1} / {STEPS.length}</span>
       </div>
 
       <div className="max-w-xl mx-auto px-4 py-8">
         {/* 프로그레스 바 */}
         <div className="flex gap-1.5 mb-8">
           {STEPS.map((_, i) => (
-            <div key={i} className="flex-1 h-1 rounded-full overflow-hidden bg-gray-800">
+            <div key={i} className="flex-1 h-1 rounded-full overflow-hidden bg-neutral-800">
               <div
-                className="h-full bg-teal-500 rounded-full transition-all duration-500"
+                className="h-full bg-[#00E5A0] rounded-full transition-all duration-500"
                 style={{ width: i <= step ? "100%" : "0%" }}
               />
             </div>
@@ -220,13 +220,13 @@ function ConsultingPage() {
 
         {/* 헤더 */}
         <div className="mb-8">
-          <p className="text-xs text-teal-500 font-bold uppercase tracking-widest mb-2">
+          <p className="text-xs text-[#00E5A0] font-bold uppercase tracking-widest mb-2">
             STEP {step + 1} — {STEPS[step]}
           </p>
           {step === 0 && (
             <>
               <h1 className="text-2xl md:text-3xl font-black mb-2">안녕하세요 👋</h1>
-              <p className="text-gray-400 text-sm leading-relaxed">
+              <p className="text-neutral-400 text-sm leading-relaxed">
                 TMK STUDIO를 어떻게 알게 되셨나요?<br />관심 있는 서비스를 선택해주세요.
               </p>
             </>
@@ -234,13 +234,13 @@ function ConsultingPage() {
           {step === 1 && (
             <>
               <h1 className="text-2xl md:text-3xl font-black mb-2">기본 정보를 알려주세요</h1>
-              <p className="text-gray-400 text-sm">상담 연락을 위해 필요한 정보입니다.</p>
+              <p className="text-neutral-400 text-sm">상담 연락을 위해 필요한 정보입니다.</p>
             </>
           )}
           {step === 2 && (
             <>
               <h1 className="text-2xl md:text-3xl font-black mb-2">채널 상담 내용</h1>
-              <p className="text-gray-400 text-sm leading-relaxed">
+              <p className="text-neutral-400 text-sm leading-relaxed">
                 솔직하게 적어주실수록 더 좋은 상담이 가능합니다.
               </p>
             </>
@@ -252,7 +252,7 @@ function ConsultingPage() {
           <div className="space-y-6">
             <div>
               <p className="text-sm font-bold text-white mb-3">
-                TMK STUDIO를 어떻게 알게 되셨나요? <span className="text-teal-400">*</span>
+                TMK STUDIO를 어떻게 알게 되셨나요? <span className="text-[#00E5A0]">*</span>
               </p>
               <div className="grid grid-cols-2 gap-2">
                 {SOURCE_OPTIONS.map((opt) => (
@@ -268,7 +268,7 @@ function ConsultingPage() {
 
             <div>
               <p className="text-sm font-bold text-white mb-3">
-                관심 있는 서비스 <span className="text-teal-400">*</span>
+                관심 있는 서비스 <span className="text-[#00E5A0]">*</span>
               </p>
               <div className="space-y-2">
                 {SERVICE_OPTIONS.map((opt) => (
@@ -305,7 +305,7 @@ function ConsultingPage() {
           <div className="space-y-6">
             <div>
               <p className="text-sm font-bold text-white mb-3">
-                유튜브 채널 운영 목적 <span className="text-teal-400">*</span>
+                유튜브 채널 운영 목적 <span className="text-[#00E5A0]">*</span>
               </p>
               <div className="space-y-2">
                 {GOAL_OPTIONS.map((opt) => (
@@ -322,7 +322,7 @@ function ConsultingPage() {
 
             <div>
               <p className="text-sm font-bold text-white mb-3">
-                월 광고비 집행 가능 예산 <span className="text-teal-400">*</span>
+                월 광고비 집행 가능 예산 <span className="text-[#00E5A0]">*</span>
               </p>
               <div className="space-y-2">
                 {BUDGET_OPTIONS.map((opt) => (
@@ -337,16 +337,16 @@ function ConsultingPage() {
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-semibold text-gray-300">
+              <label className="text-sm font-semibold text-neutral-300">
                 현재 가장 큰 고민이나 전달 사항
-                <span className="text-gray-600 font-normal ml-1">(선택)</span>
+                <span className="text-neutral-600 font-normal ml-1">(선택)</span>
               </label>
               <textarea
                 value={form.message}
                 onChange={(e) => set("message")(e.target.value)}
                 placeholder="채널 현황, 목표, 고민 등 자유롭게 적어주세요."
                 rows={4}
-                className="bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-teal-500 transition resize-none"
+                className="bg-neutral-900 border border-neutral-700 rounded-xl px-4 py-3 text-sm text-white placeholder-neutral-600 focus:outline-none focus:border-neutral-400 transition resize-none"
               />
             </div>
           </div>
@@ -362,7 +362,7 @@ function ConsultingPage() {
           {step > 0 && (
             <button
               onClick={() => setStep((s) => s - 1)}
-              className="flex-1 py-4 border border-gray-700 hover:border-gray-500 rounded-xl text-sm font-semibold text-gray-300 hover:text-white transition"
+              className="flex-1 py-4 border border-neutral-700 hover:border-neutral-500 rounded-xl text-sm font-semibold text-neutral-300 hover:text-white transition"
             >
               이전
             </button>
@@ -370,7 +370,7 @@ function ConsultingPage() {
           <button
             onClick={handleNext}
             disabled={!canNext() || submitting}
-            className="flex-1 py-4 bg-teal-500 hover:bg-teal-400 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black rounded-xl transition text-sm shadow-lg shadow-teal-900/30"
+            className="flex-1 py-4 bg-white hover:bg-neutral-200 disabled:opacity-40 disabled:cursor-not-allowed text-black font-bold rounded-xl transition text-sm"
           >
             {submitting
               ? "제출 중..."
@@ -381,7 +381,7 @@ function ConsultingPage() {
         </div>
 
         {/* 하단 안내 */}
-        <p className="text-xs text-gray-600 text-center mt-4">
+        <p className="text-xs text-neutral-600 text-center mt-4">
           영업일 기준 1~2일 내 연락드립니다 · 완전 무료
         </p>
       </div>

@@ -67,8 +67,8 @@ export default function InsightsList({ posts, admin }: { posts: PostSummary[]; a
               onClick={() => setActiveCat(t)}
               className={`px-4 py-1.5 rounded-full text-sm font-semibold border transition ${
                 activeCat === t
-                  ? "bg-teal-500/15 text-teal-200 border-teal-400/40"
-                  : "bg-white/[0.03] text-slate-400 border-white/[0.08] hover:border-white/[0.20] hover:text-white"
+                  ? "bg-neutral-700 text-white border-neutral-600"
+                  : "bg-white/[0.03] text-neutral-400 border-white/[0.08] hover:border-white/[0.20] hover:text-white"
               }`}
             >
               {t}
@@ -77,14 +77,14 @@ export default function InsightsList({ posts, admin }: { posts: PostSummary[]; a
           ))}
         </div>
         <div className="relative">
-          <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+          <svg className="absolute left-3.5 top-1/2 -tranneutral-y-1/2 w-4 h-4 text-neutral-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
             <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
           </svg>
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="인사이트 찾아보기"
-            className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl pl-10 pr-4 py-3 text-sm text-white placeholder-slate-500 outline-none focus:border-teal-400/40"
+            className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl pl-10 pr-4 py-3 text-sm text-white placeholder-neutral-500 outline-none focus:border-neutral-400"
           />
         </div>
       </div>
@@ -92,11 +92,11 @@ export default function InsightsList({ posts, admin }: { posts: PostSummary[]; a
       {/* 목록 */}
       {filtered.length === 0 ? (
         <div className="text-center py-20">
-          <p className="text-slate-500">
+          <p className="text-neutral-500">
             {posts.length === 0 ? "아직 발행된 글이 없습니다." : "조건에 맞는 글이 없습니다."}
           </p>
           {admin && posts.length === 0 && (
-            <Link href="/insights/admin" className="mt-4 inline-block text-teal-400 hover:text-teal-300 text-sm font-semibold">
+            <Link href="/insights/admin" className="mt-4 inline-block text-[#00E5A0] hover:text-[#66FFCC] text-sm font-semibold">
               첫 글 작성하기 →
             </Link>
           )}
@@ -111,7 +111,7 @@ export default function InsightsList({ posts, admin }: { posts: PostSummary[]; a
               >
                 <div className="flex flex-col sm:flex-row">
                   {p.cover_image && (
-                    <div className="sm:w-60 sm:shrink-0 aspect-[16/9] sm:aspect-auto overflow-hidden bg-slate-900">
+                    <div className="sm:w-60 sm:shrink-0 aspect-[16/9] sm:aspect-auto overflow-hidden bg-neutral-900">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={p.cover_image}
@@ -129,18 +129,18 @@ export default function InsightsList({ posts, admin }: { posts: PostSummary[]; a
                         </span>
                       )}
                       {p.category && (
-                        <span className="text-[12px] font-semibold text-teal-300/90">{p.category}</span>
+                        <span className="text-[12px] font-semibold text-[#00E5A0]">{p.category}</span>
                       )}
                     </div>
-                    <h2 className="text-lg md:text-xl font-bold text-white tracking-tight group-hover:text-teal-200 transition leading-snug">
+                    <h2 className="text-lg md:text-xl font-bold text-white tracking-tight group-hover:text-[#00E5A0] transition leading-snug">
                       {p.title}
                     </h2>
                     {(p.description || p.subtitle) && (
-                      <p className="mt-2 text-sm text-slate-400 line-clamp-2 leading-relaxed">
+                      <p className="mt-2 text-sm text-neutral-400 line-clamp-2 leading-relaxed">
                         {p.description || p.subtitle}
                       </p>
                     )}
-                    <div className="mt-3 flex items-center justify-between gap-2.5 text-xs text-slate-500">
+                    <div className="mt-3 flex items-center justify-between gap-2.5 text-xs text-neutral-500">
                       <span>{formatDate(p.published_at || p.created_at)}</span>
                       <span className="inline-flex items-center gap-1">
                         <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">

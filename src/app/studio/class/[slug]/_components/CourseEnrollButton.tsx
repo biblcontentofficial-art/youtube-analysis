@@ -17,7 +17,7 @@ export default function CourseEnrollButton({ courseSlug, courseTitle, price, pri
     return (
       <button
         onClick={() => router.push(`/studio/classroom/${courseSlug}`)}
-        className="w-full py-3 bg-teal-600 hover:bg-teal-500 rounded-xl font-semibold transition text-sm"
+        className="w-full py-3 bg-white hover:bg-neutral-200 text-black rounded-xl font-bold transition text-sm"
       >
         수강하기 →
       </button>
@@ -52,11 +52,11 @@ export default function CourseEnrollButton({ courseSlug, courseTitle, price, pri
     <div className="space-y-2">
       <button
         onClick={handlePurchase}
-        className="w-full py-3 bg-teal-600 hover:bg-teal-500 rounded-xl font-semibold transition text-sm"
+        className="w-full py-3 bg-white hover:bg-neutral-200 text-black rounded-xl font-bold transition text-sm"
       >
         {priceLabel}로 수강 신청
       </button>
-      <p className="text-xs text-gray-600 text-center">30일 환불 보장</p>
+      <p className="text-xs text-neutral-600 text-center">30일 환불 보장</p>
     </div>
   );
 }

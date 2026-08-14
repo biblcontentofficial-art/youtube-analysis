@@ -14,21 +14,21 @@ export default function SearchError({
   }, [error]);
 
   return (
-    <main className="min-h-screen bg-gray-950 text-white flex items-center justify-center px-4">
+    <main className="min-h-screen bg-black text-white flex items-center justify-center px-4">
       <div className="text-center space-y-4 max-w-sm">
         <div className="text-4xl">🔍</div>
         <h2 className="text-lg font-bold text-white">검색 중 오류가 발생했습니다</h2>
-        <p className="text-gray-500 text-sm">잠시 후 다시 시도해주세요.</p>
+        <p className="text-neutral-500 text-sm">잠시 후 다시 시도해주세요.</p>
         <div className="flex gap-3 justify-center pt-2">
           <button
             onClick={reset}
-            className="bg-teal-600 hover:bg-teal-500 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition"
+            className="bg-white hover:bg-neutral-200 text-black text-sm font-bold px-5 py-2.5 rounded-lg transition"
           >
             다시 시도
           </button>
           <a
             href="/search"
-            className="bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm font-semibold px-5 py-2.5 rounded-lg border border-gray-700 transition"
+            className="bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-sm font-semibold px-5 py-2.5 rounded-lg border border-neutral-700 transition"
           >
             검색 초기화
           </a>

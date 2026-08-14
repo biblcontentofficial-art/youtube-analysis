@@ -19,7 +19,7 @@ export default function SSOCallbackError({
   }, [error]);
 
   return (
-    <main className="min-h-screen bg-gray-950 flex items-center justify-center">
+    <main className="min-h-screen bg-black flex items-center justify-center">
       <div className="text-center max-w-sm">
         <div className="w-14 h-14 rounded-full bg-amber-500/20 border border-amber-500/40 flex items-center justify-center mb-5 mx-auto">
           <svg className="w-7 h-7 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -27,17 +27,17 @@ export default function SSOCallbackError({
           </svg>
         </div>
         <h2 className="text-white font-bold text-lg mb-2">로그인 처리 중 문제가 발생했습니다</h2>
-        <p className="text-gray-500 text-sm mb-6">잠시 후 로그인 페이지로 이동합니다.</p>
+        <p className="text-neutral-500 text-sm mb-6">잠시 후 로그인 페이지로 이동합니다.</p>
         <div className="flex gap-3 justify-center">
           <button
             onClick={() => reset()}
-            className="px-5 py-2.5 bg-teal-500 hover:bg-teal-400 text-white rounded-xl text-sm font-semibold transition"
+            className="px-5 py-2.5 bg-white hover:bg-neutral-200 text-black rounded-xl text-sm font-bold transition"
           >
             다시 시도
           </button>
           <button
             onClick={() => window.location.href = "/sign-in"}
-            className="px-5 py-2.5 border border-gray-700 hover:border-gray-500 text-gray-400 hover:text-white rounded-xl text-sm font-semibold transition"
+            className="px-5 py-2.5 bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 text-neutral-300 hover:text-white rounded-xl text-sm font-semibold transition"
           >
             로그인 페이지로
           </button>

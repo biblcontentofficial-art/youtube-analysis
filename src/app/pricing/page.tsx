@@ -22,18 +22,18 @@ export const metadata: Metadata = {
 
 export default function PricingPage() {
   return (
-    <main className="min-h-screen bg-gray-950 text-white py-16 px-4 pb-24">
+    <main className="min-h-screen bg-black text-white py-16 px-4 pb-24">
       <div className="max-w-6xl mx-auto">
 
         {/* 헤더 */}
         <div className="text-center mb-14 space-y-4">
-          <div className="inline-flex items-center rounded-full border border-teal-800 bg-teal-950/50 px-4 py-1.5 text-sm text-teal-400">
+          <div className="inline-flex items-center rounded-full border border-neutral-700 px-4 py-1.5 text-sm text-[#00E5A0]">
             심플한 요금제
           </div>
           <h1 className="text-4xl md:text-5xl font-extrabold text-white">
             원하는 플랜을 선택하세요
           </h1>
-          <p className="text-gray-400 text-lg max-w-xl mx-auto">
+          <p className="text-neutral-400 text-lg max-w-xl mx-auto">
             무료로 시작하고, 필요할 때 업그레이드하세요.<br />
             언제든지 취소 가능합니다.
           </p>
@@ -43,7 +43,7 @@ export default function PricingPage() {
         <PricingCards />
 
         {/* 하단 안내 */}
-        <div className="mt-12 text-center text-sm text-gray-600 space-y-2">
+        <div className="mt-12 text-center text-sm text-neutral-600 space-y-2">
           <p>모든 플랜은 카드 결제를 지원합니다.</p>
           <p>구독은 언제든지 취소 가능하며 남은 기간은 환불 처리됩니다.</p>
         </div>
