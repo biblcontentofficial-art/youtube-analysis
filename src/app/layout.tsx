@@ -312,9 +312,8 @@ export default async function RootLayout({
         <ConfirmProvider>
         <nav className="border-b border-neutral-800 bg-black sticky top-0 z-50">
           <div className="w-full px-3 h-14 flex items-center justify-between min-w-0 overflow-x-auto scrollbar-hide">
-            {/* 로고 + 탭 */}
-            <div className="flex items-center gap-3 shrink-0">
-              <a href="/" className="flex items-center gap-2 shrink-0">
+            {/* 로고 */}
+            <a href="/" className="flex items-center gap-2 shrink-0">
                 <div className="w-8 h-8 bg-black border border-neutral-700 rounded-lg flex items-center justify-center">
                   <span style={{ color: "white", fontSize: 18, fontWeight: 900, lineHeight: 1, fontFamily: "sans-serif" }}>B</span>
                 </div>
@@ -324,7 +323,7 @@ export default async function RootLayout({
                 </span>
               </a>
 
-              <div className="hidden md:flex items-center gap-1 text-sm whitespace-nowrap">
+              <div className="hidden md:flex flex-1 items-center justify-center gap-1 text-sm whitespace-nowrap min-w-0">
                 {/* 메인 서비스: 팀비블 컨설팅 · 채널 대행 — 네온 그린 강조 */}
                 <NavTab href="/studio/class/consulting" label="팀비블 1:1 유튜브 컨설팅" isStudio />
                 <NavTab href="/studio" label="유튜브 채널 대행 문의" isStudio />
@@ -374,7 +373,6 @@ export default async function RootLayout({
                   </svg>
                 } />
               </div>
-            </div>
 
             {/* 우측 */}
             <div className="flex items-center gap-2 shrink-0 ml-2">
@@ -395,14 +393,14 @@ export default async function RootLayout({
             <div className="max-w-screen-2xl mx-auto px-4 py-2 flex items-center justify-center gap-2 overflow-x-auto scrollbar-hide">
               <a
                 href="/studio/class/consulting"
-                className="text-xs text-[#00E5A0] hover:text-[#66FFCC] font-semibold px-3 py-1.5 rounded-md whitespace-nowrap"
+                className="text-xs text-[#60A5FA] hover:text-[#93C5FD] font-semibold px-3 py-1.5 rounded-md whitespace-nowrap"
               >
                 팀비블 1:1 유튜브 컨설팅
               </a>
               <span className="w-px h-3 bg-neutral-700" />
               <a
                 href="/studio"
-                className="text-xs text-[#00E5A0] hover:text-[#66FFCC] font-semibold px-3 py-1.5 rounded-md whitespace-nowrap"
+                className="text-xs text-[#60A5FA] hover:text-[#93C5FD] font-semibold px-3 py-1.5 rounded-md whitespace-nowrap"
               >
                 유튜브 채널 대행 문의
               </a>
@@ -509,7 +507,7 @@ function NavTab({
     return (
       <a
         href={href}
-        className="flex items-center gap-1.5 px-2 py-1.5 rounded-md text-sm transition text-[#00E5A0] hover:text-[#66FFCC] hover:bg-neutral-900 font-semibold"
+        className="flex items-center gap-1.5 px-2 py-1.5 rounded-md text-sm transition text-[#60A5FA] hover:text-[#93C5FD] hover:bg-neutral-900 font-semibold"
       >
         {icon}
         {label}
