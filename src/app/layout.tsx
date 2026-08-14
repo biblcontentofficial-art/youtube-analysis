@@ -330,6 +330,18 @@ export default async function RootLayout({
                     <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
                   </svg>
                 } />
+                {/* 비블 카페 (네이버 카페, 외부 링크) */}
+                <a
+                  href="https://cafe.naver.com/businessblack"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm transition text-gray-400 hover:text-white hover:bg-gray-800"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="w-3 h-3" fill="#03C75A" aria-label="네이버 카페">
+                    <path d="M16.273 12.845L7.376 0H0v24h7.727V11.156L16.624 24H24V0h-7.727v12.845z" />
+                  </svg>
+                  비블 카페
+                </a>
                 {/* 영상 찾기 */}
                 <NavTab href="/search" label="영상 찾기" icon={
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
