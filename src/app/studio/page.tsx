@@ -253,9 +253,19 @@ const FAQS = [
   { q: "촬영도 대행해주나요?", a: "네, 기획·촬영·편집·업로드·분석까지 전 과정을 대행합니다. 장소 섭외, 카메라·조명·음향 장비, 출연자 디렉팅까지 모두 포함됩니다. 여러분은 시간만 내주시면 됩니다." },
 ];
 
+// 레퍼런스 톤: 좌측 캡션 + 우측 영문 라벨 섹션 헤더
+function SectionLabel({ label, caption = "비블의 유튜브 채널 대행" }: { label: string; caption?: string }) {
+  return (
+    <div data-animate="fade" className="flex items-center justify-between gap-4 border-b border-neutral-800 pb-4 mb-12">
+      <span className="text-xs md:text-sm text-neutral-500">{caption}</span>
+      <span className="text-sm md:text-base font-black tracking-[0.25em] text-white">{label}</span>
+    </div>
+  );
+}
+
 export default function StudioPage() {
   return (
-    <main className="min-h-screen bg-gray-950 text-white">
+    <main className="min-h-screen bg-black text-white">
       {/* JSON-LD: 구글이 "유튜브 채널 대행" 검색 시 풍부한 결과(Service) 노출 */}
       <script
         type="application/ld+json"
@@ -268,54 +278,52 @@ export default function StudioPage() {
       {/* ══════════════════════════════════════════════════════════════ */}
       {/* HERO — 고통 공감 + 명확한 약속                                */}
       {/* ══════════════════════════════════════════════════════════════ */}
-      <section className="relative border-b border-gray-800 overflow-hidden">
-        {/* 배경 그라디언트 */}
-        <div className="absolute inset-0 bg-gradient-to-br from-teal-950/30 via-gray-950 to-gray-950 pointer-events-none" />
+      <section className="relative border-b border-neutral-800 overflow-hidden">
 
         <div className="relative max-w-screen-xl mx-auto px-4 py-24 md:py-36">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div>
-              <p data-animate="up" className="text-sm md:text-base text-gray-400 font-medium mb-4">
+              <p data-animate="up" className="text-sm md:text-base text-neutral-400 font-medium mb-4">
                 {C.hero.badge}
               </p>
 
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-black leading-[1.1] tracking-tight mb-6">
-                <span data-animate="up" data-delay="60" className="block mb-1">
+                <span data-animate="up" data-delay="60" className="block mb-1 text-neutral-300">
                   {C.hero.subtitle}
                 </span>
                 <span data-animate="up" data-delay="160" className="block">
                   {C.hero.titleLine1 && <>{C.hero.titleLine1}{" "}</>}
-                  <span className="text-teal-400 highlight-draw">{C.hero.titleHighlight}</span>
+                  <span className="text-white highlight-draw">{C.hero.titleHighlight}</span>
                 </span>
               </h1>
 
-              <p data-animate="up" data-delay="260" className="text-gray-400 text-base md:text-lg mb-10 leading-relaxed whitespace-pre-line">
+              <p data-animate="up" data-delay="260" className="text-neutral-400 text-base md:text-lg mb-10 leading-relaxed whitespace-pre-line">
                 {C.hero.desc}
               </p>
 
               <div data-animate="up" data-delay="360" className="flex flex-wrap gap-4">
                 <a
                   href="/studio/consulting"
-                  className="px-8 py-4 bg-teal-500 hover:bg-teal-400 text-white font-bold rounded-xl transition text-base shadow-lg shadow-teal-900/40"
+                  className="px-8 py-4 bg-white hover:bg-neutral-200 text-black font-bold rounded-xl transition text-base"
                 >
                   {C.hero.ctaPrimary}
                 </a>
                 <a
                   href="#process"
-                  className="px-8 py-4 border border-gray-700 hover:border-gray-500 text-gray-300 hover:text-white font-semibold rounded-xl transition text-base"
+                  className="px-8 py-4 border border-neutral-700 hover:border-neutral-500 text-neutral-300 hover:text-white font-semibold rounded-xl transition text-base"
                 >
                   {C.hero.ctaSecondary}
                 </a>
               </div>
 
-              <p data-animate="fade" data-delay="500" className="text-xs text-gray-600 mt-4">
+              <p data-animate="fade" data-delay="500" className="text-xs text-neutral-600 mt-4">
                 채널 URL만 보내주시면 됩니다
               </p>
             </div>
 
             {/* 실버 플레이 버튼 — 꽉 채운 이미지 */}
             <div data-animate="right" className="flex flex-col gap-4">
-              <div className="relative w-full rounded-2xl overflow-hidden shadow-2xl border border-gray-800 aspect-[4/3]">
+              <div className="relative w-full rounded-2xl overflow-hidden shadow-2xl border border-neutral-800 aspect-[4/3]">
                 <Image
                   src={C.hero.heroImage}
                   alt="히어로 이미지"
@@ -323,7 +331,7 @@ export default function StudioPage() {
                   className="object-cover"
                 />
               </div>
-              <p className="text-sm text-gray-400 leading-relaxed whitespace-pre-line">
+              <p className="text-sm text-neutral-400 leading-relaxed whitespace-pre-line">
                 {C.hero.heroImageCaption}
               </p>
             </div>
@@ -337,15 +345,13 @@ export default function StudioPage() {
       {/* ══════════════════════════════════════════════════════════════ */}
       {/* 문제 공감 — 혼자 하면 왜 실패하는가                          */}
       {/* ══════════════════════════════════════════════════════════════ */}
-      <section className="border-b border-gray-800 bg-gray-900/20">
+      <section className="border-b border-neutral-800">
         <div className="max-w-screen-xl mx-auto px-4 py-20">
-          <div className="text-center mb-14">
-            <p data-animate="up" className="text-sm text-gray-500 uppercase tracking-widest mb-3">왜 혼자는 어려운가</p>
-            <h2 data-animate="up" data-delay="80" className="text-3xl md:text-5xl font-bold">
-              유튜브 채널 운영,<br />
-              <span className="text-teal-400">혼자 하면 이 3가지에서 막힙니다</span>
-            </h2>
-          </div>
+          <SectionLabel label="PROBLEM" />
+          <h2 data-animate="up" className="text-3xl md:text-5xl font-black leading-tight mb-14">
+            <span className="text-neutral-400">유튜브 채널 운영,</span><br />
+            혼자 하면 이 3가지에서 막힙니다
+          </h2>
 
           <div className="grid md:grid-cols-3 gap-6">
             {[
@@ -372,24 +378,24 @@ export default function StudioPage() {
                 key={item.title}
                 data-animate="up"
                 data-delay={String(i * 100)}
-                className="rounded-2xl border border-gray-700/50 bg-gray-800/30 p-6"
+                className="rounded-2xl border border-neutral-800 bg-neutral-900 p-6"
               >
                 <div className="flex items-start justify-between mb-4">
                   <h3 className="font-bold text-xl text-white">{item.title}</h3>
-                  <span className="ml-3 shrink-0 text-xs font-bold text-teal-400 bg-teal-950/50 border border-teal-800/50 px-2.5 py-1 rounded-md whitespace-nowrap">
+                  <span className="ml-3 shrink-0 text-xs font-bold text-neutral-400 border border-neutral-700 px-2.5 py-1 rounded-md whitespace-nowrap">
                     {item.badge}
                   </span>
                 </div>
-                <p className="text-base text-gray-400 leading-relaxed">{item.desc}</p>
+                <p className="text-base text-neutral-400 leading-relaxed">{item.desc}</p>
               </div>
             ))}
           </div>
 
           <div data-animate="up" data-delay="300" className="mt-10 text-center">
-            <p className="text-gray-500 text-base mb-4">이 3가지 문제, 비블이 전부 해결합니다.</p>
+            <p className="text-neutral-500 text-base mb-4">이 3가지 문제, 비블이 전부 해결합니다.</p>
             <a
               href="/studio/consulting"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-teal-500 hover:bg-teal-400 text-white font-bold rounded-xl transition text-sm"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-white hover:bg-neutral-200 text-black font-bold rounded-xl transition text-sm"
             >
               채널 대행 문의하기 →
             </a>
@@ -400,13 +406,13 @@ export default function StudioPage() {
       {/* ══════════════════════════════════════════════════════════════ */}
       {/* YouTube 영상                                                  */}
       {/* ══════════════════════════════════════════════════════════════ */}
-      <section className="border-b border-gray-800">
+      <section className="border-b border-neutral-800">
         <div className="max-w-screen-lg mx-auto px-4 py-20">
-          <p data-animate="up" className="text-sm text-gray-500 uppercase tracking-widest mb-3 text-center">비블이 직접 말합니다</p>
-          <h2 data-animate="up" data-delay="80" className="text-3xl md:text-5xl font-bold mb-10 text-center">
+          <SectionLabel label="INTERVIEW" />
+          <h2 data-animate="up" className="text-3xl md:text-5xl font-black mb-10">
             영상으로 만나보세요
           </h2>
-          <div data-animate="up" data-delay="160" className="relative w-full overflow-hidden rounded-2xl border border-gray-800 shadow-2xl shadow-teal-500/5" style={{ paddingTop: "56.25%" }}>
+          <div data-animate="up" data-delay="160" className="relative w-full overflow-hidden rounded-2xl border border-neutral-800" style={{ paddingTop: "56.25%" }}>
             <iframe
               className="absolute top-0 left-0 w-full h-full"
               src="https://www.youtube.com/embed/ojLicBvcS4o?autoplay=1&mute=1&playsinline=1&rel=0&loop=1&playlist=ojLicBvcS4o"
@@ -423,14 +429,14 @@ export default function StudioPage() {
       {/* ══════════════════════════════════════════════════════════════ */}
       {/* 포트폴리오                                                    */}
       {/* ══════════════════════════════════════════════════════════════ */}
-      <section className="border-b border-gray-800">
+      <section className="border-b border-neutral-800">
         <div className="max-w-screen-xl mx-auto px-4 py-20">
-          <p data-animate="up" className="text-sm text-gray-500 uppercase tracking-widest mb-3">실제 운영 채널</p>
-          <h2 data-animate="up" data-delay="80" className="text-3xl md:text-5xl font-bold mb-3">
+          <SectionLabel label="PORTFOLIO" />
+          <h2 data-animate="up" className="text-3xl md:text-5xl font-black mb-3">
             말이 아닌, 결과로 증명합니다
           </h2>
-          <p data-animate="up" data-delay="160" className="text-gray-400 mb-12 text-base md:text-lg">
-            총 <span className="text-teal-400 font-semibold">70만+ 구독자</span> 채널을 운영 및 공동 기획하고 있습니다.
+          <p data-animate="up" data-delay="160" className="text-neutral-400 mb-12 text-base md:text-lg">
+            총 <span className="text-[#FF1E1E] font-bold">70만+ 구독자</span> 채널을 운영 및 공동 기획하고 있습니다.
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -442,30 +448,30 @@ export default function StudioPage() {
                 rel="noopener noreferrer"
                 data-animate="up"
                 data-delay={String(i * 60)}
-                className="channel-card group rounded-2xl bg-gray-900 border border-gray-800"
+                className="channel-card group rounded-2xl bg-neutral-900 border border-neutral-800"
               >
                 <div className="relative h-32 md:h-44 overflow-hidden rounded-t-2xl">
                   <Image src={ch.banner} alt={`${ch.name} 채널 배너`} fill className="object-cover group-hover:scale-105 transition-transform duration-500" unoptimized />
                   {/* 결과 배지 */}
-                  <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-sm text-teal-400 text-xs font-bold px-3 py-1 rounded-full border border-teal-800/50">
+                  <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-sm text-white text-xs font-bold px-3 py-1 rounded-full border border-neutral-700">
                     {ch.result}
                   </div>
                 </div>
                 <div className="px-6 pt-0 pb-6">
                   <div className="relative -mt-8 mb-3">
-                    <div className="w-16 h-16 rounded-full overflow-hidden border-[3px] border-gray-900 shadow-lg">
+                    <div className="w-16 h-16 rounded-full overflow-hidden border-[3px] border-neutral-900 shadow-lg">
                       <Image src={ch.avatar} alt={ch.name} width={64} height={64} className="object-cover w-full h-full" unoptimized />
                     </div>
                   </div>
                   <div className="space-y-1">
-                    <div className="font-bold text-base md:text-lg text-white group-hover:text-teal-400 transition leading-tight">{ch.name}</div>
-                    <div className="text-xs text-gray-500">{ch.handle}</div>
+                    <div className="font-bold text-base md:text-lg text-white leading-tight">{ch.name}</div>
+                    <div className="text-xs text-neutral-500">{ch.handle}</div>
                     <div className="flex items-center justify-between pt-2">
                       <div>
-                        <span className="text-2xl font-bold text-teal-400">{ch.subsNum}</span>
-                        <span className="text-xs text-gray-500 ml-1.5">구독자</span>
+                        <span className="text-2xl font-black text-white">{ch.subsNum}</span>
+                        <span className="text-xs text-neutral-500 ml-1.5">구독자</span>
                       </div>
-                      <span className="text-xs px-2.5 py-1 rounded-full bg-gray-800 text-gray-400">{ch.category}</span>
+                      <span className="text-xs px-2.5 py-1 rounded-full bg-neutral-800 text-neutral-400">{ch.category}</span>
                     </div>
                   </div>
                 </div>
@@ -474,13 +480,13 @@ export default function StudioPage() {
           </div>
 
           {/* 90일 실측 성과 — 세계유명 골프정보 */}
-          <div data-animate="up" className="mt-16 rounded-2xl border border-gray-800 bg-gray-900 p-8 md:p-10">
+          <div data-animate="up" className="mt-16 rounded-2xl border border-neutral-800 bg-neutral-900 p-8 md:p-10">
             <div className="flex flex-wrap items-baseline justify-between gap-3 mb-8">
               <div>
-                <p className="text-xs text-gray-500 uppercase tracking-widest mb-2">직접 운영 채널 실측 데이터</p>
+                <p className="text-xs text-neutral-500 uppercase tracking-widest mb-2">직접 운영 채널 실측 데이터</p>
                 <h3 className="text-xl md:text-2xl font-bold text-white">「세계유명 골프정보」 최근 90일 성과</h3>
               </div>
-              <span className="text-xs text-gray-500">YouTube 스튜디오 기준</span>
+              <span className="text-xs text-neutral-500">YouTube 스튜디오 기준</span>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-x-8 gap-y-8">
               {[
@@ -493,11 +499,11 @@ export default function StudioPage() {
               ].map((s) => (
                 <div key={s.label}>
                   <div className="text-2xl md:text-3xl font-black text-white tracking-tight">{s.value}</div>
-                  <div className="text-xs text-gray-500 mt-1.5">{s.label}</div>
+                  <div className="text-xs text-neutral-500 mt-1.5">{s.label}</div>
                 </div>
               ))}
             </div>
-            <p className="mt-8 pt-6 border-t border-gray-800 text-sm text-gray-400 leading-relaxed">
+            <p className="mt-8 pt-6 border-t border-neutral-800 text-sm text-neutral-400 leading-relaxed">
               채널 성과에서 끝나지 않습니다. 이 트래픽은 골프 쇼핑몰 <span className="text-white font-semibold">연 매출 7억+</span>으로 직접 연결됩니다.
               트래픽을 매출로 전환하는 비즈니스 설계 — 일반 대행사와 가장 다른 지점입니다.
             </p>
@@ -508,21 +514,21 @@ export default function StudioPage() {
       {/* ══════════════════════════════════════════════════════════════ */}
       {/* 영상 썸네일 마퀴 — 실제 운영 영상들                          */}
       {/* ══════════════════════════════════════════════════════════════ */}
-      <section className="border-b border-gray-800 bg-gray-950 py-16 overflow-hidden">
+      <section className="border-b border-neutral-800 py-16 overflow-hidden">
         <div className="max-w-screen-xl mx-auto px-4 mb-10">
-          <p data-animate="up" className="text-xs text-teal-500 uppercase tracking-widest mb-3 font-semibold">{C.marquee.label}</p>
-          <h2 data-animate="up" data-delay="80" className="text-2xl md:text-4xl font-black leading-snug">
-            {C.marquee.titleLine1}<br />
-            <span className="text-transparent bg-clip-text" style={{ backgroundImage: "linear-gradient(90deg,#14b8a6,#06b6d4)" }}>
+          <SectionLabel label="CONTENTS" />
+          <h2 data-animate="up" className="text-2xl md:text-4xl font-black leading-snug">
+            <span className="text-neutral-400">{C.marquee.titleLine1}</span><br />
+            <span className="text-[#FF1E1E]">
               {C.marquee.titleHighlight}
             </span>{C.marquee.titleLine2}
           </h2>
-          <p data-animate="up" data-delay="160" className="text-gray-400 text-sm md:text-base mt-5 max-w-2xl leading-relaxed space-y-2">
+          <p data-animate="up" data-delay="160" className="text-neutral-400 text-sm md:text-base mt-5 max-w-2xl leading-relaxed space-y-2">
             {C.marquee.desc1}<br className="hidden md:block" />
             <br />
             {C.marquee.desc2}
           </p>
-          <p data-animate="up" data-delay="220" className="text-xs text-gray-600 mt-3">
+          <p data-animate="up" data-delay="220" className="text-xs text-neutral-600 mt-3">
             마우스를 올리면 멈춥니다 · 클릭하면 유튜브로 이동합니다
           </p>
         </div>
@@ -532,17 +538,17 @@ export default function StudioPage() {
       {/* ══════════════════════════════════════════════════════════════ */}
       {/* 진행 프로세스 — 불안 해소                                    */}
       {/* ══════════════════════════════════════════════════════════════ */}
-      <section id="process" className="border-b border-gray-800 bg-gray-900/20">
+      <section id="process" className="border-b border-neutral-800">
         <div className="max-w-screen-xl mx-auto px-4 py-20">
-          <p data-animate="up" className="text-sm text-gray-500 uppercase tracking-widest mb-3 text-center">진행 과정</p>
-          <h2 data-animate="up" data-delay="80" className="text-3xl md:text-5xl font-bold mb-4 text-center">
-            문의부터 운영까지,<br />7단계로 진행됩니다
+          <SectionLabel label="PROCESS" />
+          <h2 data-animate="up" className="text-3xl md:text-5xl font-black leading-tight mb-4">
+            <span className="text-neutral-400">문의부터 운영까지,</span><br />7단계로 진행됩니다
           </h2>
-          <p data-animate="up" data-delay="160" className="text-gray-400 text-center mb-16 text-base">
+          <p data-animate="up" data-delay="160" className="text-neutral-400 mb-16 text-base">
             여러분이 쓰는 시간은 월 촬영 하루 3~4시간, 질문지 답변 2~3시간이 전부입니다
           </p>
 
-          <div className="max-w-3xl mx-auto space-y-3">
+          <div className="max-w-3xl space-y-3">
             {[
               {
                 step: "01",
@@ -584,14 +590,14 @@ export default function StudioPage() {
                 key={s.step}
                 data-animate="up"
                 data-delay={String(i * 60)}
-                className="flex gap-5 rounded-2xl border border-gray-800 bg-gray-900 p-5 md:p-6"
+                className="flex gap-5 rounded-2xl border border-neutral-800 bg-neutral-900 p-5 md:p-6"
               >
-                <div className="shrink-0 w-10 h-10 rounded-full border border-gray-700 flex items-center justify-center text-sm font-black text-white">
+                <div className="shrink-0 w-9 pt-0.5 text-lg font-black text-neutral-500">
                   {s.step}
                 </div>
                 <div className="min-w-0">
                   <h3 className="font-bold text-base md:text-lg text-white mb-1.5">{s.title}</h3>
-                  <p className="text-sm md:text-base text-gray-400 leading-relaxed">{s.desc}</p>
+                  <p className="text-sm md:text-base text-neutral-400 leading-relaxed">{s.desc}</p>
                 </div>
               </div>
             ))}
@@ -603,26 +609,29 @@ export default function StudioPage() {
       {/* 4가지 차별점                                                  */}
       {/* ══════════════════════════════════════════════════════════════ */}
       <section id="features">
+        <div className="max-w-screen-xl mx-auto px-4 pt-20">
+          <SectionLabel label="STRENGTH" />
+        </div>
         {C.features.map((feat: typeof C.features[0] & { imgRight?: boolean }, i) => {
           feat = { ...feat, imgRight: i % 2 === 0 };
           return (
-          <div key={feat.num} className={`border-b border-gray-800 ${i % 2 === 0 ? "bg-gray-950" : "bg-gray-900/30"}`}>
+          <div key={feat.num} className={`border-b border-neutral-800 ${i % 2 === 0 ? "bg-black" : "bg-neutral-950"}`}>
             <div className="max-w-screen-xl mx-auto px-4 py-0">
               <div className={`grid md:grid-cols-2 min-h-[460px] md:min-h-[520px] ${feat.imgRight ? "" : "md:[direction:rtl]"}`}>
                 <div className={`flex flex-col justify-center py-16 md:py-20 px-0 md:px-12 ${feat.imgRight ? "" : "md:[direction:ltr]"}`}>
-                  <span data-animate={feat.imgRight ? "left" : "right"} className="text-5xl md:text-7xl font-black text-gray-800 leading-none mb-5 select-none">
+                  <span data-animate={feat.imgRight ? "left" : "right"} className="text-5xl md:text-7xl font-black text-neutral-700 leading-none mb-5 select-none">
                     {feat.num}
                   </span>
-                  <h2 data-animate={feat.imgRight ? "left" : "right"} data-delay="100" className="text-2xl md:text-3xl font-bold mb-5 leading-tight">
+                  <h2 data-animate={feat.imgRight ? "left" : "right"} data-delay="100" className="text-2xl md:text-3xl font-black mb-5 leading-tight">
                     {feat.title}
                   </h2>
-                  <p data-animate={feat.imgRight ? "left" : "right"} data-delay="200" className="text-gray-400 text-base leading-relaxed whitespace-pre-line">
+                  <p data-animate={feat.imgRight ? "left" : "right"} data-delay="200" className="text-neutral-400 text-base leading-relaxed whitespace-pre-line">
                     {feat.desc}
                   </p>
                 </div>
                 <div data-animate={feat.imgRight ? "right" : "left"} className={`relative min-h-64 md:min-h-0 overflow-hidden ${feat.imgRight ? "" : "md:[direction:ltr]"}`}>
                   <Image src={feat.img} alt={feat.imgAlt} fill className="object-cover feat-img" unoptimized />
-                  <div className="absolute inset-0 bg-gradient-to-r from-gray-950/60 via-transparent to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-transparent to-transparent" />
                 </div>
               </div>
             </div>
@@ -634,17 +643,15 @@ export default function StudioPage() {
       {/* ══════════════════════════════════════════════════════════════ */}
       {/* 기존 대행사의 구조적 문제 + 비교표                            */}
       {/* ══════════════════════════════════════════════════════════════ */}
-      <section className="border-b border-gray-800 bg-gray-900/20">
+      <section className="border-b border-neutral-800">
         <div className="max-w-screen-xl mx-auto px-4 py-20">
-          <div className="text-center mb-14">
-            <p data-animate="up" className="text-sm text-gray-500 uppercase tracking-widest mb-3">왜 대행사에 맡겨도 실패하는가</p>
-            <h2 data-animate="up" data-delay="80" className="text-3xl md:text-5xl font-bold leading-tight">
-              기존 유튜브 대행사의<br />3가지 구조적 문제
-            </h2>
-            <p data-animate="up" data-delay="160" className="text-gray-400 mt-5 text-base max-w-2xl mx-auto">
-              직접 이 사업에 뛰어들어 경쟁사를 깊이 분석한 결과, 업계에는 명확한 구조적 문제가 있었습니다.
-            </p>
-          </div>
+          <SectionLabel label="DIFFERENCE" />
+          <h2 data-animate="up" className="text-3xl md:text-5xl font-black leading-tight">
+            <span className="text-neutral-400">기존 유튜브 대행사의</span><br />3가지 구조적 문제
+          </h2>
+          <p data-animate="up" data-delay="160" className="text-neutral-400 mt-5 mb-14 text-base max-w-2xl">
+            직접 이 사업에 뛰어들어 경쟁사를 깊이 분석한 결과, 업계에는 명확한 구조적 문제가 있었습니다.
+          </p>
 
           <div className="grid md:grid-cols-3 gap-6 mb-16">
             {[
@@ -668,28 +675,28 @@ export default function StudioPage() {
                 key={item.title}
                 data-animate="up"
                 data-delay={String(i * 100)}
-                className="rounded-2xl border border-gray-700/50 bg-gray-800/30 p-6"
+                className="rounded-2xl border border-neutral-800 bg-neutral-900 p-6"
               >
-                <span className="inline-block text-xs font-bold text-gray-400 border border-gray-700 px-2.5 py-1 rounded-md mb-4">
+                <span className="inline-block text-xs font-bold text-neutral-400 border border-neutral-700 px-2.5 py-1 rounded-md mb-4">
                   {item.badge}
                 </span>
                 <h3 className="font-bold text-xl text-white mb-3">{item.title}</h3>
-                <p className="text-base text-gray-400 leading-relaxed">{item.desc}</p>
+                <p className="text-base text-neutral-400 leading-relaxed">{item.desc}</p>
               </div>
             ))}
           </div>
 
           {/* 비교표 */}
-          <div data-animate="up" className="overflow-x-auto rounded-2xl border border-gray-800">
+          <div data-animate="up" className="overflow-x-auto rounded-2xl border border-neutral-800">
             <table className="w-full min-w-[640px] text-left text-sm">
               <thead>
-                <tr className="border-b border-gray-800 bg-gray-900">
-                  <th className="px-5 py-4 font-semibold text-gray-500 w-40">항목</th>
-                  <th className="px-5 py-4 font-semibold text-gray-500">일반 대행사</th>
+                <tr className="border-b border-neutral-800 bg-neutral-900">
+                  <th className="px-5 py-4 font-semibold text-neutral-500 w-40">항목</th>
+                  <th className="px-5 py-4 font-semibold text-neutral-500">일반 대행사</th>
                   <th className="px-5 py-4 font-bold text-white">TMK STUDIO</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-800">
+              <tbody className="divide-y divide-neutral-800">
                 {[
                   { k: "직접 운영 채널", a: "없음", b: "총 70만 구독자, 7개 채널" },
                   { k: "사업 경험", a: "영상 제작자 출신 다수", b: "유튜브 분석 SaaS 운영 · 매출 7억+ 쇼핑몰 · 유튜버 교육 컨설팅 · 오프라인 매장 3곳" },
@@ -698,9 +705,9 @@ export default function StudioPage() {
                   { k: "썸네일 · 제목", a: "디자이너 외주", b: "비블 직접 제작" },
                   { k: "비즈니스 연결", a: "채널 성장에서 끝", b: "트래픽 → 매출 퍼널 + 브랜딩 설계" },
                 ].map((row) => (
-                  <tr key={row.k} className="bg-gray-950">
-                    <td className="px-5 py-4 text-gray-500 align-top">{row.k}</td>
-                    <td className="px-5 py-4 text-gray-500 align-top">{row.a}</td>
+                  <tr key={row.k} className="bg-neutral-950">
+                    <td className="px-5 py-4 text-neutral-500 align-top">{row.k}</td>
+                    <td className="px-5 py-4 text-neutral-500 align-top">{row.a}</td>
                     <td className="px-5 py-4 text-white font-medium align-top">{row.b}</td>
                   </tr>
                 ))}
@@ -713,10 +720,10 @@ export default function StudioPage() {
       {/* ══════════════════════════════════════════════════════════════ */}
       {/* 고객 후기 — 구체적 수치                                       */}
       {/* ══════════════════════════════════════════════════════════════ */}
-      <section className="border-b border-gray-800">
+      <section className="border-b border-neutral-800">
         <div className="max-w-screen-xl mx-auto px-4 py-20">
-          <p data-animate="up" className="text-sm text-gray-500 uppercase tracking-widest mb-3">고객 후기</p>
-          <h2 data-animate="up" data-delay="80" className="text-3xl md:text-5xl font-bold mb-12">
+          <SectionLabel label="REVIEW" />
+          <h2 data-animate="up" className="text-3xl md:text-5xl font-black mb-12">
             숫자가 거짓말하지 않습니다
           </h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -725,16 +732,16 @@ export default function StudioPage() {
                 key={r.name}
                 data-animate="up"
                 data-delay={String(i * 80)}
-                className="review-card rounded-2xl bg-gray-900 border border-gray-800 p-6"
+                className="review-card rounded-2xl bg-neutral-900 border border-neutral-800 p-6"
               >
                 <div className="flex items-center justify-between mb-4">
-                  <div className="flex gap-0.5 text-teal-400 text-sm">★★★★★</div>
-                  <span className="text-xs font-bold text-teal-400 bg-teal-950/50 border border-teal-800/50 px-2.5 py-1 rounded-full">
+                  <div className="flex gap-0.5 text-white text-sm">★★★★★</div>
+                  <span className="text-xs font-bold text-[#FF1E1E] border border-neutral-700 px-2.5 py-1 rounded-full">
                     {r.result}
                   </span>
                 </div>
-                <p className="text-base text-gray-300 leading-relaxed mb-5">&ldquo;{r.text}&rdquo;</p>
-                <div className="text-sm text-gray-500 font-medium border-t border-gray-800 pt-4">{r.name}</div>
+                <p className="text-base text-neutral-300 leading-relaxed mb-5">&ldquo;{r.text}&rdquo;</p>
+                <div className="text-sm text-neutral-500 font-medium border-t border-neutral-800 pt-4">{r.name}</div>
               </div>
             ))}
           </div>
@@ -744,18 +751,18 @@ export default function StudioPage() {
       {/* ══════════════════════════════════════════════════════════════ */}
       {/* 운영자 소개 — 권위 확립                                      */}
       {/* ══════════════════════════════════════════════════════════════ */}
-      <section className="border-b border-gray-800 bg-gray-900/20">
+      <section className="border-b border-neutral-800">
         <div className="max-w-screen-xl mx-auto px-4 py-20">
+          <SectionLabel label="ABOUT" />
           <div className="grid md:grid-cols-2 gap-16 items-center">
             <div>
-              <p data-animate="up" className="text-sm text-gray-500 uppercase tracking-widest mb-4">운영자 소개</p>
-              <h2 data-animate="up" data-delay="80" className="text-4xl md:text-5xl font-bold mb-2">비블 (김태민)</h2>
-              <p data-animate="up" data-delay="160" className="text-teal-400 font-semibold text-lg mb-8">TMK STUDIO 대표</p>
+              <h2 data-animate="up" className="text-4xl md:text-5xl font-black mb-2">비블 (김태민)</h2>
+              <p data-animate="up" data-delay="160" className="text-[#FF1E1E] font-bold text-lg mb-8">TMK STUDIO 대표</p>
 
               <div data-animate="up" data-delay="220" className="space-y-6 mb-8">
                 {/* 온라인 */}
                 <div>
-                  <p className="text-[11px] font-black uppercase tracking-widest text-teal-500 mb-2.5">온라인</p>
+                  <p className="text-[11px] font-black uppercase tracking-widest text-neutral-500 mb-2.5">온라인</p>
                   <div className="space-y-2">
                     {[
                       "유튜브 총 70만+ 채널 운영 및 공동기획",
@@ -765,8 +772,8 @@ export default function StudioPage() {
                       "SEMOGOLF 대표 (골프 영상 제작, 쇼핑몰)",
                       "TMK STUDIO 대표 (유튜브 제작 프로덕션)",
                     ].map((item) => (
-                      <div key={item} className="flex items-start gap-2.5 text-base text-gray-300">
-                        <span className="text-teal-400 mt-0.5 shrink-0 text-xs">✓</span>
+                      <div key={item} className="flex items-start gap-2.5 text-base text-neutral-300">
+                        <span className="text-neutral-500 mt-0.5 shrink-0 text-xs">✓</span>
                         <span>{item}</span>
                       </div>
                     ))}
@@ -775,15 +782,15 @@ export default function StudioPage() {
 
                 {/* 교육 */}
                 <div>
-                  <p className="text-[11px] font-black uppercase tracking-widest text-teal-500 mb-2.5">교육</p>
+                  <p className="text-[11px] font-black uppercase tracking-widest text-neutral-500 mb-2.5">교육</p>
                   <div className="space-y-2">
                     {[
                       "사범대학 체육교육과 학사 (차석 졸업)",
                       "2급 정교사",
                       "팀 내부 교사 출신들의 유튜브 교육 커리큘럼",
                     ].map((item) => (
-                      <div key={item} className="flex items-start gap-2.5 text-base text-gray-300">
-                        <span className="text-teal-400 mt-0.5 shrink-0 text-xs">✓</span>
+                      <div key={item} className="flex items-start gap-2.5 text-base text-neutral-300">
+                        <span className="text-neutral-500 mt-0.5 shrink-0 text-xs">✓</span>
                         <span>{item}</span>
                       </div>
                     ))}
@@ -792,14 +799,14 @@ export default function StudioPage() {
 
                 {/* 사업 운영 */}
                 <div>
-                  <p className="text-[11px] font-black uppercase tracking-widest text-teal-500 mb-2.5">사업 운영</p>
+                  <p className="text-[11px] font-black uppercase tracking-widest text-neutral-500 mb-2.5">사업 운영</p>
                   <div className="space-y-2">
                     {[
                       "프랜차이즈 B사 3곳",
                       "프랜차이즈 M사 1곳",
                     ].map((item) => (
-                      <div key={item} className="flex items-start gap-2.5 text-base text-gray-300">
-                        <span className="text-teal-400 mt-0.5 shrink-0 text-xs">✓</span>
+                      <div key={item} className="flex items-start gap-2.5 text-base text-neutral-300">
+                        <span className="text-neutral-500 mt-0.5 shrink-0 text-xs">✓</span>
                         <span>{item}</span>
                       </div>
                     ))}
@@ -813,7 +820,7 @@ export default function StudioPage() {
                 href="https://www.youtube.com/@bibl_youtube"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-5 py-3 bg-gray-900 hover:bg-gray-800 border border-gray-700 hover:border-gray-500 rounded-xl text-sm text-white transition font-medium"
+                className="inline-flex items-center gap-2 px-5 py-3 bg-neutral-900 hover:bg-neutral-800 border border-neutral-700 hover:border-neutral-500 rounded-xl text-sm text-white transition font-medium"
               >
                 <svg className="w-4 h-4 text-[#FF0000]" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
@@ -828,26 +835,26 @@ export default function StudioPage() {
               target="_blank"
               rel="noopener noreferrer"
               data-animate="right"
-              className="channel-card group rounded-2xl border border-gray-800"
+              className="channel-card group rounded-2xl border border-neutral-800"
             >
               <div className="relative h-52 overflow-hidden rounded-t-2xl">
                 <Image src={BIBL_CHANNEL.banner} alt="비블 bibl 채널 배너" fill className="object-cover group-hover:scale-105 transition-transform duration-500" unoptimized />
               </div>
-              <div className="bg-gray-900 rounded-b-2xl px-5 pb-5 pt-10 relative">
-                <div className="absolute -top-7 left-5 w-14 h-14 rounded-full overflow-hidden border-[3px] border-gray-900 shadow-lg shrink-0">
+              <div className="bg-neutral-900 rounded-b-2xl px-5 pb-5 pt-10 relative">
+                <div className="absolute -top-7 left-5 w-14 h-14 rounded-full overflow-hidden border-[3px] border-neutral-900 shadow-lg shrink-0">
                   <Image src={BIBL_CHANNEL.avatar} alt="비블" width={56} height={56} className="object-cover w-full h-full" unoptimized />
                 </div>
                 <div className="flex items-start justify-between mb-3">
                   <div>
                     <div className="font-bold text-white text-sm">비블 bibl</div>
-                    <div className="text-xs text-gray-500">@bibl_youtube</div>
+                    <div className="text-xs text-neutral-500">@bibl_youtube</div>
                   </div>
                   <div className="text-right">
-                    <div className="text-teal-400 font-bold text-lg">{BIBL_CHANNEL.subsNum}</div>
-                    <div className="text-xs text-gray-500">구독자</div>
+                    <div className="text-white font-black text-lg">{BIBL_CHANNEL.subsNum}</div>
+                    <div className="text-xs text-neutral-500">구독자</div>
                   </div>
                 </div>
-                <p className="text-xs text-gray-500">사업하는 사람들의 이야기를 전합니다 · 동영상 248개</p>
+                <p className="text-xs text-neutral-500">사업하는 사람들의 이야기를 전합니다 · 동영상 248개</p>
               </div>
             </a>
           </div>
@@ -855,27 +862,84 @@ export default function StudioPage() {
       </section>
 
       {/* ══════════════════════════════════════════════════════════════ */}
+      {/* 가격 안내                                                     */}
+      {/* ══════════════════════════════════════════════════════════════ */}
+      <section className="border-b border-neutral-800">
+        <div className="max-w-screen-xl mx-auto px-4 py-20">
+          <SectionLabel label="PRICE" />
+          <h2 data-animate="up" className="text-3xl md:text-5xl font-black">
+            명확한 가격으로 안내합니다
+          </h2>
+          <p data-animate="up" data-delay="160" className="text-neutral-400 mt-5 mb-12 text-base">
+            기본 구성 · 월 롱폼 4개 + 롱폼 재가공 쇼츠 10개
+          </p>
+
+          <div className="grid md:grid-cols-2 gap-6 max-w-4xl">
+            {[
+              {
+                name: "기본 패키지",
+                desc: "기획 · 편집 · 업로드 · 채널관리",
+                note: "촬영 미포함 (본인 직접 촬영)",
+                price: "₩3,500,000",
+                delay: 0,
+              },
+              {
+                name: "촬영 포함 패키지",
+                desc: "기획 · 편집 · 업로드 · 채널관리",
+                note: "+ 현장촬영 및 비블 디렉팅",
+                price: "₩4,000,000",
+                delay: 100,
+              },
+            ].map((p) => (
+              <div
+                key={p.name}
+                data-animate="up"
+                data-delay={String(p.delay)}
+                className="flex flex-col justify-between rounded-3xl border border-neutral-800 bg-neutral-900 p-8 md:p-10 min-h-[280px]"
+              >
+                <div>
+                  <h3 className="text-xl md:text-2xl font-black text-white mb-2">{p.name}</h3>
+                  <p className="text-sm text-neutral-400">{p.desc}</p>
+                  <p className="text-sm text-neutral-400 mt-0.5">{p.note}</p>
+                </div>
+                <div className="mt-10 text-right">
+                  <p className="text-xs text-neutral-500 mb-1.5">부가세(VAT) 별도</p>
+                  <p className="text-3xl md:text-4xl font-black text-white tracking-tight">
+                    {p.price}<span className="text-lg font-bold text-neutral-500">/월</span>
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <p data-animate="fade" data-delay="200" className="mt-8 text-xs text-neutral-600">
+            * 가격은 변동될 수 있으니 꼭 참고해주세요. 채널 상황에 따라 구성을 조정해 제안드립니다.
+          </p>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════════════════════════ */}
       {/* FAQ — 반론 처리                                               */}
       {/* ══════════════════════════════════════════════════════════════ */}
-      <section className="border-b border-gray-800">
+      <section className="border-b border-neutral-800">
         <div className="max-w-screen-xl mx-auto px-4 py-20">
-          <p data-animate="up" className="text-sm text-gray-500 uppercase tracking-widest mb-3 text-center">FAQ</p>
-          <h2 data-animate="up" data-delay="80" className="text-3xl md:text-5xl font-bold mb-12 text-center">
+          <SectionLabel label="FAQ" />
+          <h2 data-animate="up" className="text-3xl md:text-5xl font-black mb-12">
             자주 하시는 질문
           </h2>
-          <div className="max-w-3xl mx-auto space-y-4">
+          <div className="max-w-3xl space-y-4">
             {C.faqs.map((item, i) => (
               <details
                 key={item.q}
                 data-animate="up"
                 data-delay={String(i * 60)}
-                className="group rounded-2xl bg-gray-900 border border-gray-800 hover:border-gray-700 transition"
+                className="group rounded-2xl bg-neutral-900 border border-neutral-800 hover:border-neutral-700 transition"
               >
                 <summary className="p-5 cursor-pointer list-none text-base font-semibold flex items-center justify-between gap-4">
                   <span>{item.q}</span>
-                  <span className="text-gray-500 group-open:rotate-180 transition-transform shrink-0 text-lg">▾</span>
+                  <span className="text-neutral-500 group-open:rotate-180 transition-transform shrink-0 text-lg">▾</span>
                 </summary>
-                <div className="px-5 pb-5 text-base text-gray-400 leading-relaxed border-t border-gray-800 pt-4">
+                <div className="px-5 pb-5 text-base text-neutral-400 leading-relaxed border-t border-neutral-800 pt-4">
                   {item.a}
                 </div>
               </details>
@@ -889,37 +953,37 @@ export default function StudioPage() {
       {/* ══════════════════════════════════════════════════════════════ */}
       <section>
         <div className="max-w-screen-xl mx-auto px-4 py-28">
-          <div className="relative rounded-3xl border border-gray-800 bg-gray-950 p-10 md:p-16 text-center">
+          <div className="relative rounded-3xl border border-neutral-800 bg-neutral-950 p-10 md:p-16 text-center">
             <div data-animate="up" className="mb-8">
               <a
                 href="/studio/consulting"
-                className="inline-flex items-center gap-2.5 border border-gray-700 hover:border-gray-500 rounded-full px-5 py-2 transition group"
+                className="inline-flex items-center gap-2.5 border border-neutral-700 hover:border-neutral-500 rounded-full px-5 py-2 transition group"
               >
-                <span className="text-xs font-semibold text-gray-400 tracking-wide">이번달 신규 대행 마감임박</span>
-                <span className="w-px h-3 bg-gray-700" />
-                <span className="text-xs font-semibold text-white group-hover:text-gray-300 transition">채널 대행 문의 남기기 →</span>
+                <span className="text-xs font-semibold text-[#FF1E1E] tracking-wide">이번달 신규 대행 마감임박</span>
+                <span className="w-px h-3 bg-neutral-700" />
+                <span className="text-xs font-semibold text-white group-hover:text-neutral-300 transition">채널 대행 문의 남기기 →</span>
               </a>
             </div>
 
-            <h2 data-animate="up" data-delay="80" className="text-3xl md:text-5xl font-bold mb-6 leading-tight tracking-tight">
+            <h2 data-animate="up" data-delay="80" className="text-3xl md:text-5xl font-black mb-6 leading-tight tracking-tight">
               지금 채널 대행을 문의해보세요.<br />
               비블이 직접 연락드립니다.
             </h2>
 
-            <p data-animate="up" data-delay="160" className="text-gray-500 mb-10 text-base md:text-lg max-w-xl mx-auto">
+            <p data-animate="up" data-delay="160" className="text-neutral-500 mb-10 text-base md:text-lg max-w-xl mx-auto">
               여러분의 채널에 맞는 대행 방향을 제안해드립니다.
             </p>
 
             <div data-animate="scale" data-delay="240">
               <a
                 href="/studio/consulting"
-                className="inline-flex items-center gap-3 px-12 py-5 bg-white hover:bg-gray-200 text-black font-bold rounded-2xl transition text-lg"
+                className="inline-flex items-center gap-3 px-12 py-5 bg-white hover:bg-neutral-200 text-black font-bold rounded-2xl transition text-lg"
               >
                 채널 대행 문의하기
               </a>
             </div>
 
-            <div data-animate="fade" data-delay="400" className="mt-8 flex flex-wrap justify-center gap-6 text-xs text-gray-600">
+            <div data-animate="fade" data-delay="400" className="mt-8 flex flex-wrap justify-center gap-6 text-xs text-neutral-600">
               <span>✓ 채널 URL 하나면 OK</span>
             </div>
           </div>

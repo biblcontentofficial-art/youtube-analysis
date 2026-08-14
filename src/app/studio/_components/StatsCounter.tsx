@@ -62,15 +62,10 @@ function Counter({ stat }: { stat: Stat }) {
       {/* 숫자 */}
       <div className="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight stat-num leading-none whitespace-nowrap">
         <span className="text-white">{count}</span>
-        <span
-          className="text-transparent bg-clip-text"
-          style={{ backgroundImage: "linear-gradient(135deg, #14b8a6, #06b6d4)" }}
-        >
-          {stat.suffix}
-        </span>
+        <span className="text-white">{stat.suffix}</span>
       </div>
       {/* 레이블 */}
-      <div className="mt-3 text-sm md:text-base text-gray-400 font-medium tracking-wide">
+      <div className="mt-3 text-sm md:text-base text-neutral-400 font-medium tracking-wide">
         {stat.label}
       </div>
     </div>
@@ -79,8 +74,8 @@ function Counter({ stat }: { stat: Stat }) {
 
 export default function StatsCounter() {
   return (
-    <div className="mt-20 pt-12 border-t border-gray-800">
-      <div className="flex flex-wrap justify-center gap-4 md:gap-0 divide-y md:divide-y-0 md:divide-x divide-gray-800">
+    <div className="mt-20 pt-12 border-t border-neutral-800">
+      <div className="flex flex-wrap justify-center gap-4 md:gap-0 divide-y md:divide-y-0 md:divide-x divide-neutral-800">
         {STATS.map((s) => (
           <Counter key={s.label} stat={s} />
         ))}
