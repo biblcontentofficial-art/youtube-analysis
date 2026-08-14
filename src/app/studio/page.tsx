@@ -271,7 +271,6 @@ export default function StudioPage() {
       <section className="relative border-b border-gray-800 overflow-hidden">
         {/* 배경 그라디언트 */}
         <div className="absolute inset-0 bg-gradient-to-br from-teal-950/30 via-gray-950 to-gray-950 pointer-events-none" />
-        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-teal-500/5 rounded-full blur-3xl pointer-events-none" />
 
         <div className="relative max-w-screen-xl mx-auto px-4 py-24 md:py-36">
           <div className="grid md:grid-cols-2 gap-12 items-center">
@@ -649,8 +648,8 @@ export default function StudioPage() {
                     {[
                       "유튜브 총 70만+ 채널 운영 및 공동기획",
                       "세계유명골프정보, 영어키위새, 스윔클래스, 비블bibl 등",
-                      "인스타그램 2.7만 @seyugolf",
-                      "스레드 1.7만 @bibl_youtube",
+                      "인스타그램 3.0만 @seyugolf",
+                      "스레드 2.2만 @bibl_youtube",
                       "SEMOGOLF 대표 (골프 영상 제작, 쇼핑몰)",
                       "TMK STUDIO 대표 (유튜브 제작 프로덕션)",
                     ].map((item) => (
@@ -667,7 +666,7 @@ export default function StudioPage() {
                   <p className="text-[11px] font-black uppercase tracking-widest text-teal-500 mb-2.5">교육</p>
                   <div className="space-y-2">
                     {[
-                      "사범대학 교육과 전공 (차석 졸업)",
+                      "사범대학 체육교육과 학사 (차석 졸업)",
                       "2급 정교사",
                       "팀 내부 교사 출신들의 유튜브 교육 커리큘럼",
                     ].map((item) => (
@@ -702,9 +701,9 @@ export default function StudioPage() {
                 href="https://www.youtube.com/@bibl_youtube"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-5 py-3 bg-red-600/20 hover:bg-red-600/30 border border-red-700/50 rounded-xl text-sm text-red-400 transition font-medium"
+                className="inline-flex items-center gap-2 px-5 py-3 bg-gray-900 hover:bg-gray-800 border border-gray-700 hover:border-gray-500 rounded-xl text-sm text-white transition font-medium"
               >
-                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                <svg className="w-4 h-4 text-[#FF0000]" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
                 </svg>
                 비블 채널 바로가기
