@@ -32,7 +32,7 @@ export default function TeamBiblConsultingPage() {
     <main className="min-h-screen bg-black text-white">
       {/* 상단 네비 */}
       <div className="sticky top-14 z-30 bg-black/90 backdrop-blur border-b border-gray-900">
-        <div className="max-w-2xl mx-auto px-4 h-12 flex items-center justify-between">
+        <div className="max-w-[1000px] mx-auto px-4 h-12 flex items-center justify-between">
           <Link href="/studio" className="text-xs text-gray-400 hover:text-white transition inline-flex items-center gap-1">
             ← 스튜디오
           </Link>
@@ -49,7 +49,7 @@ export default function TeamBiblConsultingPage() {
       </div>
 
       {/* 상단 CTA */}
-      <div className="max-w-2xl mx-auto px-4 pt-12 pb-10 text-center border-b border-gray-900">
+      <div className="max-w-[1000px] mx-auto px-4 pt-12 pb-10 text-center border-b border-gray-900">
         <h1 className="text-2xl md:text-3xl font-black tracking-tight mb-3">
           팀비블 1:1 유튜브 컨설팅
         </h1>
@@ -61,7 +61,7 @@ export default function TeamBiblConsultingPage() {
       </div>
 
       {/* 상세 이미지 */}
-      <div className="max-w-2xl mx-auto">
+      <div className="max-w-[1000px] mx-auto">
         {DETAIL_IMAGES.map((n) => (
           <div key={n} className="w-full leading-[0]">
             <Image
@@ -77,7 +77,7 @@ export default function TeamBiblConsultingPage() {
       </div>
 
       {/* 하단 CTA */}
-      <div className="max-w-2xl mx-auto px-4 py-14 text-center">
+      <div className="max-w-[1000px] mx-auto px-4 py-14 text-center">
         <h2 className="text-2xl md:text-3xl font-black tracking-tight mb-3">
           1:1 팀비블과 시작하세요
         </h2>
