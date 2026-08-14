@@ -413,14 +413,14 @@ export default async function RootLayout({
             <div className="max-w-screen-2xl mx-auto px-4 py-2 flex items-center justify-center gap-2 overflow-x-auto scrollbar-hide">
               <a
                 href="/studio/class/consulting"
-                className="text-xs text-[#00E676] hover:text-[#5CFFAD] font-semibold px-3 py-1.5 rounded-md whitespace-nowrap"
+                className="text-xs text-[#00E5A0] hover:text-[#66FFCC] font-semibold px-3 py-1.5 rounded-md whitespace-nowrap"
               >
                 팀비블 1:1 유튜브 컨설팅
               </a>
               <span className="w-px h-3 bg-neutral-700" />
               <a
                 href="/studio"
-                className="text-xs text-[#00E676] hover:text-[#5CFFAD] font-semibold px-3 py-1.5 rounded-md whitespace-nowrap"
+                className="text-xs text-[#00E5A0] hover:text-[#66FFCC] font-semibold px-3 py-1.5 rounded-md whitespace-nowrap"
               >
                 유튜브 채널 대행 문의
               </a>
@@ -527,7 +527,7 @@ function NavTab({
     return (
       <a
         href={href}
-        className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm transition text-[#00E676] hover:text-[#5CFFAD] hover:bg-neutral-900 font-semibold"
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm transition text-[#00E5A0] hover:text-[#66FFCC] hover:bg-neutral-900 font-semibold"
       >
         {icon}
         {label}
