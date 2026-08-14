@@ -103,7 +103,7 @@ export default function Home() {
 
             <h2 className="text-xl font-bold text-white mb-2">로그인이 필요합니다</h2>
             <p className="text-sm text-neutral-400 mb-1">
-              <span className="text-[#E5484D] font-medium">&ldquo;{pendingKeyword}&rdquo;</span> 검색을 시작하려면<br />
+              <span className="text-[#00E5A0] font-medium">&ldquo;{pendingKeyword}&rdquo;</span> 검색을 시작하려면<br />
               로그인 또는 회원가입을 해주세요.
             </p>
             <p className="text-xs text-neutral-600 mb-7">가입 후 하루 2회 무료 검색 · 1분 만에 시작</p>
@@ -144,7 +144,7 @@ export default function Home() {
           <div className="space-y-4">
             <h1 className="text-5xl md:text-6xl font-black tracking-tight text-white leading-tight">
               키워드 하나로<br />
-              <span className="text-[#E5484D]">유튜브 트렌드</span>를 파악하세요
+              <span className="text-[#00E5A0]">유튜브 트렌드</span>를 파악하세요
             </h1>
             <p className="text-neutral-400 text-lg max-w-xl mx-auto leading-relaxed">
               조회수·구독자·게시일을 한눈에 확인하고<br className="hidden sm:block" />
