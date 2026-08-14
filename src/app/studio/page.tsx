@@ -472,6 +472,36 @@ export default function StudioPage() {
               </a>
             ))}
           </div>
+
+          {/* 90일 실측 성과 — 세계유명 골프정보 */}
+          <div data-animate="up" className="mt-16 rounded-2xl border border-gray-800 bg-gray-900 p-8 md:p-10">
+            <div className="flex flex-wrap items-baseline justify-between gap-3 mb-8">
+              <div>
+                <p className="text-xs text-gray-500 uppercase tracking-widest mb-2">직접 운영 채널 실측 데이터</p>
+                <h3 className="text-xl md:text-2xl font-bold text-white">「세계유명 골프정보」 최근 90일 성과</h3>
+              </div>
+              <span className="text-xs text-gray-500">YouTube 스튜디오 기준</span>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-x-8 gap-y-8">
+              {[
+                { value: "485.2만", label: "총 조회수 (90일)" },
+                { value: "3,189만", label: "총 노출수" },
+                { value: "8.01%", label: "평균 클릭률 (업계 평균 4~6%)" },
+                { value: "35만 시간", label: "누적 시청 시간" },
+                { value: "+5,100명", label: "구독자 순증 (90일)" },
+                { value: "25.8만", label: "현재 구독자" },
+              ].map((s) => (
+                <div key={s.label}>
+                  <div className="text-2xl md:text-3xl font-black text-white tracking-tight">{s.value}</div>
+                  <div className="text-xs text-gray-500 mt-1.5">{s.label}</div>
+                </div>
+              ))}
+            </div>
+            <p className="mt-8 pt-6 border-t border-gray-800 text-sm text-gray-400 leading-relaxed">
+              채널 성과에서 끝나지 않습니다. 이 트래픽은 골프 쇼핑몰 <span className="text-white font-semibold">연 매출 7억+</span>으로 직접 연결됩니다.
+              트래픽을 매출로 전환하는 비즈니스 설계 — 일반 대행사와 가장 다른 지점입니다.
+            </p>
+          </div>
         </div>
       </section>
 
@@ -506,60 +536,63 @@ export default function StudioPage() {
         <div className="max-w-screen-xl mx-auto px-4 py-20">
           <p data-animate="up" className="text-sm text-gray-500 uppercase tracking-widest mb-3 text-center">진행 과정</p>
           <h2 data-animate="up" data-delay="80" className="text-3xl md:text-5xl font-bold mb-4 text-center">
-            문의부터 운영까지<br />딱 3단계입니다
+            문의부터 운영까지,<br />7단계로 진행됩니다
           </h2>
-          <p data-animate="up" data-delay="160" className="text-gray-400 text-center mb-16 text-base">복잡한 절차 없이 빠르게 시작합니다</p>
+          <p data-animate="up" data-delay="160" className="text-gray-400 text-center mb-16 text-base">
+            여러분이 쓰는 시간은 월 촬영 하루 3~4시간, 질문지 답변 2~3시간이 전부입니다
+          </p>
 
-          <div className="grid md:grid-cols-3 gap-8 relative">
-            {/* 연결선 (데스크탑) */}
-            <div className="hidden md:block absolute top-10 left-1/3 right-1/3 h-px bg-gradient-to-r from-teal-800 to-teal-800" />
-
+          <div className="max-w-3xl mx-auto space-y-3">
             {[
               {
                 step: "01",
-                icon: "",
-                title: "채널 진단",
-                desc: "카카오톡으로 채널 URL을 보내주시면 현황을 분석하고 성장 가능성과 방향을 진단해드립니다.",
-                duration: "1~2일",
+                title: "채널 대행 문의 + 기획 미팅",
+                desc: "어떤 주제로 시작할지, 채널 방향성·브랜딩·비즈니스 모델까지 함께 잡습니다.",
               },
               {
                 step: "02",
-                icon: "",
-                title: "맞춤 전략 수립",
-                desc: "채널 특성, 타깃 시청자, 경쟁 채널을 분석해 3개월 콘텐츠 로드맵을 수립합니다. 계약 전 전략안을 먼저 확인하실 수 있습니다.",
-                duration: "3~5일",
+                title: "채널 성장 기획서 (비블 직접 작성)",
+                desc: "시장 분석, 포지셔닝, 수익화 설계를 담은 기획서를 받아보실 수 있습니다.",
               },
               {
                 step: "03",
-                icon: "",
-                title: "기획→촬영→편집→업로드 전 과정",
-                desc: "기획·대본·촬영·편집·업로드·댓글관리·월간 데이터 리포트까지 전부 진행합니다. 여러분은 일정에 맞춰 자리만 잡아주시면 됩니다.",
-                duration: "계약 후 즉시",
+                title: "데이터 기반 주제 선별 + 질문지 전달",
+                desc: "비블랩 자체 유튜브 분석 SaaS로 트렌드와 효과가 검증된 주제를 선별하고, 시청자가 궁금해할 내용을 질문지로 전달드립니다.",
+              },
+              {
+                step: "04",
+                title: "답변 → 유튜브 대본으로 디벨롭",
+                desc: "질문지에 답변만 대략 채워주시면, 유튜브에서 통하는 구조의 대본 초안으로 디벨롭해 드립니다.",
+              },
+              {
+                step: "05",
+                title: "촬영 (비블 현장 직접 디렉팅)",
+                desc: "월 1회 촬영으로 한 번에 4건을 제작합니다. 비블과 유튜브 채널을 직접 운영 중인 PD가 현장에서 실시간 디렉팅합니다.",
+              },
+              {
+                step: "06",
+                title: "편집 + 썸네일 + SEO 업로드",
+                desc: "편집·자막·효과음은 물론, 클릭을 만드는 썸네일과 제목을 비블이 직접 제작해 업로드까지 완료합니다.",
+              },
+              {
+                step: "07",
+                title: "데이터 분석 + 월간 리포트",
+                desc: "클릭률·시청 지속시간·유입 경로를 분석해 월간 리포트를 드리고, 다음 달 전략을 조정합니다.",
               },
             ].map((s, i) => (
               <div
                 key={s.step}
                 data-animate="up"
-                data-delay={String(i * 120)}
-                className="relative flex flex-col items-center text-center"
+                data-delay={String(i * 60)}
+                className="flex gap-5 rounded-2xl border border-gray-800 bg-gray-900 p-5 md:p-6"
               >
-                {/* 숫자 원형 배지 */}
-                <div className="relative mb-6">
-                  <div className="w-20 h-20 rounded-full border-2 border-teal-500/40 bg-gradient-to-br from-teal-950 to-gray-900 flex items-center justify-center shadow-xl shadow-teal-950/60">
-                    <span
-                      className="text-3xl font-black tracking-tighter text-transparent bg-clip-text"
-                      style={{ backgroundImage: "linear-gradient(135deg,#14b8a6,#06b6d4)" }}
-                    >
-                      {s.step}
-                    </span>
-                  </div>
-                  {/* 외부 링 애니메이션 */}
-                  <div className="absolute inset-0 rounded-full border border-teal-500/20 scale-125" />
+                <div className="shrink-0 w-10 h-10 rounded-full border border-gray-700 flex items-center justify-center text-sm font-black text-white">
+                  {s.step}
                 </div>
-                <div className="text-xs text-teal-500 font-bold tracking-widest mb-2">STEP {s.step}</div>
-                <h3 className="font-bold text-xl mb-3 text-white">{s.title}</h3>
-                <p className="text-base text-gray-400 leading-relaxed mb-5 max-w-xs">{s.desc}</p>
-                <span className="text-xs border border-teal-800/50 text-teal-400/70 bg-teal-950/30 rounded-full px-4 py-1.5 font-medium">{s.duration}</span>
+                <div className="min-w-0">
+                  <h3 className="font-bold text-base md:text-lg text-white mb-1.5">{s.title}</h3>
+                  <p className="text-sm md:text-base text-gray-400 leading-relaxed">{s.desc}</p>
+                </div>
               </div>
             ))}
           </div>
@@ -596,6 +629,85 @@ export default function StudioPage() {
           </div>
           );
         })}
+      </section>
+
+      {/* ══════════════════════════════════════════════════════════════ */}
+      {/* 기존 대행사의 구조적 문제 + 비교표                            */}
+      {/* ══════════════════════════════════════════════════════════════ */}
+      <section className="border-b border-gray-800 bg-gray-900/20">
+        <div className="max-w-screen-xl mx-auto px-4 py-20">
+          <div className="text-center mb-14">
+            <p data-animate="up" className="text-sm text-gray-500 uppercase tracking-widest mb-3">왜 대행사에 맡겨도 실패하는가</p>
+            <h2 data-animate="up" data-delay="80" className="text-3xl md:text-5xl font-bold leading-tight">
+              기존 유튜브 대행사의<br />3가지 구조적 문제
+            </h2>
+            <p data-animate="up" data-delay="160" className="text-gray-400 mt-5 text-base max-w-2xl mx-auto">
+              직접 이 사업에 뛰어들어 경쟁사를 깊이 분석한 결과, 업계에는 명확한 구조적 문제가 있었습니다.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6 mb-16">
+            {[
+              {
+                badge: "문제 01",
+                title: "직접 운영해 본 적이 없다",
+                desc: "방송국·제작사 출신, 고가 장비, 수준급 편집. 겉보기엔 전문적이지만 결과는 좋지 않습니다. 유튜브의 본질은 고퀄리티 영상이 아니라 클릭하게 만들고, 끝까지 보게 만들고, 비즈니스로 연결되게 만드는 것이기 때문입니다.",
+              },
+              {
+                badge: "문제 02",
+                title: "\"성과 보장\"은 위험 신호다",
+                desc: "\"조회수 안 나오면 환불\", \"3개월에 구독자 1만 보장\" — 이런 보장형 계약 뒤에는 트래픽을 돈으로 사서 주입하는 관행이 존재합니다. 보장 수치를 채우기 위한 어뷰징은 채널 자체를 망가뜨립니다.",
+              },
+              {
+                badge: "문제 03",
+                title: "유튜브는 알아도 비즈니스를 모른다",
+                desc: "채널을 빠르게 키우는 업체도 있습니다. 하지만 직접 사업을 해본 경험이 없다면, 채널이 커져도 매출로 이어지지 않습니다. 트래픽을 매출로 전환하는 것은 완전히 별개의 역량입니다.",
+              },
+            ].map((item, i) => (
+              <div
+                key={item.title}
+                data-animate="up"
+                data-delay={String(i * 100)}
+                className="rounded-2xl border border-gray-700/50 bg-gray-800/30 p-6"
+              >
+                <span className="inline-block text-xs font-bold text-gray-400 border border-gray-700 px-2.5 py-1 rounded-md mb-4">
+                  {item.badge}
+                </span>
+                <h3 className="font-bold text-xl text-white mb-3">{item.title}</h3>
+                <p className="text-base text-gray-400 leading-relaxed">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* 비교표 */}
+          <div data-animate="up" className="overflow-x-auto rounded-2xl border border-gray-800">
+            <table className="w-full min-w-[640px] text-left text-sm">
+              <thead>
+                <tr className="border-b border-gray-800 bg-gray-900">
+                  <th className="px-5 py-4 font-semibold text-gray-500 w-40">항목</th>
+                  <th className="px-5 py-4 font-semibold text-gray-500">일반 대행사</th>
+                  <th className="px-5 py-4 font-bold text-white">TMK STUDIO</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-800">
+                {[
+                  { k: "직접 운영 채널", a: "없음", b: "총 70만 구독자, 7개 채널" },
+                  { k: "사업 경험", a: "영상 제작자 출신 다수", b: "유튜브 분석 SaaS 운영 · 매출 7억+ 쇼핑몰 · 유튜버 교육 컨설팅 · 오프라인 매장 3곳" },
+                  { k: "주제 선정", a: "감 · 회의", b: "자체 SaaS 데이터 + 운영 인사이트" },
+                  { k: "촬영 디렉팅", a: "PD 외주", b: "비블 직접 현장 디렉팅" },
+                  { k: "썸네일 · 제목", a: "디자이너 외주", b: "비블 직접 제작" },
+                  { k: "비즈니스 연결", a: "채널 성장에서 끝", b: "트래픽 → 매출 퍼널 + 브랜딩 설계" },
+                ].map((row) => (
+                  <tr key={row.k} className="bg-gray-950">
+                    <td className="px-5 py-4 text-gray-500 align-top">{row.k}</td>
+                    <td className="px-5 py-4 text-gray-500 align-top">{row.a}</td>
+                    <td className="px-5 py-4 text-white font-medium align-top">{row.b}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </section>
 
       {/* ══════════════════════════════════════════════════════════════ */}
