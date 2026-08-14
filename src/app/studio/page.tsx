@@ -20,7 +20,7 @@ const C = rawContent;
 export const metadata: Metadata = {
   title: "유튜브 채널 대행 | 70만 구독자 비블의 TMK STUDIO",
   description:
-    "구독자 0명에서 24만까지. 총 70만+ 구독자 채널을 운영한 유튜브 전문가 비블이 기획·촬영·편집·업로드·분석까지 전 과정을 책임집니다. 무료 채널 진단부터 시작하세요.",
+    "구독자 0명에서 24만까지. 총 70만+ 구독자 채널을 운영한 유튜브 전문가 비블이 기획·촬영·편집·업로드·분석까지 전 과정을 책임집니다. 지금 채널 대행 문의를 남겨보세요.",
   keywords: [
     "유튜브 채널 대행",
     "유튜브 대행",
@@ -245,11 +245,11 @@ const REVIEWS = [
 ];
 
 const FAQS = [
-  { q: "대행 비용은 얼마인가요?", a: "채널 현황과 원하시는 서비스 범위에 따라 달라집니다. 먼저 무료 진단을 받으신 후 맞춤 제안을 드립니다. 카카오톡으로 채널 URL만 보내주시면 됩니다." },
+  { q: "대행 비용은 얼마인가요?", a: "채널 현황과 원하시는 서비스 범위에 따라 달라집니다. 채널 대행 문의를 남겨주시면 채널을 검토한 뒤 맞춤 제안을 드립니다. 카카오톡으로 채널 URL만 보내주시면 됩니다." },
   { q: "최소 계약 기간이 있나요?", a: "최소 3개월 계약을 권장합니다. 채널 데이터가 축적되어야 알고리즘이 채널을 학습하고 성장 궤도에 오르기 때문입니다. 3개월 안에 가시적인 변화를 반드시 확인하실 수 있습니다." },
   { q: "구독자 0명 채널도 가능한가요?", a: "네, 구독자 0명부터 시작해도 됩니다. 오히려 처음부터 올바른 전략으로 시작하는 것이 훨씬 효율적입니다. 채널이 없다면 처음부터 함께 설계합니다." },
   { q: "어떤 분야든 가능한가요?", a: "골프, 영어교육, 피트니스, 음식, 뷰티, 사업·마케팅, 드로잉 등 다양한 분야의 채널을 운영한 경험이 있습니다. 분야보다는 '타깃 시청자가 명확한지'가 더 중요합니다." },
-  { q: "결과를 보장해주나요?", a: "특정 구독자 수를 보장하는 건 어렵습니다. 하지만 저희가 운영한 모든 채널은 3개월 내 가시적인 성장을 달성했습니다. 실제 운영 데이터를 상담 시 공유해드립니다." },
+  { q: "결과를 보장해주나요?", a: "특정 구독자 수를 보장하는 건 어렵습니다. 하지만 저희가 운영한 모든 채널은 3개월 내 가시적인 성장을 달성했습니다. 실제 운영 데이터를 문의 시 공유해드립니다." },
   { q: "촬영도 대행해주나요?", a: "네, 기획·촬영·편집·업로드·분석까지 전 과정을 대행합니다. 장소 섭외, 카메라·조명·음향 장비, 출연자 디렉팅까지 모두 포함됩니다. 여러분은 시간만 내주시면 됩니다." },
 ];
 
@@ -309,7 +309,7 @@ export default function StudioPage() {
               </div>
 
               <p data-animate="fade" data-delay="500" className="text-xs text-gray-600 mt-4">
-                채널 URL만 보내주시면 됩니다 · 완전 무료
+                채널 URL만 보내주시면 됩니다
               </p>
             </div>
 
@@ -391,7 +391,7 @@ export default function StudioPage() {
               href="/studio/consulting"
               className="inline-flex items-center gap-2 px-6 py-3 bg-teal-500 hover:bg-teal-400 text-white font-bold rounded-xl transition text-sm"
             >
-              무료로 해결 방법 상담받기 →
+              채널 대행 문의하기 →
             </a>
           </div>
         </div>
@@ -506,7 +506,7 @@ export default function StudioPage() {
         <div className="max-w-screen-xl mx-auto px-4 py-20">
           <p data-animate="up" className="text-sm text-gray-500 uppercase tracking-widest mb-3 text-center">진행 과정</p>
           <h2 data-animate="up" data-delay="80" className="text-3xl md:text-5xl font-bold mb-4 text-center">
-            상담부터 운영까지<br />딱 3단계입니다
+            문의부터 운영까지<br />딱 3단계입니다
           </h2>
           <p data-animate="up" data-delay="160" className="text-gray-400 text-center mb-16 text-base">복잡한 절차 없이 빠르게 시작합니다</p>
 
@@ -518,8 +518,8 @@ export default function StudioPage() {
               {
                 step: "01",
                 icon: "",
-                title: "무료 채널 진단",
-                desc: "카카오톡으로 채널 URL을 보내주시면 현황을 분석하고 성장 가능성과 방향을 무료로 진단해드립니다.",
+                title: "채널 진단",
+                desc: "카카오톡으로 채널 URL을 보내주시면 현황을 분석하고 성장 가능성과 방향을 진단해드립니다.",
                 duration: "1~2일",
               },
               {
@@ -785,17 +785,17 @@ export default function StudioPage() {
               >
                 <span className="text-xs font-semibold text-gray-400 tracking-wide">이번달 신규 대행 마감임박</span>
                 <span className="w-px h-3 bg-gray-700" />
-                <span className="text-xs font-semibold text-white group-hover:text-gray-300 transition">무료 상담 남기기 →</span>
+                <span className="text-xs font-semibold text-white group-hover:text-gray-300 transition">채널 대행 문의 남기기 →</span>
               </a>
             </div>
 
             <h2 data-animate="up" data-delay="80" className="text-3xl md:text-5xl font-bold mb-6 leading-tight tracking-tight">
-              지금 무료 상담을 신청해보세요.<br />
+              지금 채널 대행을 문의해보세요.<br />
               비블이 직접 연락드립니다.
             </h2>
 
             <p data-animate="up" data-delay="160" className="text-gray-500 mb-10 text-base md:text-lg max-w-xl mx-auto">
-              여러분의 유튜브 성장 가능성을 무료로 확인해드립니다.
+              여러분의 채널에 맞는 대행 방향을 제안해드립니다.
             </p>
 
             <div data-animate="scale" data-delay="240">
@@ -803,12 +803,11 @@ export default function StudioPage() {
                 href="/studio/consulting"
                 className="inline-flex items-center gap-3 px-12 py-5 bg-white hover:bg-gray-200 text-black font-bold rounded-2xl transition text-lg"
               >
-                무료 상담 바로가기
+                채널 대행 문의하기
               </a>
             </div>
 
             <div data-animate="fade" data-delay="400" className="mt-8 flex flex-wrap justify-center gap-6 text-xs text-gray-600">
-              <span>✓ 완전 무료</span>
               <span>✓ 채널 URL 하나면 OK</span>
             </div>
           </div>
