@@ -11,6 +11,7 @@ import {
 
 export default function SignInForm() {
   const [loading, setLoading] = useState<"kakao" | "google" | null>(null);
+  const [marketingOk, setMarketingOk] = useState(true);
   const [copied, setCopied] = useState(false);
   const [inAppInfo, setInAppInfo] = useState<InAppInfo>({
     isInApp: false, appName: "", isAndroid: false, isIOS: false,
@@ -47,7 +48,7 @@ export default function SignInForm() {
       // 추천 코드가 URL에 있으면 auth callback으로 전달
       const urlParams = new URLSearchParams(window.location.search);
       const ref = urlParams.get("ref");
-      const callbackUrl = `${window.location.origin}/auth/callback?next=/search${ref ? `&ref=${ref}` : ""}`;
+      const callbackUrl = `${window.location.origin}/auth/callback?next=/search${ref ? `&ref=${ref}` : ""}&mkt=${marketingOk ? 1 : 0}`;
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
@@ -205,7 +206,18 @@ export default function SignInForm() {
             )}
           </button>
 
-          <p className="mt-5 text-center text-xs text-gray-600">
+          {/* 마케팅 수신 동의 (선택) */}
+          <label className="mt-5 flex items-start justify-center gap-2 text-xs text-gray-500 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={marketingOk}
+              onChange={(e) => setMarketingOk(e.target.checked)}
+              className="mt-0.5 w-3.5 h-3.5 accent-white shrink-0"
+            />
+            <span>[선택] 이벤트·혜택 등 마케팅 정보 수신에 동의합니다</span>
+          </label>
+
+          <p className="mt-3 text-center text-xs text-gray-600">
             계속하면{" "}
             <a href="/terms" className="text-gray-500 hover:underline">이용약관</a>
             {" "}및{" "}
