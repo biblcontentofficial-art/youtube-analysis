@@ -57,11 +57,11 @@ function CountItem({
 
   return (
     <div ref={ref} className="text-center">
-      <p className="text-2xl font-bold text-teal-400 tabular-nums">
+      <p className="text-2xl font-black text-white tabular-nums">
         {count.toLocaleString()}
         {suffix}
       </p>
-      <p className="text-xs text-gray-500 mt-1">{label}</p>
+      <p className="text-xs text-neutral-500 mt-1">{label}</p>
     </div>
   );
 }
@@ -98,7 +98,7 @@ function TextItem({
   return (
     <div ref={ref} className="text-center">
       <p
-        className="text-2xl font-bold text-teal-400 transition-all duration-700"
+        className="text-2xl font-black text-white transition-all duration-700"
         style={{
           opacity: visible ? 1 : 0,
           transform: visible ? "translateY(0) scale(1)" : "translateY(8px) scale(0.85)",
@@ -107,7 +107,7 @@ function TextItem({
         {text}
       </p>
       <p
-        className="text-xs text-gray-500 mt-1 transition-all duration-700 delay-150"
+        className="text-xs text-neutral-500 mt-1 transition-all duration-700 delay-150"
         style={{ opacity: visible ? 1 : 0 }}
       >
         {label}
@@ -119,7 +119,7 @@ function TextItem({
 /* ── 메인 컴포넌트 ─────────────────────────────────────────── */
 export default function LandingStats() {
   return (
-    <div className="border-y border-gray-800 bg-gray-900/50 py-6">
+    <div className="border-y border-neutral-800 py-6">
       <div className="max-w-3xl mx-auto px-4 grid grid-cols-3 gap-4 text-center">
         <CountItem end={10000} suffix="+" label="키워드 분석됨" delay={0} />
         <TextItem text="실시간" label="YouTube 데이터 수집" delay={150} />

@@ -85,7 +85,7 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-gray-950 text-white flex flex-col">
+    <main className="min-h-screen bg-black text-white flex flex-col">
       {/* 로그인 유도 모달 */}
       {showAuthModal && (
         <div
@@ -93,33 +93,33 @@ export default function Home() {
           onClick={() => setShowAuthModal(false)}
         >
           <div
-            className="bg-gray-900 border border-gray-700 rounded-2xl p-8 w-full max-w-sm shadow-2xl text-center"
+            className="bg-neutral-900 border border-neutral-700 rounded-2xl p-8 w-full max-w-sm shadow-2xl text-center"
             onClick={(e) => e.stopPropagation()}
           >
             {/* 아이콘 */}
-            <div className="w-14 h-14 bg-teal-500/10 border border-teal-500/30 rounded-full flex items-center justify-center mx-auto mb-5">
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-7 h-7 text-teal-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="w-14 h-14 bg-neutral-900 border border-neutral-700 rounded-full flex items-center justify-center mx-auto mb-5">
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-7 h-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
               </svg>
             </div>
 
             <h2 className="text-xl font-bold text-white mb-2">로그인이 필요합니다</h2>
-            <p className="text-sm text-gray-400 mb-1">
-              <span className="text-teal-400 font-medium">&ldquo;{pendingKeyword}&rdquo;</span> 검색을 시작하려면<br />
+            <p className="text-sm text-neutral-400 mb-1">
+              <span className="text-[#E5484D] font-medium">&ldquo;{pendingKeyword}&rdquo;</span> 검색을 시작하려면<br />
               로그인 또는 회원가입을 해주세요.
             </p>
-            <p className="text-xs text-gray-600 mb-7">가입 후 하루 2회 무료 검색 · 1분 만에 시작</p>
+            <p className="text-xs text-neutral-600 mb-7">가입 후 하루 2회 무료 검색 · 1분 만에 시작</p>
 
             <div className="flex flex-col gap-3">
               <Link
                 href={`/sign-up?redirect_url=/search?q=${encodeURIComponent(pendingKeyword)}`}
-                className="w-full py-3 bg-teal-500 hover:bg-teal-400 text-white font-semibold rounded-xl transition text-sm"
+                className="w-full py-3 bg-white hover:bg-neutral-200 text-black font-bold rounded-xl transition text-sm"
               >
                 회원가입 후 검색하기
               </Link>
               <Link
                 href={`/sign-in?redirect_url=/search?q=${encodeURIComponent(pendingKeyword)}`}
-                className="w-full py-3 bg-gray-800 hover:bg-gray-700 text-white font-semibold rounded-xl transition text-sm border border-gray-700"
+                className="w-full py-3 bg-neutral-800 hover:bg-neutral-700 text-white font-semibold rounded-xl transition text-sm border border-neutral-700"
               >
                 로그인
               </Link>
@@ -127,7 +127,7 @@ export default function Home() {
 
             <button
               onClick={() => setShowAuthModal(false)}
-              className="mt-5 text-xs text-gray-600 hover:text-gray-400 transition"
+              className="mt-5 text-xs text-neutral-600 hover:text-neutral-400 transition"
             >
               닫기
             </button>
@@ -138,18 +138,17 @@ export default function Home() {
       <div className="flex-1 flex flex-col items-center justify-center px-4 py-20">
         <div className="w-full max-w-3xl text-center space-y-8">
           {/* 배지 */}
-          <div className="inline-flex items-center rounded-full border border-teal-800 bg-teal-950/50 px-4 py-1.5 text-sm text-teal-400">
-            <span className="flex h-2 w-2 rounded-full bg-teal-400 mr-2 animate-pulse" />
+          <div className="inline-flex items-center rounded-full border border-neutral-700 px-4 py-1.5 text-sm text-neutral-400">
             bibl lab · 유튜브 트렌드 분석
           </div>
 
           {/* 타이틀 */}
           <div className="space-y-4">
-            <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight text-white leading-tight">
+            <h1 className="text-5xl md:text-6xl font-black tracking-tight text-white leading-tight">
               키워드 하나로<br />
-              <span className="text-teal-400">유튜브 트렌드</span>를 파악하세요
+              <span className="text-[#E5484D]">유튜브 트렌드</span>를 파악하세요
             </h1>
-            <p className="text-gray-400 text-lg max-w-xl mx-auto leading-relaxed">
+            <p className="text-neutral-400 text-lg max-w-xl mx-auto leading-relaxed">
               조회수·구독자·게시일을 한눈에 확인하고<br className="hidden sm:block" />
               경쟁력 있는 콘텐츠 주제를 발견해 보세요
             </p>
@@ -157,8 +156,8 @@ export default function Home() {
 
           {/* 검색창 */}
           <form onSubmit={handleSubmit} className="relative w-full max-w-2xl mx-auto">
-            <div className="flex items-center bg-gray-900 border border-gray-700 focus-within:border-teal-500 rounded-2xl p-2 shadow-2xl transition-colors">
-              <div className="pl-3 text-gray-500">
+            <div className="flex items-center bg-neutral-900 border border-neutral-700 focus-within:border-neutral-400 rounded-2xl p-2 shadow-2xl transition-colors">
+              <div className="pl-3 text-neutral-500">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
@@ -168,12 +167,12 @@ export default function Home() {
                 value={keyword}
                 onChange={(e) => setKeyword(e.target.value)}
                 placeholder="분석할 키워드를 입력하세요 (예: 캠핑, 영어 공부)"
-                className="w-full bg-transparent text-white px-4 py-3 focus:outline-none text-base placeholder-gray-600"
+                className="w-full bg-transparent text-white px-4 py-3 focus:outline-none text-base placeholder-neutral-600"
                 autoFocus
               />
               <button
                 type="submit"
-                className="bg-teal-500 hover:bg-teal-400 text-white px-6 py-2.5 rounded-xl font-semibold transition-all text-sm shrink-0"
+                className="bg-white hover:bg-neutral-200 text-black px-6 py-2.5 rounded-xl font-bold transition-all text-sm shrink-0"
               >
                 분석 시작
               </button>
@@ -182,12 +181,12 @@ export default function Home() {
 
           {/* 예시 키워드 */}
           <div className="flex flex-wrap justify-center gap-2">
-            <span className="text-xs text-gray-600 self-center">인기 키워드:</span>
+            <span className="text-xs text-neutral-600 self-center">인기 키워드:</span>
             {EXAMPLE_KEYWORDS.map((kw) => (
               <button
                 key={kw}
                 onClick={() => handleExample(kw)}
-                className="text-xs px-3 py-1.5 bg-gray-900 hover:bg-gray-800 border border-gray-800 hover:border-gray-700 text-gray-400 hover:text-white rounded-full transition"
+                className="text-xs px-3 py-1.5 bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 hover:border-neutral-700 text-neutral-400 hover:text-white rounded-full transition"
               >
                 {kw}
               </button>
@@ -200,11 +199,11 @@ export default function Home() {
       <LandingStats />
 
       {/* 기능 소개 */}
-      <div className="bg-gray-900/30">
+      <div className="border-t border-neutral-800">
         <div className="max-w-5xl mx-auto px-4 py-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           <FeatureCard
             icon={
-              <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5 text-teal-400" stroke="currentColor" strokeWidth={1.5}>
+              <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5 text-white" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941" />
               </svg>
             }
@@ -213,7 +212,7 @@ export default function Home() {
           />
           <FeatureCard
             icon={
-              <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5 text-teal-400" stroke="currentColor" strokeWidth={1.5}>
+              <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5 text-white" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 15.803a7.5 7.5 0 0010.607 0z" />
               </svg>
             }
@@ -222,7 +221,7 @@ export default function Home() {
           />
           <FeatureCard
             icon={
-              <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5 text-teal-400" stroke="currentColor" strokeWidth={1.5}>
+              <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5 text-white" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
               </svg>
             }
@@ -231,7 +230,7 @@ export default function Home() {
           />
           <FeatureCard
             icon={
-              <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5 text-teal-400" stroke="currentColor" strokeWidth={1.5}>
+              <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5 text-white" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
               </svg>
             }
@@ -242,9 +241,9 @@ export default function Home() {
       </div>
 
       {/* 이용 방법 */}
-      <div className="border-t border-gray-800 py-16 px-4">
+      <div className="border-t border-neutral-800 py-16 px-4">
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-2xl font-bold text-center text-white mb-12">3단계로 바로 시작</h2>
+          <h2 className="text-2xl md:text-3xl font-black text-center text-white mb-12">3단계로 바로 시작</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
             <StepCard step={1} title="키워드 입력" desc="분석하고 싶은 유튜브 키워드를 검색창에 입력하세요" />
             <StepCard step={2} title="실시간 분석" desc="YouTube 최신 영상 데이터를 수집·분석합니다" />
@@ -254,16 +253,16 @@ export default function Home() {
       </div>
 
       {/* 요금제 CTA */}
-      <div className="border-t border-gray-800 bg-gradient-to-b from-gray-950 to-gray-900 py-16 px-4 text-center">
-        <h2 className="text-2xl font-bold text-white mb-3">더 많이 분석하고 싶으신가요?</h2>
-        <p className="text-gray-400 mb-8 max-w-lg mx-auto">
+      <div className="border-t border-neutral-800 py-16 px-4 text-center">
+        <h2 className="text-2xl md:text-3xl font-black text-white mb-3">더 많이 분석하고 싶으신가요?</h2>
+        <p className="text-neutral-400 mb-8 max-w-lg mx-auto">
           무료로 시작하고, 필요할 때 업그레이드하세요.<br className="hidden sm:block" />
-          영상 검색 · 채널 찾기 · 영상 수집까지 — 크리에이터에게 필요한 모든 것
+          영상 검색 · 채널 찾기 · 영상 수집까지, 크리에이터에게 필요한 모든 것
         </p>
         <div className="flex justify-center">
           <Link
             href="/pricing"
-            className="px-8 py-3 bg-teal-500 hover:bg-teal-400 text-white font-semibold rounded-xl transition"
+            className="px-8 py-3 bg-white hover:bg-neutral-200 text-black font-bold rounded-xl transition"
           >
             요금제 보기
           </Link>
@@ -275,24 +274,24 @@ export default function Home() {
 
 function FeatureCard({ icon, title, desc }: { icon: React.ReactNode; title: string; desc: string }) {
   return (
-    <div className="group flex flex-col gap-3 p-4 rounded-2xl border border-transparent hover:border-teal-800/60 hover:bg-teal-950/20 transition-all duration-300 cursor-default -m-4">
-      <div className="w-10 h-10 bg-teal-950/60 border border-teal-800/50 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:border-teal-500/70 group-hover:bg-teal-900/60 group-hover:shadow-[0_0_12px_rgba(20,184,166,0.3)]">
+    <div className="group flex flex-col gap-3 p-4 rounded-2xl border border-transparent hover:border-neutral-800 hover:bg-neutral-900 transition-all duration-300 cursor-default -m-4">
+      <div className="w-10 h-10 bg-neutral-900 border border-neutral-700 rounded-xl flex items-center justify-center transition-colors duration-300 group-hover:border-neutral-500">
         {icon}
       </div>
-      <h3 className="font-semibold text-white transition-colors duration-300 group-hover:text-teal-400">{title}</h3>
-      <p className="text-sm text-gray-500 leading-relaxed transition-colors duration-300 group-hover:text-gray-400">{desc}</p>
+      <h3 className="font-bold text-white">{title}</h3>
+      <p className="text-sm text-neutral-500 leading-relaxed transition-colors duration-300 group-hover:text-neutral-400">{desc}</p>
     </div>
   );
 }
 
 function StepCard({ step, title, desc }: { step: number; title: string; desc: string }) {
   return (
-    <div className="group flex flex-col items-center text-center gap-3 p-5 rounded-2xl border border-transparent hover:border-teal-800/50 hover:bg-teal-950/20 transition-all duration-300 cursor-default">
-      <div className="w-12 h-12 rounded-full bg-teal-500/10 border border-teal-500/30 flex items-center justify-center text-teal-400 font-bold text-lg transition-all duration-300 group-hover:scale-110 group-hover:bg-teal-500/20 group-hover:border-teal-400/60 group-hover:shadow-[0_0_16px_rgba(20,184,166,0.35)]">
+    <div className="group flex flex-col items-center text-center gap-3 p-5 rounded-2xl border border-transparent hover:border-neutral-800 hover:bg-neutral-900 transition-all duration-300 cursor-default">
+      <div className="w-12 h-12 rounded-full border border-neutral-700 flex items-center justify-center text-white font-black text-lg transition-colors duration-300 group-hover:border-neutral-500">
         {step}
       </div>
-      <h3 className="font-semibold text-white transition-colors duration-300 group-hover:text-teal-400">{title}</h3>
-      <p className="text-sm text-gray-500 leading-relaxed transition-colors duration-300 group-hover:text-gray-400">{desc}</p>
+      <h3 className="font-bold text-white">{title}</h3>
+      <p className="text-sm text-neutral-500 leading-relaxed transition-colors duration-300 group-hover:text-neutral-400">{desc}</p>
     </div>
   );
 }
