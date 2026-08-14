@@ -118,13 +118,8 @@ const studioJsonLd = {
       },
     ],
   },
-  aggregateRating: {
-    "@type": "AggregateRating",
-    ratingValue: "5.0",
-    reviewCount: "14",
-    bestRating: "5",
-    worstRating: "1",
-  },
+  // NOTE: Service 타입은 구글 리뷰 스니펫 비대상이라 aggregateRating을 넣으면
+  // 서치콘솔 "리뷰 스니펫 - 일부 항목이 잘못됨" 경고가 발생 → 제거
   url: "https://bibllab.com/studio",
 };
 
@@ -171,7 +166,7 @@ const CHANNELS = [
     avatar: "https://yt3.googleusercontent.com/1wD45zOpnfNTAG4Kq8qs2T27tNyxqXTKC5a23qB6N8zl5SNlU8ugdUCx2yywcrFnBqywfz2z9w=s240-c-k-c0x00ffffff-no-rj",
     banner: "https://yt3.googleusercontent.com/XDssFLodQnpmebO2quHSdHYPUroghTjlqATrtTahvyMNfVWUxTP4lr55XEKqLiUh-z2y2wJFaRQ=w1280-fcrop64=1,00000000ffffffff",
     url: "https://www.youtube.com/@bibl_youtube",
-    color: "from-teal-900/80",
+    color: "from-neutral-900/80",
   },
   {
     name: "세계유명 골프레슨",
