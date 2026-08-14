@@ -361,7 +361,7 @@ export default async function RootLayout({
                   <span className="text-[10px] font-bold px-1.5 py-0.5 rounded border border-neutral-700 text-neutral-500 leading-none">코드 230000</span>
                 </a>
                 {/* 유튜브 트렌드 서치 — 분석 기능 허브 */}
-                <NavTab href="/trend-search" label="유튜브 트렌드 서치" icon={
+                <NavTab href="/trend-search" label="유튜브 트렌드 서치" highlight icon={
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
                     <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
                   </svg>
