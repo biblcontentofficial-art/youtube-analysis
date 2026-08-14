@@ -11,8 +11,20 @@ import {
 
 export default function SignInForm() {
   const [loading, setLoading] = useState<"kakao" | "google" | null>(null);
-  const [marketingOk, setMarketingOk] = useState(true);
+  // 동의 단계: 필수 2건(약관·개인정보) + 선택 1건(마케팅), 일괄 동의 지원
+  const [step, setStep] = useState<"consent" | "login">("consent");
+  const [agreeTerms, setAgreeTerms] = useState(false);
+  const [agreePrivacy, setAgreePrivacy] = useState(false);
+  const [marketingOk, setMarketingOk] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  const requiredOk = agreeTerms && agreePrivacy;
+  const allChecked = agreeTerms && agreePrivacy && marketingOk;
+  const toggleAll = (v: boolean) => {
+    setAgreeTerms(v);
+    setAgreePrivacy(v);
+    setMarketingOk(v);
+  };
   const [inAppInfo, setInAppInfo] = useState<InAppInfo>({
     isInApp: false, appName: "", isAndroid: false, isIOS: false,
   });
@@ -151,21 +163,85 @@ export default function SignInForm() {
         )}
 
         <div className="bg-gray-900 border border-gray-800 rounded-2xl p-7">
-          <h1 className="text-xl font-bold text-white text-center mb-1">시작하기</h1>
-          <p className="text-gray-500 text-sm text-center mb-7">
-            소셜 계정으로 3초 만에 로그인하세요
-          </p>
+          {step === "consent" ? (
+            <>
+              <h1 className="text-xl font-bold text-white text-center mb-1">시작하기 전에</h1>
+              <p className="text-gray-500 text-sm text-center mb-6">
+                서비스 이용을 위한 동의가 필요합니다
+              </p>
 
-          {/* 혜택 */}
-          <div className="space-y-2 mb-6">
-            {["하루 2회 무료 검색", "조회수·구독자·게시일 한눈에 확인"].map((text) => (
-              <div key={text} className="flex items-center gap-2.5 text-sm text-gray-400">
-                {text}
+              {/* 전체 동의 */}
+              <label className="flex items-center gap-3 p-3.5 rounded-xl bg-gray-800/70 border border-gray-700 cursor-pointer select-none mb-4">
+                <input
+                  type="checkbox"
+                  checked={allChecked}
+                  onChange={(e) => toggleAll(e.target.checked)}
+                  className="w-4 h-4 accent-white shrink-0"
+                />
+                <span className="text-sm font-bold text-white">전체 동의합니다</span>
+              </label>
+
+              <div className="space-y-3 px-1 mb-6">
+                <label className="flex items-center gap-3 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={agreeTerms}
+                    onChange={(e) => setAgreeTerms(e.target.checked)}
+                    className="w-3.5 h-3.5 accent-white shrink-0"
+                  />
+                  <span className="text-sm text-gray-300 flex-1">[필수] 이용약관 동의</span>
+                  <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-xs text-gray-500 underline underline-offset-2 hover:text-gray-300 shrink-0">보기</a>
+                </label>
+                <label className="flex items-center gap-3 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={agreePrivacy}
+                    onChange={(e) => setAgreePrivacy(e.target.checked)}
+                    className="w-3.5 h-3.5 accent-white shrink-0"
+                  />
+                  <span className="text-sm text-gray-300 flex-1">[필수] 개인정보 수집·이용 동의</span>
+                  <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-xs text-gray-500 underline underline-offset-2 hover:text-gray-300 shrink-0">보기</a>
+                </label>
+                <label className="flex items-center gap-3 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={marketingOk}
+                    onChange={(e) => setMarketingOk(e.target.checked)}
+                    className="w-3.5 h-3.5 accent-white shrink-0"
+                  />
+                  <span className="text-sm text-gray-300 flex-1">[선택] 이벤트·혜택 등 마케팅 정보 수신 동의</span>
+                </label>
               </div>
-            ))}
-          </div>
 
-          {/* 카카오 로그인 */}
+              <button
+                type="button"
+                onClick={() => requiredOk && setStep("login")}
+                disabled={!requiredOk}
+                className="w-full py-3.5 rounded-xl font-bold text-sm transition bg-white hover:bg-gray-200 text-black disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                동의하고 계속하기
+              </button>
+              <p className="mt-3 text-center text-xs text-gray-600">
+                선택 항목은 동의하지 않아도 서비스를 이용할 수 있습니다
+              </p>
+            </>
+          ) : (
+            <>
+              <h1 className="text-xl font-bold text-white text-center mb-1">시작하기</h1>
+              <p className="text-gray-500 text-sm text-center mb-7">
+                소셜 계정으로 3초 만에 로그인하세요
+              </p>
+
+              {/* 혜택 */}
+              <div className="space-y-2 mb-6">
+                {["하루 2회 무료 검색", "조회수·구독자·게시일 한눈에 확인"].map((text) => (
+                  <div key={text} className="flex items-center gap-2.5 text-sm text-gray-400">
+                    {text}
+                  </div>
+                ))}
+              </div>
+
+              {/* 카카오 로그인 */}
           <button
             onClick={() => handleOAuth("kakao")}
             disabled={!!loading}
@@ -206,24 +282,17 @@ export default function SignInForm() {
             )}
           </button>
 
-          {/* 마케팅 수신 동의 (선택) */}
-          <label className="mt-5 flex items-start justify-center gap-2 text-xs text-gray-500 cursor-pointer select-none">
-            <input
-              type="checkbox"
-              checked={marketingOk}
-              onChange={(e) => setMarketingOk(e.target.checked)}
-              className="mt-0.5 w-3.5 h-3.5 accent-white shrink-0"
-            />
-            <span>[선택] 이벤트·혜택 등 마케팅 정보 수신에 동의합니다</span>
-          </label>
-
-          <p className="mt-3 text-center text-xs text-gray-600">
-            계속하면{" "}
-            <a href="/terms" className="text-gray-500 hover:underline">이용약관</a>
-            {" "}및{" "}
-            <a href="/privacy" className="text-gray-500 hover:underline">개인정보처리방침</a>
-            에 동의하는 것으로 간주됩니다
-          </p>
+              <p className="mt-5 text-center text-xs text-gray-600">
+                <button
+                  type="button"
+                  onClick={() => setStep("consent")}
+                  className="underline underline-offset-2 hover:text-gray-400 transition"
+                >
+                  동의 항목 다시 보기
+                </button>
+              </p>
+            </>
+          )}
         </div>
 
         <p className="text-center text-xs text-gray-700 mt-6">
