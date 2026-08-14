@@ -19,7 +19,7 @@ export default function KakaoChatButton() {
         />
       </svg>
       {/* 데스크탑 호버 라벨 */}
-      <span className="pointer-events-none absolute right-full mr-3 px-3 py-1.5 rounded-lg bg-gray-900 border border-gray-700 text-white text-xs font-semibold whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity hidden md:block">
+      <span className="pointer-events-none absolute right-full mr-3 px-3 py-1.5 rounded-lg bg-neutral-900 border border-neutral-700 text-white text-xs font-semibold whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity hidden md:block">
         카카오톡 문의
       </span>
     </a>

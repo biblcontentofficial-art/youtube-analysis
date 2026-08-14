@@ -97,11 +97,9 @@ export default function Home() {
             onClick={(e) => e.stopPropagation()}
           >
             {/* 아이콘 */}
-            <div className="w-14 h-14 bg-neutral-900 border border-neutral-700 rounded-full flex items-center justify-center mx-auto mb-5">
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-7 h-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-              </svg>
-            </div>
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-9 h-9 text-white mx-auto mb-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+            </svg>
 
             <h2 className="text-xl font-bold text-white mb-2">로그인이 필요합니다</h2>
             <p className="text-sm text-neutral-400 mb-1">
@@ -203,7 +201,7 @@ export default function Home() {
         <div className="max-w-5xl mx-auto px-4 py-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           <FeatureCard
             icon={
-              <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5 text-white" stroke="currentColor" strokeWidth={1.5}>
+              <svg viewBox="0 0 24 24" fill="none" className="w-7 h-7 text-white" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941" />
               </svg>
             }
@@ -212,7 +210,7 @@ export default function Home() {
           />
           <FeatureCard
             icon={
-              <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5 text-white" stroke="currentColor" strokeWidth={1.5}>
+              <svg viewBox="0 0 24 24" fill="none" className="w-7 h-7 text-white" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 15.803a7.5 7.5 0 0010.607 0z" />
               </svg>
             }
@@ -221,7 +219,7 @@ export default function Home() {
           />
           <FeatureCard
             icon={
-              <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5 text-white" stroke="currentColor" strokeWidth={1.5}>
+              <svg viewBox="0 0 24 24" fill="none" className="w-7 h-7 text-white" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
               </svg>
             }
@@ -230,7 +228,7 @@ export default function Home() {
           />
           <FeatureCard
             icon={
-              <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5 text-white" stroke="currentColor" strokeWidth={1.5}>
+              <svg viewBox="0 0 24 24" fill="none" className="w-7 h-7 text-white" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
               </svg>
             }
@@ -275,9 +273,7 @@ export default function Home() {
 function FeatureCard({ icon, title, desc }: { icon: React.ReactNode; title: string; desc: string }) {
   return (
     <div className="group flex flex-col gap-3 p-4 rounded-2xl border border-transparent hover:border-neutral-800 hover:bg-neutral-900 transition-all duration-300 cursor-default -m-4">
-      <div className="w-10 h-10 bg-neutral-900 border border-neutral-700 rounded-xl flex items-center justify-center transition-colors duration-300 group-hover:border-neutral-500">
-        {icon}
-      </div>
+      {icon}
       <h3 className="font-bold text-white">{title}</h3>
       <p className="text-sm text-neutral-500 leading-relaxed transition-colors duration-300 group-hover:text-neutral-400">{desc}</p>
     </div>
@@ -287,9 +283,7 @@ function FeatureCard({ icon, title, desc }: { icon: React.ReactNode; title: stri
 function StepCard({ step, title, desc }: { step: number; title: string; desc: string }) {
   return (
     <div className="group flex flex-col items-center text-center gap-3 p-5 rounded-2xl border border-transparent hover:border-neutral-800 hover:bg-neutral-900 transition-all duration-300 cursor-default">
-      <div className="w-12 h-12 rounded-full border border-neutral-700 flex items-center justify-center text-white font-black text-lg transition-colors duration-300 group-hover:border-neutral-500">
-        {step}
-      </div>
+      <span className="text-3xl font-black text-neutral-600 leading-none select-none">0{step}</span>
       <h3 className="font-bold text-white">{title}</h3>
       <p className="text-sm text-neutral-500 leading-relaxed transition-colors duration-300 group-hover:text-neutral-400">{desc}</p>
     </div>

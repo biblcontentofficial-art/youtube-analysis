@@ -33,7 +33,7 @@ export default function NavUser() {
   }, []);
 
   if (!isLoaded) {
-    return <div className="w-8 h-8 rounded-full bg-gray-800 animate-pulse" />;
+    return <div className="w-8 h-8 rounded-full bg-neutral-800 animate-pulse" />;
   }
 
   if (user) {
@@ -49,7 +49,7 @@ export default function NavUser() {
       user.user_metadata?.profile_image;
 
     return (
-      <Link href="/mypage" className="w-8 h-8 rounded-full overflow-hidden border border-gray-700 hover:border-teal-500 transition flex items-center justify-center bg-gray-800">
+      <Link href="/mypage" className="w-8 h-8 rounded-full overflow-hidden border border-neutral-700 hover:border-neutral-400 transition flex items-center justify-center bg-neutral-800">
         {imageUrl && !imgError ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -68,10 +68,10 @@ export default function NavUser() {
 
   return (
     <div className="flex items-center gap-2">
-      <a href="/sign-in" className="text-xs text-gray-400 hover:text-white px-3 py-1.5 rounded-md hover:bg-gray-800 transition">
+      <a href="/sign-in" className="text-xs text-neutral-400 hover:text-white px-3 py-1.5 rounded-md hover:bg-neutral-800 transition">
         로그인
       </a>
-      <a href="/sign-in" className="text-xs bg-teal-600 hover:bg-teal-500 text-white px-3 py-1.5 rounded-md transition font-medium">
+      <a href="/sign-in" className="text-xs bg-white hover:bg-neutral-200 text-black px-3 py-1.5 rounded-md transition font-bold">
         시작하기
       </a>
     </div>

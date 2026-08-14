@@ -291,7 +291,7 @@ export default async function RootLayout({
         <link rel="icon" href="/icon" type="image/png" sizes="32x32" />
         <link rel="apple-touch-icon" href="/apple-icon" sizes="180x180" />
       </head>
-      <body className={`${inter.className} bg-gray-950 text-white`}>
+      <body className={`${inter.className} bg-neutral-950 text-white`}>
         {jsonLd.map((schema, i) => (
           <script
             key={i}
@@ -310,17 +310,17 @@ export default async function RootLayout({
         />
         <NavigationLoader>
         <ConfirmProvider>
-        <nav className="border-b border-gray-800 bg-gray-950 sticky top-0 z-50">
+        <nav className="border-b border-neutral-800 bg-black sticky top-0 z-50">
           <div className="max-w-screen-2xl mx-auto px-4 h-14 flex items-center justify-between min-w-0 overflow-x-auto scrollbar-hide">
             {/* 로고 + 탭 */}
             <div className="flex items-center gap-6 shrink-0">
               <a href="/" className="flex items-center gap-2 shrink-0">
-                <div className="w-8 h-8 bg-black border border-gray-700 rounded-lg flex items-center justify-center">
+                <div className="w-8 h-8 bg-black border border-neutral-700 rounded-lg flex items-center justify-center">
                   <span style={{ color: "white", fontSize: 18, fontWeight: 900, lineHeight: 1, fontFamily: "sans-serif" }}>B</span>
                 </div>
                 <span className="font-bold text-base tracking-tight">
                   <span className="text-white">bibl</span>
-                  <span className="text-teal-400"> lab</span>
+                  <span className="text-neutral-400"> lab</span>
                 </span>
               </a>
 
@@ -336,12 +336,26 @@ export default async function RootLayout({
                   href="https://cafe.naver.com/businessblack"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm transition text-gray-400 hover:text-white hover:bg-gray-800"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm transition text-neutral-400 hover:text-white hover:bg-neutral-800"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="w-3 h-3" fill="#03C75A" aria-label="네이버 카페">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="w-3 h-3" fill="currentColor" aria-label="네이버 카페">
                     <path d="M16.273 12.845L7.376 0H0v24h7.727V11.156L16.624 24H24V0h-7.727v12.845z" />
                   </svg>
-                  비블 카페
+                  비블카페(자료공유)
+                </a>
+                {/* 비블 오픈채팅방 (카카오 오픈채팅, 외부 링크) */}
+                <a
+                  href="https://open.kakao.com/o/gsMC55Jh"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title="참여코드 230000"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm transition text-neutral-400 hover:text-white hover:bg-neutral-800"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
+                    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+                  </svg>
+                  비블 오픈채팅방
+                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded border border-neutral-700 text-neutral-500 leading-none">코드 230000</span>
                 </a>
                 {/* 영상 찾기 */}
                 <NavTab href="/search" label="영상 찾기" icon={
@@ -374,7 +388,7 @@ export default async function RootLayout({
                   </svg>
                 } />
                 <>
-                  <div className="w-px h-4 bg-gray-700 mx-1" />
+                  <div className="w-px h-4 bg-neutral-700 mx-1" />
                   <NavTab href="/studio/class/consulting" label="팀비블 1:1 유튜브 컨설팅" isStudio />
                   <NavTab href="/studio" label="유튜브 채널 대행 문의" isStudio />
                 </>
@@ -387,7 +401,7 @@ export default async function RootLayout({
               {/* 모바일 전용: 요금제 링크 */}
               <a
                 href="/pricing"
-                className="md:hidden text-xs text-gray-400 hover:text-white px-2 py-1 rounded-md transition"
+                className="md:hidden text-xs text-neutral-400 hover:text-white px-2 py-1 rounded-md transition"
                 title="요금제"
               >
                 요금제
@@ -396,18 +410,18 @@ export default async function RootLayout({
             </div>
           </div>
           {/* 모바일 전용: 스튜디오 링크 행 */}
-          <div className="md:hidden border-t border-gray-800/60 bg-gray-950">
+          <div className="md:hidden border-t border-neutral-800/60 bg-neutral-950">
             <div className="max-w-screen-2xl mx-auto px-4 py-2 flex items-center justify-center gap-2 overflow-x-auto scrollbar-hide">
               <a
                 href="/studio/class/consulting"
-                className="text-xs text-teal-400 hover:text-teal-300 font-medium px-3 py-1.5 rounded-md whitespace-nowrap"
+                className="text-xs text-white hover:text-neutral-300 font-semibold px-3 py-1.5 rounded-md whitespace-nowrap"
               >
                 팀비블 1:1 유튜브 컨설팅
               </a>
-              <span className="w-px h-3 bg-gray-700" />
+              <span className="w-px h-3 bg-neutral-700" />
               <a
                 href="/studio"
-                className="text-xs text-teal-400 hover:text-teal-300 font-medium px-3 py-1.5 rounded-md whitespace-nowrap"
+                className="text-xs text-white hover:text-neutral-300 font-semibold px-3 py-1.5 rounded-md whitespace-nowrap"
               >
                 유튜브 채널 대행 문의
               </a>
@@ -418,27 +432,27 @@ export default async function RootLayout({
         <ReferralApply />
         <KakaoChatButton />
         {DevToolbar && <DevToolbar />}
-        <footer className="border-t border-gray-800 bg-gray-950 mt-16">
+        <footer className="border-t border-neutral-800 bg-neutral-950 mt-16">
 
           <div className="max-w-screen-xl mx-auto px-4 py-10">
             <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-8">
               {/* 브랜드 */}
               <div className="shrink-0">
                 <a href="/" className="flex items-center gap-2 mb-3">
-                  <div className="w-7 h-7 bg-black border border-gray-700 rounded-md flex items-center justify-center">
+                  <div className="w-7 h-7 bg-black border border-neutral-700 rounded-md flex items-center justify-center">
                     <span style={{ color: "white", fontSize: 16, fontWeight: 900, lineHeight: 1, fontFamily: "sans-serif" }}>B</span>
                   </div>
                   <span className="font-bold text-sm tracking-tight">
                     <span className="text-white">bibl</span>
-                    <span className="text-teal-400"> lab</span>
+                    <span className="text-neutral-400"> lab</span>
                   </span>
                 </a>
-                <p className="text-xs text-gray-600 max-w-xs">유튜브 트렌드 분석 도구 — 크리에이터를 위한 데이터 인사이트</p>
+                <p className="text-xs text-neutral-600 max-w-xs">유튜브 트렌드 분석 도구 — 크리에이터를 위한 데이터 인사이트</p>
               </div>
 
               {/* 사업자 정보 */}
-              <div className="text-xs text-gray-600 space-y-1 leading-relaxed">
-                <p className="font-medium text-gray-500">세모골프 &nbsp;|&nbsp; 대표: 김태민</p>
+              <div className="text-xs text-neutral-600 space-y-1 leading-relaxed">
+                <p className="font-medium text-neutral-500">세모골프 &nbsp;|&nbsp; 대표: 김태민</p>
                 <p>사업자등록번호: 315-47-01018 &nbsp;|&nbsp; 통신판매업신고: 2023-수원권선-1549</p>
                 <p>주소: 경기도 수원시 권선구 세화로 151번길 29-2 1층 (우편번호 16619)</p>
                 <p>고객문의: bibl.content.official@gmail.com &nbsp;|&nbsp; 070-8027-2532</p>
@@ -447,19 +461,19 @@ export default async function RootLayout({
 
               {/* 링크 */}
               <div className="flex flex-col gap-2 text-xs shrink-0">
-                <a href="/privacy" className="text-gray-500 hover:text-gray-300 transition">개인정보처리방침</a>
-                <a href="/terms" className="text-gray-500 hover:text-gray-300 transition">이용약관</a>
-                <a href="/refund" className="text-gray-500 hover:text-gray-300 transition">환불정책</a>
-                <a href="mailto:bibl.content.official@gmail.com" className="text-gray-500 hover:text-gray-300 transition">문의하기</a>
+                <a href="/privacy" className="text-neutral-500 hover:text-neutral-300 transition">개인정보처리방침</a>
+                <a href="/terms" className="text-neutral-500 hover:text-neutral-300 transition">이용약관</a>
+                <a href="/refund" className="text-neutral-500 hover:text-neutral-300 transition">환불정책</a>
+                <a href="mailto:bibl.content.official@gmail.com" className="text-neutral-500 hover:text-neutral-300 transition">문의하기</a>
               </div>
             </div>
 
-            <div className="mt-8 pt-6 border-t border-gray-900 text-xs text-gray-700 text-center space-y-2">
+            <div className="mt-8 pt-6 border-t border-neutral-900 text-xs text-neutral-700 text-center space-y-2">
               <p>
                 본 서비스는 YouTube API Services를 사용합니다. 이용 시{" "}
-                <a href="https://www.youtube.com/t/terms" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-gray-300 underline">YouTube 서비스 약관</a>
+                <a href="https://www.youtube.com/t/terms" target="_blank" rel="noopener noreferrer" className="text-neutral-500 hover:text-neutral-300 underline">YouTube 서비스 약관</a>
                 {" "}및{" "}
-                <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-gray-300 underline">Google 개인정보처리방침</a>
+                <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="text-neutral-500 hover:text-neutral-300 underline">Google 개인정보처리방침</a>
                 에 동의한 것으로 간주됩니다.
               </p>
               <p>© {new Date().getFullYear()} 세모골프. All Rights Reserved. bibl lab은 세모골프의 서비스입니다.</p>
@@ -493,8 +507,8 @@ function NavTab({
   const locked = !!requiredPlan;
 
   const planStyle: Record<string, string> = {
-    Starter: "bg-amber-950/60 text-amber-400 border border-amber-800/70",
-    Pro:     "bg-purple-950/60 text-purple-400 border border-purple-800/70",
+    Starter: "border border-neutral-700 text-neutral-400",
+    Pro:     "border border-neutral-700 text-neutral-400",
   };
 
   // 강조 탭 (비블의 칼럼) — 은은한 필 배경으로 차분하게 강조
@@ -502,7 +516,7 @@ function NavTab({
     return (
       <a
         href={href}
-        className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-sm font-semibold bg-white/[0.06] text-teal-300 hover:bg-white/[0.10] hover:text-teal-200 transition-colors"
+        className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-sm font-semibold bg-white/[0.06] text-white hover:bg-white/[0.10] transition-colors"
       >
         {icon}
         {label}
@@ -514,7 +528,7 @@ function NavTab({
     return (
       <a
         href={href}
-        className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm transition text-teal-400 hover:text-teal-300 hover:bg-teal-950/40 font-medium"
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm transition text-white hover:text-neutral-300 hover:bg-neutral-800 font-semibold"
       >
         {icon}
         {label}
@@ -528,12 +542,12 @@ function NavTab({
       title={locked ? `${requiredPlan} 플랜 이상에서 이용 가능` : undefined}
       className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm transition group ${
         locked
-          ? "text-gray-500 hover:text-gray-300 hover:bg-gray-800/50"
-          : "text-gray-400 hover:text-white hover:bg-gray-800"
+          ? "text-neutral-500 hover:text-neutral-300 hover:bg-neutral-800/50"
+          : "text-neutral-400 hover:text-white hover:bg-neutral-800"
       }`}
     >
       {locked && (
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-3 h-3 text-gray-500">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-3 h-3 text-neutral-500">
           <rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />
         </svg>
       )}
