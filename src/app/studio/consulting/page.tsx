@@ -16,9 +16,26 @@ const GOAL_OPTIONS = [
   { value: "기타", label: "기타", desc: "직접 입력" },
 ];
 const BUDGET_OPTIONS = [
-  "월 300~500만원",
-  "월 500~1,000만원",
-  "월 1,000만원 이상",
+  {
+    value: "기본 패키지 · 월 350만원 (촬영 미포함, 롱폼 4편+숏폼 10편)",
+    label: "기본 패키지 · 월 350만원",
+    desc: "기획·편집·업로드·채널관리 (촬영 미포함, 본인 직접 촬영) · 롱폼 4편 + 숏폼 10편",
+  },
+  {
+    value: "촬영 포함 패키지 · 월 400만원 (롱폼 4편+숏폼 10편)",
+    label: "촬영 포함 패키지 · 월 400만원",
+    desc: "기획·편집·업로드·채널관리 + 현장촬영 · 롱폼 4편 + 숏폼 10편",
+  },
+  {
+    value: "확장 패키지 · 월 500만원 (촬영 포함, 롱폼 5편+숏폼 14편)",
+    label: "확장 패키지 · 월 500만원",
+    desc: "촬영 포함 풀패키지, 발행량 확대 · 롱폼 5편 + 숏폼 14편",
+  },
+  {
+    value: "더 많은 발행량 · 가격 협의",
+    label: "더 많은 발행량 · 가격 협의",
+    desc: "롱폼·숏폼 수량과 구성을 맞춤 기획해 별도 견적",
+  },
 ];
 
 type FormData = {
@@ -33,13 +50,16 @@ type FormData = {
   // Step 3
   goal: string;
   budget: string;
-  message: string;
+  channelStatus: string;
+  concern: string;
+  region: string;
+  period: string;
 };
 
 const INIT: FormData = {
   source: "", service: "",
   name: "", phone: "", email: "", channelUrl: "",
-  goal: "", budget: "", message: "",
+  goal: "", budget: "", channelStatus: "", concern: "", region: "", period: "",
 };
 
 const STEPS = ["유입·관심 서비스", "기본 정보", "상담 내용"];
@@ -119,7 +139,7 @@ function ConsultingPage() {
     if (source === "keyword" && query) {
       setForm((f) => ({
         ...f,
-        message: `[키워드 컨설팅 요청]\n검색 키워드: "${query}"\n\n위 키워드와 관련된 유튜브 채널 전략에 대해 비블의 의견을 듣고 싶습니다.\n\n구체적으로 궁금한 점:\n- \n- `,
+        concern: `[키워드 컨설팅 요청]\n검색 키워드: "${query}"\n\n위 키워드와 관련된 유튜브 채널 전략에 대해 비블의 의견을 듣고 싶습니다.\n\n구체적으로 궁금한 점:\n- \n- `,
       }));
     }
   }, [searchParams]);
@@ -129,7 +149,15 @@ function ConsultingPage() {
   const canNext = () => {
     if (step === 0) return !!form.source && !!form.service;
     if (step === 1) return !!form.name && !!form.phone;
-    if (step === 2) return !!form.goal && !!form.budget;
+    if (step === 2)
+      return (
+        !!form.goal &&
+        !!form.budget &&
+        !!form.channelStatus.trim() &&
+        !!form.concern.trim() &&
+        !!form.region.trim() &&
+        !!form.period.trim()
+      );
     return false;
   };
 
@@ -142,10 +170,17 @@ function ConsultingPage() {
     setSubmitting(true);
     setError("");
     try {
+      // 질문지 4항목을 기존 message 필드로 합쳐 전송 (API·DB 스키마 변경 없이 호환)
+      const message = [
+        `채널 이름 및 현황: ${form.channelStatus}`,
+        `현재 가지고 계신 고민: ${form.concern}`,
+        `거주하시는 지역: ${form.region}`,
+        `유튜브를 운영한 기간: ${form.period}`,
+      ].join("\n");
       const res = await fetch("/api/studio/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, message }),
       });
       if (!res.ok) throw new Error("서버 오류");
       setDone(true);
@@ -322,32 +357,78 @@ function ConsultingPage() {
 
             <div>
               <p className="text-sm font-bold text-white mb-3">
-                월 광고비 집행 가능 예산 <span className="text-[#00E5A0]">*</span>
+                희망 패키지를 선택해주세요 <span className="text-[#00E5A0]">*</span>
+                <span className="text-neutral-600 font-normal ml-1.5">(부가세 별도)</span>
               </p>
               <div className="space-y-2">
                 {BUDGET_OPTIONS.map((opt) => (
                   <RadioCard
-                    key={opt}
-                    selected={form.budget === opt}
-                    onClick={() => set("budget")(opt)}
-                    label={opt}
+                    key={opt.value}
+                    selected={form.budget === opt.value}
+                    onClick={() => set("budget")(opt.value)}
+                    label={opt.label}
+                    desc={opt.desc}
                   />
                 ))}
               </div>
             </div>
 
-            <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-semibold text-neutral-300">
-                현재 가장 큰 고민이나 전달 사항
-                <span className="text-neutral-600 font-normal ml-1">(선택)</span>
-              </label>
-              <textarea
-                value={form.message}
-                onChange={(e) => set("message")(e.target.value)}
-                placeholder="채널 현황, 목표, 고민 등 자유롭게 적어주세요."
-                rows={4}
-                className="bg-neutral-900 border border-neutral-700 rounded-xl px-4 py-3 text-sm text-white placeholder-neutral-600 focus:outline-none focus:border-neutral-400 transition resize-none"
-              />
+            <div className="space-y-5">
+              <p className="text-xs text-neutral-500">
+                채널을 운영하고 있지 않거나 해당 없는 항목은 &lsquo;없음&rsquo;이라고 적어주세요.
+              </p>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-semibold text-neutral-300">
+                  채널 이름 및 현황 <span className="text-[#00E5A0]">*</span>
+                </label>
+                <textarea
+                  value={form.channelStatus}
+                  onChange={(e) => set("channelStatus")(e.target.value)}
+                  placeholder="예: 홍길동TV, 구독자 1,000명, 월 2회 업로드 중 (없다면 '없음')"
+                  rows={2}
+                  className="bg-neutral-900 border border-neutral-700 rounded-xl px-4 py-3 text-sm text-white placeholder-neutral-600 focus:outline-none focus:border-neutral-400 transition resize-none"
+                />
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-semibold text-neutral-300">
+                  현재 가지고 계신 고민 <span className="text-[#00E5A0]">*</span>
+                </label>
+                <textarea
+                  value={form.concern}
+                  onChange={(e) => set("concern")(e.target.value)}
+                  placeholder="예: 영상을 꾸준히 올려도 조회수가 나오지 않습니다."
+                  rows={3}
+                  className="bg-neutral-900 border border-neutral-700 rounded-xl px-4 py-3 text-sm text-white placeholder-neutral-600 focus:outline-none focus:border-neutral-400 transition resize-none"
+                />
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-semibold text-neutral-300">
+                  거주하시는 지역 <span className="text-[#00E5A0]">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={form.region}
+                  onChange={(e) => set("region")(e.target.value)}
+                  placeholder="예: 서울, 경기 수원"
+                  className="bg-neutral-900 border border-neutral-700 rounded-xl px-4 py-3 text-sm text-white placeholder-neutral-600 focus:outline-none focus:border-neutral-400 transition"
+                />
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-semibold text-neutral-300">
+                  유튜브를 운영한 기간 <span className="text-[#00E5A0]">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={form.period}
+                  onChange={(e) => set("period")(e.target.value)}
+                  placeholder="예: 6개월 (운영 전이라면 '없음')"
+                  className="bg-neutral-900 border border-neutral-700 rounded-xl px-4 py-3 text-sm text-white placeholder-neutral-600 focus:outline-none focus:border-neutral-400 transition"
+                />
+              </div>
             </div>
           </div>
         )}
