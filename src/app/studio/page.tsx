@@ -349,8 +349,8 @@ export default function StudioPage() {
         <div className="max-w-screen-xl mx-auto px-4 py-20">
           <SectionLabel label="PROBLEM" />
           <h2 data-animate="up" className="text-3xl md:text-5xl font-black leading-tight mb-14">
-            <span className="text-neutral-400">유튜브 채널 운영,</span><br />
-            혼자 하면 이 <span className="text-[#E5484D]">3가지</span>에서 막힙니다
+            <span className="text-neutral-400">유튜브를 혼자 운영하면서</span><br />
+            답답하지 않으셨나요?
           </h2>
 
           <div className="grid md:grid-cols-3 gap-6">
@@ -359,7 +359,7 @@ export default function StudioPage() {
                 icon: "",
                 badge: "문제 01",
                 title: "기획이 막막하다",
-                desc: "무슨 주제로 찍어야 할지, 어떤 제목이 뜨는지 전혀 감이 안 옵니다. 경쟁자는 많고 내 영상만 아무도 안 봅니다.",
+                desc: "무슨 주제로 찍어야 할지, 어떤 소재로 영상을 만들어야 할지 전혀 감이 안 옵니다. 경쟁자는 많은데 아무도 내 영상을 시청하지 않습니다.",
               },
               {
                 icon: "",
@@ -371,7 +371,7 @@ export default function StudioPage() {
                 icon: "",
                 badge: "문제 03",
                 title: "뭐가 문제인지 모른다",
-                desc: "업로드 하더라도 조회수가 안나옵니다. 썸네일, 제목, 내용, 브랜딩 어떤것이 원인인지 알기 어렵기에 개선이 불가능합니다. 결국 포기하게 되죠.",
+                desc: "업로드 하더라도 조회수가 안나옵니다. 썸네일, 제목, 내용, 구매전환, 브랜딩 어떤것이 원인인지 알기 어렵기에 개선이 불가능합니다. 결국 포기하게 되죠.",
               },
             ].map((item, i) => (
               <div
@@ -436,7 +436,7 @@ export default function StudioPage() {
             말이 아닌, 결과로 증명합니다
           </h2>
           <p data-animate="up" data-delay="160" className="text-neutral-400 mb-12 text-base md:text-lg">
-            총 <span className="text-[#E5484D] font-bold">70만+ 구독자</span> 채널을 운영 및 공동 기획하고 있습니다.
+            총 <span className="text-[#E5484D] font-bold">70만+</span> 채널을 실제로 운영하고 있는 스튜디오입니다.
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
