@@ -358,7 +358,7 @@ function ConsultingPage() {
             <div>
               <p className="text-sm font-bold text-white mb-3">
                 희망 패키지를 선택해주세요 <span className="text-[#00E5A0]">*</span>
-                <span className="text-neutral-600 font-normal ml-1.5">(부가세 별도)</span>
+                <span className="text-neutral-600 font-normal ml-1.5">(부가세 포함)</span>
               </p>
               <div className="space-y-2">
                 {BUDGET_OPTIONS.map((opt) => (
