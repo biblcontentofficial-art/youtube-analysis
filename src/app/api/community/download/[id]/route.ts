@@ -10,6 +10,11 @@ export const runtime = "nodejs";
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
+  // 커뮤니티 전체가 회원 전용 — 조회 이전에 먼저 막는다.
+  // (뒤에서 검사하면 401/404 차이로 첨부 존재 여부를 떠볼 수 있다)
+  const user = await currentUser();
+  if (!user) return NextResponse.json({ message: "로그인이 필요합니다." }, { status: 401 });
+
   const db = getSupabase();
   if (!db) return NextResponse.json({ message: "Storage 미연결" }, { status: 500 });
 
@@ -32,17 +37,11 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   // 비활성화된 게시판의 첨부는 더 이상 내려주지 않는다
   const { data: board } = await db
     .from("community_boards")
-    .select("read_role")
+    .select("id")
     .eq("id", post.board_id)
     .eq("is_active", true)
     .maybeSingle();
   if (!board) return NextResponse.json({ message: "게시판을 찾을 수 없습니다." }, { status: 404 });
-
-  // 회원 전용 게시판이면 로그인 필수
-  if (board.read_role === "member") {
-    const user = await currentUser();
-    if (!user) return NextResponse.json({ message: "로그인이 필요합니다." }, { status: 401 });
-  }
 
   const { data: signed, error } = await db.storage
     .from(STORAGE_BUCKET)

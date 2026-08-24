@@ -154,9 +154,13 @@ export function canModerateCommunity(user: Pick<Viewer, "email" | "plan"> | null
   return isAdmin({ email: user.email, plan: user.plan }) || canEditInsights({ email: user.email, plan: user.plan });
 }
 
-/** 게시판 읽기 권한 */
-export function canReadBoard(board: Pick<Board, "read_role">, user: Viewer | null): boolean {
-  if (board.read_role === "all") return true;
+/**
+ * 게시판 읽기 권한.
+ * 커뮤니티 전체가 비블랩 회원 전용이므로 로그인이 최소 조건이다
+ * (레이아웃 게이트와 같은 규칙 — 클라이언트 내비게이션으로 게이트를 건너뛰어도 여기서 막힌다).
+ * read_role 은 나중에 특정 게시판만 더 좁힐 때 쓰기 위해 남겨둔다.
+ */
+export function canReadBoard(_board: Pick<Board, "read_role">, user: Viewer | null): boolean {
   return !!user;
 }
 

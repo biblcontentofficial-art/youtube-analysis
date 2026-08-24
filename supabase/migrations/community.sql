@@ -169,6 +169,8 @@ on conflict (id) do nothing;
 
 -- ── 기본 게시판 시드 (네이버 카페 businessblack 메뉴 구조 그대로) ──
 -- 이름·그룹·순서·권한은 /community/admin 에서 언제든 수정 가능하다.
+-- 커뮤니티 전체가 비블랩 로그인 회원 전용이므로(레이아웃 게이트) read_role 은 모두 'all' 로 둔다.
+-- 'all' = 커뮤니티에 입장한 회원 전체. 특정 게시판만 더 좁히려면 여기서 'member' 로 바꾸면 된다.
 insert into public.community_boards (slug, name, description, group_name, sort_order, read_role, write_role, allow_files)
 values
   -- 비블 | 환영합니다
@@ -183,12 +185,12 @@ values
   ('incubating',         '유튜브 인큐베이팅 지원하세요!', '비블과 함께할 분을 모집합니다',         '비블 | 환영합니다',        90,  'all',    'member', false),
 
   -- 비블 | 유튜브 무료 자료
-  ('bibl-lab',           '유튜브 분석 툴 BIBL LAB', '비블랩 분석 도구 사용법',                    '비블 | 유튜브 무료 자료',  110, 'member', 'staff',  true),
-  ('ai-coding',          '유튜브 AI 자동화 & 코딩', 'AI·자동화로 제작 시간 줄이기',               '비블 | 유튜브 무료 자료',  120, 'member', 'staff',  true),
-  ('ebook',              '비블 유튜브 전자책',      '전자책 다운로드',                           '비블 | 유튜브 무료 자료',  130, 'member', 'staff',  true),
+  ('bibl-lab',           '유튜브 분석 툴 BIBL LAB', '비블랩 분석 도구 사용법',                    '비블 | 유튜브 무료 자료',  110, 'all',    'staff',  true),
+  ('ai-coding',          '유튜브 AI 자동화 & 코딩', 'AI·자동화로 제작 시간 줄이기',               '비블 | 유튜브 무료 자료',  120, 'all',    'staff',  true),
+  ('ebook',              '비블 유튜브 전자책',      '전자책 다운로드',                           '비블 | 유튜브 무료 자료',  130, 'all',    'staff',  true),
   ('faq-tips',           '자주 묻는 질문 & 꿀팁',   '자주 나오는 질문과 실전 꿀팁',                '비블 | 유튜브 무료 자료',  140, 'all',    'staff',  false),
-  ('resources',          '유튜브&기타 자료',        '템플릿·체크리스트 등 실무 자료',              '비블 | 유튜브 무료 자료',  150, 'member', 'staff',  true),
-  ('premiere-vod',       '프리미어프로VOD',        '편집 강의 VOD',                             '비블 | 유튜브 무료 자료',  160, 'member', 'staff',  true),
+  ('resources',          '유튜브&기타 자료',        '템플릿·체크리스트 등 실무 자료',              '비블 | 유튜브 무료 자료',  150, 'all',    'staff',  true),
+  ('premiere-vod',       '프리미어프로VOD',        '편집 강의 VOD',                             '비블 | 유튜브 무료 자료',  160, 'all',    'staff',  true),
   ('account-security',   '유튜브 계정 해킹 대처법',  '계정 보안과 사고 대응 가이드',                '비블 | 유튜브 무료 자료',  170, 'all',    'staff',  false),
 
   -- 비블 | 함께 성장해요
@@ -199,10 +201,10 @@ values
   ('jobs',               '구인/구직',              '편집자·PD·마케터 구인구직',                  '비블 | 함께 성장해요',     250, 'all',    'member', false),
 
   -- 팀비블 Team bibl 공간
-  ('teambibl-apply',     '팀비블 1:1 강의 신청',    '1:1 강의 신청 접수',                        '팀비블 Team bibl 공간',   310, 'member', 'member', false),
-  ('teambibl-guide',     '팀비블은 이렇게 진행됩니다', '진행 방식 안내',                          '팀비블 Team bibl 공간',   320, 'member', 'staff',  false),
-  ('teambibl-notice',    '팀비블 과제공지방',       '주차별 과제 공지',                          '팀비블 Team bibl 공간',   330, 'member', 'staff',  false),
-  ('teambibl-submit',    '팀비블 과제제출방',       '과제 제출',                                 '팀비블 Team bibl 공간',   340, 'member', 'member', true),
-  ('teambibl-files',     '핵심자료 다운로드',       '팀비블 핵심 자료',                          '팀비블 Team bibl 공간',   350, 'member', 'staff',  true),
-  ('teambibl-meeting',   '팀비블 1:1 미팅예약 (30분)', '30분 미팅 예약',                        '팀비블 Team bibl 공간',   360, 'member', 'member', false)
+  ('teambibl-apply',     '팀비블 1:1 강의 신청',    '1:1 강의 신청 접수',                        '팀비블 Team bibl 공간',   310, 'all',    'member', false),
+  ('teambibl-guide',     '팀비블은 이렇게 진행됩니다', '진행 방식 안내',                          '팀비블 Team bibl 공간',   320, 'all',    'staff',  false),
+  ('teambibl-notice',    '팀비블 과제공지방',       '주차별 과제 공지',                          '팀비블 Team bibl 공간',   330, 'all',    'staff',  false),
+  ('teambibl-submit',    '팀비블 과제제출방',       '과제 제출',                                 '팀비블 Team bibl 공간',   340, 'all',    'member', true),
+  ('teambibl-files',     '핵심자료 다운로드',       '팀비블 핵심 자료',                          '팀비블 Team bibl 공간',   350, 'all',    'staff',  true),
+  ('teambibl-meeting',   '팀비블 1:1 미팅예약 (30분)', '30분 미팅 예약',                        '팀비블 Team bibl 공간',   360, 'all',    'member', false)
 on conflict (slug) do nothing;
