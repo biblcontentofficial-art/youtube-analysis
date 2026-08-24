@@ -324,28 +324,18 @@ export default async function RootLayout({
               </a>
 
               <div className="hidden md:flex flex-1 items-center justify-center gap-1 text-sm whitespace-nowrap min-w-0">
-                {/* 메인 서비스: 팀비블 컨설팅 · 채널 대행 — 네온 그린 강조 */}
-                <NavTab href="/studio/class/consulting" label="팀비블 1:1 유튜브 컨설팅" isStudio />
-                <NavTab href="/studio" label="유튜브 채널 대행 문의" isStudio />
-                <div className="w-px h-4 bg-neutral-700 mx-1" />
                 {/* 비블의 칼럼 (비즈니스 칼럼) — 화이트 필 강조 */}
                 <NavTab href="/insights" label="비블의 칼럼" highlight icon={
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
                     <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
                   </svg>
                 } />
-                {/* 비블 카페 (네이버 카페, 외부 링크) */}
-                <a
-                  href="https://cafe.naver.com/businessblack"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-sm font-semibold bg-white/[0.06] text-white hover:bg-white/[0.10] transition-colors"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="w-3 h-3" fill="currentColor" aria-label="네이버 카페">
-                    <path d="M16.273 12.845L7.376 0H0v24h7.727V11.156L16.624 24H24V0h-7.727v12.845z" />
+                {/* 비블 커뮤니티 (자체 서비스) */}
+                <NavTab href="/community" label="비블카페(자료공유)" highlight icon={
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
                   </svg>
-                  비블카페(자료공유)
-                </a>
+                } />
                 {/* 비블 오픈채팅방 (카카오 오픈채팅, 외부 링크) */}
                 <a
                   href="https://open.kakao.com/o/gsMC55Jh"
@@ -372,6 +362,10 @@ export default async function RootLayout({
                     <rect x="1" y="4" width="22" height="16" rx="2" ry="2" /><line x1="1" y1="10" x2="23" y2="10" />
                   </svg>
                 } />
+                {/* 메인 서비스: 팀비블 컨설팅 · 채널 대행 — 가장 우측, 에메랄드 강조 */}
+                <div className="w-px h-4 bg-neutral-700 mx-1" />
+                <NavTab href="/studio/class/consulting" label="팀비블 1:1 유튜브 컨설팅" isStudio />
+                <NavTab href="/studio" label="유튜브 채널 대행 문의" isStudio />
               </div>
 
             {/* 우측 */}

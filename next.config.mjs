@@ -24,7 +24,7 @@ const securityHeaders = [
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://pay.toss.im https://js.tosspayments.com https://cpay.payple.kr https://testcpay.payple.kr https://t1.kakaocdn.net",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com",
-      "img-src 'self' data: blob: https://i.ytimg.com https://yt3.ggpht.com https://yt3.googleusercontent.com https://lh3.googleusercontent.com https://k.kakaocdn.net https://*.kakaocdn.net",
+      "img-src 'self' data: blob: https://i.ytimg.com https://yt3.ggpht.com https://yt3.googleusercontent.com https://lh3.googleusercontent.com https://k.kakaocdn.net https://*.kakaocdn.net https://*.supabase.co",
       "frame-src 'self' https://pay.toss.im https://event.tosspayments.com https://*.tosspayments.com https://cpay.payple.kr https://testcpay.payple.kr https://accounts.google.com https://www.youtube.com https://www.youtube-nocookie.com",
       "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.upstash.io https://api.tosspayments.com https://event.tosspayments.com https://*.tosspayments.com https://api.portone.io https://core-api.portone.io",
       "media-src 'self' https://www.youtube.com",

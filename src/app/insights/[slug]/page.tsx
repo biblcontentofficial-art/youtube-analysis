@@ -314,7 +314,7 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
               className="group inline-flex items-center gap-2.5 px-7 py-3.5 rounded-xl bg-white hover:bg-neutral-200 text-black text-base font-bold transition"
             >
               올인원 유튜브 채널 대행 알아보기
-              <svg className="w-5 h-5 transition-transform group-hover:tranneutral-x-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round">
+              <svg className="w-5 h-5 transition-transform group-hover:translate-x-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round">
                 <path d="M5 12h14M13 5l7 7-7 7" />
               </svg>
             </Link>
