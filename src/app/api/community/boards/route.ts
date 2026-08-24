@@ -3,7 +3,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { currentUser } from "@/lib/auth";
 import { getSupabase } from "@/lib/supabase";
-import { canModerateCommunity } from "@/lib/community";
+import { canModerateCommunity, RESERVED_BOARD_SLUGS } from "@/lib/community";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 
 const SLUG_RE = /^[a-z0-9-]+$/;
@@ -31,6 +31,13 @@ export async function POST(req: NextRequest) {
   if (!slug) return NextResponse.json({ message: "주소(slug)를 입력해주세요." }, { status: 400 });
   if (!SLUG_RE.test(slug)) {
     return NextResponse.json({ message: "주소는 소문자 영문·숫자·하이픈만 사용할 수 있습니다." }, { status: 400 });
+  }
+  // slug 는 위에서 이미 소문자화했다 (예약어는 대소문자 무시 비교)
+  if (RESERVED_BOARD_SLUGS.includes(slug)) {
+    return NextResponse.json(
+      { message: `사용할 수 없는 주소입니다. (${slug} 는 예약어입니다)` },
+      { status: 400 }
+    );
   }
 
   const name = String(body.name ?? "").trim();

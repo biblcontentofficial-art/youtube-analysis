@@ -45,6 +45,12 @@ const EMPTY_NEW: Draft = {
   allowFiles: false,
 };
 
+/** 새 게시판 정렬순서 제안값 = 현재 최대 sort_order + 10 */
+function suggestSortOrder(boards: Board[]): string {
+  const max = boards.reduce((m, b) => Math.max(m, b.sort_order), 0);
+  return String(max + 10);
+}
+
 function toDraft(b: Board): Draft {
   return {
     slug: b.slug,
@@ -92,7 +98,10 @@ export default function BoardManager({ boards }: Props) {
   const [busyId, setBusyId] = useState<string | null>(null);
 
   const [creating, setCreating] = useState(false);
-  const [newBoard, setNewBoard] = useState<Draft>(EMPTY_NEW);
+  const [newBoard, setNewBoard] = useState<Draft>(() => ({
+    ...EMPTY_NEW,
+    sortOrder: suggestSortOrder(boards),
+  }));
   const [createError, setCreateError] = useState<string | null>(null);
   const [savingAll, setSavingAll] = useState(false);
 
@@ -101,6 +110,10 @@ export default function BoardManager({ boards }: Props) {
     setDrafts(Object.fromEntries(boards.map((b) => [b.id, toDraft(b)])));
     setOrderIds(boards.map((b) => b.id));
     setRowError({});
+    // 추가 폼이 비어 있을 때만 정렬순서 제안값을 새로 맞춘다 (입력 중이면 건드리지 않는다)
+    setNewBoard((prev) =>
+      prev.slug || prev.name ? prev : { ...prev, sortOrder: suggestSortOrder(boards) }
+    );
   }, [boards]);
 
   const byId = useMemo(() => new Map(boards.map((b) => [b.id, b])), [boards]);
@@ -121,24 +134,31 @@ export default function BoardManager({ boards }: Props) {
     setDrafts((prev) => ({ ...prev, [id]: { ...prev[id], ...patch } }));
   }
 
-  /** 위/아래 이동: 표시 순서와 sort_order 값을 함께 맞바꾼다 (저장은 별도) */
+  /**
+   * 위/아래 이동: 표시 순서를 바꾼 뒤 전체 행에 10, 20, 30 … 을 다시 부여한다.
+   * 두 값을 맞바꾸기만 하면 sort_order 가 서로 같을 때(새 게시판 기본값 등)
+   * 아무 변화도 생기지 않아 저장 버튼까지 비활성으로 남는다.
+   */
   function moveRow(id: string, dir: -1 | 1) {
     const idx = orderIds.indexOf(id);
     const target = idx + dir;
     if (idx < 0 || target < 0 || target >= orderIds.length) return;
-    const otherId = orderIds[target];
+
+    const nextOrder = [...orderIds];
+    [nextOrder[idx], nextOrder[target]] = [nextOrder[target], nextOrder[idx]];
 
     setDrafts((prev) => {
-      const a = prev[id];
-      const b = prev[otherId];
-      if (!a || !b) return prev;
-      return { ...prev, [id]: { ...a, sortOrder: b.sortOrder }, [otherId]: { ...b, sortOrder: a.sortOrder } };
-    });
-    setOrderIds((prev) => {
-      const next = [...prev];
-      [next[idx], next[target]] = [next[target], next[idx]];
+      const next = { ...prev };
+      let n = 0;
+      for (const rowId of nextOrder) {
+        const d = next[rowId];
+        if (!d) continue;
+        n += 10;
+        next[rowId] = { ...d, sortOrder: String(n) };
+      }
       return next;
     });
+    setOrderIds(nextOrder);
   }
 
   async function saveRow(id: string): Promise<boolean> {
@@ -260,7 +280,8 @@ export default function BoardManager({ boards }: Props) {
         setCreateError(await readMessage(res, "게시판 추가에 실패했습니다."));
         return;
       }
-      setNewBoard(EMPTY_NEW);
+      // 다음 게시판은 방금 넣은 값보다 10 뒤로 제안한다 (새로고침되면 서버 값으로 다시 맞춰진다)
+      setNewBoard({ ...EMPTY_NEW, sortOrder: String((Number(newBoard.sortOrder) || 0) + 10) });
       router.refresh();
     } catch {
       setCreateError("네트워크 오류가 발생했습니다.");
@@ -321,6 +342,9 @@ export default function BoardManager({ boards }: Props) {
               onChange={(e) => setNewBoard({ ...newBoard, sortOrder: e.target.value })}
               className={`${INPUT_LG} mt-2`}
             />
+            <p className="mt-2 text-xs text-neutral-500">
+              숫자가 작을수록 위에 표시됩니다. 기본값은 현재 마지막 게시판 다음 자리입니다.
+            </p>
           </div>
           <div>
             <label className="block text-xs font-semibold text-neutral-400">읽기 권한</label>

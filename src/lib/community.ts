@@ -72,15 +72,74 @@ export const MAX_TITLE_LEN = 120;
 export const MAX_CONTENT_LEN = 20000;
 export const MAX_COMMENT_LEN = 2000;
 
-/** 자료실 첨부 허용 확장자 (실행 파일 계열은 제외) */
-export const ALLOWED_FILE_EXT = [
+/**
+ * 자료실 첨부 허용 확장자 (실행 파일 계열은 제외)
+ * svg 제외: 비공개 버킷 서명 URL이 인라인 렌더될 때 저장형 XSS가 되기 때문.
+ */
+export const ALLOWED_FILE_EXT: string[] = [
   "pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "hwp", "hwpx",
   "txt", "csv", "md",
   "zip", "7z",
-  "png", "jpg", "jpeg", "gif", "webp", "svg",
+  "png", "jpg", "jpeg", "gif", "webp",
   "mp4", "mov", "webm", "mp3", "wav",
   "psd", "ai", "sketch", "fig",
 ];
+
+/**
+ * 확장자 → MIME 매핑.
+ * 클라이언트가 보낸 MIME은 신뢰하지 않고, 확장자에서 서버가 다시 결정한다.
+ * 목록에 없는 확장자(psd·ai·sketch·fig 등 바이너리 원본)는 application/octet-stream 으로 떨어진다.
+ */
+export const EXT_MIME: Record<string, string> = {
+  pdf: "application/pdf",
+  doc: "application/msword",
+  docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  xls: "application/vnd.ms-excel",
+  xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  ppt: "application/vnd.ms-powerpoint",
+  pptx: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+  hwp: "application/x-hwp",
+  hwpx: "application/hwp+zip",
+  txt: "text/plain",
+  csv: "text/csv",
+  md: "text/plain",
+  zip: "application/zip",
+  "7z": "application/x-7z-compressed",
+  png: "image/png",
+  jpg: "image/jpeg",
+  jpeg: "image/jpeg",
+  gif: "image/gif",
+  webp: "image/webp",
+  mp4: "video/mp4",
+  mov: "video/quicktime",
+  webm: "video/webm",
+  mp3: "audio/mpeg",
+  wav: "audio/wav",
+};
+
+/** 확장자로 안전한 MIME을 결정한다 (미등록 확장자는 다운로드 전용 타입) */
+export function safeMimeForExt(ext: string): string {
+  const key = (ext || "").trim().toLowerCase().replace(/^\./, "");
+  return EXT_MIME[key] ?? "application/octet-stream";
+}
+
+/**
+ * 게시판 slug로 쓸 수 없는 값.
+ * /community/[board] 보다 정적 세그먼트가 우선하므로, 이 slug로 게시판을 만들면
+ * 해당 게시판에 영원히 접근할 수 없다.
+ */
+export const RESERVED_BOARD_SLUGS: string[] = [
+  "write", "admin", "new", "api", "sign", "confirm", "view",
+];
+
+/**
+ * 검색어 정제.
+ * PostgREST or() 파서가 깨지지 않도록 % , ( ) * " \ 를 제거하고 trim 후 50자로 자른다.
+ */
+export function sanitizeSearch(q: string): string {
+  if (!q) return "";
+  return q.replace(/[%,()*"\\]/g, "").trim().slice(0, 50).trim();
+}
 
 // ── 권한 ────────────────────────────────────────────────────────
 export interface Viewer {

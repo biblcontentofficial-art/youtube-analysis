@@ -11,6 +11,7 @@ import {
   type Attachment,
   type PostSummary,
   PAGE_SIZE,
+  sanitizeSearch,
 } from "@/lib/community";
 
 export async function getBoards(): Promise<Board[]> {
@@ -46,7 +47,12 @@ export interface ListResult {
   total: number;
 }
 
-/** 게시판 글 목록 (공지 상단 분리 + 페이지네이션 + 검색) */
+/**
+ * 게시판 글 목록 (공지 상단 고정 + 페이지네이션 + 검색)
+ * 공지도 일반 목록·검색·페이지네이션에 그대로 포함된다.
+ * (예전처럼 본문에서 is_notice=false 로 배제하면 6번째 이후 공지가 어디에도 안 나온다)
+ * 상단 고정으로 이미 보이는 최신 공지 5개만, 첫 페이지·검색 없음일 때 본문에서 제외해 중복을 막는다.
+ */
 export async function listPosts(
   boardId: string,
   { page = 1, q = "" }: { page?: number; q?: string } = {}
@@ -54,62 +60,93 @@ export async function listPosts(
   const db = getSupabase();
   if (!db) return { posts: [], notices: [], total: 0 };
 
+  const term = sanitizeSearch(q);
+  // 상단 고정 노출 조건은 호출부(board/page.tsx)와 동일하게 원본 q 기준으로 판단한다.
+  // (정제 후 빈 문자열이 되는 검색어에서 공지가 통째로 사라지지 않도록)
+  const pinTop = page === 1 && !q.trim();
   const from = (page - 1) * PAGE_SIZE;
+
+  // 상단 고정용 공지 (최신 5개) — 본문에서 제외할 id를 먼저 확보해야 한다
+  const { data: noticeRows } = await db
+    .from("community_posts")
+    .select("*")
+    .eq("board_id", boardId)
+    .eq("status", "published")
+    .eq("is_notice", true)
+    .order("created_at", { ascending: false })
+    .limit(5);
+  const notices = (noticeRows ?? []) as CommunityPost[];
 
   let query = db
     .from("community_posts")
     .select("*", { count: "exact" })
     .eq("board_id", boardId)
-    .eq("status", "published")
-    .eq("is_notice", false);
+    .eq("status", "published");
 
-  if (q.trim()) {
-    const term = q.trim().replace(/[%,]/g, "");
+  if (term) {
     query = query.or(`title.ilike.%${term}%,content.ilike.%${term}%`);
   }
 
-  const [{ data: posts, count }, { data: notices }] = await Promise.all([
-    query.order("created_at", { ascending: false }).range(from, from + PAGE_SIZE - 1),
-    db
-      .from("community_posts")
-      .select("*")
-      .eq("board_id", boardId)
-      .eq("status", "published")
-      .eq("is_notice", true)
-      .order("created_at", { ascending: false })
-      .limit(5),
-  ]);
+  const excludeIds = pinTop ? notices.map((n) => n.id) : [];
+  if (excludeIds.length > 0) {
+    query = query.not("id", "in", `(${excludeIds.join(",")})`);
+  }
+
+  const { data: posts, count } = await query
+    .order("created_at", { ascending: false })
+    .range(from, from + PAGE_SIZE - 1);
 
   return {
     posts: (posts ?? []) as CommunityPost[],
-    notices: (notices ?? []) as CommunityPost[],
-    total: count ?? 0,
+    notices,
+    // total은 항상 공지 포함 기준. 상단 고정으로 제외한 만큼(excludeIds) 다시 더해
+    // 페이지마다 전체 개수·페이지 수가 흔들리지 않게 한다.
+    total: (count ?? 0) + excludeIds.length,
   };
 }
 
-/** 커뮤니티 홈: 전체 게시판 최신글 */
-export async function listRecentPosts(limit = 12): Promise<PostSummary[]> {
+/**
+ * 커뮤니티 홈: 전체 게시판 최신글
+ * boardIds를 주면 그 게시판들로 먼저 좁혀서 조회한다.
+ * (limit로 자른 뒤 호출부에서 권한 필터를 하면, 비로그인 방문자에게 최신글이 통째로 사라진다)
+ */
+export async function listRecentPosts(
+  limit = 12,
+  boardIds?: string[]
+): Promise<PostSummary[]> {
+  if (boardIds && boardIds.length === 0) return [];
   const db = getSupabase();
   if (!db) return [];
-  const { data } = await db
+  let query = db
     .from("community_posts")
     .select("*, board:community_boards(slug,name)")
-    .eq("status", "published")
+    .eq("status", "published");
+  if (boardIds) query = query.in("board_id", boardIds);
+  const { data } = await query
     .order("created_at", { ascending: false })
     .limit(limit);
   return (data ?? []) as PostSummary[];
 }
 
-/** 커뮤니티 홈: 인기글 (최근 14일 좋아요·조회수 기준) */
-export async function listPopularPosts(limit = 5): Promise<PostSummary[]> {
+/**
+ * 커뮤니티 홈: 인기글 (최근 14일 좋아요·조회수 기준)
+ * boardIds를 주면 그 게시판들로 먼저 좁혀서 조회한다.
+ */
+export async function listPopularPosts(
+  limit = 5,
+  boardIds?: string[]
+): Promise<PostSummary[]> {
+  if (boardIds && boardIds.length === 0) return [];
   const db = getSupabase();
   if (!db) return [];
   const since = new Date(Date.now() - 14 * 24 * 3600 * 1000).toISOString();
-  const { data } = await db
+  let query = db
     .from("community_posts")
     .select("*, board:community_boards(slug,name)")
     .eq("status", "published")
-    .gte("created_at", since)
+    .gte("created_at", since);
+  if (boardIds) query = query.in("board_id", boardIds);
+  const { data } = await query
     .order("like_count", { ascending: false })
     .order("view_count", { ascending: false })
     .limit(limit);
@@ -164,7 +201,11 @@ export async function hasLiked(postId: string, userId: string): Promise<boolean>
   return !!data;
 }
 
-/** 조회수 원자적 증가 (실패해도 무시) */
+/**
+ * 조회수 원자적 증가 (실패해도 무시)
+ * 서버 렌더에서 호출하지 말 것 — /api/community/view 를 통해 클라이언트에서 1회만 호출.
+ * (서버 렌더에서 올리면 댓글 작성 후 router.refresh() 마다 조회수가 중복 증가한다)
+ */
 export async function incrementView(postId: string): Promise<void> {
   const db = getSupabase();
   if (!db) return;
@@ -174,16 +215,31 @@ export async function incrementView(postId: string): Promise<void> {
   );
 }
 
-/** 게시판별 글 개수 (홈 카드 표시용) */
+/**
+ * 게시판별 글 개수 (홈 카드 표시용)
+ * DB 집계(RPC) 우선 — 행을 끌어와 세는 방식은 글이 5천 건을 넘으면 숫자가 굳는다.
+ * RPC가 없는 환경(구버전 마이그레이션)에서는 기존 방식으로 폴백한다.
+ */
 export async function getBoardCounts(): Promise<Record<string, number>> {
   const db = getSupabase();
   if (!db) return {};
+  const counts: Record<string, number> = {};
+
+  const { data: agg, error } = await db.rpc("community_board_counts");
+  if (!error && Array.isArray(agg)) {
+    for (const row of agg as { board_id: string; cnt: number | string }[]) {
+      counts[row.board_id] = Number(row.cnt) || 0;
+    }
+    return counts;
+  }
+  if (error) console.error("[community:board_counts]", error.message);
+
+  // 폴백: community_board_counts RPC 미적용 환경
   const { data } = await db
     .from("community_posts")
     .select("board_id")
     .eq("status", "published")
     .limit(5000);
-  const counts: Record<string, number> = {};
   for (const row of (data ?? []) as { board_id: string }[]) {
     counts[row.board_id] = (counts[row.board_id] ?? 0) + 1;
   }

@@ -29,10 +29,12 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     return NextResponse.json({ message: "글을 찾을 수 없습니다." }, { status: 404 });
   }
 
+  // 비활성화된 게시판의 첨부는 더 이상 내려주지 않는다
   const { data: board } = await db
     .from("community_boards")
     .select("read_role")
     .eq("id", post.board_id)
+    .eq("is_active", true)
     .maybeSingle();
   if (!board) return NextResponse.json({ message: "게시판을 찾을 수 없습니다." }, { status: 404 });
 

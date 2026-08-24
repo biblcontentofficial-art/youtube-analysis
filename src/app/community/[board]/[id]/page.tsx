@@ -25,12 +25,12 @@ import {
   getComments,
   getPost,
   hasLiked,
-  incrementView,
 } from "@/lib/communityDb";
 import AttachmentList from "./_components/AttachmentList";
 import CommentSection from "./_components/CommentSection";
 import LikeButton from "./_components/LikeButton";
 import PostActions from "./_components/PostActions";
+import ViewTracker from "./_components/ViewTracker";
 
 export const dynamic = "force-dynamic";
 
@@ -84,14 +84,38 @@ function linkify(text: string): ReactNode[] {
 }
 
 // ── 메타데이터 ─────────────────────────────────────────────────────
+/**
+ * 글이 없을 때 · 게시판이 어긋날 때 · 읽기 권한이 없을 때 모두 같은 값을 돌려준다.
+ * 제목을 다르게 주면 그것만으로 글의 존재 여부가 새어 나가기 때문이다.
+ */
+const GENERIC_METADATA: Metadata = {
+  title: "비블 커뮤니티",
+  robots: { index: false, follow: false },
+};
+
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
-  const { id } = await params;
-  const post = await getPost(id);
-  if (!post) return { title: "글을 찾을 수 없습니다 | 비블 커뮤니티" };
+  const { board: boardParam, id } = await params;
+  const boardSlug = safeDecode(boardParam);
+
+  const [post, board, user] = await Promise.all([
+    getPost(id),
+    getBoard(boardSlug),
+    currentUser(),
+  ]);
+
+  if (!post || post.status !== "published") return GENERIC_METADATA;
+  if (!board || post.board_id !== board.id) return GENERIC_METADATA;
+
+  const viewer: Viewer | null = user
+    ? { id: user.id, email: user.email, plan: user.plan }
+    : null;
+  if (!canReadBoard(board, viewer)) return GENERIC_METADATA;
 
   return {
     title: `${post.title} | 비블 커뮤니티`,
     description: excerpt(post.content, 160),
+    // 회원 전용 게시판은 로그인 상태에서 접근했더라도 색인 대상이 아니다
+    ...(board.read_role === "member" ? { robots: { index: false, follow: false } } : {}),
   };
 }
 
@@ -149,17 +173,16 @@ export default async function CommunityPostPage({ params }: { params: Params }) 
     viewer ? hasLiked(post.id, viewer.id) : Promise.resolve(false),
   ]);
 
-  // 작성자·운영진 본인 조회는 조회수에서 제외 (fire-and-forget)
+  // 작성자·운영진 본인 조회는 조회수에서 제외한다.
+  // 실제 증가는 ViewTracker(클라이언트)가 마운트 시 1회만 수행한다.
   const isModerator = canModerateCommunity(viewer);
   const isAuthor = !!viewer && !!post.author_id && post.author_id === viewer.id;
-  if (!isModerator && !isAuthor) {
-    void incrementView(post.id);
-  }
 
   const canManage = canManagePost(post, viewer);
 
   return (
     <div>
+      <ViewTracker postId={post.id} skip={isModerator || isAuthor} />
       {/* 뒤로가기 */}
       <div className="mb-6">
         <Link

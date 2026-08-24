@@ -42,6 +42,8 @@ create table if not exists public.community_posts (
 create index if not exists community_posts_board_idx   on public.community_posts (board_id, created_at desc);
 create index if not exists community_posts_author_idx  on public.community_posts (author_id);
 create index if not exists community_posts_status_idx  on public.community_posts (status);
+-- 게시판별 글 개수 집계(community_board_counts)용 복합 인덱스
+create index if not exists community_posts_status_board_idx on public.community_posts (status, board_id);
 
 -- ── 댓글 ────────────────────────────────────────────────────────
 create table if not exists public.community_comments (
@@ -104,6 +106,16 @@ $$;
 create or replace function public.community_increment_download(p_attachment_id uuid)
 returns void language sql as $$
   update public.community_attachments set download_count = download_count + 1 where id = p_attachment_id;
+$$;
+
+-- ── 게시판별 글 개수 집계 (홈 카드) ─────────────────────────────
+-- 행을 끌어와 애플리케이션에서 세면 글이 늘어날수록 숫자가 굳으므로 DB에서 집계한다.
+create or replace function public.community_board_counts()
+returns table (board_id uuid, cnt bigint) language sql stable as $$
+  select p.board_id, count(*)::bigint
+    from public.community_posts p
+   where p.status = 'published'
+   group by p.board_id;
 $$;
 
 -- 댓글 수 동기화 (댓글 추가·삭제 시 게시글 카운터 갱신)

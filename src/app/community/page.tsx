@@ -18,12 +18,21 @@ import PostRow from "./_components/PostRow";
 export const dynamic = "force-dynamic";
 
 export default async function CommunityHome() {
-  const [user, recent, popular, boards, counts] = await Promise.all([
+  // 읽기 권한이 없는 게시판은 조회 단계에서 제외한다.
+  // (먼저 12개를 가져와 뒤에서 거르면 비로그인 방문자에게 최신글이 통째로 사라진다)
+  const [user, boards, counts] = await Promise.all([
     currentUser(),
-    listRecentPosts(12),
-    listPopularPosts(5),
     getBoards(),
     getBoardCounts(),
+  ]);
+
+  const readableBoards = boards.filter((b) => canReadBoard(b, user));
+  const readableIds = readableBoards.map((b) => b.id);
+  const readableSlugs = new Set(readableBoards.map((b) => b.slug));
+
+  const [recent, popular] = await Promise.all([
+    listRecentPosts(12, readableIds),
+    listPopularPosts(5, readableIds),
   ]);
 
   const groups = groupBoards(boards);
@@ -31,11 +40,7 @@ export default async function CommunityHome() {
     ? "/community/write"
     : `/sign-in?next=${encodeURIComponent("/community/write")}`;
 
-  // 읽기 권한이 없는 게시판의 글은 홈에서도 감춘다
-  const readable = new Set(
-    boards.filter((b) => canReadBoard(b, user)).map((b) => b.slug)
-  );
-  const visible = (p: PostSummary) => !!p.board?.slug && readable.has(p.board.slug);
+  const visible = (p: PostSummary) => !!p.board?.slug && readableSlugs.has(p.board.slug);
 
   const popularPosts = popular.filter(visible);
   const recentPosts = recent.filter(visible);
