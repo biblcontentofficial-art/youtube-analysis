@@ -129,7 +129,7 @@ export function safeMimeForExt(ext: string): string {
  * 해당 게시판에 영원히 접근할 수 없다.
  */
 export const RESERVED_BOARD_SLUGS: string[] = [
-  "write", "admin", "new", "api", "sign", "confirm", "view",
+  "write", "admin", "new", "api", "sign", "confirm", "view", "all", "popular",
 ];
 
 /**

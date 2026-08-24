@@ -245,3 +245,107 @@ export async function getBoardCounts(): Promise<Record<string, number>> {
   }
   return counts;
 }
+
+// ── 카페형 홈 · 전체글보기 · 인기글 ─────────────────────────────
+
+/** 게시판 미리보기 위젯 한 칸 */
+export interface BoardPreview {
+  board: Board;
+  posts: CommunityPost[];
+  notices: CommunityPost[];
+}
+
+/**
+ * 게시판별 최신글 미리보기 (홈 위젯).
+ * 게시판 수만큼 병렬 조회하므로 boards는 화면에 실제로 그릴 만큼만 넘긴다.
+ */
+export async function listBoardPreviews(
+  boards: Board[],
+  perBoard = 6
+): Promise<BoardPreview[]> {
+  const db = getSupabase();
+  if (!db || boards.length === 0) return [];
+
+  return Promise.all(
+    boards.map(async (board) => {
+      const [{ data: notices }, { data: posts }] = await Promise.all([
+        db
+          .from("community_posts")
+          .select("*")
+          .eq("board_id", board.id)
+          .eq("status", "published")
+          .eq("is_notice", true)
+          .order("created_at", { ascending: false })
+          .limit(perBoard),
+        db
+          .from("community_posts")
+          .select("*")
+          .eq("board_id", board.id)
+          .eq("status", "published")
+          .eq("is_notice", false)
+          .order("created_at", { ascending: false })
+          .limit(perBoard),
+      ]);
+      return {
+        board,
+        notices: (notices ?? []) as CommunityPost[],
+        posts: (posts ?? []) as CommunityPost[],
+      };
+    })
+  );
+}
+
+export interface FeedResult {
+  posts: PostSummary[];
+  total: number;
+}
+
+/**
+ * 전체글보기 / 인기글 피드.
+ * boardIds는 읽기 권한이 있는 게시판만 넘긴다(빈 배열이면 즉시 빈 결과).
+ * sort: "recent" = 최신순, "popular" = 최근 30일 좋아요·조회수순
+ */
+export async function listFeed(
+  boardIds: string[],
+  { page = 1, q = "", sort = "recent" }: { page?: number; q?: string; sort?: "recent" | "popular" } = {}
+): Promise<FeedResult> {
+  if (boardIds.length === 0) return { posts: [], total: 0 };
+  const db = getSupabase();
+  if (!db) return { posts: [], total: 0 };
+
+  const term = sanitizeSearch(q);
+  const from = (page - 1) * PAGE_SIZE;
+
+  let query = db
+    .from("community_posts")
+    .select("*, board:community_boards(slug,name)", { count: "exact" })
+    .eq("status", "published")
+    .in("board_id", boardIds);
+
+  if (term) query = query.or(`title.ilike.%${term}%,content.ilike.%${term}%`);
+
+  if (sort === "popular") {
+    const since = new Date(Date.now() - 30 * 24 * 3600 * 1000).toISOString();
+    query = query
+      .gte("created_at", since)
+      .order("like_count", { ascending: false })
+      .order("view_count", { ascending: false })
+      .order("created_at", { ascending: false });
+  } else {
+    query = query.order("created_at", { ascending: false });
+  }
+
+  const { data, count } = await query.range(from, from + PAGE_SIZE - 1);
+  return { posts: (data ?? []) as PostSummary[], total: count ?? 0 };
+}
+
+/** 커뮤니티 전체 통계 (사이드바 프로필 카드) */
+export async function getCommunityStats(): Promise<{ posts: number; members: number }> {
+  const db = getSupabase();
+  if (!db) return { posts: 0, members: 0 };
+  const [{ count: posts }, { count: members }] = await Promise.all([
+    db.from("community_posts").select("id", { count: "exact", head: true }).eq("status", "published"),
+    db.from("profiles").select("id", { count: "exact", head: true }),
+  ]);
+  return { posts: posts ?? 0, members: members ?? 0 };
+}
