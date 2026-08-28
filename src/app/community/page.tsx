@@ -1,148 +1,237 @@
 /**
- * /community — 카페형 커뮤니티 홈
- * ① 상단 배너  ② 게시판 미리보기 위젯 격자(최대 6칸)  ③ 전체 게시판 칩 목록
- *
- * 위젯 후보는 canReadBoard를 통과한 게시판뿐이다.
- * 회원 전용 게시판은 후보 단계에서 빠지므로 비로그인 방문자에게 글 제목이 새지 않는다.
+ * /community — Skool형 통합 피드
+ * 카테고리 칩 필터 + 정렬(최신/인기) 토글 + 검색 + 공지 상단 고정 + 페이지네이션.
+ * 레이아웃 게이트가 비로그인을 먼저 막지만, canReadBoard 필터로 이중 방어한다.
  */
 
 import Link from "next/link";
 import { currentUser } from "@/lib/auth";
-import { getBoards, getBoardCounts, listBoardPreviews } from "@/lib/communityDb";
-import { canReadBoard, groupBoards, type Board } from "@/lib/community";
-import PreviewWidget from "./_components/PreviewWidget";
+import { getBoards, getPointsMap, listFeed, listPosts } from "@/lib/communityDb";
+import { PAGE_SIZE, canReadBoard, type PostSummary } from "@/lib/community";
+import CategoryChips from "./_components/CategoryChips";
+import FeedCard from "./_components/FeedCard";
 
 export const dynamic = "force-dynamic";
 
-/** 위젯으로 먼저 올릴 게시판 (카페 홈 배치 순서) */
-const WIDGET_PRIORITY = ["column", "notice", "greeting", "challenge", "qna", "results"];
-const MAX_WIDGETS = 6;
-const PER_BOARD = 6;
-
-/** 우선순위 slug 먼저, 나머지는 sort_order 순으로 채워 최대 6개 */
-function pickWidgetBoards(readable: Board[]): Board[] {
-  const picked: Board[] = [];
-  const taken = new Set<string>();
-
-  for (const slug of WIDGET_PRIORITY) {
-    if (picked.length >= MAX_WIDGETS) break;
-    const board = readable.find((b) => b.slug === slug);
-    if (board && !taken.has(board.id)) {
-      picked.push(board);
-      taken.add(board.id);
-    }
-  }
-  for (const board of readable) {
-    if (picked.length >= MAX_WIDGETS) break;
-    if (taken.has(board.id)) continue;
-    picked.push(board);
-    taken.add(board.id);
-  }
-  return picked;
+interface Props {
+  searchParams: Promise<{ cat?: string; page?: string; q?: string; sort?: string }>;
 }
 
-function LockIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className="h-3 w-3 shrink-0 text-neutral-500"
-      aria-hidden="true"
-    >
-      <rect x="4" y="10" width="16" height="10" rx="2" />
-      <path d="M8 10V7a4 4 0 0 1 8 0v3" />
-    </svg>
-  );
+/** 페이지네이션에 노출할 페이지 번호 (현재 페이지 주변 최대 5개) */
+function pageWindow(current: number, total: number): number[] {
+  const size = 5;
+  let start = Math.max(1, current - Math.floor(size / 2));
+  const end = Math.min(total, start + size - 1);
+  start = Math.max(1, end - size + 1);
+  const out: number[] = [];
+  for (let p = start; p <= end; p += 1) out.push(p);
+  return out;
 }
 
-export default async function CommunityHome() {
-  const [user, boards, counts] = await Promise.all([
-    currentUser(),
-    getBoards(),
-    getBoardCounts(),
+export default async function CommunityFeedPage({ searchParams }: Props) {
+  const sp = await searchParams;
+
+  const parsedPage = Number.parseInt(sp.page ?? "1", 10);
+  const page = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1;
+  const q = (sp.q ?? "").trim();
+  const sort: "recent" | "popular" = sp.sort === "popular" ? "popular" : "recent";
+  const cat = (sp.cat ?? "").trim();
+
+  const [user, boards] = await Promise.all([currentUser(), getBoards()]);
+
+  // 이중 방어: 읽기 권한이 있는 게시판 id만 조회 대상에 넣는다
+  const readable = boards.filter((b) => canReadBoard(b, user));
+  const activeBoard = cat ? readable.find((b) => b.slug === cat) ?? null : null;
+  const feedIds = cat
+    ? activeBoard
+      ? [activeBoard.id]
+      : []
+    : readable.map((b) => b.id);
+
+  // 공지 상단 고정: 통합 피드 · 1페이지 · 검색 없음 · 최신순일 때만
+  const noticeBoard = readable.find((b) => b.slug === "notice") ?? null;
+  const showPinned = !cat && page === 1 && !q && sort === "recent" && noticeBoard !== null;
+
+  const [{ posts, total }, pointsMap, noticeRows] = await Promise.all([
+    listFeed(feedIds, { page, q, sort }),
+    getPointsMap(),
+    showPinned && noticeBoard
+      ? listPosts(noticeBoard.id, { page: 1 }).then((r) => r.notices.slice(0, 2))
+      : Promise.resolve([]),
   ]);
 
-  const readable = boards.filter((b) => canReadBoard(b, user));
-  const widgetBoards = pickWidgetBoards(readable);
-  const previews = await listBoardPreviews(widgetBoards, PER_BOARD);
+  const pinned: PostSummary[] =
+    noticeBoard === null
+      ? []
+      : noticeRows.map((n) => ({
+          ...n,
+          board: { slug: noticeBoard.slug, name: noticeBoard.name },
+        }));
 
-  const groups = groupBoards(boards);
+  // 상단 고정과 겹치는 공지는 본문 피드에서 뺀다 (같은 카드 중복 방지)
+  const pinnedIds = new Set(pinned.map((p) => p.id));
+  const feedPosts = posts.filter((p) => !pinnedIds.has(p.id));
+
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+
+  /** cat·q·sort 를 보존한 피드 링크 */
+  const hrefFor = (p: number, s: "recent" | "popular" = sort, keepQ = true) => {
+    const qs = new URLSearchParams();
+    if (cat) qs.set("cat", cat);
+    if (p > 1) qs.set("page", String(p));
+    if (keepQ && q) qs.set("q", q);
+    if (s === "popular") qs.set("sort", s);
+    const str = qs.toString();
+    return `/community${str ? `?${str}` : ""}`;
+  };
+
+  const writeHref = `/community/write${activeBoard ? `?board=${activeBoard.slug}` : ""}`;
+
+  const pageBtn =
+    "rounded-xl border border-neutral-700 bg-neutral-800 px-3 py-2 text-xs text-white hover:bg-neutral-700";
+  const pageBtnOff =
+    "rounded-xl border border-white/[0.06] px-3 py-2 text-xs text-neutral-600";
 
   return (
-    <div className="space-y-8">
-      {/* ① 상단 배너 */}
-      <section className="flex flex-col gap-5 rounded-2xl border border-neutral-800 bg-neutral-900 p-6 md:flex-row md:items-center md:justify-between md:p-8">
-        <div className="min-w-0">
-          <h2 className="text-xl font-bold leading-snug tracking-tight text-white md:text-2xl">
-            유튜브로 사업을 키우는 사람들이 모인 곳
-          </h2>
-          <p className="mt-2 text-sm text-neutral-400">
-            채널 기획부터 촬영·편집·수익화까지, 직접 부딪힌 사람들이 답을 나눕니다.
-          </p>
+    <div className="space-y-4">
+      {/* 카테고리 칩 + 정렬 토글 */}
+      <div className="flex items-center gap-4">
+        <div className="min-w-0 flex-1">
+          <CategoryChips
+            boards={readable}
+            activeCat={activeBoard?.slug}
+            sort={sort}
+            q={q}
+          />
         </div>
-        <Link
-          href="/studio"
-          className="shrink-0 rounded-xl bg-white px-5 py-3 text-center text-sm font-bold text-black hover:bg-neutral-200"
-        >
-          유튜브 채널 대행 문의하기
-        </Link>
-      </section>
+        <div className="flex shrink-0 items-center gap-3 text-xs">
+          <Link
+            href={hrefFor(1, "recent")}
+            className={
+              sort === "recent" ? "font-semibold text-white" : "text-neutral-500 hover:text-neutral-300"
+            }
+          >
+            최신
+          </Link>
+          <Link
+            href={hrefFor(1, "popular")}
+            className={
+              sort === "popular" ? "font-semibold text-white" : "text-neutral-500 hover:text-neutral-300"
+            }
+          >
+            인기
+          </Link>
+        </div>
+      </div>
 
-      {/* ② 게시판 미리보기 위젯 */}
-      {previews.length > 0 ? (
-        <div className="grid gap-5 md:grid-cols-2">
-          {previews.map((p) => (
-            <PreviewWidget
-              key={p.board.id}
-              board={p.board}
-              posts={p.posts}
-              notices={p.notices}
-              variant={p.board.slug === "column" ? "card" : "list"}
-            />
-          ))}
+      {/* 검색 — 서버 렌더 GET 폼 (자바스크립트 없이도 동작) */}
+      <form action="/community" method="get" className="flex items-center gap-2">
+        {cat && <input type="hidden" name="cat" value={cat} />}
+        {sort === "popular" && <input type="hidden" name="sort" value={sort} />}
+        <input
+          type="search"
+          name="q"
+          defaultValue={q}
+          placeholder="제목·내용 검색"
+          aria-label="커뮤니티 검색"
+          className="w-44 rounded-xl border border-neutral-700 bg-neutral-900 px-4 py-2 text-sm text-white placeholder-neutral-600 focus:border-neutral-400 focus:outline-none sm:w-56"
+        />
+        <button
+          type="submit"
+          className="rounded-xl border border-neutral-700 bg-neutral-800 px-4 py-2 text-sm text-white hover:bg-neutral-700"
+        >
+          검색
+        </button>
+      </form>
+
+      {/* 검색 상태 */}
+      {q && (
+        <div className="flex items-center justify-between gap-3 text-xs text-neutral-500">
+          <span>
+            ‘<span className="text-[#00E5A0]">{q}</span>’ 검색 결과 {total}건
+          </span>
+          <Link href={hrefFor(1, sort, false)} className="text-neutral-400 hover:text-white">
+            검색 해제
+          </Link>
         </div>
-      ) : (
-        <p className="rounded-2xl border border-neutral-800 bg-neutral-900 px-6 py-10 text-center text-sm text-neutral-600">
-          표시할 게시판이 없습니다
-        </p>
       )}
 
-      {/* ③ 전체 게시판 */}
-      {groups.length > 0 && (
-        <section>
-          <h2 className="text-base font-bold tracking-tight text-white">전체 게시판</h2>
-          <div className="mt-4 space-y-5">
-            {groups.map((g) => (
-              <div key={g.group}>
-                <p className="text-xs font-bold text-neutral-500">{g.group}</p>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {g.boards.map((b) => (
-                    <Link
-                      key={b.id}
-                      href={`/community/${b.slug}`}
-                      className="inline-flex items-center gap-1.5 rounded-full border border-neutral-800 bg-neutral-900 px-3 py-1.5 text-xs text-neutral-300 hover:border-neutral-600 hover:text-white"
-                    >
-                      {b.read_role === "member" && (
-                        <>
-                          <LockIcon />
-                          <span className="sr-only">회원 전용</span>
-                        </>
-                      )}
-                      <span className="truncate">{b.name}</span>
-                      <span className="tabular-nums text-[11px] text-neutral-500">
-                        {counts[b.id] ?? 0}
-                      </span>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            ))}
+      {/* 피드 */}
+      <div className="space-y-3">
+        {pinned.map((n) => (
+          <FeedCard
+            key={`pin-${n.id}`}
+            post={n}
+            points={n.author_id ? pointsMap[n.author_id] ?? 0 : 0}
+            pinned
+          />
+        ))}
+
+        {feedPosts.length === 0 && pinned.length === 0 ? (
+          <div className="rounded-2xl border border-neutral-800 bg-neutral-900 px-6 py-16 text-center">
+            {q ? (
+              <>
+                <p className="text-sm font-bold text-white">검색 결과가 없습니다</p>
+                <p className="mt-2 text-xs text-neutral-500">다른 검색어로 찾아보세요.</p>
+              </>
+            ) : (
+              <>
+                <p className="text-sm font-bold text-white">
+                  아직 글이 없습니다. 첫 글을 남겨보세요
+                </p>
+                <Link
+                  href={writeHref}
+                  className="mt-6 inline-block rounded-xl bg-white px-5 py-3 text-sm font-bold text-black hover:bg-neutral-200"
+                >
+                  새 포스트
+                </Link>
+              </>
+            )}
           </div>
-        </section>
+        ) : (
+          feedPosts.map((p) => (
+            <FeedCard
+              key={p.id}
+              post={p}
+              points={p.author_id ? pointsMap[p.author_id] ?? 0 : 0}
+            />
+          ))
+        )}
+      </div>
+
+      {/* 페이지네이션 */}
+      {totalPages > 1 && (
+        <nav className="flex flex-wrap items-center justify-center gap-1.5 pt-2">
+          {page > 1 ? (
+            <Link href={hrefFor(page - 1)} className={pageBtn}>
+              이전
+            </Link>
+          ) : (
+            <span className={pageBtnOff}>이전</span>
+          )}
+
+          {pageWindow(page, totalPages).map((p) => (
+            <Link
+              key={p}
+              href={hrefFor(p)}
+              className={
+                p === page
+                  ? "rounded-xl border border-neutral-700 bg-neutral-800 px-3 py-2 text-xs font-bold text-[#00E5A0] tabular-nums"
+                  : "rounded-xl border border-white/[0.06] bg-white/[0.02] px-3 py-2 text-xs text-neutral-400 tabular-nums hover:bg-white/[0.05] hover:text-white"
+              }
+            >
+              {p}
+            </Link>
+          ))}
+
+          {page < totalPages ? (
+            <Link href={hrefFor(page + 1)} className={pageBtn}>
+              다음
+            </Link>
+          ) : (
+            <span className={pageBtnOff}>다음</span>
+          )}
+        </nav>
       )}
     </div>
   );

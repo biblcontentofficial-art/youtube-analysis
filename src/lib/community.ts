@@ -130,6 +130,7 @@ export function safeMimeForExt(ext: string): string {
  */
 export const RESERVED_BOARD_SLUGS: string[] = [
   "write", "admin", "new", "api", "sign", "confirm", "view", "all", "popular",
+  "ranking", "about",
 ];
 
 /**
@@ -139,6 +140,33 @@ export const RESERVED_BOARD_SLUGS: string[] = [
 export function sanitizeSearch(q: string): string {
   if (!q) return "";
   return q.replace(/[%,()*"\\]/g, "").trim().slice(0, 50).trim();
+}
+
+// ── 포인트 · 레벨 (Skool 방식: 내 글이 좋아요를 받으면 1점) ──────
+/** 레벨별 필요 누적 점수 (LV.1 = 0점 시작, 최대 LV.8) */
+export const LEVEL_THRESHOLDS = [0, 5, 20, 65, 155, 515, 2015, 8015];
+
+/** 누적 점수 → 레벨 (1~8) */
+export function levelForPoints(points: number): number {
+  let lv = 1;
+  for (let i = 0; i < LEVEL_THRESHOLDS.length; i++) {
+    if (points >= LEVEL_THRESHOLDS[i]) lv = i + 1;
+  }
+  return lv;
+}
+
+/** 다음 레벨까지 남은 점수 (최고 레벨이면 null) */
+export function pointsToNextLevel(points: number): number | null {
+  const lv = levelForPoints(points);
+  if (lv >= LEVEL_THRESHOLDS.length) return null;
+  return LEVEL_THRESHOLDS[lv] - points;
+}
+
+/** 랭킹 한 줄 */
+export interface MemberRank {
+  author_id: string;
+  author_name: string;
+  points: number;
 }
 
 // ── 권한 ────────────────────────────────────────────────────────

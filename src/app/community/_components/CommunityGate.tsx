@@ -16,7 +16,7 @@ const HIGHLIGHTS = [
   { title: "성과 공유 · 협업", desc: "채널 성장과 매출 사례, 구인구직과 협업 제안이 오갑니다." },
 ];
 
-export default function CommunityGate({ groups }: { groups: string[] }) {
+export default function CommunityGate({ categories }: { categories: string[] }) {
   const pathname = usePathname();
   const next = encodeURIComponent(pathname || "/community");
 
@@ -59,16 +59,16 @@ export default function CommunityGate({ groups }: { groups: string[] }) {
         ))}
       </section>
 
-      {groups.length > 0 && (
+      {categories.length > 0 && (
         <section className="mt-6 rounded-2xl border border-neutral-800 bg-neutral-900 p-5">
-          <p className="text-xs font-bold text-neutral-500">운영 중인 공간</p>
+          <p className="text-xs font-bold text-neutral-500">운영 중인 카테고리</p>
           <div className="mt-3 flex flex-wrap gap-2">
-            {groups.map((g) => (
+            {categories.map((c) => (
               <span
-                key={g}
+                key={c}
                 className="rounded-full border border-neutral-800 bg-neutral-950 px-3 py-1.5 text-xs text-neutral-300"
               >
-                {g}
+                {c}
               </span>
             ))}
           </div>

@@ -118,6 +118,20 @@ returns table (board_id uuid, cnt bigint) language sql stable as $$
    group by p.board_id;
 $$;
 
+-- ── 멤버 포인트 랭킹 (좋아요 받은 수 = 점수) ────────────────────
+-- p_since 가 null 이면 전체 기간. 레벨 산정은 전체 기간 점수 기준.
+create or replace function public.community_member_ranking(p_since timestamptz default null)
+returns table (author_id uuid, author_name text, points bigint) language sql stable as $$
+  select p.author_id, max(p.author_name), count(*)::bigint
+    from public.community_post_likes l
+    join public.community_posts p on p.id = l.post_id
+   where p.author_id is not null
+     and p.status = 'published'
+     and (p_since is null or l.created_at >= p_since)
+   group by p.author_id
+   order by count(*) desc;
+$$;
+
 -- 댓글 수 동기화 (댓글 추가·삭제 시 게시글 카운터 갱신)
 create or replace function public.community_sync_comment_count()
 returns trigger language plpgsql as $$
@@ -167,44 +181,16 @@ insert into storage.buckets (id, name, public)
 values ('community-files', 'community-files', false)
 on conflict (id) do nothing;
 
--- ── 기본 게시판 시드 (네이버 카페 businessblack 메뉴 구조 그대로) ──
--- 이름·그룹·순서·권한은 /community/admin 에서 언제든 수정 가능하다.
--- 커뮤니티 전체가 비블랩 로그인 회원 전용이므로(레이아웃 게이트) read_role 은 모두 'all' 로 둔다.
--- 'all' = 커뮤니티에 입장한 회원 전체. 특정 게시판만 더 좁히려면 여기서 'member' 로 바꾸면 된다.
+-- ── 기본 카테고리 시드 (Skool형 통합 피드 · 레퍼런스: geekus.kr) ──
+-- 게시판 = 피드의 카테고리 칩. 이름·순서·권한은 /community/admin 에서 수정 가능.
+-- 커뮤니티 전체가 비블랩 로그인 회원 전용이므로 read_role 은 'all' 로 둔다.
 insert into public.community_boards (slug, name, description, group_name, sort_order, read_role, write_role, allow_files)
 values
-  -- 비블 | 환영합니다
-  ('column',             '비블 bibl 칼럼',        '비블이 직접 쓰는 유튜브·사업 칼럼',            '비블 | 환영합니다',        10,  'all',    'staff',  false),
-  ('notice',             '공지사항 (필독)',        '커뮤니티 운영 공지 · 꼭 읽어주세요',           '비블 | 환영합니다',        20,  'all',    'staff',  false),
-  ('greeting',           '가입인사',              '오신 것을 환영합니다. 인사 남겨주세요',        '비블 | 환영합니다',        30,  'all',    'member', false),
-  ('level-up',           '등업게시판',            '활동 등급 신청',                            '비블 | 환영합니다',        40,  'all',    'member', false),
-  ('results',            '성과를 알려주세요',      '채널 성장·매출 성과를 공유해요',              '비블 | 환영합니다',        50,  'all',    'member', false),
-  ('coffee-chat',        '비블 커피챗 신청',       '비블과 편하게 이야기 나눠요',                 '비블 | 환영합니다',        60,  'all',    'member', false),
-  ('agency-inquiry',     '유튜브 채널 대행 문의',   '채널 운영 대행이 필요하신 분',                '비블 | 환영합니다',        70,  'all',    'member', false),
-  ('consulting-inquiry', '1:1 유튜브 컨설팅 문의',  '1:1 맞춤 컨설팅 문의',                      '비블 | 환영합니다',        80,  'all',    'member', false),
-  ('incubating',         '유튜브 인큐베이팅 지원하세요!', '비블과 함께할 분을 모집합니다',         '비블 | 환영합니다',        90,  'all',    'member', false),
-
-  -- 비블 | 유튜브 무료 자료
-  ('bibl-lab',           '유튜브 분석 툴 BIBL LAB', '비블랩 분석 도구 사용법',                    '비블 | 유튜브 무료 자료',  110, 'all',    'staff',  true),
-  ('ai-coding',          '유튜브 AI 자동화 & 코딩', 'AI·자동화로 제작 시간 줄이기',               '비블 | 유튜브 무료 자료',  120, 'all',    'staff',  true),
-  ('ebook',              '비블 유튜브 전자책',      '전자책 다운로드',                           '비블 | 유튜브 무료 자료',  130, 'all',    'staff',  true),
-  ('faq-tips',           '자주 묻는 질문 & 꿀팁',   '자주 나오는 질문과 실전 꿀팁',                '비블 | 유튜브 무료 자료',  140, 'all',    'staff',  false),
-  ('resources',          '유튜브&기타 자료',        '템플릿·체크리스트 등 실무 자료',              '비블 | 유튜브 무료 자료',  150, 'all',    'staff',  true),
-  ('premiere-vod',       '프리미어프로VOD',        '편집 강의 VOD',                             '비블 | 유튜브 무료 자료',  160, 'all',    'staff',  true),
-  ('account-security',   '유튜브 계정 해킹 대처법',  '계정 보안과 사고 대응 가이드',                '비블 | 유튜브 무료 자료',  170, 'all',    'staff',  false),
-
-  -- 비블 | 함께 성장해요
-  ('challenge',          '매일 유튜브 챌린지',      '매일 인증하며 습관 만들기',                   '비블 | 함께 성장해요',     210, 'all',    'member', false),
-  ('qna',                '유튜브 고민 있어요 Q&A',  '막히는 부분을 물어보세요',                    '비블 | 함께 성장해요',     220, 'all',    'member', false),
-  ('study',              '지역별 스터디모임',       '가까운 사람들끼리 모여요',                    '비블 | 함께 성장해요',     230, 'all',    'member', false),
-  ('market',             '공구/판매/협업/광고',     '공동구매·협업·광고 제안',                    '비블 | 함께 성장해요',     240, 'all',    'member', false),
-  ('jobs',               '구인/구직',              '편집자·PD·마케터 구인구직',                  '비블 | 함께 성장해요',     250, 'all',    'member', false),
-
-  -- 팀비블 Team bibl 공간
-  ('teambibl-apply',     '팀비블 1:1 강의 신청',    '1:1 강의 신청 접수',                        '팀비블 Team bibl 공간',   310, 'all',    'member', false),
-  ('teambibl-guide',     '팀비블은 이렇게 진행됩니다', '진행 방식 안내',                          '팀비블 Team bibl 공간',   320, 'all',    'staff',  false),
-  ('teambibl-notice',    '팀비블 과제공지방',       '주차별 과제 공지',                          '팀비블 Team bibl 공간',   330, 'all',    'staff',  false),
-  ('teambibl-submit',    '팀비블 과제제출방',       '과제 제출',                                 '팀비블 Team bibl 공간',   340, 'all',    'member', true),
-  ('teambibl-files',     '핵심자료 다운로드',       '팀비블 핵심 자료',                          '팀비블 Team bibl 공간',   350, 'all',    'staff',  true),
-  ('teambibl-meeting',   '팀비블 1:1 미팅예약 (30분)', '30분 미팅 예약',                        '팀비블 Team bibl 공간',   360, 'all',    'member', false)
+  ('notice',   '공지사항',    '비블 커뮤니티 운영 공지',                 '카테고리', 10, 'all', 'staff',  false),
+  ('greeting', '자기소개',    '처음 오셨다면 인사 남겨주세요',            '카테고리', 20, 'all', 'member', false),
+  ('column',   '비블 칼럼',   '비블이 직접 쓰는 유튜브·사업 칼럼',        '카테고리', 30, 'all', 'staff',  false),
+  ('resource', '유튜브 자료', '템플릿·체크리스트·전자책 다운로드',        '카테고리', 40, 'all', 'staff',  true),
+  ('free',     '자유 게시판', '유튜브·사업 이야기를 자유롭게',            '카테고리', 50, 'all', 'member', false),
+  ('qna',      '질문답변',    '막히는 부분을 물어보세요',                '카테고리', 60, 'all', 'member', false),
+  ('review',   '성과 후기',   '채널 성장·매출 성과를 공유해요',           '카테고리', 70, 'all', 'member', false)
 on conflict (slug) do nothing;

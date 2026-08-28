@@ -12,6 +12,7 @@ import {
   type PostSummary,
   PAGE_SIZE,
   sanitizeSearch,
+  type MemberRank,
 } from "@/lib/community";
 
 export async function getBoards(): Promise<Board[]> {
@@ -348,4 +349,66 @@ export async function getCommunityStats(): Promise<{ posts: number; members: num
     db.from("profiles").select("id", { count: "exact", head: true }),
   ]);
   return { posts: posts ?? 0, members: members ?? 0 };
+}
+
+// ── 포인트 · 멤버 랭킹 (Skool 방식) ─────────────────────────────
+
+/**
+ * 멤버 포인트 랭킹. since 를 주면 그 시점 이후 받은 좋아요만 집계, 없으면 전체 기간.
+ * RPC(community_member_ranking) 우선, 미적용 환경에서는 JS 집계로 폴백한다.
+ */
+export async function getMemberRanking(
+  since?: Date,
+  limit = 50
+): Promise<MemberRank[]> {
+  const db = getSupabase();
+  if (!db) return [];
+
+  const { data, error } = await db.rpc("community_member_ranking", {
+    p_since: since ? since.toISOString() : null,
+  });
+  if (!error && Array.isArray(data)) {
+    return (data as { author_id: string; author_name: string; points: number | string }[])
+      .slice(0, limit)
+      .map((r) => ({ author_id: r.author_id, author_name: r.author_name, points: Number(r.points) || 0 }));
+  }
+  if (error) console.error("[community:ranking]", error.message);
+
+  // 폴백: likes + posts 를 앱에서 조인 집계 (RPC 미적용 환경)
+  let likesQuery = db.from("community_post_likes").select("post_id, created_at").limit(5000);
+  if (since) likesQuery = likesQuery.gte("created_at", since.toISOString());
+  const { data: likes } = await likesQuery;
+  if (!likes || likes.length === 0) return [];
+
+  const postIds = Array.from(new Set((likes as { post_id: string }[]).map((l) => l.post_id)));
+  const { data: posts } = await db
+    .from("community_posts")
+    .select("id, author_id, author_name, status")
+    .in("id", postIds);
+
+  const byPost = new Map(
+    ((posts ?? []) as { id: string; author_id: string | null; author_name: string; status: string }[])
+      .filter((p) => p.author_id && p.status === "published")
+      .map((p) => [p.id, p])
+  );
+  const acc = new Map<string, MemberRank>();
+  for (const l of likes as { post_id: string }[]) {
+    const post = byPost.get(l.post_id);
+    if (!post || !post.author_id) continue;
+    const cur = acc.get(post.author_id) ?? { author_id: post.author_id, author_name: post.author_name, points: 0 };
+    cur.points += 1;
+    acc.set(post.author_id, cur);
+  }
+  return Array.from(acc.values()).sort((a, b) => b.points - a.points).slice(0, limit);
+}
+
+/**
+ * 작성자별 전체 기간 점수 맵 (피드 카드의 레벨 배지용).
+ * 랭킹 전체를 한 번 집계해 Map 으로 접는다 — 멤버 규모에서 충분히 저렴하다.
+ */
+export async function getPointsMap(): Promise<Record<string, number>> {
+  const ranking = await getMemberRanking(undefined, 1000);
+  const map: Record<string, number> = {};
+  for (const r of ranking) map[r.author_id] = r.points;
+  return map;
 }

@@ -1,16 +1,19 @@
 /**
- * /community — 비블 커뮤니티 공통 레이아웃
+ * /community — 비블 커뮤니티 공통 레이아웃 (Skool형)
  * 커뮤니티 전체가 비블랩 회원 전용이다. 비로그인 방문자는 하위 페이지가
  * 렌더되기 전에 이 레이아웃에서 입장 게이트로 막힌다(글 제목·내용 일절 미노출).
- * 로그인 시: 좌측 사이드바(프로필·검색·게시판 메뉴) + 우측 본문 2단 구성.
+ * 로그인 시: 헤더(타이틀 + 새 포스트) → 탭(커뮤니티/랭킹/소개) → 본문 + 우측 정보 카드.
+ * 사이드 카드의 카테고리 링크 규약: /community?cat={slug}
  */
 
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import Link from "next/link";
 import { currentUser } from "@/lib/auth";
-import { getBoards, getCommunityStats } from "@/lib/communityDb";
-import { groupBoards } from "@/lib/community";
-import BoardSidebar from "./_components/BoardSidebar";
+import { getBoards, getBoardCounts, getCommunityStats } from "@/lib/communityDb";
+import { canModerateCommunity } from "@/lib/community";
+import CommunityTabs from "./_components/CommunityTabs";
+import CommunitySideCard from "./_components/CommunitySideCard";
 import CommunityGate from "./_components/CommunityGate";
 
 export const dynamic = "force-dynamic";
@@ -23,30 +26,54 @@ export const metadata: Metadata = {
 };
 
 export default async function CommunityLayout({ children }: { children: ReactNode }) {
-  const [user, boards, stats] = await Promise.all([
+  const [user, boards, stats, counts] = await Promise.all([
     currentUser(),
     getBoards(),
     getCommunityStats(),
+    getBoardCounts(),
   ]);
 
   // 비로그인 → 입장 게이트 (하위 page.tsx는 렌더되지 않는다)
   if (!user) {
-    const groups = groupBoards(boards).map((g) => g.group);
     return (
       <div className="min-h-screen bg-black">
         <div className="mx-auto max-w-screen-xl px-4 py-10 lg:py-16">
-          <CommunityGate groups={groups} />
+          <CommunityGate categories={boards.map((b) => b.name)} />
         </div>
       </div>
     );
   }
 
+  const isModerator = canModerateCommunity({ email: user.email, plan: user.plan });
+
   return (
     <div className="min-h-screen bg-black">
-      <div className="mx-auto max-w-screen-xl px-4 py-6 lg:py-10">
-        <div className="flex flex-col gap-5 lg:flex-row lg:gap-7">
-          <BoardSidebar boards={boards} stats={stats} isLoggedIn={!!user} />
+      <div className="mx-auto max-w-screen-lg px-4 py-6 lg:py-8">
+        {/* 헤더 */}
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <h1 className="text-xl font-bold tracking-tight text-white">비블 커뮤니티</h1>
+            <p className="mt-1 text-xs text-neutral-500">유튜브로 사업을 키우는 사람들의 공간</p>
+          </div>
+          <Link
+            href="/community/write"
+            className="shrink-0 rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-black transition hover:bg-neutral-200"
+          >
+            새 포스트
+          </Link>
+        </div>
+
+        {/* 탭 */}
+        <div className="mt-4">
+          <CommunityTabs isModerator={isModerator} />
+        </div>
+
+        {/* 본문 + 우측 정보 카드 */}
+        <div className="mt-6 flex gap-7">
           <main className="min-w-0 flex-1">{children}</main>
+          <aside className="hidden w-72 shrink-0 lg:block">
+            <CommunitySideCard boards={boards} stats={stats} counts={counts} />
+          </aside>
         </div>
       </div>
     </div>
