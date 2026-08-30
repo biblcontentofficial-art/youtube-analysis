@@ -9,7 +9,7 @@
  */
 
 import Link from "next/link";
-import { groupBoards, type Board } from "@/lib/community";
+import { BOARD_LINK_OVERRIDES, groupBoards, type Board } from "@/lib/community";
 
 interface Props {
   boards: Board[];
@@ -106,28 +106,41 @@ export default function CommunitySidebar({ boards, stats, counts, recentBoardIds
               {group}
             </p>
             <ul className="mt-2 flex flex-col">
-              {groupItems.map((b) => (
-                <li key={b.id}>
-                  {/* 피드 카테고리 필터 규약: /community?cat={slug} */}
-                  <Link href={`/community?cat=${b.slug}`} className={ITEM_CLASS}>
-                    <span className="flex min-w-0 items-center">
-                      <span
-                        className={
-                          EMPHASIZED_SLUGS.has(b.slug)
-                            ? "truncate font-bold text-yellow-400"
-                            : "truncate"
-                        }
-                      >
-                        {b.name}
+              {groupItems.map((b) => {
+                // 일부 메뉴는 피드 대신 안내 페이지로 직행한다 (글 수·New 배지 미표시)
+                const override = BOARD_LINK_OVERRIDES[b.slug];
+                if (override) {
+                  return (
+                    <li key={b.id}>
+                      <Link href={override} className={ITEM_CLASS}>
+                        <span className="truncate">{b.name}</span>
+                      </Link>
+                    </li>
+                  );
+                }
+                return (
+                  <li key={b.id}>
+                    {/* 피드 카테고리 필터 규약: /community?cat={slug} */}
+                    <Link href={`/community?cat=${b.slug}`} className={ITEM_CLASS}>
+                      <span className="flex min-w-0 items-center">
+                        <span
+                          className={
+                            EMPHASIZED_SLUGS.has(b.slug)
+                              ? "truncate font-bold text-yellow-400"
+                              : "truncate"
+                          }
+                        >
+                          {b.name}
+                        </span>
+                        {recentBoardIds.has(b.id) && <NewBadge />}
                       </span>
-                      {recentBoardIds.has(b.id) && <NewBadge />}
-                    </span>
-                    <span className="ml-2 shrink-0 text-xs text-neutral-400">
-                      {counts[b.id] ?? 0}
-                    </span>
-                  </Link>
-                </li>
-              ))}
+                      <span className="ml-2 shrink-0 text-xs text-neutral-400">
+                        {counts[b.id] ?? 0}
+                      </span>
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
           </div>
         ))}

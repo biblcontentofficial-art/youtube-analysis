@@ -139,6 +139,15 @@ export const RESERVED_BOARD_SLUGS: string[] = [
 ];
 
 /**
+ * 게시판 메뉴를 피드 대신 특정 페이지로 직행시키는 오버라이드.
+ * (사이드바·모바일 칩에서 사용 — 게시판 자체는 유지되고 글도 전체글보기에 남는다)
+ */
+export const BOARD_LINK_OVERRIDES: Record<string, string> = {
+  agency: "/studio",
+  consult: "/studio/class/consulting",
+};
+
+/**
  * 검색어 정제.
  * PostgREST or() 파서가 깨지지 않도록 % , ( ) * " \ 를 제거하고 trim 후 50자로 자른다.
  */

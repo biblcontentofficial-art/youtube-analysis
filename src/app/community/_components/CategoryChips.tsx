@@ -4,7 +4,7 @@
  */
 
 import Link from "next/link";
-import type { Board } from "@/lib/community";
+import { BOARD_LINK_OVERRIDES, type Board } from "@/lib/community";
 import { NewBadge } from "./CommunitySidebar";
 
 interface Props {
@@ -39,11 +39,11 @@ export default function CategoryChips({ boards, activeCat, sort, q, recentBoardI
       {boards.map((b) => (
         <Link
           key={b.id}
-          href={hrefFor(b.slug, sort, q)}
+          href={BOARD_LINK_OVERRIDES[b.slug] ?? hrefFor(b.slug, sort, q)}
           className={`${activeCat === b.slug ? ACTIVE_CHIP : IDLE_CHIP} inline-flex items-center`}
         >
           {b.name}
-          {recentBoardIds?.has(b.id) && <NewBadge />}
+          {!BOARD_LINK_OVERRIDES[b.slug] && recentBoardIds?.has(b.id) && <NewBadge />}
         </Link>
       ))}
     </nav>
