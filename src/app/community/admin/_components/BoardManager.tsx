@@ -512,7 +512,7 @@ export default function BoardManager({ boards }: Props) {
                         <select
                           value={d.readRole}
                           onChange={(e) => patchDraft(b.id, { readRole: e.target.value as ReadRole })}
-                          className={`${INPUT} w-24`}
+                          className={`${INPUT} w-28 min-w-[6.5rem]`}
                         >
                           <option value="all">전체</option>
                           <option value="member">회원</option>
@@ -522,7 +522,7 @@ export default function BoardManager({ boards }: Props) {
                         <select
                           value={d.writeRole}
                           onChange={(e) => patchDraft(b.id, { writeRole: e.target.value as WriteRole })}
-                          className={`${INPUT} w-28`}
+                          className={`${INPUT} w-36 min-w-[8.5rem]`}
                         >
                           <option value="all">새싹부터</option>
                           <option value="member">크리에이터</option>
