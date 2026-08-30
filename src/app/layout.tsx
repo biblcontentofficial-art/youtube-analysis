@@ -324,8 +324,8 @@ export default async function RootLayout({
               </a>
 
               <div className="hidden md:flex flex-1 items-center justify-center gap-1 text-sm whitespace-nowrap min-w-0">
-                {/* 비블의 칼럼 (비즈니스 칼럼) — 화이트 필 강조 */}
-                <NavTab href="/insights" label="비블의 칼럼" highlight icon={
+                {/* 브랜드 인큐베이팅 (영어·수학 선생님 모집, 공개 페이지) — 화이트 필 강조 */}
+                <NavTab href="/incubating" label="브랜드 인큐베이팅" highlight icon={
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
                     <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
                   </svg>

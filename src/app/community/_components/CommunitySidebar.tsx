@@ -114,7 +114,7 @@ export default function CommunitySidebar({ boards, stats, counts, recentBoardIds
                       <span
                         className={
                           EMPHASIZED_SLUGS.has(b.slug)
-                            ? "truncate font-bold text-white"
+                            ? "truncate font-bold text-yellow-400"
                             : "truncate"
                         }
                       >

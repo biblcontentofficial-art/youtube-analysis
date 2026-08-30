@@ -83,6 +83,58 @@ function linkify(text: string): ReactNode[] {
   return nodes;
 }
 
+// ── 블로그형 본문 렌더 ─────────────────────────────────────────────
+// 한 줄이 이미지 URL(외부 https 또는 사이트 절대경로)이면 <img>로,
+// "## "으로 시작하면 소제목으로, 나머지는 linkify된 문단으로 그린다.
+const IMG_LINE_RE =
+  /^(https?:\/\/[^\s<>"']+\.(?:png|jpe?g|webp|gif)(?:\?[^\s<>"']*)?|\/[A-Za-z0-9_\-/.]+\.(?:png|jpe?g|webp|gif))$/i;
+
+function renderContent(text: string): ReactNode[] {
+  const nodes: ReactNode[] = [];
+  let buf: string[] = [];
+  let key = 0;
+
+  const flush = () => {
+    const chunk = buf.join("\n").replace(/^\n+|\n+$/g, "");
+    buf = [];
+    if (!chunk) return;
+    nodes.push(
+      <p key={`p${key++}`} className="whitespace-pre-wrap">
+        {linkify(chunk)}
+      </p>
+    );
+  };
+
+  for (const line of text.split("\n")) {
+    const t = line.trim();
+    if (IMG_LINE_RE.test(t)) {
+      flush();
+      nodes.push(
+        // 본문 이미지는 사용자가 넣은 URL 그대로 그린다 (정규식으로 형태 검증됨)
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          key={`i${key++}`}
+          src={t}
+          alt=""
+          loading="lazy"
+          className="my-6 w-full rounded-2xl border border-neutral-800"
+        />
+      );
+    } else if (t.startsWith("## ")) {
+      flush();
+      nodes.push(
+        <h3 key={`h${key++}`} className="mb-3 mt-9 text-lg font-bold tracking-tight text-white lg:text-xl">
+          {t.slice(3)}
+        </h3>
+      );
+    } else {
+      buf.push(line);
+    }
+  }
+  flush();
+  return nodes;
+}
+
 // ── 메타데이터 ─────────────────────────────────────────────────────
 /**
  * 글이 없을 때 · 게시판이 어긋날 때 · 읽기 권한이 없을 때 모두 같은 값을 돌려준다.
@@ -229,8 +281,8 @@ export default async function CommunityPostPage({ params }: { params: Params }) 
       </header>
 
       {/* 본문 */}
-      <article className="py-8 text-neutral-200 text-[15px] md:text-base leading-[1.85] whitespace-pre-wrap break-words">
-        {linkify(post.content)}
+      <article className="py-8 text-neutral-200 text-[15px] md:text-base leading-[1.85] break-words">
+        {renderContent(post.content)}
       </article>
 
       {/* 첨부파일 */}

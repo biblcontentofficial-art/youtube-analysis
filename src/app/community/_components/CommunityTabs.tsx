@@ -37,7 +37,7 @@ export default function CommunityTabs({ isModerator }: { isModerator: boolean })
 
   const tabs: Tab[] = [
     { href: "/community", label: "커뮤니티" },
-    { href: "/community/incubating", label: "인큐베이팅 지원" },
+    { href: "/incubating", label: "브랜드 인큐베이팅" },
     { href: "/community/ranking", label: "랭킹" },
     { href: "/community/about", label: "소개" },
     ...(isModerator ? [{ href: "/community/admin", label: "관리" }] : []),
