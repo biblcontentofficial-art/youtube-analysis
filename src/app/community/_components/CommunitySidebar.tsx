@@ -1,7 +1,8 @@
 /**
  * 커뮤니티 좌측 사이드바 (카페형 · 데스크톱 전용)
  * 상단 정보 카드(멤버·글 수, 새 포스트, 오픈채팅방) 아래에
- * 전체글보기·인기글과 그룹별 게시판 메뉴를 카페 순서 그대로 나열한다.
+ * 즐겨찾는 게시판(전체글보기·인기글)과 그룹별 게시판 메뉴를 카페 순서 그대로 나열한다.
+ * 네이버 카페 원본처럼 그룹 소제목은 굵게, 섹션 사이에는 구분선을 넣는다.
  *
  * 게시판 링크 규약: 피드는 /community?cat={slug} 쿼리 파라미터로 필터링한다.
  * (피드 페이지의 ?cat= 파싱과 반드시 같은 slug 규약을 쓴다)
@@ -18,7 +19,10 @@ interface Props {
 }
 
 const ITEM_CLASS =
-  "flex items-center justify-between rounded-lg px-2 py-1.5 text-sm text-neutral-400 transition hover:bg-white/[0.02] hover:text-white";
+  "flex items-center justify-between rounded-lg px-2 py-1.5 text-sm text-neutral-300 transition hover:bg-white/[0.02] hover:text-white";
+
+/** 카페 원본에서 굵게 강조된 메뉴 */
+const EMPHASIZED_SLUGS = new Set(["incubating-apply"]);
 
 export default function CommunitySidebar({ boards, stats, counts }: Props) {
   const groups = groupBoards(boards);
@@ -56,15 +60,19 @@ export default function CommunitySidebar({ boards, stats, counts }: Props) {
         </div>
       </div>
 
-      {/* 게시판 메뉴 (카페형) */}
+      {/* 게시판 메뉴 (카페형: 소제목 + 구분선) */}
       <nav
         aria-label="게시판 메뉴"
         className="rounded-2xl border border-neutral-800 bg-neutral-900 p-4"
       >
-        <ul className="flex flex-col">
+        {/* 즐겨찾는 게시판 */}
+        <p className="border-b border-neutral-700 px-2 pb-2.5 text-sm font-bold text-white">
+          즐겨찾는 게시판
+        </p>
+        <ul className="mt-2 flex flex-col">
           <li>
             <Link href="/community" className={ITEM_CLASS}>
-              <span className="font-semibold text-neutral-200">전체글보기</span>
+              <span className="font-semibold text-neutral-100">전체글보기</span>
               <span className="ml-2 shrink-0 text-xs text-neutral-400">
                 {stats.posts.toLocaleString()}
               </span>
@@ -72,20 +80,31 @@ export default function CommunitySidebar({ boards, stats, counts }: Props) {
           </li>
           <li>
             <Link href="/community?sort=popular" className={ITEM_CLASS}>
-              <span className="font-semibold text-neutral-200">인기글</span>
+              <span className="font-semibold text-neutral-100">인기글</span>
             </Link>
           </li>
         </ul>
 
+        {/* 그룹별 게시판 */}
         {groups.map(({ group, boards: groupItems }) => (
-          <div key={group} className="mt-4 border-t border-white/[0.06] pt-3">
-            <p className="px-2 text-xs font-bold text-neutral-500">{group}</p>
-            <ul className="mt-1.5 flex flex-col">
+          <div key={group} className="mt-5 border-t border-neutral-700 pt-4">
+            <p className="border-b border-white/[0.06] px-2 pb-2.5 text-sm font-bold text-white">
+              {group}
+            </p>
+            <ul className="mt-2 flex flex-col">
               {groupItems.map((b) => (
                 <li key={b.id}>
                   {/* 피드 카테고리 필터 규약: /community?cat={slug} */}
                   <Link href={`/community?cat=${b.slug}`} className={ITEM_CLASS}>
-                    <span className="truncate">{b.name}</span>
+                    <span
+                      className={
+                        EMPHASIZED_SLUGS.has(b.slug)
+                          ? "truncate font-bold text-white"
+                          : "truncate"
+                      }
+                    >
+                      {b.name}
+                    </span>
                     <span className="ml-2 shrink-0 text-xs text-neutral-400">
                       {counts[b.id] ?? 0}
                     </span>

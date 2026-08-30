@@ -26,6 +26,7 @@ import {
   MAX_TITLE_LEN,
   STORAGE_BUCKET,
   formatFileSize,
+  groupBoards,
   type Board,
 } from "@/lib/community";
 
@@ -328,10 +329,14 @@ export default function PostForm({
             disabled={isEdit || locked || saving}
             className={`${INPUT} mt-2 disabled:opacity-60`}
           >
-            {boards.map((b) => (
-              <option key={b.id} value={b.slug} className="bg-neutral-900">
-                {b.group_name} · {b.name}
-              </option>
+            {groupBoards(boards).map(({ group, boards: groupItems }) => (
+              <optgroup key={group} label={group} className="bg-neutral-900">
+                {groupItems.map((b) => (
+                  <option key={b.id} value={b.slug} className="bg-neutral-900">
+                    {b.name}
+                  </option>
+                ))}
+              </optgroup>
             ))}
           </select>
           {isEdit && (
