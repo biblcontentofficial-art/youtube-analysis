@@ -364,7 +364,9 @@ export default function BoardManager({ boards }: Props) {
               onChange={(e) => setNewBoard({ ...newBoard, writeRole: e.target.value as WriteRole })}
               className={`${INPUT_LG} mt-2`}
             >
-              <option value="member">회원</option>
+              <option value="all">새싹부터</option>
+              <option value="member">크리에이터부터</option>
+              <option value="teambibl">팀비블부터</option>
               <option value="staff">운영진만</option>
             </select>
           </div>
@@ -520,9 +522,11 @@ export default function BoardManager({ boards }: Props) {
                         <select
                           value={d.writeRole}
                           onChange={(e) => patchDraft(b.id, { writeRole: e.target.value as WriteRole })}
-                          className={`${INPUT} w-24`}
+                          className={`${INPUT} w-28`}
                         >
-                          <option value="member">회원</option>
+                          <option value="all">새싹부터</option>
+                          <option value="member">크리에이터</option>
+                          <option value="teambibl">팀비블</option>
                           <option value="staff">운영진</option>
                         </select>
                       </td>

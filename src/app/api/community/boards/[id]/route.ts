@@ -96,7 +96,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   }
 
   if (body.writeRole !== undefined) {
-    if (body.writeRole !== "member" && body.writeRole !== "staff") {
+    if (!["all", "member", "teambibl", "staff"].includes(String(body.writeRole))) {
       return NextResponse.json({ message: "쓰기 권한 값이 올바르지 않습니다." }, { status: 400 });
     }
     patch.write_role = body.writeRole;

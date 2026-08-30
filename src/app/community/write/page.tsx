@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { currentUser } from "@/lib/auth";
 import { getSupabase } from "@/lib/supabase";
-import { getBoards, getPost } from "@/lib/communityDb";
+import { getBoards, getPost, getViewerGrade } from "@/lib/communityDb";
 import {
   canManagePost,
   canModerateCommunity,
@@ -49,9 +49,9 @@ export default async function CommunityWritePage({
   const viewer: Viewer = { id: user.id, email: user.email, plan: user.plan };
   const canModerate = canModerateCommunity(viewer);
 
-  // 글쓰기 가능한 게시판만 노출
-  const allBoards = await getBoards();
-  const writable = allBoards.filter((b) => canWriteBoard(b, viewer));
+  // 글쓰기 가능한 게시판만 노출 (회원 등급 기준)
+  const [allBoards, grade] = await Promise.all([getBoards(), getViewerGrade(viewer)]);
+  const writable = allBoards.filter((b) => canWriteBoard(b, viewer, grade));
 
   // ── 수정 모드 ─────────────────────────────────────────────
   if (postId) {
@@ -109,7 +109,7 @@ export default async function CommunityWritePage({
     return (
       <Notice
         title="글을 쓸 수 있는 게시판이 없습니다"
-        desc="현재 계정 권한으로 작성 가능한 게시판이 없습니다. 운영진에게 문의해 주세요."
+        desc="현재 계정 등급으로 작성 가능한 게시판이 없습니다. 운영진에게 문의해 주세요."
         href="/community"
         cta="커뮤니티로 이동"
       />

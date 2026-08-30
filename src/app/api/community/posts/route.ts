@@ -3,7 +3,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { currentUser } from "@/lib/auth";
 import { getSupabase } from "@/lib/supabase";
-import { getBoard } from "@/lib/communityDb";
+import { getBoard, getViewerGrade } from "@/lib/communityDb";
 import {
   canWriteBoard,
   canModerateCommunity,
@@ -33,8 +33,12 @@ export async function POST(req: NextRequest) {
   if (!board) return NextResponse.json({ message: "게시판을 찾을 수 없습니다." }, { status: 404 });
 
   const viewer = { id: user.id, email: user.email, plan: user.plan };
-  if (!canWriteBoard(board, viewer)) {
-    return NextResponse.json({ message: "이 게시판에 글을 쓸 권한이 없습니다." }, { status: 403 });
+  const grade = await getViewerGrade(viewer);
+  if (!canWriteBoard(board, viewer, grade)) {
+    return NextResponse.json(
+      { message: "이 게시판에 글을 쓸 수 있는 등급이 아닙니다. 등업게시판 안내를 확인해 주세요." },
+      { status: 403 }
+    );
   }
 
   const title = String(body.title ?? "").trim();

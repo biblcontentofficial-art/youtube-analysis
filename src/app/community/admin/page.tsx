@@ -4,6 +4,7 @@ import { currentUser } from "@/lib/auth";
 import { getSupabase } from "@/lib/supabase";
 import { canModerateCommunity, type Board } from "@/lib/community";
 import BoardManager from "./_components/BoardManager";
+import GradeManager from "./_components/GradeManager";
 
 export const dynamic = "force-dynamic";
 
@@ -71,6 +72,8 @@ export default async function CommunityAdminPage() {
       </div>
 
       <BoardManager boards={boards} />
+
+      <GradeManager />
     </Shell>
   );
 }

@@ -15,6 +15,7 @@ import { canModerateCommunity } from "@/lib/community";
 import CommunityTabs from "./_components/CommunityTabs";
 import CommunitySidebar from "./_components/CommunitySidebar";
 import CommunityGate from "./_components/CommunityGate";
+import VisitTracker from "./_components/VisitTracker";
 
 export const dynamic = "force-dynamic";
 
@@ -49,6 +50,8 @@ export default async function CommunityLayout({ children }: { children: ReactNod
 
   return (
     <div className="min-h-screen bg-black">
+      {/* 등업 조건(방문일) 집계 — 하루 1회 기록 */}
+      <VisitTracker />
       <div className="mx-auto max-w-screen-xl px-4 py-6 lg:py-8">
         {/* 헤더 */}
         <div className="flex items-start justify-between gap-4">

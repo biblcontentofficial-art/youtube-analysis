@@ -6,7 +6,12 @@ import { isAdmin, canEditInsights } from "@/lib/adminAuth";
 
 // ── 타입 ────────────────────────────────────────────────────────
 export type ReadRole = "all" | "member";
-export type WriteRole = "member" | "staff";
+/**
+ * 게시판 쓰기 권한 (회원 등급제와 연동)
+ * all = 새싹(1단계)부터 · member = 크리에이터(2단계)부터
+ * teambibl = 팀비블(3단계)부터 · staff = 운영진(4단계)만
+ */
+export type WriteRole = "all" | "member" | "teambibl" | "staff";
 
 export interface Board {
   id: string;
@@ -169,6 +174,30 @@ export interface MemberRank {
   points: number;
 }
 
+// ── 회원 등급 (4단계) ───────────────────────────────────────────
+/**
+ * 1 새싹: 가입 직후. 가입인사 게시판에만 글쓰기 (댓글·좋아요는 가능)
+ * 2 크리에이터: 활동 조건을 채우면 자동 등업. 일반 게시판 글쓰기
+ * 3 팀비블: 수강생. 운영진이 수동 부여. 팀비블 공간 글쓰기 추가
+ * 4 운영진: 비블 팀 (canModerateCommunity 로 판정, 저장하지 않는다)
+ */
+export type MemberGrade = 1 | 2 | 3 | 4;
+
+export const GRADE_NAMES: Record<MemberGrade, string> = {
+  1: "새싹",
+  2: "크리에이터",
+  3: "팀비블",
+  4: "운영진",
+};
+
+/** 새싹 → 크리에이터 자동 등업 조건 (전부 충족 시) */
+export const PROMOTION_CRITERIA = {
+  posts: 1,      // 게시글 1개 이상
+  comments: 4,   // 댓글 4개 이상
+  visitDays: 4,  // 방문 4일 이상
+  likesGiven: 10, // 좋아요 누른 횟수 10회 이상
+} as const;
+
 // ── 권한 ────────────────────────────────────────────────────────
 export interface Viewer {
   id: string;
@@ -192,11 +221,29 @@ export function canReadBoard(_board: Pick<Board, "read_role">, user: Viewer | nu
   return !!user;
 }
 
-/** 게시판 글쓰기 권한 */
-export function canWriteBoard(board: Pick<Board, "write_role">, user: Viewer | null): boolean {
+/**
+ * 게시판 글쓰기 권한 (회원 등급 기준)
+ * grade 는 getViewerGrade()로 조회한 값을 넘긴다 (운영진은 항상 4).
+ */
+export function canWriteBoard(
+  board: Pick<Board, "write_role">,
+  user: Viewer | null,
+  grade: MemberGrade
+): boolean {
   if (!user) return false;
-  if (board.write_role === "staff") return canModerateCommunity(user);
-  return true;
+  if (canModerateCommunity(user)) return true;
+  switch (board.write_role) {
+    case "all":
+      return true;
+    case "member":
+      return grade >= 2;
+    case "teambibl":
+      return grade >= 3;
+    case "staff":
+      return false;
+    default:
+      return false;
+  }
 }
 
 /** 글·댓글 수정/삭제 권한 (작성자 본인 또는 운영진) */

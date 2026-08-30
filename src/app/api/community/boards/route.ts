@@ -47,7 +47,9 @@ export async function POST(req: NextRequest) {
   }
 
   const readRole = body.readRole === "member" ? "member" : "all";
-  const writeRole = body.writeRole === "staff" ? "staff" : "member";
+  const writeRole = ["all", "member", "teambibl", "staff"].includes(String(body.writeRole))
+    ? String(body.writeRole)
+    : "member";
 
   const { data: dup } = await db
     .from("community_boards")

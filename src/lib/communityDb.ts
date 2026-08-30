@@ -10,7 +10,11 @@ import {
   type CommunityComment,
   type Attachment,
   type PostSummary,
+  type MemberGrade,
+  type Viewer,
   PAGE_SIZE,
+  PROMOTION_CRITERIA,
+  canModerateCommunity,
   sanitizeSearch,
   type MemberRank,
 } from "@/lib/community";
@@ -215,6 +219,149 @@ export async function getRecentBoardIds(days = 3): Promise<Set<string>> {
     .gte("created_at", since)
     .limit(2000);
   return new Set(((data ?? []) as { board_id: string }[]).map((r) => r.board_id));
+}
+
+// ── 회원 등급 (4단계: 새싹·크리에이터·팀비블·운영진) ────────────
+/**
+ * 뷰어의 등급을 조회한다. 운영진은 항상 4.
+ * 등급 행이 없으면 새싹(1)이며, 새싹은 조회 시점에 자동 등업 조건을 검사한다.
+ * community_member_grades 테이블이 아직 없는 환경(마이그레이션 전)에서는
+ * 기존 동작을 깨지 않도록 크리에이터(2)로 취급한다.
+ */
+export async function getViewerGrade(user: Viewer | null): Promise<MemberGrade> {
+  if (!user) return 1;
+  if (canModerateCommunity(user)) return 4;
+  const db = getSupabase();
+  if (!db) return 2;
+
+  const { data, error } = await db
+    .from("community_member_grades")
+    .select("grade")
+    .eq("user_id", user.id)
+    .maybeSingle();
+  if (error) {
+    // 테이블 미적용(마이그레이션 전)만 기존 동작(크리에이터)으로 폴백하고,
+    // 그 외 일시 오류는 fail-closed(새싹)로 좁힌다.
+    const code = (error as { code?: string }).code ?? "";
+    return code === "42P01" || code === "PGRST205" ? 2 : 1;
+  }
+
+  let grade = Math.min(Math.max(Number(data?.grade ?? 1), 1), 3) as MemberGrade;
+  if (grade === 1 && (await meetsPromotionCriteria(user.id))) {
+    // 동시에 운영진이 팀비블(3)을 부여했을 수 있으므로 절대 등급을 내리지 않는 방식으로 승급:
+    // 행이 없으면 2로 생성, 행이 있으면 grade=1 인 경우에만 2로 갱신한다.
+    await db
+      .from("community_member_grades")
+      .upsert(
+        { user_id: user.id, grade: 2, granted_by: "auto", updated_at: new Date().toISOString() },
+        { onConflict: "user_id", ignoreDuplicates: true }
+      );
+    await db
+      .from("community_member_grades")
+      .update({ grade: 2, granted_by: "auto", updated_at: new Date().toISOString() })
+      .eq("user_id", user.id)
+      .eq("grade", 1);
+    grade = 2;
+  }
+  return grade;
+}
+
+/** 새싹 → 크리에이터 자동 등업 조건 충족 여부 (게시글·댓글·방문일·좋아요) */
+async function meetsPromotionCriteria(userId: string): Promise<boolean> {
+  const db = getSupabase();
+  if (!db) return false;
+  const [posts, comments, visits, likes] = await Promise.all([
+    db.from("community_posts").select("id", { count: "exact", head: true })
+      .eq("author_id", userId).eq("status", "published"),
+    db.from("community_comments").select("id", { count: "exact", head: true })
+      .eq("author_id", userId).eq("status", "published"),
+    db.from("community_visits").select("visit_date", { count: "exact", head: true })
+      .eq("user_id", userId),
+    db.from("community_post_likes").select("post_id", { count: "exact", head: true })
+      .eq("user_id", userId),
+  ]);
+  return (
+    (posts.count ?? 0) >= PROMOTION_CRITERIA.posts &&
+    (comments.count ?? 0) >= PROMOTION_CRITERIA.comments &&
+    (visits.count ?? 0) >= PROMOTION_CRITERIA.visitDays &&
+    (likes.count ?? 0) >= PROMOTION_CRITERIA.likesGiven
+  );
+}
+
+/** 오늘(서울 기준) 방문 기록. 이미 있으면 무시 → 하루 1회만 쌓인다 */
+export async function recordVisit(userId: string): Promise<void> {
+  const db = getSupabase();
+  if (!db) return;
+  const today = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Seoul" });
+  await db
+    .from("community_visits")
+    .upsert({ user_id: userId, visit_date: today }, { onConflict: "user_id,visit_date", ignoreDuplicates: true });
+}
+
+/** 운영진이 등급을 수동 지정한다 (팀비블 부여·해제 등) */
+export async function setMemberGrade(
+  userId: string,
+  grade: MemberGrade,
+  grantedBy: string
+): Promise<string | null> {
+  const db = getSupabase();
+  if (!db) return "DB 미연결";
+  const { error } = await db
+    .from("community_member_grades")
+    .upsert({ user_id: userId, grade, granted_by: grantedBy, updated_at: new Date().toISOString() });
+  return error ? error.message : null;
+}
+
+export interface GradeMember {
+  user_id: string;
+  grade: number;
+  granted_by: string | null;
+  email: string | null;
+  name: string | null;
+}
+
+/** 수동 관리 대상 등급(팀비블 3단계) 회원 목록 */
+export async function listGradeMembers(grade: number): Promise<GradeMember[]> {
+  const db = getSupabase();
+  if (!db) return [];
+  const { data, error } = await db
+    .from("community_member_grades")
+    .select("user_id, grade, granted_by")
+    .eq("grade", grade)
+    .order("updated_at", { ascending: false })
+    .limit(200);
+  if (error || !data?.length) return [];
+
+  const ids = data.map((r) => r.user_id);
+  const { data: profiles } = await db
+    .from("profiles")
+    .select("id, email, first_name")
+    .in("id", ids);
+  const byId = new Map((profiles ?? []).map((p) => [p.id, p]));
+  return data.map((r) => ({
+    user_id: r.user_id,
+    grade: r.grade,
+    granted_by: r.granted_by,
+    email: byId.get(r.user_id)?.email ?? null,
+    name: byId.get(r.user_id)?.first_name ?? null,
+  }));
+}
+
+/** 이메일로 회원 프로필 조회 (등급 부여용 · 대소문자 무시 정확 일치) */
+export async function findProfileByEmail(
+  email: string
+): Promise<{ id: string; email: string } | null> {
+  const db = getSupabase();
+  if (!db) return null;
+  // ilike 는 % _ 를 와일드카드로 해석하므로 이스케이프해 "정확 일치"로만 쓴다
+  // (john_doe 입력이 johnXdoe 계정에 매칭되는 사고 방지)
+  const exact = email.trim().replace(/[\\%_]/g, "\\$&");
+  const { data } = await db
+    .from("profiles")
+    .select("id, email")
+    .ilike("email", exact)
+    .maybeSingle();
+  return data ? { id: data.id, email: data.email } : null;
 }
 
 export interface FeedResult {
