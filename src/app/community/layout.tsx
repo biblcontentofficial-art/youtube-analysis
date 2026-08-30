@@ -10,7 +10,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { currentUser } from "@/lib/auth";
-import { getBoards, getBoardCounts, getCommunityStats } from "@/lib/communityDb";
+import { getBoards, getBoardCounts, getCommunityStats, getRecentBoardIds } from "@/lib/communityDb";
 import { canModerateCommunity } from "@/lib/community";
 import CommunityTabs from "./_components/CommunityTabs";
 import CommunitySidebar from "./_components/CommunitySidebar";
@@ -26,11 +26,12 @@ export const metadata: Metadata = {
 };
 
 export default async function CommunityLayout({ children }: { children: ReactNode }) {
-  const [user, boards, stats, counts] = await Promise.all([
+  const [user, boards, stats, counts, recentBoardIds] = await Promise.all([
     currentUser(),
     getBoards(),
     getCommunityStats(),
     getBoardCounts(),
+    getRecentBoardIds(),
   ]);
 
   // 비로그인 → 입장 게이트 (하위 page.tsx는 렌더되지 않는다)
@@ -71,7 +72,12 @@ export default async function CommunityLayout({ children }: { children: ReactNod
         {/* 좌측 게시판 메뉴 (카페형) + 본문 */}
         <div className="mt-6 flex gap-7">
           <aside className="hidden w-64 shrink-0 lg:block">
-            <CommunitySidebar boards={boards} stats={stats} counts={counts} />
+            <CommunitySidebar
+              boards={boards}
+              stats={stats}
+              counts={counts}
+              recentBoardIds={recentBoardIds}
+            />
           </aside>
           <main className="min-w-0 flex-1">{children}</main>
         </div>

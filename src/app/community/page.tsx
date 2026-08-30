@@ -6,7 +6,7 @@
 
 import Link from "next/link";
 import { currentUser } from "@/lib/auth";
-import { getBoards, getPointsMap, listFeed, listPosts } from "@/lib/communityDb";
+import { getBoards, getPointsMap, getRecentBoardIds, listFeed, listPosts } from "@/lib/communityDb";
 import { PAGE_SIZE, canReadBoard, type PostSummary } from "@/lib/community";
 import CategoryChips from "./_components/CategoryChips";
 import FeedCard from "./_components/FeedCard";
@@ -52,12 +52,13 @@ export default async function CommunityFeedPage({ searchParams }: Props) {
   const noticeBoard = readable.find((b) => b.slug === "notice") ?? null;
   const showPinned = !cat && page === 1 && !q && sort === "recent" && noticeBoard !== null;
 
-  const [{ posts, total }, pointsMap, noticeRows] = await Promise.all([
+  const [{ posts, total }, pointsMap, noticeRows, recentBoardIds] = await Promise.all([
     listFeed(feedIds, { page, q, sort }),
     getPointsMap(),
     showPinned && noticeBoard
       ? listPosts(noticeBoard.id, { page: 1 }).then((r) => r.notices.slice(0, 2))
       : Promise.resolve([]),
+    getRecentBoardIds(),
   ]);
 
   const pinned: PostSummary[] =
@@ -102,6 +103,7 @@ export default async function CommunityFeedPage({ searchParams }: Props) {
             activeCat={activeBoard?.slug}
             sort={sort}
             q={q}
+            recentBoardIds={recentBoardIds}
           />
         </div>
         <div className="flex shrink-0 items-center gap-3 text-xs">

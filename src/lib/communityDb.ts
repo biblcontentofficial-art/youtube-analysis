@@ -199,6 +199,24 @@ export async function getBoardCounts(): Promise<Record<string, number>> {
   return counts;
 }
 
+/**
+ * 최근 며칠 안에 새 글이 올라온 게시판 id 집합 (메뉴 New 배지용).
+ * 글이 3일간 안 올라오면 자연히 집합에서 빠져 배지가 사라지고,
+ * 새 글이 올라오면 다시 3일간 유지된다.
+ */
+export async function getRecentBoardIds(days = 3): Promise<Set<string>> {
+  const db = getSupabase();
+  if (!db) return new Set();
+  const since = new Date(Date.now() - days * 24 * 3600 * 1000).toISOString();
+  const { data } = await db
+    .from("community_posts")
+    .select("board_id")
+    .eq("status", "published")
+    .gte("created_at", since)
+    .limit(2000);
+  return new Set(((data ?? []) as { board_id: string }[]).map((r) => r.board_id));
+}
+
 export interface FeedResult {
   posts: PostSummary[];
   total: number;

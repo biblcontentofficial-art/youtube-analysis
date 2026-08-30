@@ -16,6 +16,8 @@ interface Props {
   stats: { posts: number; members: number };
   /** board_id → 게시글 수 (getBoardCounts) */
   counts: Record<string, number>;
+  /** 최근 3일 내 새 글이 올라온 게시판 id (New 배지) */
+  recentBoardIds: Set<string>;
 }
 
 const ITEM_CLASS =
@@ -24,7 +26,19 @@ const ITEM_CLASS =
 /** 카페 원본에서 굵게 강조된 메뉴 */
 const EMPHASIZED_SLUGS = new Set(["incubating-apply"]);
 
-export default function CommunitySidebar({ boards, stats, counts }: Props) {
+/** 새 글 배지 (최근 3일) */
+export function NewBadge() {
+  return (
+    <span
+      aria-label="최근 3일 내 새 글"
+      className="ml-1.5 inline-flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-full bg-[#E5484D] text-[8px] font-bold leading-none text-white"
+    >
+      N
+    </span>
+  );
+}
+
+export default function CommunitySidebar({ boards, stats, counts, recentBoardIds }: Props) {
   const groups = groupBoards(boards);
 
   return (
@@ -96,14 +110,17 @@ export default function CommunitySidebar({ boards, stats, counts }: Props) {
                 <li key={b.id}>
                   {/* 피드 카테고리 필터 규약: /community?cat={slug} */}
                   <Link href={`/community?cat=${b.slug}`} className={ITEM_CLASS}>
-                    <span
-                      className={
-                        EMPHASIZED_SLUGS.has(b.slug)
-                          ? "truncate font-bold text-white"
-                          : "truncate"
-                      }
-                    >
-                      {b.name}
+                    <span className="flex min-w-0 items-center">
+                      <span
+                        className={
+                          EMPHASIZED_SLUGS.has(b.slug)
+                            ? "truncate font-bold text-white"
+                            : "truncate"
+                        }
+                      >
+                        {b.name}
+                      </span>
+                      {recentBoardIds.has(b.id) && <NewBadge />}
                     </span>
                     <span className="ml-2 shrink-0 text-xs text-neutral-400">
                       {counts[b.id] ?? 0}

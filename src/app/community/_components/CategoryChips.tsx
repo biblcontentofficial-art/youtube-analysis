@@ -5,12 +5,15 @@
 
 import Link from "next/link";
 import type { Board } from "@/lib/community";
+import { NewBadge } from "./CommunitySidebar";
 
 interface Props {
   boards: Board[];
   activeCat?: string;
   sort?: string;
   q?: string;
+  /** 최근 3일 내 새 글이 올라온 게시판 id (New 배지) */
+  recentBoardIds?: Set<string>;
 }
 
 function hrefFor(cat: string | null, sort?: string, q?: string): string {
@@ -27,7 +30,7 @@ const ACTIVE_CHIP =
 const IDLE_CHIP =
   "shrink-0 whitespace-nowrap rounded-full border border-neutral-800 bg-neutral-900 px-3.5 py-1.5 text-xs text-neutral-300 hover:border-neutral-600";
 
-export default function CategoryChips({ boards, activeCat, sort, q }: Props) {
+export default function CategoryChips({ boards, activeCat, sort, q, recentBoardIds }: Props) {
   return (
     <nav aria-label="카테고리" className="scrollbar-hide flex items-center gap-2 overflow-x-auto">
       <Link href={hrefFor(null, sort, q)} className={activeCat ? IDLE_CHIP : ACTIVE_CHIP}>
@@ -37,9 +40,10 @@ export default function CategoryChips({ boards, activeCat, sort, q }: Props) {
         <Link
           key={b.id}
           href={hrefFor(b.slug, sort, q)}
-          className={activeCat === b.slug ? ACTIVE_CHIP : IDLE_CHIP}
+          className={`${activeCat === b.slug ? ACTIVE_CHIP : IDLE_CHIP} inline-flex items-center`}
         >
           {b.name}
+          {recentBoardIds?.has(b.id) && <NewBadge />}
         </Link>
       ))}
     </nav>
