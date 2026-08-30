@@ -382,19 +382,45 @@ export default async function RootLayout({
               <NavUser />
             </div>
           </div>
-          {/* 모바일 전용: 스튜디오 링크 행 */}
+          {/* 모바일 전용: 전체 메뉴 행 (줄바꿈 허용 · 스크롤 없이 모두 노출) */}
           <div className="md:hidden border-t border-neutral-800/60 bg-neutral-950">
-            <div className="max-w-screen-2xl mx-auto px-4 py-2 flex items-center justify-center gap-2 overflow-x-auto scrollbar-hide">
+            <div className="max-w-screen-2xl mx-auto px-3 py-2 flex flex-wrap items-center justify-center gap-x-1 gap-y-1">
+              <a
+                href="/incubating"
+                className="text-xs text-white font-semibold px-2.5 py-1.5 rounded-md whitespace-nowrap bg-white/[0.06]"
+              >
+                브랜드 인큐베이팅
+              </a>
+              <a
+                href="/community"
+                className="text-xs text-white font-semibold px-2.5 py-1.5 rounded-md whitespace-nowrap bg-white/[0.06]"
+              >
+                커뮤니티&자료
+              </a>
+              <a
+                href="https://open.kakao.com/o/gsMC55Jh"
+                target="_blank"
+                rel="noopener noreferrer"
+                title="참여코드 230000"
+                className="text-xs text-white font-semibold px-2.5 py-1.5 rounded-md whitespace-nowrap bg-white/[0.06]"
+              >
+                비블 오픈채팅방
+              </a>
+              <a
+                href="/trend-search"
+                className="text-xs text-white font-semibold px-2.5 py-1.5 rounded-md whitespace-nowrap bg-white/[0.06]"
+              >
+                유튜브 트렌드 서치
+              </a>
               <a
                 href="/studio/class/consulting"
-                className="text-xs text-[#00E5A0] hover:text-[#66FFCC] font-semibold px-3 py-1.5 rounded-md whitespace-nowrap"
+                className="text-xs text-[#00E5A0] hover:text-[#66FFCC] font-semibold px-2.5 py-1.5 rounded-md whitespace-nowrap"
               >
                 팀비블 1:1 유튜브 컨설팅
               </a>
-              <span className="w-px h-3 bg-neutral-700" />
               <a
                 href="/studio"
-                className="text-xs text-[#00E5A0] hover:text-[#66FFCC] font-semibold px-3 py-1.5 rounded-md whitespace-nowrap"
+                className="text-xs text-[#00E5A0] hover:text-[#66FFCC] font-semibold px-2.5 py-1.5 rounded-md whitespace-nowrap"
               >
                 유튜브 채널 대행 문의
               </a>
