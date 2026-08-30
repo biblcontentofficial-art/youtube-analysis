@@ -13,7 +13,7 @@ import { currentUser } from "@/lib/auth";
 import { getBoards, getBoardCounts, getCommunityStats } from "@/lib/communityDb";
 import { canModerateCommunity } from "@/lib/community";
 import CommunityTabs from "./_components/CommunityTabs";
-import CommunitySideCard from "./_components/CommunitySideCard";
+import CommunitySidebar from "./_components/CommunitySidebar";
 import CommunityGate from "./_components/CommunityGate";
 
 export const dynamic = "force-dynamic";
@@ -48,7 +48,7 @@ export default async function CommunityLayout({ children }: { children: ReactNod
 
   return (
     <div className="min-h-screen bg-black">
-      <div className="mx-auto max-w-screen-lg px-4 py-6 lg:py-8">
+      <div className="mx-auto max-w-screen-xl px-4 py-6 lg:py-8">
         {/* 헤더 */}
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
@@ -68,12 +68,12 @@ export default async function CommunityLayout({ children }: { children: ReactNod
           <CommunityTabs isModerator={isModerator} />
         </div>
 
-        {/* 본문 + 우측 정보 카드 */}
+        {/* 좌측 게시판 메뉴 (카페형) + 본문 */}
         <div className="mt-6 flex gap-7">
-          <main className="min-w-0 flex-1">{children}</main>
-          <aside className="hidden w-72 shrink-0 lg:block">
-            <CommunitySideCard boards={boards} stats={stats} counts={counts} />
+          <aside className="hidden w-64 shrink-0 lg:block">
+            <CommunitySidebar boards={boards} stats={stats} counts={counts} />
           </aside>
+          <main className="min-w-0 flex-1">{children}</main>
         </div>
       </div>
     </div>

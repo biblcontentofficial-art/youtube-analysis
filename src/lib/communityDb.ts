@@ -106,54 +106,6 @@ export async function listPosts(
   };
 }
 
-/**
- * 커뮤니티 홈: 전체 게시판 최신글
- * boardIds를 주면 그 게시판들로 먼저 좁혀서 조회한다.
- * (limit로 자른 뒤 호출부에서 권한 필터를 하면, 비로그인 방문자에게 최신글이 통째로 사라진다)
- */
-export async function listRecentPosts(
-  limit = 12,
-  boardIds?: string[]
-): Promise<PostSummary[]> {
-  if (boardIds && boardIds.length === 0) return [];
-  const db = getSupabase();
-  if (!db) return [];
-  let query = db
-    .from("community_posts")
-    .select("*, board:community_boards(slug,name)")
-    .eq("status", "published");
-  if (boardIds) query = query.in("board_id", boardIds);
-  const { data } = await query
-    .order("created_at", { ascending: false })
-    .limit(limit);
-  return (data ?? []) as PostSummary[];
-}
-
-/**
- * 커뮤니티 홈: 인기글 (최근 14일 좋아요·조회수 기준)
- * boardIds를 주면 그 게시판들로 먼저 좁혀서 조회한다.
- */
-export async function listPopularPosts(
-  limit = 5,
-  boardIds?: string[]
-): Promise<PostSummary[]> {
-  if (boardIds && boardIds.length === 0) return [];
-  const db = getSupabase();
-  if (!db) return [];
-  const since = new Date(Date.now() - 14 * 24 * 3600 * 1000).toISOString();
-  let query = db
-    .from("community_posts")
-    .select("*, board:community_boards(slug,name)")
-    .eq("status", "published")
-    .gte("created_at", since);
-  if (boardIds) query = query.in("board_id", boardIds);
-  const { data } = await query
-    .order("like_count", { ascending: false })
-    .order("view_count", { ascending: false })
-    .limit(limit);
-  return (data ?? []) as PostSummary[];
-}
-
 export async function getPost(id: string): Promise<PostSummary | null> {
   const db = getSupabase();
   if (!db) return null;
@@ -245,55 +197,6 @@ export async function getBoardCounts(): Promise<Record<string, number>> {
     counts[row.board_id] = (counts[row.board_id] ?? 0) + 1;
   }
   return counts;
-}
-
-// ── 카페형 홈 · 전체글보기 · 인기글 ─────────────────────────────
-
-/** 게시판 미리보기 위젯 한 칸 */
-export interface BoardPreview {
-  board: Board;
-  posts: CommunityPost[];
-  notices: CommunityPost[];
-}
-
-/**
- * 게시판별 최신글 미리보기 (홈 위젯).
- * 게시판 수만큼 병렬 조회하므로 boards는 화면에 실제로 그릴 만큼만 넘긴다.
- */
-export async function listBoardPreviews(
-  boards: Board[],
-  perBoard = 6
-): Promise<BoardPreview[]> {
-  const db = getSupabase();
-  if (!db || boards.length === 0) return [];
-
-  return Promise.all(
-    boards.map(async (board) => {
-      const [{ data: notices }, { data: posts }] = await Promise.all([
-        db
-          .from("community_posts")
-          .select("*")
-          .eq("board_id", board.id)
-          .eq("status", "published")
-          .eq("is_notice", true)
-          .order("created_at", { ascending: false })
-          .limit(perBoard),
-        db
-          .from("community_posts")
-          .select("*")
-          .eq("board_id", board.id)
-          .eq("status", "published")
-          .eq("is_notice", false)
-          .order("created_at", { ascending: false })
-          .limit(perBoard),
-      ]);
-      return {
-        board,
-        notices: (notices ?? []) as CommunityPost[],
-        posts: (posts ?? []) as CommunityPost[],
-      };
-    })
-  );
 }
 
 export interface FeedResult {

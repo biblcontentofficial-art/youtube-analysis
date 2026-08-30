@@ -15,7 +15,12 @@ interface Tab {
 }
 
 /** 커뮤니티 탭이 아닌 별도 탭의 경로 접두사 */
-const OTHER_TAB_PREFIXES = ["/community/ranking", "/community/about", "/community/admin"];
+const OTHER_TAB_PREFIXES = [
+  "/community/incubating",
+  "/community/ranking",
+  "/community/about",
+  "/community/admin",
+];
 
 function isActiveTab(pathname: string, href: string): boolean {
   if (href === "/community") {
@@ -32,6 +37,7 @@ export default function CommunityTabs({ isModerator }: { isModerator: boolean })
 
   const tabs: Tab[] = [
     { href: "/community", label: "커뮤니티" },
+    { href: "/community/incubating", label: "인큐베이팅 지원" },
     { href: "/community/ranking", label: "랭킹" },
     { href: "/community/about", label: "소개" },
     ...(isModerator ? [{ href: "/community/admin", label: "관리" }] : []),

@@ -130,7 +130,7 @@ export function safeMimeForExt(ext: string): string {
  */
 export const RESERVED_BOARD_SLUGS: string[] = [
   "write", "admin", "new", "api", "sign", "confirm", "view", "all", "popular",
-  "ranking", "about",
+  "ranking", "about", "incubating",
 ];
 
 /**

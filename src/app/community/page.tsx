@@ -94,9 +94,9 @@ export default async function CommunityFeedPage({ searchParams }: Props) {
 
   return (
     <div className="space-y-4">
-      {/* 카테고리 칩 + 정렬 토글 */}
-      <div className="flex items-center gap-4">
-        <div className="min-w-0 flex-1">
+      {/* 카테고리 칩(모바일 전용 · 데스크톱은 좌측 메뉴) + 정렬 토글 */}
+      <div className="flex items-center gap-4 lg:justify-end">
+        <div className="min-w-0 flex-1 lg:hidden">
           <CategoryChips
             boards={readable}
             activeCat={activeBoard?.slug}
