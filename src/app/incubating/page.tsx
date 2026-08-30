@@ -147,43 +147,42 @@ export default function IncubatingPage() {
 
         <div className="space-y-3">
           <h4 className="text-sm font-bold text-white">
-            2-1. 직접 운영·기획하는 채널들 (총 구독자 <span className={ACCENT}>65만</span>)
+            2-1. 직접 운영·기획하는 채널들 (총 구독자 <span className={ACCENT}>70만</span>)
           </h4>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div className="rounded-xl border border-neutral-800 bg-neutral-900 p-4">
               <p className="text-sm font-bold text-white">
-                영어 키위새 <span className={ACCENT}>24만</span>
+                세계유명골프정보 <span className={ACCENT}>26만</span>
               </p>
               <p className="mt-1 text-xs leading-relaxed text-neutral-400">
-                영어 교육 카테고리에서 직접 운영·기획하는 채널. 벤치마크가 아니라, 교육이라는
-                카테고리에서 성공 공식을 실제로 돌려본 증거입니다.
+                골프 채널 운영 및 골프 쇼핑몰 운영
               </p>
             </div>
             <div className="rounded-xl border border-neutral-800 bg-neutral-900 p-4">
               <p className="text-sm font-bold text-white">
-                세계유명골프정보 <span className={ACCENT}>25만</span>
+                영어 키위새 <span className={ACCENT}>25만</span>
               </p>
               <p className="mt-1 text-xs leading-relaxed text-neutral-400">
-                골프 채널, 온라인 사업으로만 매출 7억원 이상
+                영어 교육 카테고리의 성공공식. 직접 운영·기획.
               </p>
             </div>
             <div className="rounded-xl border border-neutral-800 bg-neutral-900 p-4">
               <p className="text-sm font-bold text-white">
-                스윔클래스 <span className={ACCENT}>8만</span>
+                스윔클래스 <span className={ACCENT}>8.5만</span>
               </p>
               <p className="mt-1 text-xs leading-relaxed text-neutral-400">수영 교육 채널</p>
             </div>
             <div className="rounded-xl border border-neutral-800 bg-neutral-900 p-4">
               <p className="text-sm font-bold text-white">
-                비블(bibl) <span className={ACCENT}>3.7만</span>
+                비블(bibl) <span className={ACCENT}>4.3만</span>
               </p>
               <p className="mt-1 text-xs leading-relaxed text-neutral-400">
-                1인 기업·콘텐츠 비즈니스 채널
+                1인 사업가를 위한 콘텐츠 비즈니스 채널
               </p>
             </div>
           </div>
           <p className="text-sm text-neutral-300">
-            이외 다른 채널들까지 합치면 총 구독자는 <strong className="text-white">65만 명</strong>입니다.
+            이외 다른 채널들까지 합치면 총 구독자는 <strong className="text-white">70만 명</strong>입니다.
           </p>
         </div>
 
