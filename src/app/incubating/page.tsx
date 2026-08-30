@@ -99,7 +99,7 @@ export default function IncubatingPage() {
           </span>
         </div>
         <h2 className="text-2xl font-black tracking-tight text-white lg:text-3xl">
-          유튜브 인큐베이팅 지원하세요
+          유튜브 브랜드 인큐베이팅 지원하세요
         </h2>
         <p className="max-w-2xl text-sm leading-relaxed text-neutral-300 lg:text-base">
           영어·수학 교육 쪽에 일하고 계시면서 비블과 함께할 분을 찾고 있습니다.
