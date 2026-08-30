@@ -1,9 +1,13 @@
-/** PATCH·DELETE /api/community/boards/[id] — 게시판 수정 / 비활성화 (운영진 전용) */
+/**
+ * PATCH·DELETE /api/community/boards/[id] — 게시판 수정 / 비활성화·완전 삭제 (운영진 전용)
+ * DELETE 기본은 비활성화(숨김·복구 가능), ?hard=1 이면 게시판과 글·댓글·좋아요·첨부를
+ * 전부 영구 삭제하고 스토리지 파일까지 정리한다.
+ */
 
 import { NextRequest, NextResponse } from "next/server";
 import { currentUser } from "@/lib/auth";
 import { getSupabase } from "@/lib/supabase";
-import { canModerateCommunity, RESERVED_BOARD_SLUGS } from "@/lib/community";
+import { canModerateCommunity, RESERVED_BOARD_SLUGS, STORAGE_BUCKET } from "@/lib/community";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 
 const SLUG_RE = /^[a-z0-9-]+$/;
@@ -139,16 +143,52 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
 
   const { data: board } = await db
     .from("community_boards")
-    .select("id")
+    .select("id, name")
     .eq("id", id)
     .maybeSingle();
   if (!board) return NextResponse.json({ message: "게시판을 찾을 수 없습니다." }, { status: 404 });
 
-  const { error } = await db.from("community_boards").update({ is_active: false }).eq("id", id);
+  const hard = new URL(req.url).searchParams.get("hard") === "1";
+
+  // 기본: 비활성화 (숨김 · 활성화 버튼으로 복구 가능)
+  if (!hard) {
+    const { error } = await db.from("community_boards").update({ is_active: false }).eq("id", id);
+    if (error) {
+      console.error("[community:board-delete]", error.message);
+      return NextResponse.json({ message: "게시판 비활성화에 실패했습니다." }, { status: 500 });
+    }
+    return NextResponse.json({ ok: true });
+  }
+
+  // ── 완전 삭제 ────────────────────────────────────────────────
+  // 1) 게시판의 글 id 수집 → 2) 첨부 스토리지 파일 제거 → 3) 게시판 삭제(글·댓글·좋아요·첨부 행은 FK cascade)
+  const { data: posts } = await db
+    .from("community_posts")
+    .select("id")
+    .eq("board_id", id)
+    .limit(10000);
+  const postIds = (posts ?? []).map((p) => p.id as string);
+
+  let deletedFiles = 0;
+  for (let i = 0; i < postIds.length; i += 200) {
+    const chunk = postIds.slice(i, i + 200);
+    const { data: atts } = await db
+      .from("community_attachments")
+      .select("storage_path")
+      .in("post_id", chunk);
+    const paths = (atts ?? []).map((a) => a.storage_path as string).filter(Boolean);
+    for (let j = 0; j < paths.length; j += 100) {
+      const { error: rmErr } = await db.storage.from(STORAGE_BUCKET).remove(paths.slice(j, j + 100));
+      if (rmErr) console.error("[community:board-hard-delete:storage]", rmErr.message);
+      else deletedFiles += Math.min(100, paths.length - j);
+    }
+  }
+
+  const { error } = await db.from("community_boards").delete().eq("id", id);
   if (error) {
-    console.error("[community:board-delete]", error.message);
+    console.error("[community:board-hard-delete]", error.message);
     return NextResponse.json({ message: "게시판 삭제에 실패했습니다." }, { status: 500 });
   }
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, deletedPosts: postIds.length, deletedFiles });
 }

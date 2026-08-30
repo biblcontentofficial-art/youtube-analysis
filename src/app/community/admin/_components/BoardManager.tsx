@@ -244,6 +244,43 @@ export default function BoardManager({ boards }: Props) {
     }
   }
 
+  /** 완전 삭제: 게시판과 글·댓글·좋아요·첨부파일이 전부 영구 삭제된다 */
+  async function handleHardDelete(b: Board) {
+    if (
+      !confirm(
+        `"${b.name}" 게시판을 완전 삭제할까요?\n\n게시판 안의 모든 글·댓글·좋아요·첨부파일이 영구 삭제되며 되돌릴 수 없습니다.\n(단순히 숨기려면 비활성화를 사용하세요)`
+      )
+    )
+      return;
+    const typed = prompt(`정말 삭제하려면 게시판 이름을 그대로 입력하세요:\n${b.name}`);
+    if (typed === null) return;
+    if (typed.trim() !== b.name) {
+      alert("이름이 일치하지 않아 삭제를 취소했습니다.");
+      return;
+    }
+
+    setBusyId(b.id);
+    setRowError((p) => ({ ...p, [b.id]: "" }));
+    try {
+      const res = await fetch(`/api/community/boards/${b.id}?hard=1`, { method: "DELETE" });
+      if (!res.ok) {
+        const msg = await readMessage(res, "게시판 삭제에 실패했습니다.");
+        setRowError((p) => ({ ...p, [b.id]: msg }));
+        return;
+      }
+      const json = await res.json().catch(() => ({}));
+      alert(
+        `"${b.name}" 게시판을 삭제했습니다.` +
+          (typeof json.deletedPosts === "number" ? ` (글 ${json.deletedPosts}개 함께 삭제)` : "")
+      );
+      router.refresh();
+    } catch {
+      setRowError((p) => ({ ...p, [b.id]: "네트워크 오류가 발생했습니다." }));
+    } finally {
+      setBusyId(null);
+    }
+  }
+
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
     if (creating) return;
@@ -562,6 +599,15 @@ export default function BoardManager({ boards }: Props) {
                               className="whitespace-nowrap rounded-xl border border-neutral-700 bg-neutral-800 px-3 py-2 text-xs text-white transition hover:bg-neutral-700 disabled:opacity-40"
                             >
                               {b.is_active ? "비활성화" : "활성화"}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleHardDelete(b)}
+                              disabled={busy}
+                              title="게시판과 모든 글을 영구 삭제"
+                              className="whitespace-nowrap rounded-xl border border-red-900/60 bg-red-950/40 px-3 py-2 text-xs text-red-400 transition hover:bg-red-900/40 hover:text-red-300 disabled:opacity-40"
+                            >
+                              삭제
                             </button>
                           </div>
                           {rowError[b.id] && <p className="text-xs text-red-400">{rowError[b.id]}</p>}
