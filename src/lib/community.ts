@@ -286,21 +286,29 @@ export function timeAgo(iso: string): string {
   return new Date(iso).toLocaleDateString("ko-KR", { year: "2-digit", month: "2-digit", day: "2-digit" });
 }
 
-/**
- * 커뮤니티에서 운영진이 쓰는 글·댓글에 공통으로 붙는 브랜드 표시명.
- * 운영진 계정이 여러 개(비블 공식·우지윤 등)여도 독자에게는 한 사람으로 보이게 한다.
- */
+/** 브랜드 명의로 글·댓글을 쓰는 계정에 붙는 표시명 */
 export const STAFF_AUTHOR_NAME = "비블 bibl";
 
 /**
+ * 브랜드 명의로 글을 쓰는 계정 목록 (소문자 이메일).
+ * 여기 없는 계정은 운영진이라도 자기 이름으로 표시된다.
+ */
+export const BRAND_AUTHOR_EMAILS: string[] = [
+  "bibl.content.official@gmail.com",
+  "woojiyoun21@naver.com",
+];
+
+/**
  * 글·댓글에 저장할 작성자명.
- * 운영진이면 브랜드명으로 고정하고, 일반 회원은 기존 표시 규칙을 따른다.
+ * 브랜드 계정만 "비블 bibl"로 고정하고, 나머지는 모두 본인 이름으로 남는다.
  */
 export function authorNameFor(
   user: Pick<Viewer, "email" | "plan">,
   firstName?: string | null
 ): string {
-  if (canModerateCommunity(user)) return STAFF_AUTHOR_NAME;
+  if (BRAND_AUTHOR_EMAILS.includes((user.email || "").trim().toLowerCase())) {
+    return STAFF_AUTHOR_NAME;
+  }
   return displayName(firstName, user.email);
 }
 
