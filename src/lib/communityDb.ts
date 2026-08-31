@@ -14,6 +14,8 @@ import {
   type Viewer,
   PAGE_SIZE,
   PROMOTION_CRITERIA,
+  BRAND_AUTHOR_EMAILS,
+  BRAND_AVATAR_EMAIL,
   canModerateCommunity,
   sanitizeSearch,
   type MemberRank,
@@ -533,7 +535,47 @@ export async function getAvatarMap(
     })
   );
 
+  // 브랜드 명의 계정(우지윤 등)은 이름과 마찬가지로 사진도 비블 공식 계정으로 통일한다
+  const { data: profiles } = await db.from("profiles").select("id, email").in("id", ids);
+  const brandIds = (profiles ?? [])
+    .filter((p) => BRAND_AUTHOR_EMAILS.includes((p.email ?? "").trim().toLowerCase()))
+    .map((p) => p.id as string);
+
+  if (brandIds.length > 0) {
+    const brandUrl = await getBrandAvatar();
+    for (const id of brandIds) {
+      if (brandUrl) out[id] = brandUrl;
+      else delete out[id];
+    }
+  }
+
   return out;
+}
+
+/** 비블 공식 계정의 프로필 사진 (브랜드 명의 글에 공통 사용) */
+async function getBrandAvatar(): Promise<string | null> {
+  const db = getSupabase();
+  if (!db) return null;
+  const cached = avatarCache.get("__brand__");
+  if (cached && Date.now() - cached.at < AVATAR_TTL_MS) return cached.url;
+
+  let url: string | null = null;
+  try {
+    const { data: owner } = await db
+      .from("profiles")
+      .select("id")
+      .ilike("email", BRAND_AVATAR_EMAIL)
+      .maybeSingle();
+    if (owner?.id) {
+      const { data } = await db.auth.admin.getUserById(owner.id as string);
+      const meta = data?.user?.user_metadata ?? {};
+      url = normalizeAvatar(meta.avatar_url) ?? normalizeAvatar(meta.picture);
+    }
+  } catch {
+    url = null;
+  }
+  avatarCache.set("__brand__", { url, at: Date.now() });
+  return url;
 }
 
 /**

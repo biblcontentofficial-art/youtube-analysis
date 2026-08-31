@@ -306,6 +306,9 @@ export const BRAND_AUTHOR_EMAILS: string[] = [
   "woojiyoun21@naver.com",
 ];
 
+/** 브랜드 계정 글에 공통으로 쓰는 프로필 사진의 출처 계정 */
+export const BRAND_AVATAR_EMAIL = "bibl.content.official@gmail.com";
+
 /**
  * 글·댓글에 저장할 작성자명.
  * 브랜드 계정만 "비블 bibl"로 고정하고, 나머지는 모두 본인 이름으로 남는다.
