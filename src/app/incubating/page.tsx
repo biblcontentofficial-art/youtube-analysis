@@ -9,6 +9,7 @@ import Link from "next/link";
 import { getPost } from "@/lib/communityDb";
 import { excerpt } from "@/lib/community";
 import PostContent from "../community/_components/PostContent";
+import TrackVisit from "@/app/_components/TrackVisit";
 
 export const dynamic = "force-dynamic";
 
@@ -30,6 +31,7 @@ export default async function IncubatingPage() {
 
   return (
     <div className="min-h-screen bg-black">
+      <TrackVisit page="incubating" />
       <div className="mx-auto max-w-3xl px-4 py-12 lg:py-16">
         {/* 헤더 */}
         <div className="flex flex-wrap items-center gap-2">

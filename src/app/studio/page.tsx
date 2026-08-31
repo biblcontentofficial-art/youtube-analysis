@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import TrackVisit from "@/app/_components/TrackVisit";
 import Image from "next/image";
 import AnimationObserver from "@/app/_components/AnimationObserver";
 import StudioGuard from "./_components/StudioGuard";
@@ -252,6 +253,7 @@ const FAQS = [
 function SectionLabel({ label, caption = "비블의 유튜브 채널 대행" }: { label: string; caption?: string }) {
   return (
     <div data-animate="fade" className="flex items-center justify-between gap-4 border-b border-neutral-800 pb-4 mb-12">
+      <TrackVisit page="studio" />
       <span className="text-xs md:text-sm text-neutral-500">{caption}</span>
       <span className="text-sm md:text-base font-black tracking-[0.25em] text-white">{label}</span>
     </div>

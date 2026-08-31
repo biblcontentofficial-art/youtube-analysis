@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import MenuTrafficDashboard from "../traffic/MenuTrafficDashboard";
 import type { AdminUser } from "@/app/api/admin/users/route";
 
 // ─────────────────────────────────────────────────────────
@@ -1551,13 +1552,19 @@ function TrafficTab() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div className="text-gray-400 py-8 text-center">로딩 중...</div>;
-  if (error) return <div className="text-red-400 py-8 text-center">{error}</div>;
-  if (!data) return null;
-
   const pages = ["bibllab", "tmkstudio", "teambibl"];
 
   return (
+    <div className="space-y-12">
+      {/* 메뉴별 트래픽 (네비 5개 기준) */}
+      <MenuTrafficDashboard />
+
+      {/* 페이지별 트래픽 (기존) */}
+      {loading ? (
+        <div className="text-gray-400 py-8 text-center">로딩 중...</div>
+      ) : error ? (
+        <div className="text-red-400 py-8 text-center">{error}</div>
+      ) : !data ? null : (
     <div className="space-y-6">
       <p className="text-gray-500 text-sm">최근 30일 · 총 {data.total}건</p>
 
@@ -1647,6 +1654,8 @@ function TrafficTab() {
           </table>
         </div>
       </div>
+    </div>
+      )}
     </div>
   );
 }

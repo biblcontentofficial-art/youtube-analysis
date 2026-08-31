@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import TrackVisit from "@/app/_components/TrackVisit";
 import Link from "next/link";
 
 /**
@@ -21,6 +22,7 @@ function ApplyButton({ label = "1:1 팀비블 신청하기" }: { label?: string 
       rel="noopener noreferrer"
       className="inline-flex items-center gap-2 px-8 py-4 bg-white hover:bg-gray-200 text-black font-black rounded-xl transition text-base shadow-lg shadow-white/10"
     >
+      <TrackVisit page="consulting-class" />
       {label}
       <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 5l7 7-7 7" /></svg>
     </a>

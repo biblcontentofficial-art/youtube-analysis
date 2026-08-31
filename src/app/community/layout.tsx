@@ -17,6 +17,7 @@ import CommunitySidebar from "./_components/CommunitySidebar";
 import CommunityGate from "./_components/CommunityGate";
 import VisitTracker from "./_components/VisitTracker";
 import NewPostButton from "./_components/NewPostButton";
+import TrackVisit from "@/app/_components/TrackVisit";
 
 export const dynamic = "force-dynamic";
 
@@ -53,6 +54,7 @@ export default async function CommunityLayout({ children }: { children: ReactNod
     <div className="min-h-screen bg-black">
       {/* 등업 조건(방문일) 집계 — 하루 1회 기록 */}
       <VisitTracker />
+      <TrackVisit page="community" />
       {/* 커뮤니티 배너 (원본 비율 유지) */}
       <div className="mx-auto max-w-screen-xl px-4 pt-4">
         {/* eslint-disable-next-line @next/next/no-img-element */}

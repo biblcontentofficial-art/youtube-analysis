@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import TrackVisit from "@/app/_components/TrackVisit";
 import Link from "next/link";
 
 export const metadata: Metadata = {
@@ -79,6 +80,7 @@ export default async function TrendSearchPage() {
 
   return (
     <main className="min-h-screen bg-black text-white">
+      <TrackVisit page="trend-search" />
       <div className="max-w-screen-lg mx-auto px-4 py-16 md:py-24">
         <div className="flex items-center justify-between gap-4 border-b border-neutral-800 pb-4 mb-12">
           <span className="text-xs md:text-sm text-neutral-500">bibl lab</span>
