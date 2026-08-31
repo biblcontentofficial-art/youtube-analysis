@@ -16,6 +16,7 @@ import CommunityTabs from "./_components/CommunityTabs";
 import CommunitySidebar from "./_components/CommunitySidebar";
 import CommunityGate from "./_components/CommunityGate";
 import VisitTracker from "./_components/VisitTracker";
+import NewPostButton from "./_components/NewPostButton";
 
 export const dynamic = "force-dynamic";
 
@@ -59,12 +60,7 @@ export default async function CommunityLayout({ children }: { children: ReactNod
             <h1 className="text-xl font-bold tracking-tight text-white">비블 커뮤니티</h1>
             <p className="mt-1 text-xs text-neutral-500">유튜브로 사업을 키우는 사람들의 공간</p>
           </div>
-          <Link
-            href="/community/write"
-            className="shrink-0 rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-black transition hover:bg-neutral-200"
-          >
-            새 포스트
-          </Link>
+          <NewPostButton className="shrink-0 rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-black transition hover:bg-neutral-200" />
         </div>
 
         {/* 탭 */}

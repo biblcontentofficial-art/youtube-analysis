@@ -10,6 +10,7 @@
 
 import Link from "next/link";
 import { BOARD_LINK_OVERRIDES, groupBoards, type Board } from "@/lib/community";
+import NewPostButton from "./NewPostButton";
 
 interface Props {
   boards: Board[];
@@ -56,12 +57,7 @@ export default function CommunitySidebar({ boards, stats, counts, recentBoardIds
           <span className="font-semibold text-neutral-200">{stats.posts.toLocaleString()}</span>
         </p>
         <div className="mt-4 flex flex-col gap-2">
-          <Link
-            href="/community/write"
-            className="rounded-xl bg-white px-4 py-2.5 text-center text-sm font-bold text-black transition hover:bg-neutral-200"
-          >
-            새 포스트
-          </Link>
+          <NewPostButton className="rounded-xl bg-white px-4 py-2.5 text-center text-sm font-bold text-black transition hover:bg-neutral-200" />
           <a
             href="https://open.kakao.com/o/gsMC55Jh"
             target="_blank"
