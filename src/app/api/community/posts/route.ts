@@ -7,7 +7,7 @@ import { getBoard, getViewerGrade } from "@/lib/communityDb";
 import {
   canWriteBoard,
   canModerateCommunity,
-  displayName,
+  authorNameFor,
   MAX_TITLE_LEN,
   MAX_CONTENT_LEN,
 } from "@/lib/community";
@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
     .insert({
       board_id: board.id,
       author_id: user.id,
-      author_name: displayName(user.firstName, user.email),
+      author_name: authorNameFor(viewer, user.firstName),
       title,
       content,
       is_notice: isNotice,

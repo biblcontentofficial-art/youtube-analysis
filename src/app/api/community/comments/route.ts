@@ -7,7 +7,7 @@ import { getPost } from "@/lib/communityDb";
 import {
   type Board,
   canReadBoard,
-  displayName,
+  authorNameFor,
   MAX_COMMENT_LEN,
 } from "@/lib/community";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
@@ -72,7 +72,7 @@ export async function POST(req: NextRequest) {
       post_id: postId,
       parent_id: parentId,
       author_id: user.id,
-      author_name: displayName(user.firstName, user.email),
+      author_name: authorNameFor(viewer, user.firstName),
       content,
       status: "published",
     })

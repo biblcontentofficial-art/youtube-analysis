@@ -286,6 +286,24 @@ export function timeAgo(iso: string): string {
   return new Date(iso).toLocaleDateString("ko-KR", { year: "2-digit", month: "2-digit", day: "2-digit" });
 }
 
+/**
+ * 커뮤니티에서 운영진이 쓰는 글·댓글에 공통으로 붙는 브랜드 표시명.
+ * 운영진 계정이 여러 개(비블 공식·우지윤 등)여도 독자에게는 한 사람으로 보이게 한다.
+ */
+export const STAFF_AUTHOR_NAME = "비블 bibl";
+
+/**
+ * 글·댓글에 저장할 작성자명.
+ * 운영진이면 브랜드명으로 고정하고, 일반 회원은 기존 표시 규칙을 따른다.
+ */
+export function authorNameFor(
+  user: Pick<Viewer, "email" | "plan">,
+  firstName?: string | null
+): string {
+  if (canModerateCommunity(user)) return STAFF_AUTHOR_NAME;
+  return displayName(firstName, user.email);
+}
+
 /** 작성자 표시명 (닉네임 없으면 이메일 앞부분 마스킹) */
 export function displayName(name: string | null | undefined, email?: string | null): string {
   if (name && name.trim()) return name.trim();
