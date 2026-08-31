@@ -7,9 +7,9 @@ import { isAdmin, canEditInsights } from "@/lib/adminAuth";
 // ── 타입 ────────────────────────────────────────────────────────
 export type ReadRole = "all" | "member";
 /**
- * 게시판 쓰기 권한 (회원 등급제와 연동)
- * all = 새싹(1단계)부터 · member = 크리에이터(2단계)부터
- * teambibl = 팀비블(3단계)부터 · staff = 운영진(4단계)만
+ * 게시판 쓰기 권한
+ * all = 새싹부터(전원) · member = 브론즈부터
+ * teambibl = 팀비블 수강생(등급과 별개) · staff = 운영자만
  */
 export type WriteRole = "all" | "member" | "teambibl" | "staff";
 
@@ -183,37 +183,84 @@ export interface MemberRank {
   points: number;
 }
 
-// ── 회원 등급 (4단계) ───────────────────────────────────────────
+// ── 회원 등급 (활동 5단계 + 운영자) ─────────────────────────────
 /**
- * 1 새싹: 가입 직후. 가입인사 게시판에만 글쓰기 (댓글·좋아요는 가능)
- * 2 크리에이터: 활동 조건을 채우면 자동 등업. 일반 게시판 글쓰기
- * 3 팀비블: 수강생. 운영진이 수동 부여. 팀비블 공간 글쓰기 추가
- * 4 운영진: 비블 팀 (canModerateCommunity 로 판정, 저장하지 않는다)
+ * 1 새싹 · 2 브론즈 · 3 실버 · 4 골드 · 5 다이아 = 활동 점수로 자동 승급
+ * 6 운영자 = 비블 팀 (canModerateCommunity 로 판정, 저장하지 않는다)
+ * 팀비블(수강생)은 등급과 별개인 멤버십 플래그다.
  */
-export type MemberGrade = 1 | 2 | 3 | 4;
+export type MemberGrade = 1 | 2 | 3 | 4 | 5 | 6;
 
 export const GRADE_NAMES: Record<MemberGrade, string> = {
   1: "새싹",
-  2: "크리에이터",
-  3: "팀비블",
-  4: "운영진",
+  2: "브론즈",
+  3: "실버",
+  4: "골드",
+  5: "다이아",
+  6: "운영자",
 };
 
-/** 아바타에 붙는 등급 배지 (숫자 레벨 대신 등급을 보여준다) */
+/** 아바타에 붙는 등급 배지 */
 export const GRADE_EMOJI: Record<MemberGrade, string> = {
   1: "🌱",
-  2: "🎬",
-  3: "💎",
-  4: "👑",
+  2: "🥉",
+  3: "🥈",
+  4: "🥇",
+  5: "💎",
+  6: "👑",
 };
 
-/** 새싹 → 크리에이터 자동 등업 조건 (전부 충족 시) */
-export const PROMOTION_CRITERIA = {
-  posts: 1,      // 게시글 1개 이상
-  comments: 4,   // 댓글 4개 이상
-  visitDays: 4,  // 방문 4일 이상
-  likesGiven: 10, // 좋아요 누른 횟수 10회 이상
+/** 승급에 필요한 누적 활동 점수 */
+export const GRADE_THRESHOLDS: Record<1 | 2 | 3 | 4 | 5, number> = {
+  1: 0,
+  2: 30,
+  3: 150,
+  4: 500,
+  5: 1500,
+};
+
+/**
+ * 활동 점수 규칙.
+ * 도배로는 천장이 있고(일일 상한), 좋아요를 받을수록 빨라지도록 설계했다.
+ */
+export const POINT_RULES = {
+  post: 5,             // 글 1편
+  postDailyCap: 3,     // 하루 3편까지 인정
+  comment: 1,          // 댓글 1개
+  commentDailyCap: 5,  // 하루 5개까지 인정
+  likeReceived: 3,     // 내 글이 받은 좋아요 (상한 없음)
+  visitDay: 1,         // 출석 1일
+  streakBonus: 10,     // 7일 연속 출석마다
+  streakDays: 7,
 } as const;
+
+/** 누적 점수 → 활동 등급 (1~5) */
+export function gradeForPoints(points: number): MemberGrade {
+  const p = Number.isFinite(points) ? points : 0;
+  if (p >= GRADE_THRESHOLDS[5]) return 5;
+  if (p >= GRADE_THRESHOLDS[4]) return 4;
+  if (p >= GRADE_THRESHOLDS[3]) return 3;
+  if (p >= GRADE_THRESHOLDS[2]) return 2;
+  return 1;
+}
+
+/** 다음 등급까지 남은 점수 (최고 등급이면 null) */
+export function pointsToNextGrade(points: number): { next: MemberGrade; remain: number } | null {
+  const g = gradeForPoints(points);
+  if (g >= 5) return null;
+  const next = (g + 1) as 2 | 3 | 4 | 5;
+  return { next, remain: Math.max(0, GRADE_THRESHOLDS[next] - points) };
+}
+
+/** 회원의 커뮤니티 신분 (활동 등급 + 팀비블 수강생 여부) */
+export interface Membership {
+  grade: MemberGrade;
+  points: number;
+  /** 팀비블 수강생 (등급과 무관하게 운영진이 부여) */
+  isTeambibl: boolean;
+}
+
+export const GUEST_MEMBERSHIP: Membership = { grade: 1, points: 0, isTeambibl: false };
 
 // ── 권한 ────────────────────────────────────────────────────────
 export interface Viewer {
@@ -239,13 +286,13 @@ export function canReadBoard(_board: Pick<Board, "read_role">, user: Viewer | nu
 }
 
 /**
- * 게시판 글쓰기 권한 (회원 등급 기준)
- * grade 는 getViewerGrade()로 조회한 값을 넘긴다 (운영진은 항상 4).
+ * 게시판 글쓰기 권한.
+ * write_role: all=새싹부터 · member=브론즈부터 · teambibl=팀비블 수강생 · staff=운영자만
  */
 export function canWriteBoard(
   board: Pick<Board, "write_role">,
   user: Viewer | null,
-  grade: MemberGrade
+  membership: Membership
 ): boolean {
   if (!user) return false;
   if (canModerateCommunity(user)) return true;
@@ -253,9 +300,9 @@ export function canWriteBoard(
     case "all":
       return true;
     case "member":
-      return grade >= 2;
+      return membership.grade >= 2;
     case "teambibl":
-      return grade >= 3;
+      return membership.isTeambibl;
     case "staff":
       return false;
     default:

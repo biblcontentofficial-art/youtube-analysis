@@ -3,7 +3,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { currentUser } from "@/lib/auth";
 import { getSupabase } from "@/lib/supabase";
-import { getBoard, getViewerGrade } from "@/lib/communityDb";
+import { getBoard, getViewerMembership } from "@/lib/communityDb";
 import {
   canWriteBoard,
   canModerateCommunity,
@@ -33,8 +33,8 @@ export async function POST(req: NextRequest) {
   if (!board) return NextResponse.json({ message: "게시판을 찾을 수 없습니다." }, { status: 404 });
 
   const viewer = { id: user.id, email: user.email, plan: user.plan };
-  const grade = await getViewerGrade(viewer);
-  if (!canWriteBoard(board, viewer, grade)) {
+  const membership = await getViewerMembership(viewer);
+  if (!canWriteBoard(board, viewer, membership)) {
     return NextResponse.json(
       { message: "이 게시판에 글을 쓸 수 있는 등급이 아닙니다. 등업게시판 안내를 확인해 주세요." },
       { status: 403 }

@@ -1,32 +1,24 @@
 "use client";
 
 /**
- * 커뮤니티 방문 기록 (등업 조건 "방문 N일" 집계용)
- * 하루 1회만 서버에 기록한다. localStorage로 같은 날 중복 호출을 막고,
- * 서버에서도 (user_id, visit_date) 기본키로 중복이 걸러진다.
+ * 커뮤니티 방문 기록 + 등급 재계산 트리거
+ * 서버가 (user_id, visit_date) 기본키로 하루 1회만 기록하고,
+ * 같은 요청에서 활동 점수·등급을 갱신한다. 세션당 1회만 호출한다.
  */
 import { useEffect } from "react";
 
 export default function VisitTracker() {
   useEffect(() => {
-    const today = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Seoul" });
-    const key = `bibl-community-visit-${today}`;
+    // 방문 기록은 서버에서 (user_id, 날짜) 기준으로 하루 1회만 쌓이고,
+    // 이 호출은 등급 재계산도 겸하므로 세션당 1회 보낸다.
+    const key = "bibl-community-visit-sent";
     try {
-      if (localStorage.getItem(key)) return;
+      if (sessionStorage.getItem(key)) return;
+      sessionStorage.setItem(key, "1");
     } catch {
-      // localStorage 불가 환경이면 서버 중복 방지에 맡긴다
+      // sessionStorage 불가 환경이면 그대로 진행한다
     }
-    // 기록 성공을 확인한 뒤에만 마킹한다 (실패한 날의 방문이 영구 누락되지 않도록)
-    fetch("/api/community/visit", { method: "POST" })
-      .then((res) => {
-        if (!res.ok) return;
-        try {
-          localStorage.setItem(key, "1");
-        } catch {
-          /* 무시 */
-        }
-      })
-      .catch(() => {});
+    fetch("/api/community/visit", { method: "POST" }).catch(() => {});
   }, []);
 
   return null;

@@ -25,6 +25,11 @@ export async function POST(req: NextRequest) {
   const post = await getPost(postId);
   if (!post) return NextResponse.json({ message: "글을 찾을 수 없습니다." }, { status: 404 });
 
+  // 자기 글에 자기가 누르는 좋아요는 막는다 (활동 점수 우회 차단)
+  if (post.author_id && post.author_id === user.id) {
+    return NextResponse.json({ message: "자기 글에는 좋아요를 누를 수 없습니다." }, { status: 400 });
+  }
+
   const { data: existing } = await db
     .from("community_post_likes")
     .select("post_id")

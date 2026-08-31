@@ -11,9 +11,12 @@ import {
   type Attachment,
   type PostSummary,
   type MemberGrade,
+  type Membership,
   type Viewer,
+  GUEST_MEMBERSHIP,
+  gradeForPoints,
   PAGE_SIZE,
-  PROMOTION_CRITERIA,
+  POINT_RULES,
   BRAND_AUTHOR_EMAILS,
   BRAND_AVATAR_EMAIL,
   canModerateCommunity,
@@ -223,70 +226,138 @@ export async function getRecentBoardIds(days = 3): Promise<Set<string>> {
   return new Set(((data ?? []) as { board_id: string }[]).map((r) => r.board_id));
 }
 
-// ── 회원 등급 (4단계: 새싹·크리에이터·팀비블·운영진) ────────────
+// ── 회원 등급 (활동 5단계 + 팀비블 멤버십) ──────────────────────
 /**
- * 뷰어의 등급을 조회한다. 운영진은 항상 4.
- * 등급 행이 없으면 새싹(1)이며, 새싹은 조회 시점에 자동 등업 조건을 검사한다.
- * community_member_grades 테이블이 아직 없는 환경(마이그레이션 전)에서는
- * 기존 동작을 깨지 않도록 크리에이터(2)로 취급한다.
+ * 뷰어의 신분을 조회한다. 운영자는 항상 6등급.
+ * 본인 방문 시점에 활동 점수를 다시 계산해 저장하므로, 글·댓글·좋아요가
+ * 쌓이면 다음 방문에서 자동으로 승급된다.
+ * 등급 테이블이 없는 환경(마이그레이션 전)에서는 브론즈로 취급해 기존 동작을 지킨다.
  */
-export async function getViewerGrade(user: Viewer | null): Promise<MemberGrade> {
-  if (!user) return 1;
-  if (canModerateCommunity(user)) return 4;
+export async function getViewerMembership(user: Viewer | null): Promise<Membership> {
+  if (!user) return GUEST_MEMBERSHIP;
+  if (canModerateCommunity(user)) return { grade: 6, points: 0, isTeambibl: true };
   const db = getSupabase();
-  if (!db) return 2;
+  if (!db) return { grade: 2, points: 0, isTeambibl: false };
 
   const { data, error } = await db
     .from("community_member_grades")
-    .select("grade")
+    .select("grade, points, is_teambibl")
     .eq("user_id", user.id)
     .maybeSingle();
   if (error) {
-    // 테이블 미적용(마이그레이션 전)만 기존 동작(크리에이터)으로 폴백하고,
-    // 그 외 일시 오류는 fail-closed(새싹)로 좁힌다.
     const code = (error as { code?: string }).code ?? "";
-    return code === "42P01" || code === "PGRST205" ? 2 : 1;
+    const missing = code === "42P01" || code === "PGRST205" || code === "42703";
+    return { grade: missing ? 2 : 1, points: 0, isTeambibl: false };
   }
 
-  let grade = Math.min(Math.max(Number(data?.grade ?? 1), 1), 3) as MemberGrade;
-  if (grade === 1 && (await meetsPromotionCriteria(user.id))) {
-    // 동시에 운영진이 팀비블(3)을 부여했을 수 있으므로 절대 등급을 내리지 않는 방식으로 승급:
-    // 행이 없으면 2로 생성, 행이 있으면 grade=1 인 경우에만 2로 갱신한다.
-    await db
-      .from("community_member_grades")
-      .upsert(
-        { user_id: user.id, grade: 2, granted_by: "auto", updated_at: new Date().toISOString() },
-        { onConflict: "user_id", ignoreDuplicates: true }
-      );
-    await db
-      .from("community_member_grades")
-      .update({ grade: 2, granted_by: "auto", updated_at: new Date().toISOString() })
-      .eq("user_id", user.id)
-      .eq("grade", 1);
-    grade = 2;
+  const isTeambibl = !!data?.is_teambibl;
+  const storedPoints = Number(data?.points ?? 0);
+  const storedGrade = Math.min(Math.max(Number(data?.grade ?? 1), 1), 5) as MemberGrade;
+
+  const computed = await computePoints(user.id);
+  if (computed === null) {
+    // 집계 실패 — 저장된 값을 그대로 쓴다 (0점으로 덮어써 강등시키지 않는다)
+    return { grade: storedGrade, points: storedPoints, isTeambibl };
   }
-  return grade;
+
+  const points = computed;
+  // 한 번 오른 등급은 내려가지 않는다 (글 삭제·규칙 변경으로 강등되는 불쾌감 방지)
+  const grade = Math.max(gradeForPoints(points), storedGrade) as MemberGrade;
+
+  if (!data || storedPoints !== points || storedGrade !== grade) {
+    const patch: Record<string, unknown> = {
+      user_id: user.id,
+      grade,
+      points,
+      updated_at: new Date().toISOString(),
+    };
+    // granted_by 는 운영자가 남긴 값이므로 신규 행에만 기록한다
+    if (!data) patch.granted_by = "auto";
+    await db.from("community_member_grades").upsert(patch, { onConflict: "user_id" });
+  }
+
+  return { grade, points, isTeambibl };
 }
 
-/** 새싹 → 크리에이터 자동 등업 조건 충족 여부 (게시글·댓글·방문일·좋아요) */
-async function meetsPromotionCriteria(userId: string): Promise<boolean> {
+/** 서울 기준 날짜(YYYY-MM-DD) */
+function seoulDay(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso.slice(0, 10);
+  return d.toLocaleDateString("en-CA", { timeZone: "Asia/Seoul" });
+}
+
+/** 날짜별 개수에 일일 상한을 적용해 합산한다 (서울 기준 하루) */
+function cappedCount(timestamps: string[], dailyCap: number): number {
+  const byDay = new Map<string, number>();
+  for (const iso of timestamps) {
+    const day = seoulDay(iso);
+    byDay.set(day, (byDay.get(day) ?? 0) + 1);
+  }
+  let total = 0;
+  for (const n of byDay.values()) total += Math.min(n, dailyCap);
+  return total;
+}
+
+/** 연속 출석 보너스 (7일 연속마다) */
+function streakBonus(visitDates: string[]): number {
+  if (visitDates.length === 0) return 0;
+  const days = Array.from(new Set(visitDates)).sort();
+  let bonus = 0;
+  let run = 1;
+  for (let i = 1; i <= days.length; i += 1) {
+    const prev = new Date(`${days[i - 1]}T00:00:00Z`).getTime();
+    const cur = i < days.length ? new Date(`${days[i]}T00:00:00Z`).getTime() : -1;
+    if (cur >= 0 && cur - prev === 86400000) {
+      run += 1;
+    } else {
+      bonus += Math.floor(run / POINT_RULES.streakDays) * POINT_RULES.streakBonus;
+      run = 1;
+    }
+  }
+  return bonus;
+}
+
+/**
+ * 활동 점수 계산 (글·댓글은 일일 상한 적용, 받은 좋아요는 남이 누른 것만)
+ * 원본 데이터에서 매번 다시 계산하므로 규칙을 바꾸면 전원에게 자동 반영된다.
+ * 조회가 하나라도 실패하면 null 을 돌려준다 — 0점으로 잘못 저장해 강등시키지 않기 위해서다.
+ */
+export async function computePoints(userId: string): Promise<number | null> {
   const db = getSupabase();
-  if (!db) return false;
-  const [posts, comments, visits, likes] = await Promise.all([
-    db.from("community_posts").select("id", { count: "exact", head: true })
-      .eq("author_id", userId).eq("status", "published"),
-    db.from("community_comments").select("id", { count: "exact", head: true })
-      .eq("author_id", userId).eq("status", "published"),
-    db.from("community_visits").select("visit_date", { count: "exact", head: true })
-      .eq("user_id", userId),
-    db.from("community_post_likes").select("post_id", { count: "exact", head: true })
-      .eq("user_id", userId),
+  if (!db) return null;
+
+  const [postRes, commentRes, visitRes] = await Promise.all([
+    db.from("community_posts").select("id, created_at")
+      .eq("author_id", userId).eq("status", "published").limit(2000),
+    db.from("community_comments").select("created_at")
+      .eq("author_id", userId).eq("status", "published").limit(2000),
+    db.from("community_visits").select("visit_date").eq("user_id", userId).limit(2000),
   ]);
+  if (postRes.error || commentRes.error || visitRes.error) return null;
+
+  const posts = postRes.data ?? [];
+  const comments = commentRes.data ?? [];
+  const visits = (visitRes.data ?? []).map((v) => String(v.visit_date));
+
+  // 받은 좋아요: 자기 자신이 누른 것은 제외한다 (자기 좋아요로 점수를 올리는 우회 차단)
+  let likesReceived = 0;
+  const postIds = posts.map((p) => p.id as string);
+  for (let i = 0; i < postIds.length; i += 200) {
+    const { count, error } = await db
+      .from("community_post_likes")
+      .select("post_id", { count: "exact", head: true })
+      .in("post_id", postIds.slice(i, i + 200))
+      .neq("user_id", userId);
+    if (error) return null;
+    likesReceived += count ?? 0;
+  }
+
   return (
-    (posts.count ?? 0) >= PROMOTION_CRITERIA.posts &&
-    (comments.count ?? 0) >= PROMOTION_CRITERIA.comments &&
-    (visits.count ?? 0) >= PROMOTION_CRITERIA.visitDays &&
-    (likes.count ?? 0) >= PROMOTION_CRITERIA.likesGiven
+    cappedCount(posts.map((p) => String(p.created_at)), POINT_RULES.postDailyCap) * POINT_RULES.post +
+    cappedCount(comments.map((c) => String(c.created_at)), POINT_RULES.commentDailyCap) * POINT_RULES.comment +
+    likesReceived * POINT_RULES.likeReceived +
+    visits.length * POINT_RULES.visitDay +
+    streakBonus(visits)
   );
 }
 
@@ -300,17 +371,23 @@ export async function recordVisit(userId: string): Promise<void> {
     .upsert({ user_id: userId, visit_date: today }, { onConflict: "user_id,visit_date", ignoreDuplicates: true });
 }
 
-/** 운영진이 등급을 수동 지정한다 (팀비블 부여·해제 등) */
-export async function setMemberGrade(
+/** 운영자가 팀비블(수강생) 멤버십을 부여·해제한다 */
+export async function setTeambibl(
   userId: string,
-  grade: MemberGrade,
+  isTeambibl: boolean,
   grantedBy: string
 ): Promise<string | null> {
   const db = getSupabase();
   if (!db) return "DB 미연결";
-  const { error } = await db
-    .from("community_member_grades")
-    .upsert({ user_id: userId, grade, granted_by: grantedBy, updated_at: new Date().toISOString() });
+  const { error } = await db.from("community_member_grades").upsert(
+    {
+      user_id: userId,
+      is_teambibl: isTeambibl,
+      granted_by: grantedBy,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "user_id" }
+  );
   return error ? error.message : null;
 }
 
@@ -322,23 +399,20 @@ export interface GradeMember {
   name: string | null;
 }
 
-/** 수동 관리 대상 등급(팀비블 3단계) 회원 목록 */
-export async function listGradeMembers(grade: number): Promise<GradeMember[]> {
+/** 팀비블 수강생 목록 */
+export async function listTeambiblMembers(): Promise<GradeMember[]> {
   const db = getSupabase();
   if (!db) return [];
   const { data, error } = await db
     .from("community_member_grades")
     .select("user_id, grade, granted_by")
-    .eq("grade", grade)
+    .eq("is_teambibl", true)
     .order("updated_at", { ascending: false })
     .limit(200);
   if (error || !data?.length) return [];
 
   const ids = data.map((r) => r.user_id);
-  const { data: profiles } = await db
-    .from("profiles")
-    .select("id, email, first_name")
-    .in("id", ids);
+  const { data: profiles } = await db.from("profiles").select("id, email, first_name").in("id", ids);
   const byId = new Map((profiles ?? []).map((p) => [p.id, p]));
   return data.map((r) => ({
     user_id: r.user_id,
@@ -349,15 +423,14 @@ export async function listGradeMembers(grade: number): Promise<GradeMember[]> {
   }));
 }
 
-/** 이메일로 회원 프로필 조회 (등급 부여용 · 대소문자 무시 정확 일치) */
+/** 이메일로 회원 프로필 조회 (팀비블 부여용 · 대소문자 무시 정확 일치) */
 export async function findProfileByEmail(
   email: string
 ): Promise<{ id: string; email: string } | null> {
   const db = getSupabase();
   if (!db) return null;
   // ilike 는 % _ 를 와일드카드로 해석하므로 이스케이프해 "정확 일치"로만 쓴다
-  // (john_doe 입력이 johnXdoe 계정에 매칭되는 사고 방지)
-  const exact = email.trim().replace(/[\\%_]/g, "\\$&");
+  const exact = email.trim().replace(/[\\%_*]/g, "\\$&");
   const { data } = await db
     .from("profiles")
     .select("id, email")
@@ -596,6 +669,7 @@ export async function getGradeMap(
     db.from("community_member_grades").select("user_id, grade").in("user_id", ids),
   ]);
 
+  // 등급 테이블·컬럼이 없는 환경에서는 브론즈로 취급해 표시가 깨지지 않게 한다
   const tableMissing = !!gradeRes.error;
   const stored = new Map<string, number>(
     (gradeRes.data ?? []).map((r) => [r.user_id as string, Number(r.grade)])
@@ -605,11 +679,11 @@ export async function getGradeMap(
   for (const p of profiles ?? []) {
     const id = p.id as string;
     if (canModerateCommunity({ email: p.email ?? "", plan: p.plan ?? "" })) {
-      out[id] = 4;
+      out[id] = 6; // 운영자
       continue;
     }
     const g = stored.get(id) ?? (tableMissing ? 2 : 1);
-    out[id] = Math.min(Math.max(g, 1), 3) as MemberGrade;
+    out[id] = Math.min(Math.max(g, 1), 5) as MemberGrade;
   }
   return out;
 }

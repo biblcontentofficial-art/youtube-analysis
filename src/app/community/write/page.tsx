@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { currentUser } from "@/lib/auth";
 import { getSupabase } from "@/lib/supabase";
-import { getBoards, getPost, getViewerGrade } from "@/lib/communityDb";
+import { getBoards, getPost, getViewerMembership } from "@/lib/communityDb";
 import {
   canManagePost,
   canModerateCommunity,
@@ -50,8 +50,8 @@ export default async function CommunityWritePage({
   const canModerate = canModerateCommunity(viewer);
 
   // 글쓰기 가능한 게시판만 노출 (회원 등급 기준)
-  const [allBoards, grade] = await Promise.all([getBoards(), getViewerGrade(viewer)]);
-  const writable = allBoards.filter((b) => canWriteBoard(b, viewer, grade));
+  const [allBoards, membership] = await Promise.all([getBoards(), getViewerMembership(viewer)]);
+  const writable = allBoards.filter((b) => canWriteBoard(b, viewer, membership));
 
   // ── 수정 모드 ─────────────────────────────────────────────
   if (postId) {

@@ -402,8 +402,8 @@ export default function BoardManager({ boards }: Props) {
               className={`${INPUT_LG} mt-2`}
             >
               <option value="all">새싹부터</option>
-              <option value="member">크리에이터부터</option>
-              <option value="teambibl">팀비블부터</option>
+              <option value="member">브론즈부터</option>
+              <option value="teambibl">팀비블 수강생</option>
               <option value="staff">운영진만</option>
             </select>
           </div>
@@ -562,7 +562,7 @@ export default function BoardManager({ boards }: Props) {
                           className={`${INPUT} w-36 min-w-[8.5rem]`}
                         >
                           <option value="all">새싹부터</option>
-                          <option value="member">크리에이터</option>
+                          <option value="member">브론즈</option>
                           <option value="teambibl">팀비블</option>
                           <option value="staff">운영진</option>
                         </select>

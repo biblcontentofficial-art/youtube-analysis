@@ -7,11 +7,19 @@ import type { Metadata } from "next";
 import MemberAvatar from "../_components/MemberAvatar";
 import Link from "next/link";
 import { currentUser } from "@/lib/auth";
-import { getAvatarMap, getGradeMap, getMemberRanking, getPointsMap } from "@/lib/communityDb";
 import {
-  LEVEL_THRESHOLDS,
-  levelForPoints,
-  pointsToNextLevel,
+  getAvatarMap,
+  getGradeMap,
+  getMemberRanking,
+  getPointsMap,
+  getViewerMembership,
+} from "@/lib/communityDb";
+import {
+  GRADE_THRESHOLDS,
+  GRADE_NAMES,
+  GRADE_EMOJI,
+  gradeForPoints,
+  pointsToNextGrade,
   displayName,
 } from "@/lib/community";
 
@@ -67,13 +75,20 @@ export default async function RankingPage({ searchParams }: Props) {
     getGradeMap(peopleIds),
   ]);
 
-  const myPoints = user ? allTimePoints[user.id] ?? 0 : 0;
-  const myLevel = levelForPoints(myPoints);
-  const myNext = pointsToNextLevel(myPoints);
+  // 내 카드는 활동 점수 기준 (리더보드의 좋아요 점수와 척도가 다르므로 분리한다)
+  const myMembership = user
+    ? await getViewerMembership({ id: user.id, email: user.email, plan: user.plan })
+    : null;
+  const myPoints = myMembership?.points ?? 0;
+  const myGrade = myMembership?.grade ?? gradeForPoints(0);
+  const myNext = pointsToNextGrade(myPoints);
 
   return (
     <div className="space-y-6">
       <h2 className="text-xl font-bold tracking-tight text-white">랭킹</h2>
+      <p className="-mt-3 text-xs text-neutral-500">
+        아래 순위는 기간 내 받은 좋아요 수 기준입니다. 등급은 활동 점수로 오릅니다.
+      </p>
 
       {/* 내 순위 카드 */}
       {user && (
@@ -86,7 +101,7 @@ export default async function RankingPage({ searchParams }: Props) {
             />
             <div className="min-w-0">
               <p className="text-sm font-bold text-white">
-                내 점수 <span className="tabular-nums">{myPoints.toLocaleString("ko-KR")}</span>점 · LV.{myLevel}
+                내 활동 점수 <span className="tabular-nums">{myPoints.toLocaleString("ko-KR")}</span>점 · {GRADE_EMOJI[myGrade]} {GRADE_NAMES[myGrade]}
               </p>
               {myPoints === 0 ? (
                 <p className="mt-0.5 text-xs text-neutral-400">
@@ -94,10 +109,11 @@ export default async function RankingPage({ searchParams }: Props) {
                 </p>
               ) : myNext !== null ? (
                 <p className="mt-0.5 text-xs text-neutral-400">
-                  다음 레벨까지 <span className="tabular-nums">{myNext.toLocaleString("ko-KR")}</span>점
+                  {GRADE_NAMES[myNext.next]}까지{" "}
+                  <span className="tabular-nums">{myNext.remain.toLocaleString("ko-KR")}</span>점
                 </p>
               ) : (
-                <p className="mt-0.5 text-xs text-neutral-400">최고 레벨에 도달했어요.</p>
+                <p className="mt-0.5 text-xs text-neutral-400">최고 등급에 도달했어요.</p>
               )}
             </div>
           </div>
@@ -135,7 +151,7 @@ export default async function RankingPage({ searchParams }: Props) {
             {ranking.map((member, i) => {
               const rank = i + 1;
               const name = displayName(member.author_name);
-              const level = levelForPoints(allTimePoints[member.author_id] ?? 0);
+              const memberGrade = gradeMap[member.author_id] ?? gradeForPoints(allTimePoints[member.author_id] ?? 0);
               return (
                 <li
                   key={member.author_id}
@@ -155,7 +171,7 @@ export default async function RankingPage({ searchParams }: Props) {
                   />
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-semibold text-white">{name}</p>
-                    <p className="text-xs text-neutral-500">LV.{level}</p>
+                    <p className="text-xs text-neutral-500">{GRADE_EMOJI[memberGrade]} {GRADE_NAMES[memberGrade]}</p>
                   </div>
                   <span className="shrink-0 text-sm font-bold tabular-nums text-[#00E5A0]">
                     +{member.points.toLocaleString("ko-KR")}
@@ -167,20 +183,23 @@ export default async function RankingPage({ searchParams }: Props) {
         )}
       </section>
 
-      {/* 포인트 안내 */}
+      {/* 점수·등급 안내 */}
       <section className="space-y-3">
         <p className="text-sm text-neutral-400">
-          다른 멤버가 내 글에 좋아요를 누르면 1점을 얻어요.
+          글 +5점(하루 3편까지) · 댓글 +1점(하루 5개까지) · 내 글이 받은 좋아요 +3점(상한 없음) ·
+          출석 +1점 · 7일 연속 출석 +10점
         </p>
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-          {LEVEL_THRESHOLDS.map((threshold, i) => (
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+          {([1, 2, 3, 4, 5] as const).map((g) => (
             <div
-              key={i}
+              key={g}
               className="rounded-xl border border-neutral-800 bg-neutral-900 px-3 py-2 text-xs"
             >
-              <span className="font-bold text-white">LV.{i + 1}</span>
+              <span className="font-bold text-white">
+                {GRADE_EMOJI[g]} {GRADE_NAMES[g]}
+              </span>
               <span className="text-neutral-400">
-                {" "}· <span className="tabular-nums">{threshold.toLocaleString("ko-KR")}</span>점
+                {" "}· <span className="tabular-nums">{GRADE_THRESHOLDS[g].toLocaleString("ko-KR")}</span>점
               </span>
             </div>
           ))}
