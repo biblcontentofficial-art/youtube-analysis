@@ -12,15 +12,24 @@ export default function TrackVisit({ page }: { page: string }) {
     const key = `bibl-track-${page}`;
     try {
       if (sessionStorage.getItem(key)) return;
-      sessionStorage.setItem(key, "1");
     } catch {
       // sessionStorage 불가 환경이면 그대로 진행
     }
+    // 기록에 성공한 뒤에만 표시한다 (한 번 실패했다고 그 세션 방문이 영영 누락되지 않도록)
     fetch("/api/track", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ page, referrer: document.referrer || null }),
-    }).catch(() => {});
+    })
+      .then((res) => {
+        if (!res.ok) return;
+        try {
+          sessionStorage.setItem(key, "1");
+        } catch {
+          /* 무시 */
+        }
+      })
+      .catch(() => {});
   }, [page]);
 
   return null;
