@@ -6,7 +6,14 @@
 
 import Link from "next/link";
 import { currentUser } from "@/lib/auth";
-import { getBoards, getPointsMap, getRecentBoardIds, listFeed, listPosts } from "@/lib/communityDb";
+import {
+  getAvatarMap,
+  getBoards,
+  getGradeMap,
+  getRecentBoardIds,
+  listFeed,
+  listPosts,
+} from "@/lib/communityDb";
 import { PAGE_SIZE, canReadBoard, type PostSummary } from "@/lib/community";
 import CategoryChips from "./_components/CategoryChips";
 import FeedCard from "./_components/FeedCard";
@@ -52,9 +59,8 @@ export default async function CommunityFeedPage({ searchParams }: Props) {
   const noticeBoard = readable.find((b) => b.slug === "notice") ?? null;
   const showPinned = !cat && page === 1 && !q && sort === "recent" && noticeBoard !== null;
 
-  const [{ posts, total }, pointsMap, noticeRows, recentBoardIds] = await Promise.all([
+  const [{ posts, total }, noticeRows, recentBoardIds] = await Promise.all([
     listFeed(feedIds, { page, q, sort }),
-    getPointsMap(),
     showPinned && noticeBoard
       ? listPosts(noticeBoard.id, { page: 1 }).then((r) => r.notices.slice(0, 2))
       : Promise.resolve([]),
@@ -72,6 +78,13 @@ export default async function CommunityFeedPage({ searchParams }: Props) {
   // 상단 고정과 겹치는 공지는 본문 피드에서 뺀다 (같은 카드 중복 방지)
   const pinnedIds = new Set(pinned.map((p) => p.id));
   const feedPosts = posts.filter((p) => !pinnedIds.has(p.id));
+
+  // 작성자 프로필 사진 · 등급 (아바타 배지)
+  const authorIds = [...pinned, ...posts].map((p) => p.author_id);
+  const [avatarMap, gradeMap] = await Promise.all([
+    getAvatarMap(authorIds),
+    getGradeMap(authorIds),
+  ]);
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
@@ -164,7 +177,8 @@ export default async function CommunityFeedPage({ searchParams }: Props) {
           <FeedCard
             key={`pin-${n.id}`}
             post={n}
-            points={n.author_id ? pointsMap[n.author_id] ?? 0 : 0}
+            avatarUrl={n.author_id ? avatarMap[n.author_id] : null}
+            grade={n.author_id ? gradeMap[n.author_id] : undefined}
             pinned
           />
         ))}
@@ -195,7 +209,8 @@ export default async function CommunityFeedPage({ searchParams }: Props) {
             <FeedCard
               key={p.id}
               post={p}
-              points={p.author_id ? pointsMap[p.author_id] ?? 0 : 0}
+              avatarUrl={p.author_id ? avatarMap[p.author_id] : null}
+              grade={p.author_id ? gradeMap[p.author_id] : undefined}
             />
           ))
         )}

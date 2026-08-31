@@ -4,9 +4,10 @@
  * 레벨 배지는 항상 전체 기간 점수 기준으로 계산한다.
  */
 import type { Metadata } from "next";
+import MemberAvatar from "../_components/MemberAvatar";
 import Link from "next/link";
 import { currentUser } from "@/lib/auth";
-import { getMemberRanking, getPointsMap } from "@/lib/communityDb";
+import { getAvatarMap, getGradeMap, getMemberRanking, getPointsMap } from "@/lib/communityDb";
 import {
   LEVEL_THRESHOLDS,
   levelForPoints,
@@ -34,20 +35,7 @@ function sinceFor(period: Period): Date | undefined {
   return undefined;
 }
 
-/** 이니셜 아바타 + 우하단 레벨 배지 (Skool 방식) */
-function LevelAvatar({ name, level }: { name: string; level: number }) {
-  const initial = (name.trim().charAt(0) || "비").toUpperCase();
-  return (
-    <div className="relative shrink-0">
-      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-neutral-800 text-xs font-bold text-white">
-        {initial}
-      </div>
-      <span className="absolute -bottom-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-[#00E5A0] text-[9px] font-black text-black">
-        {level}
-      </span>
-    </div>
-  );
-}
+
 
 interface Props {
   searchParams: Promise<{ p?: string }>;
@@ -72,6 +60,13 @@ export default async function RankingPage({ searchParams }: Props) {
     allTimePoints = await getPointsMap();
   }
 
+  // 프로필 사진 · 등급 (아바타)
+  const peopleIds = [...ranking.map((r) => r.author_id), user?.id];
+  const [avatarMap, gradeMap] = await Promise.all([
+    getAvatarMap(peopleIds),
+    getGradeMap(peopleIds),
+  ]);
+
   const myPoints = user ? allTimePoints[user.id] ?? 0 : 0;
   const myLevel = levelForPoints(myPoints);
   const myNext = pointsToNextLevel(myPoints);
@@ -84,9 +79,10 @@ export default async function RankingPage({ searchParams }: Props) {
       {user && (
         <section className="rounded-xl border border-neutral-800 bg-neutral-900 p-5">
           <div className="flex items-center gap-3">
-            <LevelAvatar
+            <MemberAvatar
               name={displayName(user.firstName, user.email)}
-              level={myLevel}
+              avatarUrl={avatarMap[user.id]}
+              grade={gradeMap[user.id]}
             />
             <div className="min-w-0">
               <p className="text-sm font-bold text-white">
@@ -152,7 +148,11 @@ export default async function RankingPage({ searchParams }: Props) {
                   >
                     {rank}
                   </span>
-                  <LevelAvatar name={name} level={level} />
+                  <MemberAvatar
+                    name={name}
+                    avatarUrl={avatarMap[member.author_id]}
+                    grade={gradeMap[member.author_id]}
+                  />
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-semibold text-white">{name}</p>
                     <p className="text-xs text-neutral-500">LV.{level}</p>

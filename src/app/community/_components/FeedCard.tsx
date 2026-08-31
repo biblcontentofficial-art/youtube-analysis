@@ -5,12 +5,16 @@
  */
 
 import Link from "next/link";
-import { excerpt, levelForPoints, timeAgo, type PostSummary } from "@/lib/community";
+import { excerpt, timeAgo, type MemberGrade, type PostSummary } from "@/lib/community";
+import MemberAvatar from "./MemberAvatar";
 
 interface Props {
   post: PostSummary;
-  points?: number;
   pinned?: boolean;
+  /** 작성자 소셜 프로필 사진 (없으면 이니셜) */
+  avatarUrl?: string | null;
+  /** 작성자 회원 등급 (아바타 배지) */
+  grade?: MemberGrade;
 }
 
 function HeartIcon() {
@@ -65,9 +69,7 @@ function EyeIcon() {
   );
 }
 
-export default function FeedCard({ post, points = 0, pinned = false }: Props) {
-  const level = levelForPoints(points);
-  const initial = (post.author_name ?? "").trim().charAt(0) || "비";
+export default function FeedCard({ post, pinned = false, avatarUrl, grade }: Props) {
   const isNotice = pinned || post.is_notice;
   const href = post.board ? `/community/${post.board.slug}/${post.id}` : "/community";
 
@@ -78,18 +80,7 @@ export default function FeedCard({ post, points = 0, pinned = false }: Props) {
     >
       <div className="flex gap-3.5">
         {/* 아바타 + 레벨 배지 (Skool 방식: 우하단 겹침) */}
-        <div className="relative h-9 w-9 shrink-0">
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-neutral-800 text-xs font-bold text-white">
-            {initial}
-          </div>
-          <span
-            className="absolute -bottom-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-[#00E5A0] text-[9px] font-black text-black"
-            title={`LV.${level}`}
-            aria-label={`레벨 ${level}`}
-          >
-            {level}
-          </span>
-        </div>
+        <MemberAvatar name={post.author_name} avatarUrl={avatarUrl} grade={grade} />
 
         <div className="min-w-0 flex-1">
           {/* 작성자 · 카테고리 · 시각 */}

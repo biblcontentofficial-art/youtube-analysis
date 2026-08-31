@@ -336,20 +336,6 @@ export default async function RootLayout({
                     <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
                   </svg>
                 } />
-                {/* 비블 오픈채팅방 (카카오 오픈채팅, 외부 링크) */}
-                <a
-                  href="https://open.kakao.com/o/gsMC55Jh"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  title="참여코드 230000"
-                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-sm font-semibold bg-white/[0.06] text-white hover:bg-white/[0.10] transition-colors"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
-                    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
-                  </svg>
-                  비블 오픈채팅방
-                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded border border-neutral-700 text-neutral-500 leading-none">코드 230000</span>
-                </a>
                 {/* 유튜브 트렌드 서치 — 분석 기능 허브 */}
                 <NavTab href="/trend-search" label="유튜브 트렌드 서치" highlight icon={
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
@@ -396,15 +382,6 @@ export default async function RootLayout({
                 className="text-xs text-white font-semibold px-2.5 py-1.5 rounded-md whitespace-nowrap bg-white/[0.06]"
               >
                 커뮤니티&자료
-              </a>
-              <a
-                href="https://open.kakao.com/o/gsMC55Jh"
-                target="_blank"
-                rel="noopener noreferrer"
-                title="참여코드 230000"
-                className="text-xs text-white font-semibold px-2.5 py-1.5 rounded-md whitespace-nowrap bg-white/[0.06]"
-              >
-                비블 오픈채팅방
               </a>
               <a
                 href="/trend-search"

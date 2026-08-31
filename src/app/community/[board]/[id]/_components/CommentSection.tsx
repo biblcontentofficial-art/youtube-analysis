@@ -9,9 +9,20 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useConfirm } from "@/app/_components/ConfirmDialog";
-import { MAX_COMMENT_LEN, displayName, timeAgo, type CommunityComment } from "@/lib/community";
+import {
+  MAX_COMMENT_LEN,
+  displayName,
+  timeAgo,
+  type CommunityComment,
+  type MemberGrade,
+} from "@/lib/community";
+import MemberAvatar from "../../../_components/MemberAvatar";
 
 interface Props {
+  /** 작성자 id → 프로필 사진 */
+  avatarMap?: Record<string, string>;
+  /** 작성자 id → 회원 등급 */
+  gradeMap?: Record<string, MemberGrade>;
   postId: string;
   comments: CommunityComment[];
   currentUserId: string | null;
@@ -22,6 +33,8 @@ interface Props {
 export default function CommentSection({
   postId,
   comments,
+  avatarMap = {},
+  gradeMap = {},
   currentUserId,
   canModerate,
   isLoggedIn,
@@ -125,6 +138,12 @@ export default function CommentSection({
     return (
       <div className={isReply ? "" : "py-4"}>
         <div className="flex items-center gap-2 text-xs">
+          <MemberAvatar
+            name={c.author_name}
+            avatarUrl={c.author_id ? avatarMap[c.author_id] : null}
+            grade={c.author_id ? gradeMap[c.author_id] : undefined}
+            size={24}
+          />
           <span className="text-neutral-300 font-bold tracking-tight">
             {displayName(c.author_name)}
           </span>

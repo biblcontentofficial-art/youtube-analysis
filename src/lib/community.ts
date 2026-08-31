@@ -199,6 +199,14 @@ export const GRADE_NAMES: Record<MemberGrade, string> = {
   4: "운영진",
 };
 
+/** 아바타에 붙는 등급 배지 (숫자 레벨 대신 등급을 보여준다) */
+export const GRADE_EMOJI: Record<MemberGrade, string> = {
+  1: "🌱",
+  2: "🎬",
+  3: "💎",
+  4: "👑",
+};
+
 /** 새싹 → 크리에이터 자동 등업 조건 (전부 충족 시) */
 export const PROMOTION_CRITERIA = {
   posts: 1,      // 게시글 1개 이상

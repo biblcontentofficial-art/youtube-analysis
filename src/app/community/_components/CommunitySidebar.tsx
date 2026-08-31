@@ -66,10 +66,10 @@ export default function CommunitySidebar({ boards, stats, counts, recentBoardIds
             href="https://open.kakao.com/o/gsMC55Jh"
             target="_blank"
             rel="noopener noreferrer"
-            title="참여코드 230000"
-            className="rounded-xl border border-neutral-700 bg-neutral-800 px-4 py-2.5 text-center text-sm font-semibold text-white transition hover:bg-neutral-700"
+            className="rounded-xl border border-neutral-700 bg-neutral-800 px-4 py-2.5 text-center transition hover:bg-neutral-700"
           >
-            비블 오픈채팅방
+            <span className="block text-sm font-semibold text-white">비블 오픈채팅방</span>
+            <span className="mt-0.5 block text-xs text-neutral-400">참여코드 230000</span>
           </a>
         </div>
       </div>

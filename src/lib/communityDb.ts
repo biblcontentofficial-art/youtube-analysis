@@ -480,3 +480,94 @@ export async function getPointsMap(): Promise<Record<string, number>> {
   for (const r of ranking) map[r.author_id] = r.points;
   return map;
 }
+
+// ── 프로필 사진 (소셜 로그인 아바타) ────────────────────────────
+/**
+ * auth 사용자 메타데이터의 프로필 사진을 id → URL 로 돌려준다.
+ * (profiles 테이블에는 아바타 컬럼이 없어 admin API 로 조회하고,
+ *  같은 사용자를 매 요청 조회하지 않도록 프로세스 내 캐시를 둔다)
+ */
+const AVATAR_TTL_MS = 10 * 60 * 1000;
+const avatarCache = new Map<string, { url: string | null; at: number }>();
+
+/** 카카오 아바타는 http 로 내려오는 경우가 있어 https 로 올린다 (혼합 콘텐츠 차단 방지) */
+function normalizeAvatar(url: unknown): string | null {
+  if (typeof url !== "string" || !url) return null;
+  const https = url.startsWith("http://") ? `https://${url.slice(7)}` : url;
+  return https.startsWith("https://") ? https : null;
+}
+
+export async function getAvatarMap(
+  userIds: (string | null | undefined)[]
+): Promise<Record<string, string>> {
+  const db = getSupabase();
+  if (!db) return {};
+
+  const now = Date.now();
+  const ids = Array.from(new Set(userIds.filter((v): v is string => !!v)));
+  const out: Record<string, string> = {};
+  const missing: string[] = [];
+
+  for (const id of ids) {
+    const hit = avatarCache.get(id);
+    if (hit && now - hit.at < AVATAR_TTL_MS) {
+      if (hit.url) out[id] = hit.url;
+    } else {
+      missing.push(id);
+    }
+  }
+
+  await Promise.all(
+    missing.map(async (id) => {
+      try {
+        const { data, error } = await db.auth.admin.getUserById(id);
+        if (error) throw error;
+        const meta = data.user?.user_metadata ?? {};
+        const url = normalizeAvatar(meta.avatar_url) ?? normalizeAvatar(meta.picture);
+        avatarCache.set(id, { url, at: Date.now() });
+        if (url) out[id] = url;
+      } catch {
+        // 조회 실패는 이니셜 아바타로 자연스럽게 폴백된다
+        avatarCache.set(id, { url: null, at: Date.now() });
+      }
+    })
+  );
+
+  return out;
+}
+
+/**
+ * 작성자 id → 회원 등급 (아바타 배지용).
+ * 운영진은 프로필의 email·plan 으로 판정하고, 나머지는 등급 테이블을 따른다.
+ * 등급 테이블이 없는 환경에서는 크리에이터(2)로 취급해 표시가 깨지지 않게 한다.
+ */
+export async function getGradeMap(
+  userIds: (string | null | undefined)[]
+): Promise<Record<string, MemberGrade>> {
+  const db = getSupabase();
+  if (!db) return {};
+  const ids = Array.from(new Set(userIds.filter((v): v is string => !!v)));
+  if (ids.length === 0) return {};
+
+  const [{ data: profiles }, gradeRes] = await Promise.all([
+    db.from("profiles").select("id, email, plan").in("id", ids),
+    db.from("community_member_grades").select("user_id, grade").in("user_id", ids),
+  ]);
+
+  const tableMissing = !!gradeRes.error;
+  const stored = new Map<string, number>(
+    (gradeRes.data ?? []).map((r) => [r.user_id as string, Number(r.grade)])
+  );
+
+  const out: Record<string, MemberGrade> = {};
+  for (const p of profiles ?? []) {
+    const id = p.id as string;
+    if (canModerateCommunity({ email: p.email ?? "", plan: p.plan ?? "" })) {
+      out[id] = 4;
+      continue;
+    }
+    const g = stored.get(id) ?? (tableMissing ? 2 : 1);
+    out[id] = Math.min(Math.max(g, 1), 3) as MemberGrade;
+  }
+  return out;
+}

@@ -21,8 +21,10 @@ import {
 } from "@/lib/community";
 import {
   getAttachments,
+  getAvatarMap,
   getBoard,
   getComments,
+  getGradeMap,
   getPost,
   hasLiked,
 } from "@/lib/communityDb";
@@ -31,6 +33,7 @@ import CommentSection from "./_components/CommentSection";
 import LikeButton from "./_components/LikeButton";
 import PostActions from "./_components/PostActions";
 import ViewTracker from "./_components/ViewTracker";
+import MemberAvatar from "../../_components/MemberAvatar";
 
 export const dynamic = "force-dynamic";
 
@@ -232,6 +235,13 @@ export default async function CommunityPostPage({ params }: { params: Params }) 
 
   const canManage = canManagePost(post, viewer);
 
+  // 작성자·댓글 작성자의 프로필 사진과 등급 (아바타)
+  const peopleIds = [post.author_id, ...comments.map((c) => c.author_id)];
+  const [avatarMap, gradeMap] = await Promise.all([
+    getAvatarMap(peopleIds),
+    getGradeMap(peopleIds),
+  ]);
+
   return (
     <div>
       <ViewTracker postId={post.id} skip={isModerator || isAuthor} />
@@ -266,6 +276,12 @@ export default async function CommunityPostPage({ params }: { params: Params }) 
         </h1>
 
         <div className="mt-4 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-neutral-500">
+          <MemberAvatar
+            name={post.author_name}
+            avatarUrl={post.author_id ? avatarMap[post.author_id] : null}
+            grade={post.author_id ? gradeMap[post.author_id] : undefined}
+            size={28}
+          />
           <span className="text-neutral-400">{displayName(post.author_name)}</span>
           <span aria-hidden="true">·</span>
           <span>{timeAgo(post.created_at)}</span>
@@ -302,6 +318,8 @@ export default async function CommunityPostPage({ params }: { params: Params }) 
       <CommentSection
         postId={post.id}
         comments={comments}
+        avatarMap={avatarMap}
+        gradeMap={gradeMap}
         currentUserId={viewer?.id ?? null}
         canModerate={isModerator}
         isLoggedIn={!!viewer}
