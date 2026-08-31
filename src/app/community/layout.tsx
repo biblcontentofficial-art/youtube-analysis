@@ -53,6 +53,18 @@ export default async function CommunityLayout({ children }: { children: ReactNod
     <div className="min-h-screen bg-black">
       {/* 등업 조건(방문일) 집계 — 하루 1회 기록 */}
       <VisitTracker />
+      {/* 커뮤니티 배너 (원본 비율 유지) */}
+      <div className="mx-auto max-w-screen-xl px-4 pt-4">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/community-images/community-banner.png"
+          alt=""
+          width={1080}
+          height={340}
+          className="h-auto w-full rounded-2xl border border-neutral-800"
+        />
+      </div>
+
       <div className="mx-auto max-w-screen-xl px-4 py-6 lg:py-8">
         {/* 헤더 */}
         <div className="flex items-start justify-between gap-4">

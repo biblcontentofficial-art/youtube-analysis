@@ -86,11 +86,12 @@ function linkify(text: string): ReactNode[] {
   return nodes;
 }
 
-// ── 블로그형 본문 렌더 ─────────────────────────────────────────────
-// 한 줄이 이미지 URL(외부 https 또는 사이트 절대경로)이면 <img>로,
-// "## "으로 시작하면 소제목으로, 나머지는 linkify된 문단으로 그린다.
+// ── 블록형 본문 렌더 ───────────────────────────────────────────────
+// 한 줄이 이미지·유튜브 주소면 그대로 삽입하고, "## " 소제목, "> " 인용, "---" 구분선을 지원한다.
 const IMG_LINE_RE =
-  /^(https?:\/\/[^\s<>"']+\.(?:png|jpe?g|webp|gif)(?:\?[^\s<>"']*)?|\/[A-Za-z0-9_\-/.]+\.(?:png|jpe?g|webp|gif))$/i;
+  /^(https?:\/\/[^\s<>"']+\.(?:png|jpe?g|webp|gif)(?:\?[^\s<>"']*)?|\/api\/community\/image\?p=[^\s<>"']+|\/[A-Za-z0-9_\-/.]+\.(?:png|jpe?g|webp|gif))$/i;
+const YT_LINE_RE =
+  /^https?:\/\/(?:www\.)?(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([\w-]{6,})\S*$/i;
 
 function renderContent(text: string): ReactNode[] {
   const nodes: ReactNode[] = [];
@@ -110,10 +111,12 @@ function renderContent(text: string): ReactNode[] {
 
   for (const line of text.split("\n")) {
     const t = line.trim();
+    const yt = t.match(YT_LINE_RE);
+
     if (IMG_LINE_RE.test(t)) {
       flush();
       nodes.push(
-        // 본문 이미지는 사용자가 넣은 URL 그대로 그린다 (정규식으로 형태 검증됨)
+        // 본문 이미지는 형태를 정규식으로 검증한 주소만 그린다
         // eslint-disable-next-line @next/next/no-img-element
         <img
           key={`i${key++}`}
@@ -123,12 +126,41 @@ function renderContent(text: string): ReactNode[] {
           className="my-6 w-full rounded-2xl border border-neutral-800"
         />
       );
+    } else if (yt) {
+      flush();
+      nodes.push(
+        <div
+          key={`v${key++}`}
+          className="my-6 aspect-video w-full overflow-hidden rounded-2xl border border-neutral-800"
+        >
+          <iframe
+            src={`https://www.youtube-nocookie.com/embed/${yt[1]}`}
+            title="YouTube video"
+            allow="accelerometer; clipboard-write; encrypted-media; picture-in-picture"
+            allowFullScreen
+            className="h-full w-full"
+          />
+        </div>
+      );
+    } else if (t === "---") {
+      flush();
+      nodes.push(<hr key={`h${key++}`} className="my-8 border-neutral-800" />);
     } else if (t.startsWith("## ")) {
       flush();
       nodes.push(
-        <h3 key={`h${key++}`} className="mb-3 mt-9 text-lg font-bold tracking-tight text-white lg:text-xl">
+        <h3 key={`t${key++}`} className="mb-3 mt-9 text-lg font-bold tracking-tight text-white lg:text-xl">
           {t.slice(3)}
         </h3>
+      );
+    } else if (t.startsWith("> ")) {
+      flush();
+      nodes.push(
+        <blockquote
+          key={`q${key++}`}
+          className="my-5 border-l-2 border-neutral-600 py-1 pl-4 italic text-neutral-300"
+        >
+          {linkify(t.slice(2))}
+        </blockquote>
       );
     } else {
       buf.push(line);

@@ -19,6 +19,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createSupabaseBrowser } from "@/lib/supabase/browser";
+import BlockEditor from "./BlockEditor";
 import {
   ALLOWED_FILE_EXT,
   MAX_CONTENT_LEN,
@@ -377,16 +378,13 @@ export default function PostForm({
               {content.length.toLocaleString()}/{MAX_CONTENT_LEN.toLocaleString()}
             </span>
           </div>
-          <textarea
-            id="content"
-            ref={textareaRef}
-            rows={16}
-            value={content}
-            onChange={(e) => setContent(e.target.value.slice(0, MAX_CONTENT_LEN))}
-            placeholder="내용을 입력하세요"
-            disabled={saving || locked}
-            className={`${INPUT} mt-2 min-h-[472px] resize-none overflow-hidden leading-7 disabled:opacity-60`}
-          />
+          <div className="mt-2">
+            <BlockEditor
+              value={content}
+              onChange={(next) => setContent(next.slice(0, MAX_CONTENT_LEN))}
+              disabled={saving || locked}
+            />
+          </div>
         </div>
 
         {locked && (
