@@ -873,59 +873,32 @@ export default function StudioPage() {
             명확한 가격으로 안내합니다
           </h2>
           <p data-animate="up" data-delay="160" className="mt-6 mb-12 text-lg md:text-2xl font-bold text-white">
-            기본 구성 · 월 콘텐츠 발행량 <span className="text-[#E5484D]">롱폼 4개 + 롱폼 재가공 쇼츠 10개</span>
+            기본 구성 · 월 콘텐츠 발행량 <span className="text-[#E5484D]">롱폼 4개 + 쇼츠(롱폼 리프레이밍) 4개</span>
           </p>
 
-          <div className="grid md:grid-cols-3 gap-6">
-            {[
-              {
-                name: "기본 패키지",
-                desc: "기획 · 편집 · 업로드 · 채널관리",
-                note: "촬영 미포함 (본인 직접 촬영)",
-                price: "₩3,500,000",
-                priceCaption: "부가세(VAT) 포함",
-                per: true,
-                delay: 0,
-              },
-              {
-                name: "촬영 포함 패키지",
-                desc: "기획 · 편집 · 업로드 · 채널관리",
-                note: "+ 현장촬영 및 비블 디렉팅",
-                price: "₩4,000,000",
-                priceCaption: "부가세(VAT) 포함",
-                per: true,
-                delay: 100,
-              },
-              {
-                name: "야외·해외 촬영 패키지",
-                desc: "기획 · 편집 · 업로드 · 채널관리",
-                note: "+ 야외 및 해외 현장촬영, 비블 디렉팅",
-                price: "가격 협의",
-                priceCaption: "촬영 지역·일정에 따라 견적",
-                per: false,
-                delay: 200,
-              },
-            ].map((p) => (
-              <div
-                key={p.name}
-                data-animate="up"
-                data-delay={String(p.delay)}
-                className="flex flex-col justify-between rounded-3xl border border-neutral-800 bg-neutral-900 p-8 md:p-10 min-h-[280px]"
-              >
-                <div>
-                  <h3 className="text-xl md:text-2xl font-black text-white mb-2">{p.name}</h3>
-                  <p className="text-sm text-neutral-400">{p.desc}</p>
-                  <p className="text-sm text-neutral-400 mt-0.5">{p.note}</p>
-                </div>
-                <div className="mt-10 text-right">
-                  <p className="text-xs text-neutral-500 mb-1.5">{p.priceCaption}</p>
-                  <p className="text-3xl md:text-4xl font-black text-white tracking-tight">
-                    {p.price}
-                    {p.per && <span className="text-lg font-bold text-neutral-500">/월</span>}
-                  </p>
-                </div>
+          <div className="mx-auto max-w-2xl">
+            <div
+              data-animate="up"
+              className="flex flex-col justify-between rounded-3xl border border-neutral-800 bg-neutral-900 p-8 md:p-10 min-h-[260px]"
+            >
+              <div>
+                <h3 className="text-xl md:text-2xl font-black text-white mb-2">비블 유튜브 대행 패키지</h3>
+                <p className="text-sm text-neutral-400">
+                  기획 · 촬영 · 편집 · 업로드 · 채널관리 · 비블 디렉팅
+                </p>
               </div>
-            ))}
+              <div className="mt-10 text-right">
+                <p className="text-xs text-neutral-500 mb-1.5">부가세(VAT) 미포함</p>
+                <p className="text-3xl md:text-4xl font-black text-white tracking-tight">
+                  ₩3,500,000
+                  <span className="text-lg font-bold text-neutral-500">/월</span>
+                </p>
+              </div>
+            </div>
+
+            <p data-animate="up" data-delay="120" className="mt-5 text-sm text-neutral-400">
+              * 야외 · 해외 촬영 패키지 : 가격 협의
+            </p>
           </div>
 
           <p data-animate="fade" data-delay="200" className="mt-8 text-xs text-neutral-600">
