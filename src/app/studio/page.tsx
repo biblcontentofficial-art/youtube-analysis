@@ -888,7 +888,7 @@ export default function StudioPage() {
                 </p>
               </div>
               <div className="mt-10 text-right">
-                <p className="text-xs text-neutral-500 mb-1.5">부가세(VAT) 미포함</p>
+                <p className="text-xs text-neutral-500 mb-1.5">부가세(VAT) 별도</p>
                 <p className="text-3xl md:text-4xl font-black text-white tracking-tight">
                   ₩3,500,000
                   <span className="text-lg font-bold text-neutral-500">/월</span>
