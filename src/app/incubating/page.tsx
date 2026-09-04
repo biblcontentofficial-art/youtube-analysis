@@ -12,6 +12,9 @@ import { excerpt } from "@/lib/community";
 import PostContent from "../community/_components/PostContent";
 import TrackVisit from "@/app/_components/TrackVisit";
 
+// 정적 프리렌더 + 60초 ISR. (revalidate 가 없으면 빌드 시점 내용에서 멈춰 글 수정이 반영되지 않는다)
+export const revalidate = 60;
+
 /** 원본 글: 커뮤니티 "유튜브 인큐베이팅 지원하세요!" 게시판 공지 */
 const INCUBATING_POST_ID = "09605c8c-be44-4037-bcee-6a9c13337f95";
 

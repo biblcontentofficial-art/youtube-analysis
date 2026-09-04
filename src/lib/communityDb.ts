@@ -40,7 +40,7 @@ export const getBoards = cache(async (): Promise<Board[]> => {
   return (data ?? []) as Board[];
 })
 
-export async function getBoard(slug: string): Promise<Board | null> {
+export const getBoard = cache(async (slug: string): Promise<Board | null> => {
   const db = getSupabase();
   if (!db) return null;
   const { data } = await db
@@ -50,7 +50,7 @@ export async function getBoard(slug: string): Promise<Board | null> {
     .eq("is_active", true)
     .maybeSingle();
   return (data as Board) ?? null;
-}
+})
 
 export interface ListResult {
   posts: CommunityPost[];

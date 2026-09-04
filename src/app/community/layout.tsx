@@ -29,13 +29,17 @@ export const metadata: Metadata = {
 };
 
 export default async function CommunityLayout({ children }: { children: ReactNode }) {
-  const [user, boards, stats, counts, recentBoardIds] = await Promise.all([
-    currentUser(),
-    getBoards(),
-    getCommunityStats(),
-    getBoardCounts(),
-    getRecentBoardIds(),
-  ]);
+  // 사이드바용 조회는 먼저 띄워 두되(로그인 사용자는 한 번에 병렬 처리),
+  // 비로그인은 게이트만 그리면 되므로 기다리지 않고 빠져나간다.
+  const statsP = getCommunityStats();
+  const countsP = getBoardCounts();
+  const recentP = getRecentBoardIds();
+  // 게이트 분기에서 버려질 수 있으므로 미처리 거부를 막아 둔다
+  statsP.catch(() => {});
+  countsP.catch(() => {});
+  recentP.catch(() => {});
+
+  const [user, boards] = await Promise.all([currentUser(), getBoards()]);
 
   // 비로그인 → 입장 게이트 (하위 page.tsx는 렌더되지 않는다)
   if (!user) {
@@ -49,6 +53,7 @@ export default async function CommunityLayout({ children }: { children: ReactNod
   }
 
   const isModerator = canModerateCommunity({ email: user.email, plan: user.plan });
+  const [stats, counts, recentBoardIds] = await Promise.all([statsP, countsP, recentP]);
 
   return (
     <div className="min-h-screen bg-black">

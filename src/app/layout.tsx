@@ -88,25 +88,14 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  let isStarterPlus = false;
-  let isProPlus = false;
-
   // dev 환경에서만 DevToolbar 로드 (프로덕션 번들에 포함되지 않음)
   let DevToolbar: React.ComponentType | null = null;
   if (process.env.NODE_ENV === "development") {
     DevToolbar = (await import("./_components/DevToolbar")).default;
   }
 
-  // Supabase Auth에서 플랜 확인
-  try {
-    const { auth, getUserPlan } = await import("@/lib/auth");
-    const { userId } = await auth();
-    if (userId) {
-      const plan = (await getUserPlan(userId)).toLowerCase();
-      isStarterPlus = ["starter", "pro", "business", "admin", "team"].includes(plan);
-      isProPlus = ["pro", "business", "admin", "team"].includes(plan);
-    }
-  } catch { /* auth 실패 시 기본값 false */ }
+  // 주의: 이 레이아웃에서 auth()·cookies() 를 호출하면 사이트 전체가 동적 렌더로 떨어진다.
+  // 네비의 사용자 표시는 NavUser(클라이언트)가 담당하므로 여기서는 인증을 읽지 않는다.
 
   const jsonLd = [
     {
