@@ -3,6 +3,7 @@
  * 권한 검사는 호출부(page/route)에서 community.ts 헬퍼로 수행한다.
  */
 import "server-only";
+import { cache } from "react";
 import { getSupabase } from "@/lib/supabase";
 import {
   type Board,
@@ -24,7 +25,7 @@ import {
   type MemberRank,
 } from "@/lib/community";
 
-export async function getBoards(): Promise<Board[]> {
+export const getBoards = cache(async (): Promise<Board[]> => {
   const db = getSupabase();
   if (!db) return [];
   const { data, error } = await db
@@ -37,7 +38,7 @@ export async function getBoards(): Promise<Board[]> {
     return [];
   }
   return (data ?? []) as Board[];
-}
+})
 
 export async function getBoard(slug: string): Promise<Board | null> {
   const db = getSupabase();
@@ -115,7 +116,7 @@ export async function listPosts(
   };
 }
 
-export async function getPost(id: string): Promise<PostSummary | null> {
+export const getPost = cache(async (id: string): Promise<PostSummary | null> => {
   const db = getSupabase();
   if (!db) return null;
   const { data } = await db
@@ -125,7 +126,7 @@ export async function getPost(id: string): Promise<PostSummary | null> {
     .maybeSingle();
   if (!data || (data as PostSummary).status !== "published") return null;
   return data as PostSummary;
-}
+})
 
 export async function getComments(postId: string): Promise<CommunityComment[]> {
   const db = getSupabase();
@@ -182,7 +183,7 @@ export async function incrementView(postId: string): Promise<void> {
  * DB 집계(RPC) 우선 — 행을 끌어와 세는 방식은 글이 5천 건을 넘으면 숫자가 굳는다.
  * RPC가 없는 환경(구버전 마이그레이션)에서는 기존 방식으로 폴백한다.
  */
-export async function getBoardCounts(): Promise<Record<string, number>> {
+export const getBoardCounts = cache(async (): Promise<Record<string, number>> => {
   const db = getSupabase();
   if (!db) return {};
   const counts: Record<string, number> = {};
@@ -206,14 +207,14 @@ export async function getBoardCounts(): Promise<Record<string, number>> {
     counts[row.board_id] = (counts[row.board_id] ?? 0) + 1;
   }
   return counts;
-}
+})
 
 /**
  * 최근 며칠 안에 새 글이 올라온 게시판 id 집합 (메뉴 New 배지용).
  * 글이 3일간 안 올라오면 자연히 집합에서 빠져 배지가 사라지고,
  * 새 글이 올라오면 다시 3일간 유지된다.
  */
-export async function getRecentBoardIds(days = 3): Promise<Set<string>> {
+export const getRecentBoardIds = cache(async (days = 3): Promise<Set<string>> => {
   const db = getSupabase();
   if (!db) return new Set();
   const since = new Date(Date.now() - days * 24 * 3600 * 1000).toISOString();
@@ -224,7 +225,7 @@ export async function getRecentBoardIds(days = 3): Promise<Set<string>> {
     .gte("created_at", since)
     .limit(2000);
   return new Set(((data ?? []) as { board_id: string }[]).map((r) => r.board_id));
-}
+})
 
 // ── 회원 등급 (활동 5단계 + 팀비블 멤버십) ──────────────────────
 /**
@@ -484,7 +485,7 @@ export async function listFeed(
 }
 
 /** 커뮤니티 전체 통계 (사이드바 프로필 카드) */
-export async function getCommunityStats(): Promise<{ posts: number; members: number }> {
+export const getCommunityStats = cache(async (): Promise<{ posts: number; members: number }> => {
   const db = getSupabase();
   if (!db) return { posts: 0, members: 0 };
   const [{ count: posts }, { count: members }] = await Promise.all([
@@ -492,7 +493,7 @@ export async function getCommunityStats(): Promise<{ posts: number; members: num
     db.from("profiles").select("id", { count: "exact", head: true }),
   ]);
   return { posts: posts ?? 0, members: members ?? 0 };
-}
+})
 
 // ── 포인트 · 멤버 랭킹 (Skool 방식) ─────────────────────────────
 
@@ -562,7 +563,8 @@ export async function getPointsMap(): Promise<Record<string, number>> {
  * (profiles 테이블에는 아바타 컬럼이 없어 admin API 로 조회하고,
  *  같은 사용자를 매 요청 조회하지 않도록 프로세스 내 캐시를 둔다)
  */
-const AVATAR_TTL_MS = 10 * 60 * 1000;
+// 프로필 사진은 거의 바뀌지 않는다. TTL 을 길게 잡아 요청당 auth API 왕복을 없앤다.
+const AVATAR_TTL_MS = 6 * 60 * 60 * 1000;
 const avatarCache = new Map<string, { url: string | null; at: number }>();
 
 /** 카카오 아바타는 http 로 내려오는 경우가 있어 https 로 올린다 (혼합 콘텐츠 차단 방지) */

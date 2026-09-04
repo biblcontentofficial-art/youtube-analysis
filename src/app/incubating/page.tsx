@@ -6,18 +6,27 @@
  */
 import type { Metadata } from "next";
 import Link from "next/link";
+import { unstable_cache } from "next/cache";
 import { getPost } from "@/lib/communityDb";
 import { excerpt } from "@/lib/community";
 import PostContent from "../community/_components/PostContent";
 import TrackVisit from "@/app/_components/TrackVisit";
 
-export const dynamic = "force-dynamic";
-
 /** 원본 글: 커뮤니티 "유튜브 인큐베이팅 지원하세요!" 게시판 공지 */
 const INCUBATING_POST_ID = "09605c8c-be44-4037-bcee-6a9c13337f95";
 
+/**
+ * 공개 페이지라 방문자마다 DB를 칠 이유가 없다.
+ * 결과를 60초 캐시해 대부분의 요청이 DB 왕복 없이 그려진다 (글 수정은 60초 안에 반영).
+ */
+const getIncubatingPost = unstable_cache(
+  () => getPost(INCUBATING_POST_ID),
+  ["incubating-post"],
+  { revalidate: 60, tags: ["incubating-post"] }
+);
+
 export async function generateMetadata(): Promise<Metadata> {
-  const post = await getPost(INCUBATING_POST_ID);
+  const post = await getIncubatingPost();
   return {
     title: "브랜드 인큐베이팅 | 비블랩 (bibl lab)",
     description: post
@@ -27,7 +36,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function IncubatingPage() {
-  const post = await getPost(INCUBATING_POST_ID);
+  const post = await getIncubatingPost();
 
   return (
     <div className="min-h-screen bg-black">

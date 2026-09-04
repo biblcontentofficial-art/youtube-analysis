@@ -33,7 +33,13 @@ const securityHeaders = [
 ];
 
 const nextConfig = {
+  // gzip/br 압축 (Vercel 기본이지만 자체 호스팅에서도 켜지도록 명시)
+  compress: true,
+  poweredByHeader: false,
   images: {
+    // 최신 브라우저에 avif/webp 를 먼저 준다 (원본 대비 30~60% 절감)
+    formats: ["image/avif", "image/webp"],
+    minimumCacheTTL: 60 * 60 * 24 * 30,
     remotePatterns: [
       { protocol: "https", hostname: "i.ytimg.com" },
       { protocol: "https", hostname: "yt3.ggpht.com" },
@@ -45,6 +51,13 @@ const nextConfig = {
       {
         source: "/(.*)",
         headers: securityHeaders,
+      },
+      {
+        // public/ 이미지·폰트는 내용이 바뀌면 파일명을 바꾸므로 길게 캐시한다
+        source: "/:path*.(png|jpg|jpeg|gif|webp|avif|svg|ico|woff|woff2|ttf|otf)",
+        headers: [
+          { key: "Cache-Control", value: "public, max-age=31536000, stale-while-revalidate=86400" },
+        ],
       },
       {
         source: "/sitemap.xml",

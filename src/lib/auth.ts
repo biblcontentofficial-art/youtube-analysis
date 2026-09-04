@@ -3,6 +3,7 @@
  * Clerk의 auth(), currentUser(), clerkClient().users.updateUser() 를 대체
  */
 import { createSupabaseServer } from "@/lib/supabase/server";
+import { cache } from "react";
 import { getSupabase } from "@/lib/supabase";
 
 // ─── 서버 컴포넌트 / API 라우트에서 사용자 ID 가져오기 ───────────────
@@ -25,7 +26,7 @@ export interface AuthUser {
   plan: string;
 }
 
-export async function currentUser(): Promise<AuthUser | null> {
+export const currentUser = cache(async (): Promise<AuthUser | null> => {
   try {
     const supabase = await createSupabaseServer();
     const { data: { user } } = await supabase.auth.getUser();
@@ -46,7 +47,7 @@ export async function currentUser(): Promise<AuthUser | null> {
   } catch {
     return null;
   }
-}
+})
 
 // ─── 사용자 플랜 조회 ─────────────────────────────────────────────
 export async function getUserPlan(userId: string): Promise<string> {
