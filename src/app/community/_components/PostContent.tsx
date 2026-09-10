@@ -2,7 +2,7 @@
  * 커뮤니티 본문 렌더러 (글 상세 · 공개 페이지 공용)
  *
  * 사용자 생성 콘텐츠이므로 dangerouslySetInnerHTML 을 쓰지 않는다.
- * 한 줄 규약: 이미지·유튜브 주소는 그대로 삽입, "## " 소제목, "> " 인용, "---" 구분선.
+ * 한 줄 규약: 이미지·영상·유튜브 주소는 그대로 삽입, "## " 소제목, "> " 인용, "---" 구분선.
  */
 
 import type { ReactNode } from "react";
@@ -50,6 +50,8 @@ function linkify(text: string): ReactNode[] {
 // 한 줄이 이미지·유튜브 주소면 그대로 삽입하고, "## " 소제목, "> " 인용, "---" 구분선을 지원한다.
 const IMG_LINE_RE =
   /^(https?:\/\/[^\s<>"']+\.(?:png|jpe?g|webp|gif)(?:\?[^\s<>"']*)?|\/api\/community\/image\?p=[^\s<>"']+|\/[A-Za-z0-9_\-/.]+\.(?:png|jpe?g|webp|gif))$/i;
+// 에디터가 올린 영상 파일 (외부 주소는 CSP media-src 에 막히므로 우리 저장소 경로만 그린다)
+const VIDEO_LINE_RE = /^\/api\/community\/image\?p=[^\s<>"']+\.(?:mp4|mov|webm)$/i;
 const YT_LINE_RE =
   /^https?:\/\/(?:www\.)?(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([\w-]{6,})\S*$/i;
 
@@ -73,7 +75,20 @@ function renderContent(text: string): ReactNode[] {
     const t = line.trim();
     const yt = t.match(YT_LINE_RE);
 
-    if (IMG_LINE_RE.test(t)) {
+    // 영상 경로도 IMG_LINE_RE 의 /api/community/image 패턴에 걸리므로 먼저 가른다
+    if (VIDEO_LINE_RE.test(t)) {
+      flush();
+      nodes.push(
+        <video
+          key={`c${key++}`}
+          src={t}
+          controls
+          playsInline
+          preload="metadata"
+          className="my-6 w-full rounded-2xl border border-neutral-800 bg-black"
+        />
+      );
+    } else if (IMG_LINE_RE.test(t)) {
       flush();
       nodes.push(
         // 본문 이미지는 형태를 정규식으로 검증한 주소만 그린다

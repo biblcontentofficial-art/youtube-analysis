@@ -26,6 +26,7 @@ import {
   MAX_FILE_BYTES,
   MAX_TITLE_LEN,
   STORAGE_BUCKET,
+  fileExtOf,
   formatFileSize,
   groupBoards,
   type Board,
@@ -48,11 +49,6 @@ const INPUT =
 const PICKABLE_EXT = ALLOWED_FILE_EXT.filter((e) => e !== "svg");
 
 const DEFAULT_MIME = "application/octet-stream";
-
-function fileExt(name: string): string {
-  const i = name.lastIndexOf(".");
-  return i < 0 ? "" : name.slice(i + 1).toLowerCase();
-}
 
 /** 응답에서 message 키를 최대한 안전하게 뽑는다 */
 async function readMessage(res: Response, fallback: string): Promise<string> {
@@ -117,7 +113,7 @@ export default function PostForm({
     const rejected: string[] = [];
 
     for (const f of Array.from(picked)) {
-      const ext = fileExt(f.name);
+      const ext = fileExtOf(f.name);
       if (!PICKABLE_EXT.includes(ext)) {
         rejected.push(`${f.name} (허용되지 않는 형식)`);
         continue;
@@ -415,6 +411,9 @@ export default function PostForm({
                 <p className="text-sm font-bold text-white">파일 첨부</p>
                 <p className="mt-1 text-xs text-neutral-500">
                   파일당 최대 {formatFileSize(MAX_FILE_BYTES)} · {PICKABLE_EXT.join(", ")}
+                </p>
+                <p className="mt-1 text-xs text-neutral-500">
+                  사진·영상은 글 아래에 바로 보이고, 그 외 파일은 다운로드 목록으로 붙습니다.
                 </p>
               </div>
               <button

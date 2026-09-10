@@ -16,7 +16,7 @@ const securityHeaders = [
     key: "Permissions-Policy",
     value: "camera=(), microphone=(), geolocation=(), payment=(self)",
   },
-  // CSP: YouTube 임베드, Supabase Auth, 결제 PG, OAuth 프로필 이미지 허용
+  // CSP: YouTube 임베드, Supabase Auth·첨부 매체, 결제 PG, OAuth 프로필 이미지 허용
   {
     key: "Content-Security-Policy",
     value: [
@@ -27,7 +27,8 @@ const securityHeaders = [
       "img-src 'self' data: blob: https://i.ytimg.com https://yt3.ggpht.com https://yt3.googleusercontent.com https://lh3.googleusercontent.com https://k.kakaocdn.net https://*.kakaocdn.net https://*.supabase.co",
       "frame-src 'self' https://pay.toss.im https://event.tosspayments.com https://*.tosspayments.com https://cpay.payple.kr https://testcpay.payple.kr https://accounts.google.com https://www.youtube.com https://www.youtube-nocookie.com",
       "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.upstash.io https://api.tosspayments.com https://event.tosspayments.com https://*.tosspayments.com https://api.portone.io https://core-api.portone.io",
-      "media-src 'self' https://www.youtube.com",
+      // 커뮤니티 첨부 영상은 /api/community/media → Supabase 서명 URL 로 리다이렉트되므로 최종 출처도 허용해야 한다
+      "media-src 'self' https://www.youtube.com https://*.supabase.co",
     ].join("; "),
   },
 ];

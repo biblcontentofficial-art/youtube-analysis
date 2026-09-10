@@ -1,8 +1,9 @@
 /**
- * GET /api/community/image?p=<storage path> — 본문 이미지 서빙 (회원 전용)
+ * GET /api/community/image?p=<storage path> — 본문에 넣은 사진·영상 서빙 (회원 전용)
  *
  * 비공개 버킷이라 직접 접근할 수 없으므로, 로그인 확인 후 짧은 서명 URL로 리다이렉트한다.
- * 커뮤니티가 회원 전용이므로 이미지도 같은 기준으로 막힌다.
+ * 커뮤니티가 회원 전용이므로 매체도 같은 기준으로 막힌다.
+ * 영상은 탐색(seek)마다 Range 요청이 이 주소로 다시 들어오고 그때마다 새 서명 URL 을 받는다.
  */
 import { NextRequest, NextResponse } from "next/server";
 import { currentUser } from "@/lib/auth";
@@ -24,7 +25,7 @@ export async function GET(req: NextRequest) {
   const db = getSupabase();
   if (!db) return new NextResponse("Storage unavailable", { status: 500 });
 
-  const { data, error } = await db.storage.from(STORAGE_BUCKET).createSignedUrl(path, 300);
+  const { data, error } = await db.storage.from(STORAGE_BUCKET).createSignedUrl(path, 600);
   if (error || !data?.signedUrl) return new NextResponse("Not Found", { status: 404 });
 
   return NextResponse.redirect(data.signedUrl, {

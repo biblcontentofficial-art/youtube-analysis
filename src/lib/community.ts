@@ -95,6 +95,26 @@ export const ALLOWED_FILE_EXT: string[] = [
  * 클라이언트가 보낸 MIME은 신뢰하지 않고, 확장자에서 서버가 다시 결정한다.
  * 목록에 없는 확장자(psd·ai·sketch·fig 등 바이너리 원본)는 application/octet-stream 으로 떨어진다.
  */
+/** 글 안에서 바로 보여 주는 매체 확장자 (svg 는 스크립트를 품을 수 있어 제외) */
+export const IMAGE_EXT: string[] = ["png", "jpg", "jpeg", "gif", "webp"];
+export const VIDEO_EXT: string[] = ["mp4", "mov", "webm"];
+
+export type MediaKind = "image" | "video" | "file";
+
+/** 파일명의 확장자 (소문자, 점 제외). 없으면 빈 문자열 */
+export function fileExtOf(name: string): string {
+  const i = name.lastIndexOf(".");
+  return i < 0 ? "" : name.slice(i + 1).toLowerCase();
+}
+
+/** 파일명으로 표시 방식을 정한다 — 사진·영상은 글에서 바로 보이고, 나머지는 다운로드 목록 */
+export function mediaKind(name: string): MediaKind {
+  const ext = fileExtOf(name);
+  if (IMAGE_EXT.includes(ext)) return "image";
+  if (VIDEO_EXT.includes(ext)) return "video";
+  return "file";
+}
+
 export const EXT_MIME: Record<string, string> = {
   pdf: "application/pdf",
   doc: "application/msword",

@@ -10,14 +10,18 @@
  *   구분선      → "---"
  *   이미지·영상 → URL 한 줄
  *
- * 이미지는 고르는 즉시 스토리지에 올라가고 본문에는 /api/community/image?p=... 주소가 들어간다.
+ * 사진·영상 파일은 고르는 즉시 스토리지에 올라가고 본문에는 /api/community/image?p=... 주소가 들어간다.
+ * 글 상세(PostContent)는 그 주소의 확장자로 <img>·<video> 를 가려 바로 그린다.
  */
 
 import { useEffect, useRef, useState } from "react";
 import { createSupabaseBrowser } from "@/lib/supabase/browser";
-import { STORAGE_BUCKET } from "@/lib/community";
+import { MAX_FILE_BYTES, STORAGE_BUCKET, formatFileSize, mediaKind } from "@/lib/community";
 
-type BlockType = "text" | "heading" | "quote" | "image" | "video" | "divider";
+/** video = 유튜브 임베드, clip = 직접 올린 영상 파일 */
+type BlockType = "text" | "heading" | "quote" | "image" | "clip" | "video" | "divider";
+
+const MAX_IMAGE_BYTES = 10 * 1024 * 1024; // 서버(upload/inline)와 같은 값
 
 interface Block {
   id: string;
@@ -31,6 +35,8 @@ interface Block {
 }
 
 const YT_RE = /(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([\w-]{6,})/;
+/** 에디터가 올린 영상 파일 주소 (이미지 패턴보다 먼저 검사해야 한다) */
+const CLIP_RE = /^\/api\/community\/image\?p=\S+\.(mp4|mov|webm)$/i;
 
 function newId(): string {
   return Math.random().toString(36).slice(2, 10);
@@ -67,6 +73,9 @@ export function parseBlocks(content: string): Block[] {
     } else if (/^https?:\/\/\S+$/.test(t) && YT_RE.test(t)) {
       flush();
       out.push({ id: newId(), type: "video", text: "", url: t });
+    } else if (CLIP_RE.test(t)) {
+      flush();
+      out.push({ id: newId(), type: "clip", text: "", url: t });
     } else if (
       /^(https?:\/\/\S+\.(png|jpe?g|webp|gif)(\?\S*)?|\/api\/community\/image\?p=\S+|\/[\w\-/.]+\.(png|jpe?g|webp|gif))$/i.test(t)
     ) {
@@ -92,6 +101,7 @@ export function serializeBlocks(blocks: Block[]): string {
         case "divider":
           return "---";
         case "image":
+        case "clip":
         case "video":
           return b.url ?? "";
         default:
@@ -165,10 +175,28 @@ export default function BlockEditor({
     });
   }
 
-  /** 이미지 선택 → 즉시 업로드 → 본문에 주소 삽입 */
-  async function uploadImage(afterId: string, file: File) {
+  /** 사진·영상 선택 → 즉시 업로드 → 본문에 주소 삽입 */
+  async function uploadMedia(afterId: string, file: File) {
     setError(null);
-    const placeholder: Block = { id: newId(), type: "image", text: "", uploading: true };
+    const kind = mediaKind(file.name);
+    if (kind === "file") {
+      setError("사진(png, jpg, gif, webp)이나 영상(mp4, mov, webm)만 넣을 수 있습니다.");
+      return;
+    }
+    // 서버도 같은 기준으로 막지만, 큰 파일을 올리기 전에 먼저 알려 준다
+    const limit = kind === "video" ? MAX_FILE_BYTES : MAX_IMAGE_BYTES;
+    if (file.size > limit) {
+      setError(
+        `${kind === "video" ? "영상" : "사진"}은 ${formatFileSize(limit)}까지 올릴 수 있습니다. (${formatFileSize(file.size)})`
+      );
+      return;
+    }
+    const placeholder: Block = {
+      id: newId(),
+      type: kind === "video" ? "clip" : "image",
+      text: "",
+      uploading: true,
+    };
     insertAfter(afterId, placeholder);
 
     try {
@@ -192,7 +220,7 @@ export default function BlockEditor({
       });
     } catch (e) {
       remove(placeholder.id);
-      setError(e instanceof Error ? e.message : "이미지를 올리지 못했습니다.");
+      setError(e instanceof Error ? e.message : "파일을 올리지 못했습니다.");
     }
   }
 
@@ -226,7 +254,7 @@ export default function BlockEditor({
       const i = blocks.findIndex((x) => x.id === b.id);
       const prev = blocks[i - 1];
       remove(b.id);
-      if (prev && prev.type !== "image" && prev.type !== "video" && prev.type !== "divider") {
+      if (prev && prev.type !== "image" && prev.type !== "clip" && prev.type !== "video" && prev.type !== "divider") {
         focusId.current = prev.id;
       }
     }
@@ -254,6 +282,31 @@ export default function BlockEditor({
                 <div className="relative">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={b.url} alt="" className="w-full rounded-xl border border-neutral-800" />
+                  <button
+                    type="button"
+                    onClick={() => remove(b.id)}
+                    className="absolute right-2 top-2 rounded-lg bg-black/70 px-2.5 py-1 text-xs text-white hover:bg-black"
+                  >
+                    삭제
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : b.type === "clip" ? (
+            <div className="py-2">
+              {b.uploading ? (
+                <div className="flex h-32 items-center justify-center rounded-xl border border-dashed border-neutral-700 text-sm text-neutral-500">
+                  영상 올리는 중… 파일이 크면 시간이 걸립니다.
+                </div>
+              ) : (
+                <div className="relative">
+                  <video
+                    src={b.url}
+                    controls
+                    playsInline
+                    preload="metadata"
+                    className="w-full rounded-xl border border-neutral-800 bg-black"
+                  />
                   <button
                     type="button"
                     onClick={() => remove(b.id)}
@@ -334,10 +387,10 @@ export default function BlockEditor({
                   fileRef.current?.click();
                 }}
               >
-                사진
+                사진·동영상
               </button>
               <button type="button" className={BTN} onClick={() => addVideo(b.id)}>
-                동영상
+                유튜브
               </button>
               <button type="button" className={BTN} onClick={() => addLink(b.id)}>
                 링크
@@ -368,14 +421,14 @@ export default function BlockEditor({
       <input
         ref={fileRef}
         type="file"
-        accept="image/png,image/jpeg,image/gif,image/webp"
+        accept="image/png,image/jpeg,image/gif,image/webp,video/mp4,video/quicktime,video/webm,.mp4,.mov,.webm"
         hidden
         onChange={(e) => {
           const file = e.target.files?.[0];
           const target = pendingFor.current;
           e.target.value = "";
           pendingFor.current = null;
-          if (file && target) uploadImage(target, file);
+          if (file && target) uploadMedia(target, file);
         }}
       />
     </div>
