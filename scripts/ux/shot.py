@@ -16,6 +16,12 @@
   SHOT_VIEWS       desktop,mobile 중 선택 (기본 둘 다)
   SHOT_MAX_SLICES  조각 수 상한 (기본 desktop 14, mobile 18)
   SHOT_COOKIE      "이름=값" 쿠키를 심고 찍는다 (예: studio_access=1)
+  SHOT_ALLOW_WRITES=1  GET 이 아닌 /api 요청을 막지 않는다 (기본은 막음)
+
+주의: 로컬 개발 서버도 운영 Supabase·Upstash·YouTube API 를 쓴다. 기본값으로 GET 이 아닌 /api 요청
+(/api/track 방문 기록, /api/community/visit·view 등)을 브라우저 안에서 가짜 200 으로 막아 운영 데이터에
+기록이 남지 않게 한다. 서버 렌더 중에 일어나는 호출(/search?q=·/channels?q= 의 실제 검색과 차감)은
+막을 수 없으니 그런 주소는 찍지 않는다.
 """
 import json, os, re, sys
 from playwright.sync_api import sync_playwright
@@ -50,6 +56,12 @@ with sync_playwright() as pw:
         if "=" in ck:
             n, val = ck.split("=", 1)
             ctx.add_cookies([{"name": n, "value": val, "url": base}])
+        if os.environ.get("SHOT_ALLOW_WRITES") != "1":
+            def _guard(route, request):
+                if request.method != "GET":
+                    return route.fulfill(status=200, content_type="application/json", body='{"ok":true,"mocked":true}')
+                return route.continue_()
+            ctx.route("**/api/**", _guard)
         page = ctx.new_page()
         errors = []
         page.on("console", lambda m: errors.append(f"console.{m.type}: {m.text[:300]}") if m.type == "error" else None)

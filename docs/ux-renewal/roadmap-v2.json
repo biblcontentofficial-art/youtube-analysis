@@ -484,7 +484,10 @@
    "amendments_v2": [
     "비파괴 확인창(검색 확인 등)은 확인 버튼에 autoFocus, destructive(삭제) 확인창만 취소 버튼에 autoFocus. 완료 기준 추가: '검색창 Enter → 확인창 Enter 로 /search?q=…&v=… 이동(현행과 동일)' 과 '삭제 확인창 Enter → 취소'.",
     "카카오 버튼 오프셋은 data-bottom-bar 값('md'·'nav')별 미디어 쿼리 2개로, @layer 밖에 둔다(bottom-5 유틸리티에 지지 않게).",
-    "dialog 백드롭 색은 리터럴 rgb(0 0 0 / 0.8) 로(테마 변수를 ::backdrop 이 상속하지 않는 Safari 17.3 이하 대비)."
+    "dialog 백드롭 색은 리터럴 rgb(0 0 0 / 0.8) 로(테마 변수를 ::backdrop 이 상속하지 않는 Safari 17.3 이하 대비).",
+    "(R01 인계) 컨설팅 상세 하단 신청 바는 R01 에서 md 이상 버튼을 max-w-md 가운데로 줄여 768~1279px 카카오 겹침을 피했다. BottomCTABar 로 바꿀 때 이 폭 처리를 유지할지 정한다. 768px 미만의 카카오 겹침(오른쪽 44×56px)은 data-bottom-bar 오프셋으로 없앤다.",
+    "(R01 인계) 768~1279px 첫 화면에 흰 신청 버튼이 둘(히어로 + 하단 바) 보인다. 하단 바는 히어로 CTA 가 화면 밖일 때만 보이게(IntersectionObserver) 해서 '흰 면은 폴드당 1개'를 지킨다.",
+    "(R01·R02a 인계) 카카오 버튼(z-50, DOM 뒤쪽)이 한도 모달·마이페이지 구독 취소/계정 삭제 확인창의 배경막 위에 뜬다. 레이어 체계와 dialog top layer 로 해결한다."
    ],
    "critique_notes": [
     "[risk-understated] 지금 확인창은 window keydown Enter 로 확인되고(ConfirmDialog.tsx:44-52) 사용자는 검색창 Enter → 확인창 Enter 로 검색한다(SearchBar.tsx:251-254→230-235, 홈 page.tsx:75-80). R05 는 이 처리를 지우고 'Enter 는 포커스된 버튼만'으로 바꾸면서 초기 포커스를 '첫 버튼(destructive 면 취소)'으로만 적었다. 버튼 순서가 [취소][확인](ConfirmDialog.tsx:89-101)이고 showModal() 도 autofocus 가 없으면 첫 포커스 요소(취소)에 포커스하므로, 문구대로면 두 번째 Enter 가 검색을 취소한다. 완료 기준은 '취소+Enter → 실행 안 됨'만 확인해 이 회귀를 못 잡는다. 덧붙여 `body:has([data-bottom-bar]) [data-kakao-fab]` 는 hideFrom='md' 바(/studio·/incubating)가 768~1279px 에서 숨겨져도 매칭되어 버튼이 88px 떠 있고, 레이어 안에 두면 `bottom-5` 유틸리티에 진다. `backdrop:bg-black/80` 은 컴파일 결과 `var(--color-black)` 을 써서 ::backdrop 이 테마 변수를 상속하지 않는 Safari 17.3 이하에서 투명해질 수 있다. → 수정안: '비파괴 확인창은 확인 버튼에 autoFocus, destructive 만 취소'를 명시하고 완료 기준에 '검색창 Enter → 확인창 Enter 로 /search?q=…&v=… 이동(현행 동일)'을 추가. 카카오 오프셋은 `data-bottom-bar='md|xl'` 값별 미디어 쿼리 2개로, 레이어 밖에 둔다. 백드롭은 `backdrop:bg-[rgb(0_0_0/0.8)]` 같은 리터럴 값."
@@ -573,7 +576,9 @@
    ],
    "amendments_v2": [
     "결정 3 기본(B): 화이트 필·아이콘 유지 + 현재 위치 표시만. 결정 1 기본(C): /studio 링크 그대로.",
-    "루트 레이아웃에 auth()·cookies() 금지. 현재 위치는 usePathname 클라이언트 잎."
+    "루트 레이아웃에 auth()·cookies() 금지. 현재 위치는 usePathname 클라이언트 잎.",
+    "(R02a·R02b 인계) NavigationLoader 의 history.pushState 래핑 안 showLoading()(setState)이 Next 14.2 HistoryUpdater 의 useInsertionEffect 도중 실행돼, 개발 모드에서 클라이언트 이동마다 'useInsertionEffect must not schedule updates' 경고가 난다. 로더 예외 작업 때 setState 를 지연(queueMicrotask 등)해 없앤다.",
+    "(R01 인계) 1280px 실측: 로그아웃 메뉴 좌우 여백 78/85px, 가장 긴 배지 46/53px (macOS 글꼴, 풀폭 네비 기준). max-w-page 컨테이너로 줄이면 다시 잰다."
    ],
    "critique_notes": [
     "[factually-wrong] 완료 기준 2건과 부수 효과가 코드와 맞지 않는다. (1) Next 메타데이터는 openGraph 를 얕게 덮어써, 자체 openGraph 에 images 가 없는 /pricing(pricing/page.tsx:14-18)·/about·/search·/channels·/threads 는 opengraph-image.tsx 를 지워도 og:image 가 생기지 않는다(system-03 이 /pricing·/about 무이미지를 운영에서 확인). 이 페이지들이 R06 범위에 없어 'curl /pricing og:image = /og-image.png' 는 실패한다. (2) JSON-LD `screenshot: https://bibllab.com/opengraph-image`(layout.tsx:155)가 삭제 후 404 를 가리킨다. (3) '1440 에서 로고 x = 120px'은 `max-w-page px-6`(border-box) 기준 120+24=144px 이다. → 수정안: 공용 `OG_DEFAULT`(images /og-image.png 1280×720)를 만들어 openGraph 를 가진 페이지 5곳에 spread 하는 작업을 R06 범위에 넣거나 /pricing 기준을 R09 로 옮긴다. JSON-LD screenshot 을 /og-image.png 로 교체. 정렬 기준은 '네비 로고 x = 푸터 로고 x = 섹션 첫 글자 x(1440 에서 144px)'로.",
@@ -731,7 +736,9 @@
     "auth-12"
    ],
    "amendments_v2": [
-    "결정 4 답이 오기 전에는 B 기준."
+    "결정 4 답이 오기 전에는 B 기준.",
+    "(R01 인계, 회귀) 1279px 이하가 2행 네비(768~1279 102px, 360·390 134px)가 되면서 다음이 네비에 가려진다. --nav-h 로 고친다: studio/class/[slug]/page.tsx 의 sticky top-20 구매 카드(1024 에서 22px 가림), studio/classroom/[courseId]/_components/LessonPlayer.tsx 의 fixed top-12 사이드바·sticky top-0 제목, insights/admin/_components/PostEditor.tsx 의 sticky top-14, /studio #process 등 앵커 이동 지점.",
+    "(R01 인계) 태블릿 2행 메뉴 링크 높이 28px·1행 '요금제' 24px. 칩 32px·1행 36px 이상으로."
    ],
    "critique_notes": [
     "[factually-wrong] 완료 기준 2건과 부수 효과가 코드와 맞지 않는다. (1) Next 메타데이터는 openGraph 를 얕게 덮어써, 자체 openGraph 에 images 가 없는 /pricing(pricing/page.tsx:14-18)·/about·/search·/channels·/threads 는 opengraph-image.tsx 를 지워도 og:image 가 생기지 않는다(system-03 이 /pricing·/about 무이미지를 운영에서 확인). 이 페이지들이 R06 범위에 없어 'curl /pricing og:image = /og-image.png' 는 실패한다. (2) JSON-LD `screenshot: https://bibllab.com/opengraph-image`(layout.tsx:155)가 삭제 후 404 를 가리킨다. (3) '1440 에서 로고 x = 120px'은 `max-w-page px-6`(border-box) 기준 120+24=144px 이다. → 수정안: 공용 `OG_DEFAULT`(images /og-image.png 1280×720)를 만들어 openGraph 를 가진 페이지 5곳에 spread 하는 작업을 R06 범위에 넣거나 /pricing 기준을 R09 로 옮긴다. JSON-LD screenshot 을 /og-image.png 로 교체. 정렬 기준은 '네비 로고 x = 푸터 로고 x = 섹션 첫 글자 x(1440 에서 144px)'로.",
@@ -1119,7 +1126,8 @@
     "a11y-08"
    ],
    "amendments_v2": [
-    "추가 범위: incubating/page.tsx 의 모집 분야 배지 bg-[#00E5A0]/10(배경 채움 금지 → 글자·테두리만), PostContent.tsx 링크의 액센트 리터럴 → accent 토큰."
+    "추가 범위: incubating/page.tsx 의 모집 분야 배지 bg-[#00E5A0]/10(배경 채움 금지 → 글자·테두리만), PostContent.tsx 링크의 액센트 리터럴 → accent 토큰.",
+    "(R01 인계) /incubating 의 og:url·og:title·og:description 이 아직 홈 값을 상속한다(community-07). 공유 메타를 이 항목에서 정리한다(R06b 의 OG_DEFAULT 사용)."
    ],
    "critique_notes": [],
    "order": 14
@@ -1191,7 +1199,8 @@
    ],
    "amendments_v2": [
     "요약 카드에 '20명 소수 정예·평균 3개월 대기'는 결정 6 대상이라 기본값에서는 HTML 로 올리지 않는다(이미지 안에만).",
-    "'← 스튜디오' 링크는 결정 1 전까지 그대로."
+    "'← 스튜디오' 링크는 결정 1 전까지 그대로.",
+    "(R01 인계) 컨설팅 상세의 gray→neutral, 신청 버튼 shadow-white/10 삭제는 R01 에서 끝났다."
    ],
    "critique_notes": [
     "[factually-wrong] '상세 layout.tsx 의 og·twitter image 삭제 → 사이트 /og-image.png'는 성립하지 않는다. studio/class/consulting/layout.tsx:21-43 은 openGraph·twitter 객체를 따로 갖고 있어 images 만 지우면 부모 값이 상속되지 않고(얕은 덮어쓰기) og:image·twitter:image 가 아예 없어진다. → 수정안: images 를 지우지 말고 `https://bibllab.com/og-image.png`(1280×720)로 교체하고, 완료 기준에 'curl /studio/class/consulting 의 og:image = /og-image.png'를 추가.",
@@ -1343,7 +1352,8 @@
    ],
    "amendments_v2": [
     "레드(#E5484D) 강조는 결정 7 기본(B)으로 유지. '마감임박' 알약도 결정 6 기본(B)으로 유지(색 그대로).",
-    "캡처는 SHOT_COOKIE=studio_access=1 로."
+    "캡처는 SHOT_COOKIE=studio_access=1 로.",
+    "(R01 인계) 마퀴 썸네일 404 는 4개다: ZZ4_kNOd5Bg, l0IYxd-7mss, iIKbXHA3nJU, 76mUJQrKsSY. R01 이 /studio 의 CHANNELS 미사용 color 필드와 기능 이미지 그라데이션 오버레이는 이미 지웠다."
    ],
    "critique_notes": [
     "[constraint-violation] 결정 7 은 /studio 레드를 '같은 날 되돌릴 때 빠진 것'으로 보고 무응답 시 A(교체)로 간다. 커밋 이력은 의도를 시사한다: 67c2c4e(8/14 12:00) '/studio: 강조색을 톤 다운 레드(#E5484D)로 교체 + 강조 확대', d18a88c(12:13) 기본 구성 문구에 레드 추가, 3c5cbba(12:52)는 밑줄만 흰색으로 되돌리고 본문 레드는 유지, c026103 테마 스윕은 /studio 를 범위에서 뺐고, 6801d40(8/16) 카피 수정 때도 '70만+' 레드를 유지했다. §5 원칙('소유자가 만든 것은 그대로')과도 어긋난다. → 수정안: 결정 7 기본값을 B(유지)로 바꾸고 근거 문구를 '의도 여부 불명'으로 고쳐 묻는다. 또는 R11 의 레드 변경(:287·441·509·524·547·652·741·762·876)만 답변 대기로 분리.",
@@ -1600,7 +1610,10 @@
     "src/app/search/loading.tsx(신규)",
     "src/app/search/_components/SearchSkeleton.tsx",
     "src/app/search/_components/TodaySearchCount.tsx",
-    "src/app/search/error.tsx"
+    "src/app/search/error.tsx",
+    "src/app/search/_components/LimitNotice.tsx",
+    "src/app/search/_components/limitCopy.tsx",
+    "src/app/_components/pendingKeyword.ts"
    ],
    "changes": [
     "bg-black, 남색 검색 띠(:200) → 배경 없이 border-b border-neutral-800, sr-only h1 '유튜브 영상 찾기', 상단 ToolTabs(영상 찾기·채널 찾기·채널 분석·수집한 영상, 허브 TOOLS 와 같은 목록, 잠금은 배지 + 글자, tabs 레시피, aria-current)",
@@ -1666,7 +1679,10 @@
     "ToolTabs 에 잠금 배지는 결정 9 답 전까지 넣지 않는다(허브 잠금 판정이 실제 정책과 다름).",
     "앱 내부 활성 상태는 R04 레시피(aria-pressed/aria-current → neutral-800 면 + 흰 글자) 또는 밑줄 탭으로 통일. '흰 필' 활성 금지(흰 면은 폴드당 1개).",
     "SearchBar 의 REGIONS 국기 이모지는 보호 구간이라 예외로 둔다.",
-    "결정 11 기본(C): 한도 모달 닫기 없음, 테마만."
+    "결정 11 기본(C): 한도 모달 닫기 없음, 테마만.",
+    "(R02a 인계) 범위 파일 추가: src/app/search/_components/LimitNotice.tsx, src/app/search/_components/limitCopy.tsx(한도 안내 공용 문구), src/app/_components/pendingKeyword.ts.",
+    "(R02a 인계) 이미 끝난 것: 검색 띠 배경 제거(border-b neutral-800), 상태 배너 펄스 점 삭제, 쿼터 소진 배너 앰버 + 맨 SVG, 업그레이드 완료 배너 그린 테두리, 무료 배너 그라데이션·아이콘 정리, search/page.tsx·LimitModal 의 gray·teal → neutral. 줄 번호가 아니라 내용으로 위치를 찾는다.",
+    "(R02a 인계) 남은 것: 쿼터 소진 안내 '매일 한국 시간 오후 5시에 초기화됩니다'는 미국 서머타임 기간(3월 둘째 일요일~11월 첫째 일요일)에 틀린다(그 기간엔 오후 4시, YouTube API 쿼터는 태평양 시간 0시 초기화). 결정 8 기본(B) 범위로 고치되 '자정'이라는 말은 쓰지 않는다. 무료 업그레이드 배너 '월 ₩15,000'을 limitCopy 의 '월 ₩19,000 (연간 결제 시 월 ₩15,000)'와 맞춘다. 결과 툴바 액션 줄이 390px 에서 약 74px 가로로 넘친다(줄바꿈 허용). LimitModal 이 로그인 확인 전 가입 패널을 잠깐 그리는 문제(서버의 로그인 여부를 prop 으로)."
    ],
    "critique_notes": [
     "[risk-understated] LimitModal 의 비로그인 가입은 /sign-in 필수 동의 단계를 거치지 않고 바로 OAuth 를 연다(LimitModal.tsx:41-65). 이 단계는 소유자가 1dcb8fb 에서 '/sign-up 은 /sign-in 리다이렉트라 단일 적용으로 양쪽 커버'라며 모든 가입에 걸도록 만든 것이고 마케팅 동의 기록(mkt, 83cce7a)도 이 경로만 빠진다. 또 redirectTo 가 `next=현재 경로(/search?q=…)`(LimitModal.tsx:55)라 가입 직후 서버 검색이 다시 돌아 새 회원의 무료 1회가 확인 없이 차감되고 saveToHistory 를 건너뛴다. 로드맵 2.2 표가 금지한 바로 그 패턴인데 결정 11 기본값(C)이 그대로 남긴다. → 수정안: 결정 11 의 (나)는 디자인 선택이 아니라 소유자 기존 요구의 복구이므로 질문에서 분리해 기본 적용(가능하면 R02a 로 앞당김): 모달 가입 버튼을 돌아갈 주소 없는 `/sign-in` 으로. (가)·(다)만 질문으로 남긴다. R10 의 redirect 검증에도 '/search 대상이면 q 를 뗀다' 규칙을 추가.",
@@ -1919,7 +1935,10 @@
     "유튜브 버튼 대비 4.5:1 이상(#FF0000 흰 글자는 4.0:1 로 미달).",
     "채널 상세에 '/my-channel' 로 가는 새 링크를 만들지 않는다(로그인·횟수 제한 없는 쿼터 소모 경로).",
     "추가 범위: src/app/channels/[channelId]/_components/DescriptionToggle.tsx.",
-    "결정 12 기본(C): 기본 탭 이름·계산 그대로."
+    "결정 12 기본(C): 기본 탭 이름·계산 그대로.",
+    "(R02b 인계) 히트맵 글자색 경계는 α 0.54(0.55 면 흰 글자 4.44:1). 업로드 빈도 3단계(에메랄드·흰색·neutral-400)와 등급 색에 범례. 필터 줄을 sticky 로 만들면 표 래퍼에 overflow-anchor:none. 터치 영역(돌아가기 h-11, 탭 h-10 이상). 정보 글자 neutral-400 이상·최소 12px.",
+    "(R02b 인계) 범위 밖으로 남은 구 테마: ChannelSearchBar(틸 검색 버튼·gray 입력), ChannelSearchForm, my-channel/page.tsx(bg-gray-950·gray 헤더 띠), DescriptionToggle(틸 '더 보기'). 채널 상세 '최고 영상' 링크는 밑줄이 없어 링크로 안 보인다. 상세 오류 화면의 돌아가기는 아직 고정 /channels(BackToChannelsLink 로). 390px /channels 가로 넘침 181px(정렬 탭 묶음, channels-04).",
+    "(R02b 인계) my-channel/actions.ts 의 insights.bestDayOfWeek·bestHour 는 서버 시간대(UTC) 계산이 남아 있지만 화면에서 쓰지 않는다. 정리 여부 판단."
    ],
    "critique_notes": [
     "[risk-understated] 채널 상세 유튜브 버튼은 지금 bg-red-600(v4 oklch 57.7%) + 흰 14px 글자로 대비 4.76:1 이다([channelId]/page.tsx:331). R19 의 '#FF0000'으로 바꾸면 4.0:1 로 AA(4.5:1) 미달이 되며 ux-rules 5.6 brand 행이 같은 경고를 적어 두었다. R18 VideoModal 도 '#FF0000(또는 흰 버튼)'이다. → 수정안: 유튜브는 secondary 버튼 + 빨간 로고 SVG(ux-rules 5.6 권고)로 하거나 red-600 을 유지. 완료 기준에 대비 4.5:1 이상.",
@@ -2061,7 +2080,8 @@
    ],
    "amendments_v2": [
     "ReferralApply: 2xx·4xx 응답이면 쿠키 삭제(영구 실패 반복 방지), 네트워크 오류·5xx 만 쿠키 유지.",
-    "초대 안내 문구는 실제 동작대로: 보너스는 무료 플랜의 하루 검색 한도에 매일 더해지는 3회(유료 플랜 미적용). '무료 검색 3회가 추가되었습니다' 금지."
+    "초대 안내 문구는 실제 동작대로: 보너스는 무료 플랜의 하루 검색 한도에 매일 더해지는 3회(유료 플랜 미적용). '무료 검색 3회가 추가되었습니다' 금지.",
+    "(R01 인계) R01 이 마이페이지 본문과 자식 컴포넌트(ReferralSection·LogoutButton·DeleteAccountButton·RecentSearches·CancelSubscriptionButton)의 gray·남색을 neutral 로 이미 바꿨다. 남은 것: Starter 파랑·Team bibl 보라 플랜 글자, 채널 사용량 보라 막대, 사용량 트랙 neutral-700(목표 neutral-800), 확인창 2개를 R05 Dialog 셸로(레드 채움 확인 버튼·backdrop-blur·shadow-2xl 정리), '매일 자정 리셋'(실제 오전 9시, 결정 8 B), 결제 내역 플랜 표시가 내부 키를 대문자화한 값, team·admin 의 빈 플랜 설명 div, 초대 안내 문구(실제 동작대로)."
    ],
    "critique_notes": [
     "[factually-wrong] ReferralApply 변경 두 가지가 실제 동작과 어긋난다. (1) '응답 성공 시에만 쿠키 삭제'로 바꾸면 already_referred·invalid_code·self_referral 같은 영구 실패(400, api/referral/route.ts:61-69) 때 쿠키가 1시간(auth/callback/route.ts:78-80 maxAge) 남아 페이지를 새로 열 때마다 POST 가 반복된다. (2) 새 문구 '초대 보너스 무료 검색 3회가 추가되었습니다'는 사실과 다르다. 보너스는 만료 없는 ref:bonus 로 무료 플랜의 하루 한도에 매일 더해지고(route.ts:75-77, searchLimit.ts:194-197) 유료 플랜에는 적용되지 않는다. → 수정안: 2xx·4xx 는 쿠키 삭제, 네트워크 오류·5xx 만 유지. 문구는 '무료 플랜 하루 검색 한도가 3회 늘었습니다'처럼 동작대로(결정 8 범위 확인)."
