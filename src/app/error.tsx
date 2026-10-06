@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect } from "react";
+import { buttonClass } from "@/components/ui/button";
+import { Container } from "@/components/ui/container";
 
 export default function GlobalError({
   error,
@@ -13,29 +15,27 @@ export default function GlobalError({
     console.error("[GlobalError]", error);
   }, [error]);
 
+  // 404·점검 화면과 같은 틀: 큰 장식 글자 + 제목 + 설명 + 흰 버튼 하나와 보조 버튼
   return (
-    <main className="min-h-screen bg-black text-white flex items-center justify-center px-4">
-      <div className="text-center space-y-5 max-w-sm">
-        <div className="text-5xl">⚠️</div>
-        <h1 className="text-xl font-bold text-white">오류가 발생했습니다</h1>
-        <p className="text-neutral-500 text-sm">
+    <main className="flex min-h-[60vh] items-center py-16 md:py-24">
+      <Container size="reading" className="text-center">
+        <div aria-hidden="true" className="text-display font-black text-neutral-700">
+          ERROR
+        </div>
+        <h1 className="mt-4 text-h4 text-white">오류가 발생했습니다</h1>
+        <p className="mt-3 text-body-sm text-neutral-400 md:text-body">
           일시적인 오류입니다. 잠시 후 다시 시도해주세요.
         </p>
-        <div className="flex gap-3 justify-center pt-2">
-          <button
-            onClick={reset}
-            className="bg-white hover:bg-neutral-200 text-black text-sm font-bold px-5 py-2.5 rounded-lg transition"
-          >
+        <div className="mt-8 flex flex-wrap justify-center gap-3">
+          <button type="button" onClick={reset} className={buttonClass()}>
             다시 시도
           </button>
-          <a
-            href="/"
-            className="bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-sm font-semibold px-5 py-2.5 rounded-lg border border-neutral-700 transition"
-          >
+          {/* 오류에서 벗어날 때는 전체 새로고침이 맞아 next/link 대신 <a> 를 쓴다 */}
+          <a href="/" className={buttonClass({ variant: "secondary" })}>
             홈으로
           </a>
         </div>
-      </div>
+      </Container>
     </main>
   );
 }
