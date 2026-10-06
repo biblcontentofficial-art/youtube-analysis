@@ -24,6 +24,8 @@ import SearchBar from "../_components/SearchBar";
 import { getSearchUsage, incrementSearchCount } from "@/lib/searchLimit";
 import { cacheGet, searchCacheKey } from "@/lib/cache";
 import LimitModal from "./_components/LimitModal";
+import LimitNotice from "./_components/LimitNotice";
+import { getLimitCopy } from "./_components/limitCopy";
 import KakaoChannelBanner from "./_components/KakaoChannelBanner";
 import { ActionButton } from "./_components/SearchActionButtons";
 import { PLANS, PlanKey } from "@/lib/stripe";
@@ -187,80 +189,80 @@ export default async function SearchPage({ searchParams }: Props) {
   // 필터 탭: 검색 횟수 차감 없이 이동 + 현재 버전 유지
   const filterBase = `q=${encodedQuery}&fromHistory=1&v=${searchVersion}&region=${region}`;
 
-  // 한도 표시 레이블
-  const periodLabel = isMonthly ? "이번달" : "오늘";
+  // 한도 표시 레이블 (한도 모달·인라인 카드와 같은 문구 상수)
+  const limitCopy = getLimitCopy(isMonthly, plan);
+  const periodLabel = limitCopy.period;
+
+  // 남은 횟수 표시 (검색 띠·시작 안내 공용). 마지막 1회는 앰버, 소진은 레드.
+  const remaining = limit - used;
+  // 한도를 다 쓴 상태: 검색해도 incrementSearchCount 에서 멈춰 차감되지 않는다.
+  const exhausted = !unlimited && remaining <= 0;
+  const usageClass = unlimited
+    ? "text-neutral-400"
+    : remaining <= 0
+      ? "text-red-400"
+      : remaining === 1
+        ? "text-amber-400"
+        : "text-neutral-400";
+  const usageLabel = unlimited
+    ? `${periodLabel} ${used}회 사용`
+    : remaining <= 0
+      ? `${periodLabel} 한도 소진 (${used}/${limit})`
+      : remaining === 1
+        ? `마지막 검색 남음 (${used}/${limit})`
+        : `${periodLabel} ${remaining}회 남음 (${used}/${limit})`;
 
   return (
-    <main className="min-h-screen bg-gray-950 text-white">
+    <main className="min-h-screen bg-black text-white">
       {/* 검색마다 key가 바뀌어 강제 리마운트 → hideLoading() 반드시 실행 */}
       <PageLoadedSignal key={`signal-${query}-${filter}-${searchVersion}`} />
-      <LimitModal show={limitExceeded} limit={limit} />
+      <LimitModal show={limitExceeded} limit={limit} isMonthly={isMonthly} plan={plan} />
       <KakaoChannelBanner />
       {/* 검색 바 영역 */}
-      <div className="border-b border-gray-800 bg-gray-900/40 px-4 py-3">
+      <div className="border-b border-neutral-800 px-4 py-3">
         <div className="max-w-screen-xl mx-auto flex flex-col md:flex-row md:items-center gap-3">
           <SearchBar />
 
           {/* 검색어 칩 */}
           {query && (
             <div className="flex items-center gap-2 shrink-0">
-              <span className="flex items-center gap-1.5 px-3 py-1.5 bg-teal-900/50 border border-teal-700 rounded-full text-sm text-teal-300">
+              <span className="flex items-center gap-1.5 px-3 py-1.5 bg-neutral-900 border border-neutral-700 rounded-full text-sm text-neutral-200">
                 {query}
               </span>
             </div>
           )}
 
           {/* 검색 횟수 표시 */}
-          {query && (() => {
-            if (unlimited) {
-              return <div className="text-xs shrink-0 text-gray-600">{periodLabel} {used}회 사용</div>;
-            }
-            const remaining = limit - used;
-            const colorClass = remaining <= 0
-              ? "text-red-400"
-              : remaining === 1
-                ? "text-amber-400"
-                : "text-gray-500";
-            const label = remaining <= 0
-              ? `${periodLabel} 한도 소진 (${used}/${limit})`
-              : remaining === 1
-                ? `마지막 검색 남음 (${used}/${limit})`
-                : `${periodLabel} ${remaining}회 남음 (${used}/${limit})`;
-            return (
-              <div className={`text-xs shrink-0 font-medium ${colorClass}`}>
-                {remaining === 1 && (
-                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-amber-400 mr-1.5 animate-pulse align-middle" />
-                )}
-                {label}
-                {remaining === 1 && (
-                  <Link href="/pricing" className="ml-2 underline underline-offset-2 text-amber-400 hover:text-amber-300">업그레이드</Link>
-                )}
-              </div>
-            );
-          })()}
+          {query && (
+            <div className={unlimited ? "text-xs shrink-0 text-neutral-400" : `text-xs shrink-0 font-medium ${usageClass}`}>
+              {usageLabel}
+              {!unlimited && remaining === 1 && (
+                <Link href="/pricing" className="ml-2 underline underline-offset-2 text-amber-400 hover:text-amber-300">업그레이드</Link>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
       <div className="max-w-screen-xl mx-auto px-4 py-6">
         {/* 플랜 업그레이드 완료 알림 */}
         {upgraded && (
-          <div className="mb-6 p-4 bg-teal-950/60 border border-teal-700 rounded-xl flex items-center gap-3">
-            <span className="text-2xl shrink-0">🎉</span>
-            <div>
-              <p className="text-teal-300 font-semibold text-sm">플랜 업그레이드 완료!</p>
-              <p className="text-gray-400 text-xs mt-0.5">새로운 검색 한도가 적용됐습니다. 페이지를 새로고침하면 업데이트된 사용량이 표시됩니다.</p>
-            </div>
+          <div className="mb-6 p-4 border border-green-400/30 rounded-xl break-keep">
+            <p className="text-green-400 font-semibold text-sm">플랜 업그레이드 완료!</p>
+            <p className="text-neutral-400 text-xs mt-0.5">새로운 검색 한도가 적용됐습니다. 페이지를 새로고침하면 업데이트된 사용량이 표시됩니다.</p>
           </div>
         )}
 
         {/* API 에러 안내 */}
         {apiError === "quota_exceeded" && (
-          <div className="mb-6 p-5 bg-orange-950/50 border border-orange-700 rounded-xl text-center">
-            <p className="text-2xl mb-2">⚠️</p>
-            <p className="text-orange-300 font-semibold mb-1">
+          <div className="mb-6 p-5 border border-amber-400/30 rounded-xl text-center">
+            <svg viewBox="0 0 24 24" fill="none" className="w-6 h-6 mx-auto mb-2 text-amber-400" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+            </svg>
+            <p className="text-amber-400 font-semibold mb-1">
               일일 검색 용량이 소진됐습니다
             </p>
-            <p className="text-gray-400 text-sm">
+            <p className="text-neutral-400 text-sm">
               매일 한국 시간 오후 5시에 초기화됩니다. 잠시 후 다시 시도해주세요.
             </p>
           </div>
@@ -268,59 +270,12 @@ export default async function SearchPage({ searchParams }: Props) {
         {apiError === "api_error" && (
           <div className="mb-6 p-5 bg-red-950/50 border border-red-800 rounded-xl text-center">
             <p className="text-red-300 font-semibold mb-1">검색 중 오류가 발생했습니다</p>
-            <p className="text-gray-400 text-sm">잠시 후 다시 시도해주세요. 반복될 경우 고객센터로 문의해주세요.</p>
+            <p className="text-neutral-400 text-sm">잠시 후 다시 시도해주세요. 반복될 경우 고객센터로 문의해주세요.</p>
           </div>
         )}
 
-        {/* 한도 초과 안내 */}
-        {limitExceeded && (
-          <div className="mb-6 bg-gray-900 border border-gray-700 rounded-2xl overflow-hidden">
-            {/* 상단 강조 바 */}
-            <div className="h-1 bg-gradient-to-r from-teal-500 via-teal-400 to-teal-600" />
-            <div className="p-7 text-center">
-              <div className="w-14 h-14 bg-teal-950/60 border border-teal-800 rounded-2xl flex items-center justify-center mx-auto mb-5">
-                <svg viewBox="0 0 24 24" fill="none" className="w-7 h-7 text-teal-400" stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 15.803a7.5 7.5 0 0010.607 0z" />
-                </svg>
-              </div>
-              <h2 className="text-xl font-bold text-white mb-2">
-                {periodLabel} 검색 {limit}회를 모두 사용했습니다
-              </h2>
-              <p className="text-gray-400 text-sm mb-1">
-                Starter 플랜으로 업그레이드하면 <span className="text-teal-400 font-semibold">월 50회 검색</span>이 가능합니다
-              </p>
-              <p className="text-gray-600 text-xs mb-6">
-                {isMonthly ? "또는 다음달 초기화까지 기다리세요" : "또는 내일 자정 초기화까지 기다리세요"} · Starter ₩15,000/월부터
-              </p>
-
-              {/* 플랜 혜택 비교 */}
-              <div className="bg-gray-800/60 border border-gray-700 rounded-xl px-5 py-4 mb-6 text-left space-y-2.5">
-                {[
-                  { plan: "Starter", color: "text-teal-400", perks: "월 50회 검색 · 알고리즘 탑승 확률 · 채널 찾기" },
-                  { plan: "Pro", color: "text-purple-400", perks: "월 500회 + 영상 수집 · CSV 내보내기 · 채널 리포트" },
-                ].map(({ plan, color, perks }) => (
-                  <div key={plan} className="flex items-start gap-2.5">
-                    <svg viewBox="0 0 24 24" fill="none" className="w-4 h-4 mt-0.5 shrink-0 text-teal-500" stroke="currentColor" strokeWidth={2.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                    </svg>
-                    <span className="text-xs text-gray-400">
-                      <span className={`font-semibold ${color}`}>{plan}</span>
-                      <span className="text-gray-600 mx-1">—</span>
-                      {perks}
-                    </span>
-                  </div>
-                ))}
-              </div>
-
-              <Link
-                href="/pricing"
-                className="inline-block w-full max-w-xs bg-teal-600 hover:bg-teal-500 text-white text-sm font-bold px-6 py-3 rounded-xl transition"
-              >
-                플랜 업그레이드 →
-              </Link>
-            </div>
-          </div>
-        )}
+        {/* 한도 초과 안내 (모달과 같은 문구 상수) */}
+        {limitExceeded && <LimitNotice limit={limit} isMonthly={isMonthly} plan={plan} />}
 
         {/* 필터 + 액션 툴바 */}
         {query && !limitExceeded && !apiError && (
@@ -343,11 +298,11 @@ export default async function SearchPage({ searchParams }: Props) {
                 <Link
                   href="/pricing"
                   title="Pro 플랜부터 사용 가능"
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-900 border border-gray-700 text-gray-600 text-xs cursor-pointer hover:border-teal-700 hover:text-teal-400 transition-colors"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neutral-900 border border-neutral-700 text-neutral-400 text-xs cursor-pointer hover:border-neutral-600 hover:text-white transition-colors"
                 >
                   <span>📊</span>
                   <span>채널 리포트</span>
-                  <span className="text-[10px] bg-gray-800 px-1 py-0.5 rounded text-gray-500">Pro↑</span>
+                  <span className="text-xs bg-neutral-800 px-1 py-0.5 rounded text-neutral-400">Pro↑</span>
                 </Link>
               )}
               {/* 영상 수집: Pro/Business 전용 */}
@@ -357,11 +312,11 @@ export default async function SearchPage({ searchParams }: Props) {
                 <Link
                   href="/pricing"
                   title="Pro 플랜부터 사용 가능"
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-900 border border-gray-700 text-gray-600 text-xs cursor-pointer hover:border-teal-700 hover:text-teal-400 transition-colors"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neutral-900 border border-neutral-700 text-neutral-400 text-xs cursor-pointer hover:border-neutral-600 hover:text-white transition-colors"
                 >
                   <span>📥</span>
                   <span>영상 수집</span>
-                  <span className="text-[10px] bg-gray-800 px-1 py-0.5 rounded text-gray-500">Pro↑</span>
+                  <span className="text-xs bg-neutral-800 px-1 py-0.5 rounded text-neutral-400">Pro↑</span>
                 </Link>
               )}
               <ActionButton label="채널 제거" icon="🗑" event="TRIGGER_REMOVE_CHANNELS" />
@@ -371,23 +326,52 @@ export default async function SearchPage({ searchParams }: Props) {
           </div>
         )}
 
-        {!limitExceeded && !apiError && (
+        {/* 검색어 없이 열었을 때: 결과 목록 대신 시작 안내 ("검색 결과가 없어요"는 실제 0건일 때만) */}
+        {!query && (
+          <section aria-labelledby="search-start-title" className="mx-auto max-w-xl py-12 md:py-20 text-center break-keep">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" className="mx-auto h-8 w-8 text-neutral-400" aria-hidden="true">
+              <circle cx="11" cy="11" r="8" />
+              <path d="m21 21-4.35-4.35" />
+            </svg>
+            <h2 id="search-start-title" className="mt-5 text-xl md:text-2xl font-black text-white">영상 찾기</h2>
+            <p className="mt-3 text-sm md:text-base leading-relaxed text-neutral-300">
+              키워드로 최신 유튜브 영상을 수집해 조회수·구독자·게시일을 한눈에 확인합니다.
+            </p>
+            <div className="mt-8 border-t border-neutral-800 pt-6 space-y-1.5 text-sm">
+              {/* 소진 상태에서는 차감이 일어나지 않으므로 차감 안내를 빼고, 남은 횟수 줄에 다음 행동(업그레이드)을 둔다 */}
+              {!exhausted && <p className="text-neutral-400">확인 시 검색 사용량 1회가 차감됩니다.</p>}
+              <p className={`font-medium tabular-nums ${usageClass}`}>
+                {usageLabel}
+                {/* 마지막 1회·소진일 때 요금제로 (네비 사용량 배지 '한도 초과 · 업그레이드'와 같은 이동) */}
+                {!unlimited && remaining <= 1 && (
+                  <Link
+                    href="/pricing"
+                    className={`ml-2 underline underline-offset-2 ${exhausted ? "text-red-400 hover:text-red-300" : "text-amber-400 hover:text-amber-300"}`}
+                  >
+                    업그레이드
+                  </Link>
+                )}
+              </p>
+              {!unlimited && <p className="text-xs text-neutral-400">{limitCopy.reset}</p>}
+            </div>
+          </section>
+        )}
+
+        {query && !limitExceeded && !apiError && (
           <>
             {/* 무료 유저 업그레이드 유도 */}
             {!isPaid && !limitExceeded && videos.length > 0 && (
-              <div className="mb-4 p-4 bg-gradient-to-r from-teal-950/60 to-gray-900 border border-teal-800/60 rounded-xl flex items-center justify-between gap-4">
+              <div className="mb-4 p-4 bg-neutral-900 border border-neutral-800 rounded-xl flex items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 shrink-0 bg-teal-900/60 border border-teal-700 rounded-lg flex items-center justify-center">
-                    <svg viewBox="0 0 24 24" fill="none" className="w-4 h-4 text-teal-400" stroke="currentColor" strokeWidth={1.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941" />
-                    </svg>
-                  </div>
+                  <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5 shrink-0 text-neutral-400" stroke="currentColor" strokeWidth={1.5} aria-hidden="true">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941" />
+                  </svg>
                   <div>
-                    <p className="text-sm font-semibold text-teal-300">Starter 플랜으로 월 50회 검색 + 채널 찾기</p>
-                    <p className="text-xs text-gray-500 mt-0.5">월 ₩15,000 · 언제든지 취소 · 즉시 적용</p>
+                    <p className="text-sm font-semibold text-white">Starter 플랜으로 월 50회 검색 + 채널 찾기</p>
+                    <p className="text-xs text-neutral-400 mt-0.5">월 ₩15,000 · 언제든지 취소 · 즉시 적용</p>
                   </div>
                 </div>
-                <Link href="/pricing" className="shrink-0 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold px-4 py-2 rounded-lg transition whitespace-nowrap">
+                <Link href="/pricing" className="shrink-0 bg-white hover:bg-neutral-200 text-black text-xs font-bold px-4 py-2 rounded-lg transition-colors whitespace-nowrap">
                   업그레이드 →
                 </Link>
               </div>

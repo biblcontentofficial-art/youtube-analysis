@@ -6,6 +6,7 @@ import { useConfirm } from "./ConfirmDialog";
 import { useNavigationLoading } from "./NavigationLoader";
 import { useEffect as useEffectOnce } from "react";
 import { createSupabaseBrowser } from "@/lib/supabase/browser";
+import { takePendingKeyword } from "./pendingKeyword";
 
 interface HistoryItem {
   term: string;
@@ -252,6 +253,13 @@ export default function SearchBar() {
     e.preventDefault();
     void executeSearch(keyword);
   };
+
+  // 로그인 안내(홈 모달·한도 모달)에서 맡아 둔 키워드: q 없이 열렸을 때만 입력창을 채운다(자동 검색·차감 없음).
+  useEffect(() => {
+    if (searchParams.get("q")) return;
+    const pending = takePendingKeyword();
+    if (pending) setKeyword(pending.normalize("NFC"));
+  }, [searchParams]);
 
   const currentRegion = REGIONS.find((r) => r.code === region) ?? REGIONS[0];
 

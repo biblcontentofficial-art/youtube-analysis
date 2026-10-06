@@ -6,6 +6,7 @@ import Link from "next/link";
 import { createSupabaseBrowser } from "@/lib/supabase/browser";
 import { useNavigationLoading } from "@/app/_components/NavigationLoader";
 import { useConfirm } from "@/app/_components/ConfirmDialog";
+import { rememberPendingKeyword, forgetPendingKeyword } from "@/app/_components/pendingKeyword";
 import LandingStats from "@/app/_components/LandingStats";
 
 const EXAMPLE_KEYWORDS = ["캠핑", "영어 공부", "주식 투자", "다이어트", "여행 브이로그", "요리 레시피"];
@@ -34,6 +35,18 @@ export default function Home() {
   const [keyword, setKeyword] = useState("");
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [pendingKeyword, setPendingKeyword] = useState("");
+
+  // 로그인 모달이 열리면 입력한 키워드를 맡아 둔다. 로그인 뒤 /search 가 q 없이 열리면
+  // SearchBar 가 입력창에만 채운다(자동 검색·차감 없음). 돌아갈 주소에는 q 를 싣지 않는다.
+  React.useEffect(() => {
+    if (showAuthModal && pendingKeyword) rememberPendingKeyword(pendingKeyword);
+  }, [showAuthModal, pendingKeyword]);
+
+  // 로그인하지 않고 모달을 닫으면(닫기·배경 클릭) 맡아 둔 키워드도 버린다.
+  const closeAuthModal = () => {
+    forgetPendingKeyword();
+    setShowAuthModal(false);
+  };
 
   interface HistoryItem { term: string; count: number; }
 
@@ -90,7 +103,7 @@ export default function Home() {
       {showAuthModal && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm px-4"
-          onClick={() => setShowAuthModal(false)}
+          onClick={closeAuthModal}
         >
           <div
             className="bg-neutral-900 border border-neutral-700 rounded-2xl p-8 w-full max-w-sm shadow-2xl text-center"
@@ -106,17 +119,17 @@ export default function Home() {
               <span className="text-[#00E5A0] font-medium">&ldquo;{pendingKeyword}&rdquo;</span> 검색을 시작하려면<br />
               로그인 또는 회원가입을 해주세요.
             </p>
-            <p className="text-xs text-neutral-600 mb-7">가입 후 하루 2회 무료 검색 · 1분 만에 시작</p>
+            <p className="text-xs text-neutral-400 mb-7">가입 후 하루 2회 무료 검색 · 1분 만에 시작</p>
 
             <div className="flex flex-col gap-3">
               <Link
-                href={`/sign-up?redirect_url=/search?q=${encodeURIComponent(pendingKeyword)}`}
+                href="/sign-up?redirect_url=/search"
                 className="w-full py-3 bg-white hover:bg-neutral-200 text-black font-bold rounded-xl transition text-sm"
               >
                 회원가입 후 검색하기
               </Link>
               <Link
-                href={`/sign-in?redirect_url=/search?q=${encodeURIComponent(pendingKeyword)}`}
+                href="/sign-in?redirect_url=/search"
                 className="w-full py-3 bg-neutral-800 hover:bg-neutral-700 text-white font-semibold rounded-xl transition text-sm border border-neutral-700"
               >
                 로그인
@@ -124,8 +137,8 @@ export default function Home() {
             </div>
 
             <button
-              onClick={() => setShowAuthModal(false)}
-              className="mt-5 text-xs text-neutral-600 hover:text-neutral-400 transition"
+              onClick={closeAuthModal}
+              className="mt-5 text-xs text-neutral-400 hover:text-white transition"
             >
               닫기
             </button>
