@@ -1,0 +1,82 @@
+{
+  "SearchBar.localHistoryKey": {
+    "hash": "72cce6a1744f1dd3",
+    "file": "src/app/_components/SearchBar.tsx",
+    "count": 1
+  },
+  "SearchBar.loadLocalHistory": {
+    "hash": "1f5aadac84dff0aa",
+    "file": "src/app/_components/SearchBar.tsx",
+    "count": 1
+  },
+  "SearchBar.loadAllLocalHistory": {
+    "hash": "99754530cebd08b0",
+    "file": "src/app/_components/SearchBar.tsx",
+    "count": 1
+  },
+  "SearchBar.saveLocalHistory": {
+    "hash": "95c6ccace72ecd70",
+    "file": "src/app/_components/SearchBar.tsx",
+    "count": 1
+  },
+  "SearchBar.saveToHistory": {
+    "hash": "ed8b7f614603d91e",
+    "file": "src/app/_components/SearchBar.tsx",
+    "count": 1
+  },
+  "SearchBar.executeSearch": {
+    "hash": "017736a029e87c12",
+    "file": "src/app/_components/SearchBar.tsx",
+    "count": 1
+  },
+  "SearchBar.navigateFromHistory": {
+    "hash": "5fb5c77af880f796",
+    "file": "src/app/_components/SearchBar.tsx",
+    "count": 1
+  },
+  "SearchBar.handleSubmit": {
+    "hash": "d33d23510612ba45",
+    "file": "src/app/_components/SearchBar.tsx",
+    "count": 1
+  },
+  "search/page.if(query)": {
+    "hash": "cdc644bb5a15d95d",
+    "file": "src/app/search/page.tsx",
+    "count": 1
+  },
+  "search/page.filterBase": {
+    "hash": "43b91d80585db984",
+    "file": "src/app/search/page.tsx",
+    "count": 1
+  },
+  "SearchResultList.handleLoadMore": {
+    "hash": "c9520877480642df",
+    "file": "src/app/search/_components/SearchResultList.tsx",
+    "count": 1
+  },
+  "SearchResultList.dedup": {
+    "hash": "54d92909d4853321",
+    "file": "src/app/search/_components/SearchResultList.tsx",
+    "count": 1
+  },
+  "SearchResultList.key(video.videoId)": {
+    "hash": "48f54eb5aae20913",
+    "file": "src/app/search/_components/SearchResultList.tsx",
+    "count": 1
+  },
+  "home.saveToHistory": {
+    "hash": "9b07069f9b601db2",
+    "file": "src/app/page.tsx",
+    "count": 1
+  },
+  "home.trySearch": {
+    "hash": "0449e2c9a0e806ee",
+    "file": "src/app/page.tsx",
+    "count": 1
+  },
+  "RecentSearches.fromHistory": {
+    "hash": "f64365e23bd958fd",
+    "file": "src/app/mypage/_components/RecentSearches.tsx",
+    "count": 1
+  }
+}
