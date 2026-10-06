@@ -1,16 +1,25 @@
 "use client";
 
 import { useState } from "react";
+import Script from "next/script";
 
 interface ShareButtonProps {
   query: string;
 }
 
+type KakaoSDK = {
+  init: (key: string) => void;
+  isInitialized: () => boolean;
+  Share: { sendDefault: (opts: Record<string, unknown>) => void };
+};
+
+const KAKAO_JS_KEY = process.env.NEXT_PUBLIC_KAKAO_JS_KEY || "";
+
 export default function ShareButton({ query }: ShareButtonProps) {
   const [copied, setCopied] = useState(false);
 
   const shareUrl = `https://bibllab.com/search?q=${encodeURIComponent(query)}`;
-  const shareText = `"${query}" 유튜브 키워드 분석 결과 — 비블랩`;
+  const shareText = `"${query}" 유튜브 키워드 분석 결과 · 비블랩`;
 
   const handleCopyLink = async () => {
     try {
@@ -33,7 +42,7 @@ export default function ShareButton({ query }: ShareButtonProps) {
   const handleKakaoShare = () => {
     if (typeof window === "undefined") return;
     // 카카오 SDK 미로드 시 URL 복사 폴백
-    const w = window as unknown as { Kakao?: { isInitialized: () => boolean; Share: { sendDefault: (opts: Record<string, unknown>) => void } } };
+    const w = window as unknown as { Kakao?: KakaoSDK };
     if (!w.Kakao || !w.Kakao.isInitialized()) {
       handleCopyLink();
       return;
@@ -67,18 +76,33 @@ export default function ShareButton({ query }: ShareButtonProps) {
 
   return (
     <div className="flex items-center gap-1">
+      {/* 카카오 SDK: 이 버튼이 있는 화면에서만, 페이지가 다 뜬 뒤 싣는다.
+          키(NEXT_PUBLIC_KAKAO_JS_KEY, 빌드 때 코드에 들어감)가 없으면 싣지 않고, 카카오 버튼은 링크 복사로 동작한다 */}
+      {KAKAO_JS_KEY && (
+        <Script
+          src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.4/kakao.min.js"
+          integrity="sha384-DKYJZ8NLiK8MN4/C5P2dtSmLQ4KwPaoqAfyA/DfmEc1VDxu4yyC7wy6K1Hs90nka"
+          crossOrigin="anonymous"
+          strategy="lazyOnload"
+          onLoad={() => {
+            const kakao = (window as unknown as { Kakao?: KakaoSDK }).Kakao;
+            if (kakao && !kakao.isInitialized()) kakao.init(KAKAO_JS_KEY);
+          }}
+        />
+      )}
+
       {/* URL 복사 */}
       <button
         onClick={handleCopyLink}
-        className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-white bg-gray-900 hover:bg-gray-800 border border-gray-800 px-3 py-1.5 rounded-lg transition-colors"
+        className="flex items-center gap-1.5 text-xs text-neutral-400 hover:text-white bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 px-3 py-1.5 rounded-lg transition-colors"
         title="링크 복사"
       >
         {copied ? (
           <>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5 text-teal-400">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5 text-green-400">
               <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" />
             </svg>
-            <span className="text-teal-400">복사됨</span>
+            <span className="text-green-400">복사됨</span>
           </>
         ) : (
           <>
@@ -105,10 +129,10 @@ export default function ShareButton({ query }: ShareButtonProps) {
       {/* 네이티브 공유 (모바일) */}
       <button
         onClick={handleNativeShare}
-        className="flex items-center justify-center w-7 h-7 bg-gray-900 hover:bg-gray-800 border border-gray-800 rounded-lg transition-colors md:hidden"
+        className="flex items-center justify-center w-7 h-7 bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 rounded-lg transition-colors md:hidden"
         title="공유하기"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5 text-gray-400">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5 text-neutral-400">
           <path d="M13 4.5a2.5 2.5 0 11.702 1.737L6.97 9.604a2.518 2.518 0 010 .799l6.733 3.367a2.5 2.5 0 11-.671 1.341l-6.733-3.367a2.5 2.5 0 110-3.481l6.733-3.367A2.52 2.52 0 0113 4.5z" />
         </svg>
       </button>

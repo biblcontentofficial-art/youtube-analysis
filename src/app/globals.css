@@ -16,6 +16,15 @@
   --font-mono: var(--font-mono);
 }
 
+/*
+ * 데스크톱 한 줄 메뉴 시작점. 이 폭 미만은 네비 2행 메뉴를 쓴다.
+ * nav: / max-nav: 변형으로만 참조한다(네비·컨설팅 상세 보조 헤더·하단 신청 바).
+ * 최종 값은 R06a 에서 실측해 확정한다.
+ */
+@theme {
+  --breakpoint-nav: 80rem;
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;

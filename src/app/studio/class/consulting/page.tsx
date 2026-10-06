@@ -20,9 +20,8 @@ function ApplyButton({ label = "1:1 팀비블 신청하기" }: { label?: string 
       href={APPLY_URL}
       target="_blank"
       rel="noopener noreferrer"
-      className="inline-flex items-center gap-2 px-8 py-4 bg-white hover:bg-gray-200 text-black font-black rounded-xl transition text-base shadow-lg shadow-white/10"
+      className="inline-flex items-center gap-2 px-8 py-4 bg-white hover:bg-neutral-200 text-black font-black rounded-xl transition text-base"
     >
-      <TrackVisit page="consulting-class" />
       {label}
       <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 5l7 7-7 7" /></svg>
     </a>
@@ -32,10 +31,13 @@ function ApplyButton({ label = "1:1 팀비블 신청하기" }: { label?: string 
 export default function TeamBiblConsultingPage() {
   return (
     <main className="min-h-screen bg-black text-white">
-      {/* 상단 네비 */}
-      <div className="sticky top-14 z-30 bg-black/90 backdrop-blur border-b border-gray-900">
+      {/* 방문 기록은 페이지당 한 번 (신청 버튼마다 두면 첫 방문에 2건이 쌓인다) */}
+      <TrackVisit page="consulting-class" />
+
+      {/* 상단 네비 (데스크톱 한 줄 메뉴 이상에서만: 그 아래는 2행 네비가 top-14 를 가리고, 하단 고정 바가 신청을 맡는다) */}
+      <div className="hidden nav:block sticky top-14 z-30 bg-black/90 backdrop-blur border-b border-neutral-900">
         <div className="max-w-[1000px] mx-auto px-4 h-12 flex items-center justify-between">
-          <Link href="/studio" className="text-xs text-gray-400 hover:text-white transition inline-flex items-center gap-1">
+          <Link href="/studio" className="text-xs text-neutral-400 hover:text-white transition inline-flex items-center gap-1">
             ← 스튜디오
           </Link>
           <span className="text-sm font-bold text-white">1:1 유튜브 컨설팅</span>
@@ -43,7 +45,7 @@ export default function TeamBiblConsultingPage() {
             href={APPLY_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-xs font-bold text-white hover:text-gray-300 underline underline-offset-4 transition"
+            className="text-xs font-bold text-white hover:text-neutral-300 underline underline-offset-4 transition"
           >
             신청하기
           </a>
@@ -51,15 +53,15 @@ export default function TeamBiblConsultingPage() {
       </div>
 
       {/* 상단 CTA */}
-      <div className="max-w-[1000px] mx-auto px-4 pt-12 pb-10 text-center border-b border-gray-900">
+      <div className="max-w-[1000px] mx-auto px-4 pt-12 pb-10 text-center border-b border-neutral-900">
         <h1 className="text-2xl md:text-3xl font-black tracking-tight mb-3">
           팀비블 1:1 유튜브 컨설팅
         </h1>
-        <p className="text-gray-400 text-sm leading-relaxed mb-8">
+        <p className="text-neutral-400 text-sm leading-relaxed mb-8">
           유튜브 채널 성장과 함께 사업을 성장시키는 방법까지, 비블이 1:1로 함께합니다.
         </p>
         <ApplyButton />
-        <p className="text-xs text-gray-600 mt-4">신청 페이지로 이동합니다</p>
+        <p className="text-xs text-neutral-400 mt-4">신청 페이지로 이동합니다</p>
       </div>
 
       {/* 상세 이미지 */}
@@ -83,20 +85,21 @@ export default function TeamBiblConsultingPage() {
         <h2 className="text-2xl md:text-3xl font-black tracking-tight mb-3">
           1:1 팀비블과 시작하세요
         </h2>
-        <p className="text-gray-400 text-sm leading-relaxed mb-8">
+        <p className="text-neutral-400 text-sm leading-relaxed mb-8">
           유튜브 채널 성장과 함께 사업을 성장시키는 방법까지, 비블이 1:1로 함께합니다.
         </p>
         <ApplyButton />
-        <p className="text-xs text-gray-600 mt-4">신청 페이지로 이동합니다</p>
+        <p className="text-xs text-neutral-400 mt-4">신청 페이지로 이동합니다</p>
       </div>
 
-      {/* 모바일 하단 고정 신청 버튼 */}
-      <div className="sticky bottom-0 z-30 md:hidden bg-black/95 backdrop-blur border-t border-gray-900 p-3">
+      {/* 하단 고정 신청 버튼 (데스크톱 한 줄 메뉴 미만: 모바일·태블릿).
+          태블릿 폭(md 이상)에서는 버튼을 가운데 max-w-md 로 줄여 오른쪽 아래 카카오 상담 버튼과 겹치지 않게 한다. */}
+      <div className="sticky bottom-0 z-30 nav:hidden bg-black/95 backdrop-blur border-t border-neutral-900 p-3">
         <a
           href={APPLY_URL}
           target="_blank"
           rel="noopener noreferrer"
-          className="block w-full py-4 bg-white hover:bg-gray-200 text-black text-center font-black rounded-xl transition text-sm"
+          className="block w-full md:max-w-md md:mx-auto py-4 bg-white hover:bg-neutral-200 text-black text-center font-black rounded-xl transition text-sm"
         >
           1:1 팀비블 신청하기
         </a>

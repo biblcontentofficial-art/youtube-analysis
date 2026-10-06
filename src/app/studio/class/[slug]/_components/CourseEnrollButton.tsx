@@ -54,9 +54,9 @@ export default function CourseEnrollButton({ courseSlug, courseTitle, price, pri
         onClick={handlePurchase}
         className="w-full py-3 bg-white hover:bg-neutral-200 text-black rounded-xl font-bold transition text-sm"
       >
-        {priceLabel}로 수강 신청
+        {priceLabel}으로 수강 신청
       </button>
-      <p className="text-xs text-neutral-600 text-center">30일 환불 보장</p>
+      <p className="text-xs text-neutral-400 text-center">30일 환불 보장</p>
     </div>
   );
 }

@@ -31,7 +31,10 @@ const getIncubatingPost = unstable_cache(
 export async function generateMetadata(): Promise<Metadata> {
   const post = await getIncubatingPost();
   return {
-    title: "브랜드 인큐베이팅 | 비블랩 (bibl lab)",
+    // 사이트 이름은 루트 레이아웃 title.template 이 붙인다.
+    title: "브랜드 인큐베이팅",
+    // 루트의 canonical(홈)이 상속되지 않도록 이 페이지 주소를 지정한다.
+    alternates: { canonical: "https://bibllab.com/incubating" },
     description: post
       ? excerpt(post.content, 160)
       : "영어·수학 선생님을 위한 비블 브랜드 인큐베이팅. 채널 기획·제작·마케팅·상품화는 레이블이, 선생님은 가르치는 일에만 집중합니다.",

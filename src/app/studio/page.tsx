@@ -134,7 +134,6 @@ const CHANNELS = [
     avatar: "https://yt3.googleusercontent.com/c1FBPCbt8LgbSD35amjUZOfgyqf-GjqpJ-XIx1rX37qyulT5Jscqumkqlk7SCCKWoj4xtdwaeQ4=s240-c-k-c0x00ffffff-no-rj",
     banner: "https://yt3.googleusercontent.com/fNxhkFCNtSBP1dtg0i3W5oZKlohCyLhkNY8vUA1X8qC28L7q_t0QR9j_Ui-qaIq7f5hyiNAcWg=w1280-fcrop64=1,00000000ffffffff",
     url: "https://www.youtube.com/@세계유명골프정보",
-    color: "from-green-900/80",
   },
   {
     name: "영어 키위새",
@@ -145,7 +144,6 @@ const CHANNELS = [
     avatar: "https://yt3.googleusercontent.com/s0W_yZEOUs466pSMRDegQDGeEJF5Q-TaCGgj4_gQ_eSSpROj0fnvVFXzU3QwmXgyP7-xxyRe=s240-c-k-c0x00ffffff-no-rj",
     banner: "https://yt3.googleusercontent.com/-GU5UUOmKhc_zSCX2RCxc2FRG1ESh1EgLcS9A8AVUT5O9_RfRC4zFNH0pTyQXhisD4jrM6Xxww=w1280-fcrop64=1,00005a5afffffea",
     url: "https://www.youtube.com/@eng_kiwi",
-    color: "from-blue-900/80",
   },
   {
     name: "스윔클래스",
@@ -156,7 +154,6 @@ const CHANNELS = [
     avatar: "https://yt3.googleusercontent.com/DxGEnYcDFNMqQ4rqQ7sYFZFlPksnfh7BJOPOtYM_gDWlTrumru1ohHXga8Pko_xkPsUsrfSq_Hw=s240-c-k-c0x00ffffff-no-rj",
     banner: "https://yt3.googleusercontent.com/fzwxJIRRnLH4cIGna2T7zi0tnEj9Mn6jayGPF9j0D-aPWLTTqEfXMGMwSnpzgYtvxwqXdIdFeg=w1280-fcrop64=1,00005a5afffffea",
     url: "https://www.youtube.com/@swim_class",
-    color: "from-cyan-900/80",
   },
   {
     name: "비블 bibl",
@@ -167,7 +164,6 @@ const CHANNELS = [
     avatar: "https://yt3.googleusercontent.com/1wD45zOpnfNTAG4Kq8qs2T27tNyxqXTKC5a23qB6N8zl5SNlU8ugdUCx2yywcrFnBqywfz2z9w=s240-c-k-c0x00ffffff-no-rj",
     banner: "https://yt3.googleusercontent.com/XDssFLodQnpmebO2quHSdHYPUroghTjlqATrtTahvyMNfVWUxTP4lr55XEKqLiUh-z2y2wJFaRQ=w1280-fcrop64=1,00000000ffffffff",
     url: "https://www.youtube.com/@bibl_youtube",
-    color: "from-neutral-900/80",
   },
   {
     name: "세계유명 골프레슨",
@@ -178,7 +174,6 @@ const CHANNELS = [
     avatar: "https://yt3.googleusercontent.com/JsHOMhsNg6GVEfeLgArKP5wappnficEWruFlxK8TRRf2_xpqBF3OQsbvkXu32srWaui02zppR_o=s240-c-k-c0x00ffffff-no-rj",
     banner: "https://yt3.googleusercontent.com/_MlBIxHi8Cvt7lTZg6F0svNJOVAz_Le2jthY8T6SS7ijj-auSC33JEKoYmy1CSpuq5Q8HPr-L7E=w1280-fcrop64=1,00000000ffffffff",
     url: "https://www.youtube.com/@세계유명골프레슨",
-    color: "from-lime-900/80",
   },
   {
     name: "Drawing MiMiSulSul",
@@ -189,7 +184,6 @@ const CHANNELS = [
     avatar: "https://yt3.googleusercontent.com/_jdM4wQ5HYAvKioeArkYrDYILEcC6Z72HAB9CW8zt-7UPSdJ8nk4s0keAKoQrwMr3Ln4k2_AgHQ=s240-c-k-c0x00ffffff-no-rj",
     banner: "https://yt3.googleusercontent.com/wn5G-HpcnYp6FyUiq9IUKQgCUMSXMRJvMN-3Q4VpdXT5w37GBmQ3JwRBVKe7fVy7G0XO9z1ctpE=w1280-fcrop64=1,00000000ffffffff",
     url: "https://www.youtube.com/channel/UC6dIuL-vSW_egzY4UiPzKtg",
-    color: "from-pink-900/80",
   },
 ];
 
@@ -253,7 +247,6 @@ const FAQS = [
 function SectionLabel({ label, caption = "비블의 유튜브 채널 대행" }: { label: string; caption?: string }) {
   return (
     <div data-animate="fade" className="flex items-center justify-between gap-4 border-b border-neutral-800 pb-4 mb-12">
-      <TrackVisit page="studio" />
       <span className="text-xs md:text-sm text-neutral-500">{caption}</span>
       <span className="text-sm md:text-base font-black tracking-[0.25em] text-white">{label}</span>
     </div>
@@ -269,6 +262,8 @@ export default function StudioPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(studioJsonLd) }}
       />
       <StudioGuard />
+      {/* 방문 기록은 페이지당 한 번 (섹션 라벨마다 두면 첫 방문에 11건이 쌓인다) */}
+      <TrackVisit page="studio" />
       <AnimationObserver />
       {DevEditor && <DevEditor />}
 
@@ -633,7 +628,6 @@ export default function StudioPage() {
                 </div>
                 <div data-animate={feat.imgRight ? "right" : "left"} className={`relative min-h-64 md:min-h-0 overflow-hidden ${feat.imgRight ? "" : "md:[direction:ltr]"}`}>
                   <Image src={feat.img} alt={feat.imgAlt} fill className="object-cover feat-img" unoptimized />
-                  <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-transparent to-transparent" />
                 </div>
               </div>
             </div>

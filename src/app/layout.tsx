@@ -276,7 +276,6 @@ export default async function RootLayout({
     <html lang="ko">
       <head>
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-        <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.4/kakao.min.js" integrity="sha384-DKYJZ8NLiK8MN4/C5P2dtSmLQ4KwPaoqAfyA/DfmEc1VDxu4yyC7wy6K1Hs90nk" crossOrigin="anonymous" async />
         <link rel="icon" href="/icon" type="image/png" sizes="32x32" />
         <link rel="apple-touch-icon" href="/apple-icon" sizes="180x180" />
       </head>
@@ -288,15 +287,7 @@ export default async function RootLayout({
             dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
           />
         ))}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              if(typeof Kakao!=='undefined'&&!Kakao.isInitialized()){
-                Kakao.init('${process.env.NEXT_PUBLIC_KAKAO_JS_KEY || ""}');
-              }
-            `,
-          }}
-        />
+        {/* 카카오 SDK 는 쓰는 곳(검색 결과 공유 버튼)에서만 싣는다: search/_components/ShareButton.tsx */}
         <NavigationLoader>
         <ConfirmProvider>
         <nav className="border-b border-neutral-800 bg-black sticky top-0 z-50">
@@ -312,7 +303,7 @@ export default async function RootLayout({
                 </span>
               </a>
 
-              <div className="hidden md:flex flex-1 items-center justify-center gap-1 text-sm whitespace-nowrap min-w-0">
+              <div className="hidden nav:flex flex-1 items-center justify-center gap-1 text-sm whitespace-nowrap min-w-0">
                 {/* 브랜드 인큐베이팅 (영어·수학 선생님 모집, 공개 페이지) — 화이트 필 강조 */}
                 <NavTab href="/incubating" label="브랜드 인큐베이팅" highlight icon={
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
@@ -346,10 +337,10 @@ export default async function RootLayout({
             {/* 우측 */}
             <div className="flex items-center gap-2 shrink-0 ml-2">
               <SearchUsageBadge />
-              {/* 모바일 전용: 요금제 링크 */}
+              {/* 모바일·태블릿 전용(데스크톱 한 줄 메뉴 미만): 요금제 링크 */}
               <a
                 href="/pricing"
-                className="md:hidden text-xs text-neutral-400 hover:text-white px-2 py-1 rounded-md transition"
+                className="nav:hidden text-xs text-neutral-400 hover:text-white px-2 py-1 rounded-md transition"
                 title="요금제"
               >
                 요금제
@@ -357,8 +348,8 @@ export default async function RootLayout({
               <NavUser />
             </div>
           </div>
-          {/* 모바일 전용: 전체 메뉴 행 (줄바꿈 허용 · 스크롤 없이 모두 노출) */}
-          <div className="md:hidden border-t border-neutral-800/60 bg-neutral-950">
+          {/* 모바일·태블릿 전용(데스크톱 한 줄 메뉴 미만): 전체 메뉴 행 (줄바꿈 허용 · 스크롤 없이 모두 노출) */}
+          <div className="nav:hidden border-t border-neutral-800/60 bg-neutral-950">
             <div className="max-w-screen-2xl mx-auto px-3 py-2 flex flex-wrap items-center justify-center gap-x-1 gap-y-1">
               <a
                 href="/incubating"

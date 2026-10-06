@@ -66,7 +66,7 @@ export async function GET(req: NextRequest) {
 </head>
 <body>
   <div>
-    <a class="back" href="${origin}/payment?plan=${plan}">&larr; 결제수단 선택으로 돌아가기</a>
+    <a class="back" href="${origin}/payment?plan=${plan}&amp;period=${period}">&larr; 결제수단 선택으로 돌아가기</a>
     <div class="card">
       <div class="plan">
         <div>
