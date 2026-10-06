@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import SearchUsageBadge from "./_components/SearchUsageBadge";
 import NavigationLoader from "./_components/NavigationLoader";
@@ -10,6 +10,12 @@ import "./globals.css";
 
 
 const inter = Inter({ subsets: ["latin"] });
+
+// 모바일 브라우저 상단바·스크롤바·체크박스 같은 기본 컨트롤을 어두운 모양으로 (정적 값이라 정적 렌더 유지)
+export const viewport: Viewport = {
+  themeColor: "#000000",
+  colorScheme: "dark",
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://bibllab.com"),
@@ -279,7 +285,7 @@ export default async function RootLayout({
         <link rel="icon" href="/icon" type="image/png" sizes="32x32" />
         <link rel="apple-touch-icon" href="/apple-icon" sizes="180x180" />
       </head>
-      <body className={`${inter.className} bg-neutral-950 text-white`}>
+      <body className={`${inter.className} bg-black text-white`}>
         {jsonLd.map((schema, i) => (
           <script
             key={i}

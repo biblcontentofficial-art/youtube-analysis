@@ -1,166 +1,340 @@
 @import "tailwindcss";
 
-:root {
-  --background: #0b0f17;
-  --foreground: #e7eaf0;
-  --muted: #97a3b6;
-  --card: #0f1623;
-  --card-border: rgba(255, 255, 255, 0.08);
-  --ring: rgba(99, 102, 241, 0.55);
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
-  --font-mono: var(--font-mono);
-}
-
 /*
- * 데스크톱 한 줄 메뉴 시작점. 이 폭 미만은 네비 2행 메뉴를 쓴다.
- * nav: / max-nav: 변형으로만 참조한다(네비·컨설팅 상세 보조 헤더·하단 신청 바).
- * 최종 값은 R06a 에서 실측해 확정한다.
+ * 디자인 토큰 (Tailwind v4 @theme)
+ * 값의 근거: docs/ux-renewal/ROADMAP.md 1.1, docs/ux-renewal/spec/reference-design.md §4.1
+ * neutral 은 Tailwind 기본값을 그대로 쓴다(bg-black · neutral-900 카드 · neutral-800 선).
  */
 @theme {
+  /*
+   * 글꼴. Pretendard 파일은 아직 싣지 않는다(소유자 결정 F 대기).
+   * 지금 body 는 next/font Inter(라틴) + OS 한글 글꼴이고, 파일을 들이는 커밋에서 Inter 를 지운다.
+   */
+  --font-sans: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* 색. 액센트는 글자·포커스 자리에만, 브랜드색은 해당 표식에만 쓴다 */
+  --color-accent: #00e5a0;
+  --color-accent-hover: #66ffcc;
+  --color-surface-raised: #1f1f1f;
+  --color-kakao: #fee500;
+  --color-kakao-hover: #fdd835;
+  --color-kakao-ink: #191919;
+  --color-youtube: #ff0000;
+
+  /* 글자 단계. text-* 하나가 크기·행간·자간·굵기를 함께 정한다 */
+  --text-display: 3.75rem;
+  --text-display--line-height: 1.15;
+  --text-display--letter-spacing: -0.03em;
+  --text-display--font-weight: 900;
+  --text-h1: 3rem;
+  --text-h1--line-height: 1.2;
+  --text-h1--letter-spacing: -0.025em;
+  --text-h1--font-weight: 900;
+  --text-h2: 2.25rem;
+  --text-h2--line-height: 1.25;
+  --text-h2--letter-spacing: -0.02em;
+  --text-h2--font-weight: 900;
+  --text-h3: 1.75rem;
+  --text-h3--line-height: 1.3;
+  --text-h3--letter-spacing: -0.02em;
+  --text-h3--font-weight: 900;
+  --text-h4: 1.25rem;
+  --text-h4--line-height: 1.4;
+  --text-h4--letter-spacing: -0.01em;
+  --text-h4--font-weight: 700;
+  --text-lead: 1.125rem;
+  --text-lead--line-height: 1.7;
+  --text-lead--letter-spacing: -0.005em;
+  --text-body: 1rem;
+  --text-body--line-height: 1.75;
+  --text-body-sm: 0.875rem;
+  --text-body-sm--line-height: 1.7;
+  --text-caption: 0.8125rem;
+  --text-caption--line-height: 1.5;
+  --text-caption--font-weight: 500;
+  --text-micro: 0.75rem;
+  --text-micro--line-height: 1.5;
+  --text-micro--font-weight: 500;
+  --text-label-en: 0.875rem;
+  --text-label-en--line-height: 1;
+  --text-label-en--letter-spacing: 0.25em;
+  --text-label-en--font-weight: 900;
+
+  /* 반경: 버튼·입력 8 · 카드·검색창 12 · 모달·미디어 16 */
+  --radius-control: 0.5rem;
+  --radius-card: 0.75rem;
+  --radius-panel: 1rem;
+
+  /* 컨테이너: 페이지 1200px · 글 폭 672px */
+  --container-page: 75rem;
+  --container-reading: 42rem;
+
+  /*
+   * 데스크톱 한 줄 메뉴 시작점. 이 폭 미만은 네비 2행 메뉴를 쓴다.
+   * nav: / max-nav: 변형으로만 참조한다(네비·컨설팅 상세 보조 헤더·하단 신청 바).
+   * 최종 값은 R06a 에서 실측해 확정한다.
+   */
   --breakpoint-nav: 80rem;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/*
+ * 임시 안전망: 아직 변환하지 않은 화면(로그인 뒤 앱 화면·관리자 화면)의 gray·slate·zinc 를
+ * neutral 과 같은 무채색 값으로 바꿔 청색기만 없앤다. 명도 단계는 그대로다.
+ * 화면 변환이 끝나도 관리자 화면(insights/admin)이 남으므로 R22 이후에도 지우지 않는다.
+ * teal 은 바꾸지 않는다(틸 채움 버튼이 에메랄드 채움 버튼이 되어 "색 배경 버튼 금지"에 걸린다).
+ */
+@theme {
+  --color-gray-50: oklch(98.5% 0 0);
+  --color-gray-100: oklch(97% 0 0);
+  --color-gray-200: oklch(92.2% 0 0);
+  --color-gray-300: oklch(87% 0 0);
+  --color-gray-400: oklch(70.8% 0 0);
+  --color-gray-500: oklch(55.6% 0 0);
+  --color-gray-600: oklch(43.9% 0 0);
+  --color-gray-700: oklch(37.1% 0 0);
+  --color-gray-800: oklch(26.9% 0 0);
+  --color-gray-900: oklch(20.5% 0 0);
+  --color-gray-950: oklch(14.5% 0 0);
+
+  --color-slate-50: oklch(98.5% 0 0);
+  --color-slate-100: oklch(97% 0 0);
+  --color-slate-200: oklch(92.2% 0 0);
+  --color-slate-300: oklch(87% 0 0);
+  --color-slate-400: oklch(70.8% 0 0);
+  --color-slate-500: oklch(55.6% 0 0);
+  --color-slate-600: oklch(43.9% 0 0);
+  --color-slate-700: oklch(37.1% 0 0);
+  --color-slate-800: oklch(26.9% 0 0);
+  --color-slate-900: oklch(20.5% 0 0);
+  --color-slate-950: oklch(14.5% 0 0);
+
+  --color-zinc-50: oklch(98.5% 0 0);
+  --color-zinc-100: oklch(97% 0 0);
+  --color-zinc-200: oklch(92.2% 0 0);
+  --color-zinc-300: oklch(87% 0 0);
+  --color-zinc-400: oklch(70.8% 0 0);
+  --color-zinc-500: oklch(55.6% 0 0);
+  --color-zinc-600: oklch(43.9% 0 0);
+  --color-zinc-700: oklch(37.1% 0 0);
+  --color-zinc-800: oklch(26.9% 0 0);
+  --color-zinc-900: oklch(20.5% 0 0);
+  --color-zinc-950: oklch(14.5% 0 0);
+}
+
+/*
+ * 바탕 규칙. base 레이어라 요소의 유틸리티 클래스가 언제나 이긴다
+ * (레이어 밖에 두면 명시도와 상관없이 유틸리티를 이겨 body 클래스가 무시된다).
+ */
+@layer base {
+  html {
+    background-color: #000;
+    color: #fff;
+    color-scheme: dark;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    /* 한글은 어절 단위로 줄을 바꾸고, 넘치는 긴 URL·이메일만 강제로 끊는다 */
+    word-break: keep-all;
+    overflow-wrap: break-word;
+  }
+
+  /*
+   * 줄 나눔 모양만 정한다. text-wrap 축약형은 text-wrap-mode 를 wrap 으로 되돌려
+   * 조상의 whitespace-nowrap 을 덮으므로 롱핸드(text-wrap-style)를 쓴다.
+   */
+  h1,
+  h2,
+  h3 {
+    text-wrap-style: balance;
+  }
+
+  p,
+  li {
+    text-wrap-style: pretty;
+  }
+
+  /* 키보드 포커스: 에메랄드 2px 외곽선 하나로 통일 */
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  summary {
+    cursor: pointer;
+  }
+
+  ::selection {
+    background-color: var(--color-accent);
+    color: #000;
+  }
+
+  /*
+   * 다른 문서를 담는 iframe(결제창·유튜브·글 속 임베드)은 밝은 체계로 둔다.
+   * 부모(dark)와 iframe 문서의 체계가 다르면 크롬이 투명 바탕 대신 불투명한 흰 바탕을 깔아,
+   * 투명 딤을 쓰는 결제 오버레이가 회색 화면이 된다. light 로 두면 R03 이전과 같다.
+   */
+  iframe {
+    color-scheme: light;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
-}
-
-/* Subtle grid background for dashboard feel */
-.bg-dashboard {
-  background-image: radial-gradient(
-      rgba(255, 255, 255, 0.06) 1px,
-      transparent 1px
-    ),
-    radial-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-  background-position: 0 0, 18px 18px;
-  background-size: 36px 36px;
-}
-
-.card {
-  background: var(--card);
-  border: 1px solid var(--card-border);
-}
-
-.line-clamp-2 {
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-}
-
-/* 스크롤바 숨김 (Tailwind v4 플러그인 없이 직접 정의) */
-.scrollbar-hide {
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE/Edge */
-}
-.scrollbar-hide::-webkit-scrollbar {
-  display: none; /* Chrome/Safari */
-}
-
-/* 페이드인 애니메이션 */
+/* 키프레임 (아래 components 레이어의 animate-fadeIn · slide-in-from-bottom-4 가 쓴다) */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(4px); }
   to { opacity: 1; transform: translateY(0); }
 }
-.animate-fadeIn {
-  animation: fadeIn 0.2s ease-out forwards;
-}
-
-/* tailwindcss-animate 대체: animate-in + slide-in-from-bottom-4 */
 @keyframes slideInFromBottom {
   from { opacity: 0; transform: translateY(1rem); }
   to { opacity: 1; transform: translateY(0); }
 }
-.animate-in.slide-in-from-bottom-4 {
-  animation: slideInFromBottom var(--tw-duration, 0.3s) ease-out forwards;
-}
-.duration-300 {
-  --tw-duration: 0.3s;
+
+/* 스크롤바 숨김 (md: 같은 변형을 붙일 수 있게 유틸리티로) */
+@utility scrollbar-hide {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 
-/* ─── Studio Page 스크롤 애니메이션 ─────────────────────────────── */
+/*
+ * 이름을 그대로 쓰는 기존 클래스. components 레이어라 같은 요소의 유틸리티가 이긴다.
+ * 정리(이름 교체·hover 이동 제거)는 R11(/studio)·R17(검색 화면)에서 한다.
+ */
+@layer components {
+  .animate-fadeIn {
+    animation: fadeIn 0.2s ease-out forwards;
+  }
 
-/* 기본: 보이지 않는 상태 */
-[data-animate] {
-  opacity: 0;
-  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
-              transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
-}
-[data-animate="up"]    { transform: translateY(32px); }
-[data-animate="left"]  { transform: translateX(-40px); }
-[data-animate="right"] { transform: translateX(40px); }
-[data-animate="scale"] { transform: scale(0.94); }
-[data-animate="fade"]  { transform: none; }
+  /* tailwindcss-animate 대체: animate-in + slide-in-from-bottom-4 (duration-300 은 Tailwind 기본 유틸) */
+  .animate-in.slide-in-from-bottom-4 {
+    animation: slideInFromBottom var(--tw-duration, 0.3s) ease-out forwards;
+  }
 
-/* 뷰포트 진입 시 */
-[data-animate].in-view {
-  opacity: 1;
-  transform: none;
+  /* ─── /studio 스크롤 등장 ─────────────────────────────────────────
+   * 숨김은 AnimationObserver 가 html 에 data-motion="ready" 를 단 뒤에만 걸린다.
+   * 그래서 JS 가 늦거나 실패해도 내용이 보이고, 첫 화면 요소는 표시를 달기 전에 in-view 가 붙는다.
+   * 움직임 줄이기 설정에서는 아래 전역 규칙이 바로 보이게 한다.
+   */
+  [data-animate] {
+    transition:
+      opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+      transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  html[data-motion="ready"] [data-animate]:not(.in-view) {
+    opacity: 0;
+  }
+  html[data-motion="ready"] [data-animate="up"]:not(.in-view) {
+    transform: translateY(12px);
+  }
+  html[data-motion="ready"] [data-animate="left"]:not(.in-view) {
+    transform: translateX(-12px);
+  }
+  html[data-motion="ready"] [data-animate="right"]:not(.in-view) {
+    transform: translateX(12px);
+  }
+  html[data-motion="ready"] [data-animate="scale"]:not(.in-view) {
+    transform: scale(0.98);
+  }
+
+  /* 텍스트 하이라이트 언더라인 */
+  .highlight-draw {
+    position: relative;
+    display: inline-block;
+  }
+  .highlight-draw::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -4px;
+    height: 3px;
+    width: 0;
+    background: #ffffff;
+    border-radius: 2px;
+    transition: width 1s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .highlight-draw.in-view::after {
+    width: 100%;
+  }
+
+  /* 숫자 카운터 */
+  .stat-num {
+    display: inline-block;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* 채널 카드 호버 */
+  .channel-card {
+    transition:
+      transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+      box-shadow 0.35s ease,
+      border-color 0.35s ease;
+  }
+  .channel-card:hover {
+    transform: translateY(-6px) scale(1.02);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.18);
+  }
+
+  /* 후기 카드 호버 */
+  .review-card {
+    transition: transform 0.3s ease, border-color 0.3s ease;
+  }
+  .review-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+
+  /* Feature 이미지 줌 */
+  .feat-img {
+    transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .feat-img:hover {
+    transform: scale(1.04);
+  }
 }
 
-/* 텍스트 하이라이트 언더라인 애니메이션 */
-.highlight-draw {
-  position: relative;
-  display: inline-block;
-}
-.highlight-draw::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  bottom: -4px;
-  height: 3px;
-  width: 0;
-  background: #ffffff;
-  border-radius: 2px;
-  transition: width 1s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.highlight-draw.in-view::after {
-  width: 100%;
+/*
+ * 아래는 레이어 밖에 둔다: 사용자 설정·기기 조건이 컴포넌트·유틸리티 스타일보다 앞서야 한다.
+ */
+
+/* 움직임 줄이기: 전환·애니메이션을 끄고 스크롤 등장 요소를 바로 보인다 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  [data-animate] {
+    opacity: 1 !important;
+    transform: none !important;
+  }
 }
 
-/* 숫자 카운터 강조 */
-.stat-num {
-  display: inline-block;
-  font-variant-numeric: tabular-nums;
+/*
+ * 같은 페이지 안 이동(#process 같은 앵커, Tab 으로 화면 밖 요소에 갈 때)을 부드럽게 (ux-rules 4.4).
+ * 페이지 이동은 Next 가 잠시 auto 로 바꿔 즉시 맨 위로 간다. 움직임 줄이기 설정에서는 적용되지 않는다.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
 }
 
-/* 채널 카드 호버 리프트 */
-.channel-card {
-  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
-              box-shadow 0.35s ease,
-              border-color 0.35s ease;
-}
-.channel-card:hover {
-  transform: translateY(-6px) scale(1.02);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.18);
+/* hover 가 없는 터치 기기: 누른 순간을 보이게 한다 */
+@media (hover: none) {
+  :is(a, button:not(:disabled), [role="button"], summary):active {
+    opacity: 0.7;
+  }
 }
 
-/* 후기 카드 호버 */
-.review-card {
-  transition: transform 0.3s ease, border-color 0.3s ease;
-}
-.review-card:hover {
-  transform: translateY(-4px);
-  border-color: rgba(255, 255, 255, 0.2);
-}
-
-/* Feature 이미지 줌 */
-.feat-img {
-  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.feat-img:hover {
-  transform: scale(1.04);
+/* iOS 는 16px 미만 입력칸에 포커스하면 화면을 확대한다. 모바일 폭에서만 16px 로 올린다 */
+@media (max-width: 767px) {
+  :is(input, select, textarea):is(.text-xs, .text-sm, .text-\[13px\], .text-\[15px\]) {
+    font-size: 16px;
+  }
 }
