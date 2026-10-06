@@ -1,28 +1,27 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-
-type DateOrder = "asc" | "desc" | null;
+import type { DateOrder } from "@/lib/channelSort";
+import { replaceChannelSort, useChannelSort } from "./listState";
 
 interface Props {
   query: string;
-  dateOrder: DateOrder;
 }
 
-export default function DateSortToggle({ query, dateOrder }: Props) {
-  const router = useRouter();
+// 신생 고성장 탭 전용. 다른 탭에서는 그리지 않는다(정렬 상태는 주소에서 읽음).
+export default function DateSortToggle({ query }: Props) {
+  const { sort, dateOrder } = useChannelSort();
+  if (sort !== "new") return null;
 
   const cycle = () => {
     if (!query) return;
     // null → desc → asc → null
-    const next: Record<string, string | null> = {
+    const next: Record<string, DateOrder> = {
       desc: "asc",
       asc:  null,
     };
     const nextVal = dateOrder === null ? "desc" : next[dateOrder] ?? null;
-    const params = new URLSearchParams({ q: query, sort: "new" });
-    if (nextVal) params.set("dateOrder", nextVal);
-    router.push(`/channels?${params.toString()}`);
+    // 서버를 다시 부르지 않고 주소만 바꾼다(재검색·재차감 없음).
+    replaceChannelSort(query, "new", nextVal);
   };
 
   const label =
@@ -36,11 +35,12 @@ export default function DateSortToggle({ query, dateOrder }: Props) {
     <button
       onClick={cycle}
       disabled={!query}
+      // 상태(기본·최신순·오래된순)는 바뀌는 라벨이 전한다. 세 단계라 aria-pressed 는 쓰지 않는다.
       title="클릭하여 채널 개설일 정렬 전환 (최신순 → 오래된순 → 기본)"
       className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition whitespace-nowrap
         ${active
-          ? "border-teal-600 text-teal-400 bg-teal-950/40 hover:bg-teal-950/60"
-          : "border-gray-700 text-gray-500 hover:text-gray-300 hover:border-gray-500 bg-transparent"
+          ? "border-neutral-600 text-white bg-neutral-800 hover:bg-neutral-700"
+          : "border-neutral-700 text-neutral-500 hover:text-neutral-300 hover:border-neutral-500 bg-transparent"
         }
         disabled:opacity-40 disabled:cursor-not-allowed`}
     >

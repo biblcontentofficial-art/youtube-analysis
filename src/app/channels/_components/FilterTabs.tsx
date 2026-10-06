@@ -1,8 +1,7 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-
-export type SortMode = "trending" | "growth" | "new";
+import type { SortMode } from "@/lib/channelSort";
+import { replaceChannelSort, useChannelSort } from "./listState";
 
 const TrendingIcon = () => (
   <svg viewBox="0 0 24 24" fill="none" className="w-3.5 h-3.5" stroke="currentColor" strokeWidth={1.8}>
@@ -45,20 +44,21 @@ const TABS: { key: SortMode; Icon: () => JSX.Element; label: string; tooltip: st
 ];
 
 interface Props {
-  current: SortMode;
   query: string;
 }
 
-export default function FilterTabs({ current, query }: Props) {
-  const router = useRouter();
+export default function FilterTabs({ query }: Props) {
+  // 현재 탭은 주소의 sort 에서 읽는다(서버가 넘기지 않음).
+  const { sort: current } = useChannelSort();
 
   const handleChange = (key: SortMode) => {
     if (!query) return;
-    router.push(`/channels?q=${encodeURIComponent(query)}&sort=${key}`);
+    // 서버를 다시 부르지 않고 주소만 바꾼다(재검색·재차감 없음). 탭을 바꾸면 개설일 정렬은 풀린다.
+    replaceChannelSort(query, key, null);
   };
 
   return (
-    <div className="inline-flex items-center rounded-full border border-gray-700 bg-gray-900 p-1 gap-0.5">
+    <div className="inline-flex items-center rounded-full border border-neutral-700 bg-neutral-900 p-1 gap-0.5">
       {TABS.map((tab) => {
         const active = current === tab.key;
         return (
@@ -66,10 +66,11 @@ export default function FilterTabs({ current, query }: Props) {
             <button
               onClick={() => handleChange(tab.key)}
               disabled={!query}
+              aria-pressed={active}
               className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium transition-all whitespace-nowrap
                 ${active
-                  ? "bg-teal-600 text-white shadow-sm"
-                  : "text-gray-400 hover:text-gray-200 disabled:opacity-40 disabled:cursor-not-allowed"
+                  ? "bg-neutral-700 text-white"
+                  : "text-neutral-400 hover:text-neutral-200 disabled:opacity-40 disabled:cursor-not-allowed"
                 }`}
             >
               <tab.Icon />
@@ -79,17 +80,17 @@ export default function FilterTabs({ current, query }: Props) {
             {/* 툴팁 */}
             <div className="pointer-events-none absolute left-1/2 -translate-x-1/2 top-full mt-2 z-50
               opacity-0 group-hover/tab:opacity-100 transition-opacity duration-150">
-              <div className="bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 shadow-xl w-64 text-left">
+              <div className="bg-neutral-800 border border-neutral-700 rounded-xl px-4 py-3 shadow-xl w-64 text-left">
                 <p className="text-xs font-semibold text-white mb-1.5 flex items-center gap-1.5">
                   <tab.Icon />
                   <span>{tab.label}</span>
                 </p>
                 {tab.tooltip.split("\n").map((line, i) => (
-                  <p key={i} className="text-xs text-gray-400 leading-relaxed">{line}</p>
+                  <p key={i} className="text-xs text-neutral-400 leading-relaxed">{line}</p>
                 ))}
               </div>
               {/* 말풍선 꼭지 */}
-              <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-gray-800 border-l border-t border-gray-700 rotate-45" />
+              <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-neutral-800 border-l border-t border-neutral-700 rotate-45" />
             </div>
           </div>
         );

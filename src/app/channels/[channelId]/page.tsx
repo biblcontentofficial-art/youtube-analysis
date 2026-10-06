@@ -4,7 +4,9 @@ import type { Metadata } from "next";
 import { currentUser } from "@/lib/auth";
 import { getChannelDetail, getChannelRecentVideos } from "@/lib/youtube";
 import { PLANS, PlanKey } from "@/lib/stripe";
+import { formatKstDate } from "@/lib/kst";
 import DescriptionToggle from "./_components/DescriptionToggle";
+import BackToChannelsLink from "./_components/BackToChannelsLink";
 
 // ─── 유틸 함수 ────────────────────────────────────────────────────────────────
 
@@ -38,8 +40,26 @@ function formatAge(publishedAt: string): string {
 
 function formatOpenDate(publishedAt: string): string {
   if (!publishedAt) return "-";
-  const d = new Date(publishedAt);
-  return `${d.getFullYear()}. ${d.getMonth() + 1}. ${d.getDate()}.`;
+  // 한국 시간 날짜. 채널 찾기 목록(브라우저에서 그림)과 같은 날짜를 보여 준다.
+  return formatKstDate(publishedAt);
+}
+
+/**
+ * 상세의 "채널 찾기로 돌아가기" 주소. 목록이 넘겨 준 from 은 경로가 정확히 /channels 일 때만 쓴다.
+ * URL 로 정규화해서 외부 주소(https://…, //…)와 경로 이탈(/channels/../search)을 걸러 내고,
+ * 결과는 늘 '/channels' + 쿼리라서 다른 사이트나 다른 화면으로 가지 않는다.
+ * searchParams 는 이미 한 번 디코딩된 값이므로 decodeURIComponent 를 다시 하지 않는다
+ * (두 번 풀면 검색어의 & · # 에서 주소가 잘린다).
+ */
+function channelsBackHref(rawFrom: string | undefined): string {
+  if (!rawFrom) return "/channels";
+  try {
+    const url = new URL(rawFrom, "http://localhost");
+    if (url.pathname === "/channels") return `/channels${url.search}`;
+  } catch {
+    // 읽을 수 없는 값은 기본 주소로
+  }
+  return "/channels";
 }
 
 function countryFlag(code: string): string {
@@ -101,10 +121,10 @@ function StatCard({
   accent?: string;
 }) {
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-xl px-5 py-4 flex flex-col gap-1">
-      <span className="text-xs text-gray-500">{label}</span>
+    <div className="bg-neutral-900 border border-neutral-800 rounded-xl px-5 py-4 flex flex-col gap-1">
+      <span className="text-xs text-neutral-500">{label}</span>
       <span className={`text-xl font-bold tabular-nums ${accent ?? "text-white"}`}>{value}</span>
-      {sub && <span className="text-xs text-gray-600 tabular-nums">{sub}</span>}
+      {sub && <span className="text-xs text-neutral-500 tabular-nums">{sub}</span>}
     </div>
   );
 }
@@ -123,8 +143,8 @@ function MetricChip({
   color: string;
 }) {
   return (
-    <div className="bg-gray-900/60 border border-gray-800 rounded-xl px-4 py-3 flex flex-col gap-0.5">
-      <span className="text-[11px] text-gray-500 flex items-center gap-1">
+    <div className="bg-neutral-900/60 border border-neutral-800 rounded-xl px-4 py-3 flex flex-col gap-0.5">
+      <span className="text-[11px] text-neutral-500 flex items-center gap-1">
         <span>{icon}</span>
         {label}
       </span>
@@ -154,10 +174,10 @@ function VideoCard({
       href={`https://www.youtube.com/watch?v=${video.videoId}`}
       target="_blank"
       rel="noopener noreferrer"
-      className="group block bg-gray-900 border border-gray-800 rounded-xl overflow-hidden hover:border-gray-600 transition"
+      className="group block bg-neutral-900 border border-neutral-800 rounded-xl overflow-hidden hover:border-neutral-600 transition"
     >
       {/* 썸네일 */}
-      <div className="relative aspect-video bg-gray-800">
+      <div className="relative aspect-video bg-neutral-800">
         {video.thumbnail ? (
           <img
             src={video.thumbnail}
@@ -165,7 +185,7 @@ function VideoCard({
             className="w-full h-full object-cover group-hover:opacity-90 transition"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-gray-600 text-2xl">
+          <div className="w-full h-full flex items-center justify-center text-neutral-500 text-2xl">
             ▶
           </div>
         )}
@@ -177,17 +197,17 @@ function VideoCard({
       </div>
       {/* 정보 */}
       <div className="px-3 py-3 space-y-1.5">
-        <p className="text-white text-xs font-medium line-clamp-2 leading-relaxed group-hover:text-teal-300 transition">
+        <p className="text-white text-xs font-medium line-clamp-2 leading-relaxed group-hover:text-neutral-300 transition">
           {video.title}
         </p>
         <div className="flex items-center justify-between">
-          <span className="text-gray-500 text-[11px]">{relativeTime(video.publishedAt)}</span>
-          <span className="text-gray-400 text-[11px] tabular-nums">
+          <span className="text-neutral-500 text-[11px]">{relativeTime(video.publishedAt)}</span>
+          <span className="text-neutral-400 text-[11px] tabular-nums">
             조회 {fmtNum(video.viewCount)}
           </span>
         </div>
         {/* 좋아요 / 댓글 */}
-        <div className="flex items-center gap-3 text-[11px] text-gray-600">
+        <div className="flex items-center gap-3 text-[11px] text-neutral-500">
           <span>👍 {fmtNum(video.likeCount)}</span>
           <span>💬 {fmtNum(video.commentCount)}</span>
         </div>
@@ -200,7 +220,7 @@ function VideoCard({
 
 interface Props {
   params: { channelId: string };
-  searchParams: { from?: string };
+  searchParams: { from?: string | string[] };
 }
 
 export default async function ChannelDetailPage({ params, searchParams }: Props) {
@@ -218,16 +238,16 @@ export default async function ChannelDetailPage({ params, searchParams }: Props)
     if (error === "not_found") notFound();
     // API 오류 — 빈 상태 표시
     return (
-      <main className="min-h-screen bg-gray-950 text-white flex items-center justify-center">
+      <main className="min-h-screen bg-black text-white flex items-center justify-center">
         <div className="text-center space-y-3">
           <p className="text-2xl">⚠️</p>
           <p className="text-white font-semibold">채널 정보를 불러오지 못했습니다</p>
-          <p className="text-gray-500 text-sm">
+          <p className="text-neutral-500 text-sm">
             {error === "quota_exceeded"
               ? "YouTube API 일일 쿼터가 소진됐습니다. 잠시 후 다시 시도해주세요."
               : "일시적인 오류입니다. 잠시 후 다시 시도해주세요."}
           </p>
-          <Link href="/channels" className="inline-block mt-3 text-teal-400 text-sm hover:underline">
+          <Link href="/channels" className="inline-block mt-3 text-neutral-300 text-sm hover:text-white hover:underline">
             ← 채널 찾기로 돌아가기
           </Link>
         </div>
@@ -250,22 +270,22 @@ export default async function ChannelDetailPage({ params, searchParams }: Props)
     monthlySubGain >= 50_000 ? { label: "🚀 급상승", color: "text-purple-400" }
     : monthlySubGain >= 10_000 ? { label: "📈 빠른 성장", color: "text-red-400" }
     : monthlySubGain >= 3_000  ? { label: "↑ 성장 중", color: "text-orange-400" }
-    : { label: "→ 완만", color: "text-gray-400" };
+    : { label: "→ 완만", color: "text-neutral-400" };
 
   // 바이럴 지수 (총조회수 / 구독자)
   const viralLevel =
     viewPerSub >= 500 ? "text-purple-400"
     : viewPerSub >= 200 ? "text-red-400"
     : viewPerSub >= 80  ? "text-orange-400"
-    : "text-gray-400";
+    : "text-neutral-400";
 
-  // 백 URL
-  const backHref = searchParams.from
-    ? decodeURIComponent(searchParams.from)
-    : "/channels";
+  // 돌아가기 주소 (from 이 여러 개면 첫 값)
+  const backHref = channelsBackHref(
+    Array.isArray(searchParams.from) ? searchParams.from[0] : searchParams.from
+  );
 
   return (
-    <main className="min-h-screen bg-gray-950 text-white">
+    <main className="min-h-screen bg-black text-white">
       {/* ─── 배너 (있을 경우) ─────────────────────────────────────────────── */}
       {channel.bannerUrl && (
         <div className="w-full h-32 md:h-48 overflow-hidden">
@@ -279,16 +299,10 @@ export default async function ChannelDetailPage({ params, searchParams }: Props)
 
       <div className="max-w-screen-xl mx-auto px-4 py-6 space-y-6">
         {/* ─── 뒤로가기 ──────────────────────────────────────────────────── */}
-        <Link
-          href={backHref}
-          className="inline-flex items-center gap-1.5 text-gray-500 hover:text-gray-300 text-sm transition"
-        >
-          <span>←</span>
-          <span>채널 찾기로 돌아가기</span>
-        </Link>
+        <BackToChannelsLink href={backHref} />
 
         {/* ─── 채널 헤더 ─────────────────────────────────────────────────── */}
-        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
+        <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-6">
           <div className="flex flex-col sm:flex-row gap-5">
             {/* 썸네일 */}
             <div className="shrink-0">
@@ -296,10 +310,10 @@ export default async function ChannelDetailPage({ params, searchParams }: Props)
                 <img
                   src={channel.thumbnail}
                   alt={channel.title}
-                  className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover ring-2 ring-gray-700"
+                  className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover ring-2 ring-neutral-700"
                 />
               ) : (
-                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gray-800 flex items-center justify-center text-3xl ring-2 ring-gray-700">
+                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-neutral-800 flex items-center justify-center text-3xl ring-2 ring-neutral-700">
                   📺
                 </div>
               )}
@@ -310,7 +324,7 @@ export default async function ChannelDetailPage({ params, searchParams }: Props)
               <div className="flex flex-wrap items-start gap-3 justify-between">
                 <div>
                   <h1 className="text-xl sm:text-2xl font-bold text-white">{channel.title}</h1>
-                  <div className="flex flex-wrap items-center gap-2 mt-1 text-sm text-gray-500">
+                  <div className="flex flex-wrap items-center gap-2 mt-1 text-sm text-neutral-500">
                     {channel.customUrl && <span>{channel.customUrl}</span>}
                     {channel.country && (
                       <span>
@@ -343,7 +357,7 @@ export default async function ChannelDetailPage({ params, searchParams }: Props)
                   {channel.topicTags.map((tag) => (
                     <span
                       key={tag}
-                      className="text-xs bg-gray-800 text-gray-400 border border-gray-700 px-2 py-0.5 rounded-full"
+                      className="text-xs bg-neutral-800 text-neutral-400 border border-neutral-700 px-2 py-0.5 rounded-full"
                     >
                       {tag}
                     </span>
@@ -352,9 +366,9 @@ export default async function ChannelDetailPage({ params, searchParams }: Props)
               )}
 
               {/* 구독자 수 (큼직하게) */}
-              <p className="text-2xl font-bold text-teal-400 tabular-nums">
+              <p className="text-2xl font-bold text-white tabular-nums">
                 {channel.subscriberCountFormatted}
-                <span className="text-sm font-normal text-gray-500 ml-1">구독자</span>
+                <span className="text-sm font-normal text-neutral-500 ml-1">구독자</span>
               </p>
             </div>
           </div>
@@ -391,7 +405,7 @@ export default async function ChannelDetailPage({ params, searchParams }: Props)
 
         {/* ─── 성장 지표 ─────────────────────────────────────────────────── */}
         <div>
-          <h2 className="text-xs text-gray-500 mb-2 px-0.5">성장 지표</h2>
+          <h2 className="text-xs text-neutral-500 mb-2 px-0.5">성장 지표</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <MetricChip
               icon="📈"
@@ -409,10 +423,12 @@ export default async function ChannelDetailPage({ params, searchParams }: Props)
               icon="📅"
               label="업로드 빈도"
               value={`${uploadsPerMonth}편/월`}
+              // 3단계: 월 12편 이상 에메랄드 · 4편 이상 흰색 · 그 아래 회색.
+              // 가운데 단계를 그린으로 두면 에메랄드와 거의 같은 색이라 단계가 구분되지 않는다.
               color={
-                parseFloat(uploadsPerMonth) >= 12 ? "text-teal-400"
-                : parseFloat(uploadsPerMonth) >= 4 ? "text-green-400"
-                : "text-gray-400"
+                parseFloat(uploadsPerMonth) >= 12 ? "text-[#00E5A0]"
+                : parseFloat(uploadsPerMonth) >= 4 ? "text-white"
+                : "text-neutral-400"
               }
             />
             <MetricChip
@@ -426,24 +442,24 @@ export default async function ChannelDetailPage({ params, searchParams }: Props)
 
         {/* ─── 채널 설명 ─────────────────────────────────────────────────── */}
         {channel.description && (
-          <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 space-y-2">
-            <h2 className="text-xs text-gray-500">채널 소개</h2>
+          <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-5 space-y-2">
+            <h2 className="text-xs text-neutral-500">채널 소개</h2>
             <DescriptionToggle text={channel.description} />
           </div>
         )}
 
         {/* ─── 최근 영상 ─────────────────────────────────────────────────── */}
         <div>
-          <h2 className="text-sm font-semibold text-gray-300 mb-3">
+          <h2 className="text-sm font-semibold text-neutral-300 mb-3">
             최근 업로드 영상
             {videos.length > 0 && (
-              <span className="text-xs text-gray-600 font-normal ml-2">{videos.length}개</span>
+              <span className="text-xs text-neutral-500 font-normal ml-2">{videos.length}개</span>
             )}
           </h2>
 
           {videos.length === 0 ? (
-            <div className="p-8 text-center border border-gray-800 rounded-xl">
-              <p className="text-gray-500 text-sm">최근 영상을 불러오지 못했습니다</p>
+            <div className="p-8 text-center border border-neutral-800 rounded-xl">
+              <p className="text-neutral-500 text-sm">최근 영상을 불러오지 못했습니다</p>
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
@@ -461,24 +477,24 @@ export default async function ChannelDetailPage({ params, searchParams }: Props)
           const maxV     = Math.max(...videos.map((v) => v.viewCount));
           const maxVideo = videos.find((v) => v.viewCount === maxV)!;
           return (
-            <div className="bg-gray-900/60 border border-gray-800 rounded-xl p-5">
-              <h2 className="text-xs text-gray-500 mb-3">최근 영상 통계</h2>
+            <div className="bg-neutral-900/60 border border-neutral-800 rounded-xl p-5">
+              <h2 className="text-xs text-neutral-500 mb-3">최근 영상 통계</h2>
               <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <p className="text-xs text-gray-600">평균 조회수</p>
+                  <p className="text-xs text-neutral-500">평균 조회수</p>
                   <p className="text-lg font-bold text-white tabular-nums">{fmtNum(avgV)}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-600">최고 조회수</p>
+                  <p className="text-xs text-neutral-500">최고 조회수</p>
                   <p className="text-lg font-bold text-purple-400 tabular-nums">{fmtNum(maxV)}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-600">최고 영상</p>
+                  <p className="text-xs text-neutral-500">최고 영상</p>
                   <a
                     href={`https://www.youtube.com/watch?v=${maxVideo.videoId}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-xs text-teal-400 hover:underline line-clamp-2"
+                    className="text-xs text-neutral-300 hover:text-white hover:underline line-clamp-2"
                   >
                     {maxVideo.title}
                   </a>
