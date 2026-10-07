@@ -1,12 +1,26 @@
 "use client";
 
-import { createContext, useContext, useState, useCallback, useEffect } from "react";
+/**
+ * 전역 확인창. const confirm = useConfirm(); if (!await confirm("…")) return;
+ * 결과는 그대로다: 확인 true, 취소·Esc·바깥 클릭 false.
+ *
+ * 모양과 키보드는 src/components/ui/dialog.tsx 셸이 맡는다(최상위 층, 포커스 가둠·복귀, Esc).
+ * Enter 는 포커스된 버튼만 누른다. 처음 포커스는 '확인'이라 검색창 Enter → 확인창 Enter 로 검색하는 흐름이 그대로이고,
+ * destructive(삭제 등 되돌릴 수 없는 동작)이면 '취소'에 둬서 Enter 한 번에 실행되지 않게 한다.
+ */
+import { createContext, useCallback, useContext, useId, useRef, useState } from "react";
+import { Dialog } from "@/components/ui/dialog";
+import { DIALOG_ACTIONS, DIALOG_DESCRIPTION, DIALOG_TITLE } from "@/components/ui/dialog-classes";
+import { buttonClass } from "@/components/ui/button";
+import { Logo } from "@/components/ui/logo";
 
 interface ConfirmOptions {
   message: string;
   subMessage?: string;
   confirmText?: string;
   cancelText?: string;
+  /** 되돌릴 수 없는 동작: 확인 버튼을 레드 테두리(danger)로, 처음 포커스를 '취소'로 */
+  destructive?: boolean;
 }
 
 type ConfirmFn = (options: ConfirmOptions | string) => Promise<boolean>;
@@ -18,91 +32,81 @@ export function useConfirm() {
 }
 
 export function ConfirmProvider({ children }: { children: React.ReactNode }) {
-  const [state, setState] = useState<{
-    options: ConfirmOptions;
-    resolve: (v: boolean) => void;
-  } | null>(null);
+  // id 는 요청마다 바뀌어 창을 새로 연다(처음 포커스를 요청마다 다시 잡는다)
+  const [request, setRequest] = useState<{ id: number; options: ConfirmOptions } | null>(null);
+  const [open, setOpen] = useState(false);
+  const resolveRef = useRef<((value: boolean) => void) | null>(null);
+  const seq = useRef(0);
+  const titleId = useId();
+  const descId = useId();
 
   const confirm: ConfirmFn = useCallback((options) => {
     const normalized: ConfirmOptions =
       typeof options === "string" ? { message: options } : options;
+    // 앞선 확인창이 아직 열려 있으면 취소로 끝낸다(답 없이 남는 Promise 를 만들지 않는다)
+    resolveRef.current?.(false);
     return new Promise<boolean>((resolve) => {
-      setState({ options: normalized, resolve });
+      resolveRef.current = resolve;
+      seq.current += 1;
+      setRequest({ id: seq.current, options: normalized });
+      setOpen(true);
     });
   }, []);
 
-  const handleConfirm = useCallback(() => {
-    state?.resolve(true);
-    setState(null);
-  }, [state]);
+  const settle = useCallback((value: boolean) => {
+    const resolve = resolveRef.current;
+    resolveRef.current = null;
+    resolve?.(value);
+    setOpen(false);
+  }, []);
 
-  const handleCancel = useCallback(() => {
-    state?.resolve(false);
-    setState(null);
-  }, [state]);
-
-  useEffect(() => {
-    if (!state) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Enter") { e.preventDefault(); handleConfirm(); }
-      else if (e.key === "Escape") { handleCancel(); }
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [state, handleConfirm, handleCancel]);
+  const options = request?.options;
 
   return (
     <ConfirmContext.Provider value={confirm}>
       {children}
-      {state && (
-        <div
-          className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4"
-          onClick={handleCancel}
-        >
-          <div
-            className="bg-neutral-900 border border-neutral-700 rounded-2xl p-6 w-full max-w-xs shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* 로고 */}
-            <div className="flex items-center gap-1.5 mb-5">
-              <div className="w-6 h-6 bg-black border border-neutral-700 rounded-md flex items-center justify-center shrink-0">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" className="w-3.5 h-3.5">
-                  <path d="M8 5.14v14l11-7-11-7z" />
-                </svg>
-              </div>
-              <span className="text-sm font-bold tracking-tight">
-                <span className="text-white">bibl</span>
-                <span className="text-neutral-400"> lab</span>
-              </span>
+      <Dialog
+        key={request?.id ?? 0}
+        open={open}
+        onClose={() => settle(false)}
+        role="alertdialog"
+        labelledBy={titleId}
+        describedBy={options?.subMessage ? descId : undefined}
+      >
+        {options && (
+          <>
+            <div aria-hidden="true" className="mb-5">
+              <Logo size="sm" />
             </div>
-
-            <p className="text-white text-sm leading-relaxed mb-2">
-              {state.options.message}
-            </p>
-            {state.options.subMessage && (
-              <p className="text-neutral-500 text-xs leading-relaxed mb-6">
-                {state.options.subMessage}
+            <h2 id={titleId} className={DIALOG_TITLE}>
+              {options.message}
+            </h2>
+            {options.subMessage && (
+              <p id={descId} className={DIALOG_DESCRIPTION}>
+                {options.subMessage}
               </p>
             )}
-            {!state.options.subMessage && <div className="mb-6" />}
-
-            <div className="flex gap-2 justify-end">
+            <div className={DIALOG_ACTIONS}>
               <button
-                onClick={handleCancel}
-                className="px-4 py-2 text-sm text-neutral-400 hover:text-white bg-neutral-800 hover:bg-neutral-700 rounded-xl border border-neutral-700 transition-colors"
+                type="button"
+                onClick={() => settle(false)}
+                data-autofocus={options.destructive ? "" : undefined}
+                className={buttonClass({ variant: "secondary" })}
               >
-                {state.options.cancelText ?? "취소"}
+                {options.cancelText ?? "취소"}
               </button>
               <button
-                onClick={handleConfirm}
-                className="px-4 py-2 text-sm text-black bg-white hover:bg-neutral-200 rounded-xl font-bold transition-colors"
+                type="button"
+                onClick={() => settle(true)}
+                data-autofocus={options.destructive ? undefined : ""}
+                className={buttonClass({ variant: options.destructive ? "danger" : "primary" })}
               >
-                {state.options.confirmText ?? "확인"}
+                {options.confirmText ?? "확인"}
               </button>
             </div>
-          </div>
-        </div>
-      )}
+          </>
+        )}
+      </Dialog>
     </ConfirmContext.Provider>
   );
 }

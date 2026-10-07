@@ -79,6 +79,19 @@
 }
 
 /*
+ * 겹침 순서 (z-index 단계). 이 숫자만 쓰고 z-[9999] 같은 임의값은 쓰지 않는다(ux-rules H28·5.6).
+ *   z-10  표 머리줄 등 내용 안 겹침
+ *   z-30  페이지 안 sticky(보조 헤더)·하단 고정 바(components/ui/bottom-cta-bar.tsx)
+ *   z-40  카카오 상담 버튼(KakaoChatButton)
+ *   z-50  전역 네비
+ *   z-70  토스트·알림 배너
+ *   z-80  페이지 이동 진행 막대·검색 중 오버레이
+ * 모달(components/ui/dialog.tsx, ConfirmDialog)은 showModal() 로 브라우저 최상위 층(top layer)에 떠서 z 값을 쓰지 않는다.
+ * showModal 이 없는 구형 브라우저에서만 셸이 z-90(위 단계보다 위)으로 대신 띄운다.
+ * 아직 셸로 옮기지 않은 모달(z-50·z-[60]·z-[9990])과 진행 막대·오버레이(z-[9998]·z-[9999])는 맡은 항목에서 이 단계로 바꾼다.
+ */
+
+/*
  * 임시 안전망: 아직 변환하지 않은 화면(로그인 뒤 앱 화면·관리자 화면)의 gray·slate·zinc 를
  * neutral 과 같은 무채색 값으로 바꿔 청색기만 없앤다. 명도 단계는 그대로다.
  * 화면 변환이 끝나도 관리자 화면(insights/admin)이 남으므로 R22 이후에도 지우지 않는다.
@@ -322,6 +335,32 @@
 @media (prefers-reduced-motion: no-preference) {
   html {
     scroll-behavior: smooth;
+  }
+}
+
+/*
+ * 닫힌 대화상자는 어느 브라우저에서도 보이지 않는다(브라우저 기본 규칙과 같다). ConfirmProvider 는 닫힌 dialog 를 늘 그려 둔다.
+ * dialog 를 모르는 구형 브라우저(Safari 15.3 이하·Firefox 97 이하)에는 기본 규칙이 없고, 그 대부분은 @layer 도 몰라
+ * 레이어 안 규칙을 읽지 않으므로 레이어 밖에 둔다. 열린 창의 대체 배치는 components/ui/dialog.tsx(data-fallback)가 맡는다.
+ */
+dialog:not([open]) {
+  display: none;
+}
+
+/*
+ * 하단 고정 바(BottomCTABar, data-bottom-bar)가 있는 화면: 카카오 상담 버튼을 바 위로 올린다.
+ * 바가 보이는 폭에서만 적용한다. "md" 바는 768px 미만, "nav" 바는 데스크톱 한 줄 메뉴(--breakpoint-nav) 미만에서 보인다.
+ * 레이어 밖이라 KakaoChatButton 의 bottom-5·md:bottom-6 유틸리티보다 앞선다.
+ */
+body:has([data-bottom-bar="md"]) [data-kakao-fab] {
+  @variant max-md {
+    bottom: calc(88px + env(safe-area-inset-bottom));
+  }
+}
+
+body:has([data-bottom-bar="nav"]) [data-kakao-fab] {
+  @variant max-nav {
+    bottom: calc(88px + env(safe-area-inset-bottom));
   }
 }
 

@@ -542,7 +542,7 @@ export default function SearchResultList({
 
       {/* 수집 완료 토스트 */}
       {collectToast && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-gray-900 border border-teal-700 rounded-xl px-4 py-3 shadow-xl animate-in slide-in-from-bottom-4">
+        <div className="fixed bottom-24 left-4 right-4 z-70 flex items-center gap-3 bg-gray-900 border border-teal-700 rounded-xl px-4 py-3 shadow-xl animate-in slide-in-from-bottom-4 sm:left-auto sm:right-6">
           <span className="text-xl">📥</span>
           <div>
             <p className="text-sm font-semibold text-white">{collectToast.count}개 수집 완료!</p>
@@ -552,7 +552,7 @@ export default function SearchResultList({
           </div>
           <button
             onClick={() => setCollectToast(null)}
-            className="ml-2 text-gray-600 hover:text-gray-400 text-xs"
+            className="ml-auto text-gray-600 hover:text-gray-400 text-xs sm:ml-2"
           >✕</button>
         </div>
       )}

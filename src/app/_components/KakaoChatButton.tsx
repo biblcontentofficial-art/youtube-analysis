@@ -1,6 +1,8 @@
 /**
  * 우측 하단 고정 카카오톡 채널 문의 버튼 (전역 플로팅, 채널톡 스타일)
  * 스크롤과 무관하게 항상 같은 자리에 떠 있고, 클릭 시 카카오톡 채널 채팅으로 이동.
+ * 층은 z-40: 전역 네비(z-50)·토스트(z-70) 아래이고, 모달은 브라우저 최상위 층이라 늘 이 버튼을 덮는다(globals.css "겹침 순서").
+ * 하단 고정 바가 있는 화면에서는 globals.css 의 [data-kakao-fab] 규칙이 버튼을 바 위로 올린다.
  */
 export default function KakaoChatButton() {
   return (
@@ -10,7 +12,8 @@ export default function KakaoChatButton() {
       rel="noopener noreferrer"
       aria-label="카카오톡 채널로 문의하기"
       title="카카오톡 문의"
-      className="group fixed bottom-5 right-5 md:bottom-6 md:right-6 z-50 flex items-center justify-center w-14 h-14 rounded-full bg-[#FEE500] hover:bg-[#FFD900] shadow-lg shadow-black/40 transition-transform duration-200 hover:scale-105"
+      data-kakao-fab=""
+      className="group fixed bottom-5 right-5 z-40 flex size-14 items-center justify-center rounded-full bg-kakao transition-colors duration-150 hover:bg-kakao-hover md:bottom-6 md:right-6"
     >
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
         <path

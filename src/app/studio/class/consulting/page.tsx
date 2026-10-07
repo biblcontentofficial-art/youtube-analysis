@@ -3,6 +3,8 @@
 import Image from "next/image";
 import TrackVisit from "@/app/_components/TrackVisit";
 import Link from "next/link";
+import { BottomCTABar } from "@/components/ui/bottom-cta-bar";
+import { buttonClass } from "@/components/ui/button";
 
 /**
  * 팀비블 1:1 유튜브 컨설팅 상세 페이지
@@ -14,12 +16,14 @@ import Link from "next/link";
 const DETAIL_IMAGES = [1, 2, 3, 4, 5, 6, 7];
 const APPLY_URL = "https://www.latpeed.com/memberships/6969983ba5c296323a6eb78c/pay/eLjQa";
 
+// data-apply-cta: 이 버튼이 화면에 보이는 동안 하단 고정 신청 바를 숨긴다(흰 버튼은 한 화면에 하나)
 function ApplyButton({ label = "1:1 팀비블 신청하기" }: { label?: string }) {
   return (
     <a
       href={APPLY_URL}
       target="_blank"
       rel="noopener noreferrer"
+      data-apply-cta=""
       className="inline-flex items-center gap-2 px-8 py-4 bg-white hover:bg-neutral-200 text-black font-black rounded-xl transition text-base"
     >
       {label}
@@ -92,18 +96,18 @@ export default function TeamBiblConsultingPage() {
         <p className="text-xs text-neutral-400 mt-4">신청 페이지로 이동합니다</p>
       </div>
 
-      {/* 하단 고정 신청 버튼 (데스크톱 한 줄 메뉴 미만: 모바일·태블릿).
-          태블릿 폭(md 이상)에서는 버튼을 가운데 max-w-md 로 줄여 오른쪽 아래 카카오 상담 버튼과 겹치지 않게 한다. */}
-      <div className="sticky bottom-0 z-30 nav:hidden bg-black/95 backdrop-blur border-t border-neutral-900 p-3">
+      {/* 하단 고정 신청 바 (데스크톱 한 줄 메뉴 미만: 모바일·태블릿). 위·아래 신청 버튼이 화면에 보이는 동안은 숨는다.
+          카카오 상담 버튼은 globals.css 의 data-bottom-bar 규칙으로 바 위에 뜬다. */}
+      <BottomCTABar hideFrom="nav" hideWhenVisible="[data-apply-cta]">
         <a
           href={APPLY_URL}
           target="_blank"
           rel="noopener noreferrer"
-          className="block w-full md:max-w-md md:mx-auto py-4 bg-white hover:bg-neutral-200 text-black text-center font-black rounded-xl transition text-sm"
+          className={buttonClass({ size: "lg", block: true })}
         >
           1:1 팀비블 신청하기
         </a>
-      </div>
+      </BottomCTABar>
     </main>
   );
 }
