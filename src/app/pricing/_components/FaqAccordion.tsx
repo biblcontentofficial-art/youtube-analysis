@@ -1,19 +1,39 @@
 "use client";
 
-import { useState } from "react";
+/**
+ * 요금제 FAQ(DESIGN 6.21 아코디언). 질문은 h3 > button(aria-expanded·aria-controls),
+ * 답은 닫혀 있어도 렌더하고 hidden 으로 접는다(서버 HTML 에 있다). 브라우저 안에서는 닫힌 답을
+ * hidden="until-found" 로 바꿔 Ctrl+F 로 찾히게 하고, 찾으면(beforematch) 그 답을 연다.
+ * React 18 은 hidden 을 참·거짓 속성으로만 다뤄 "until-found" 값을 직접 줄 수 없어 효과에서 속성을 고친다.
+ * 문장은 그대로 두고, 답 속 '환불 정책 페이지'·'마이페이지 > 구독 관리'만 링크로 바꿨다.
+ */
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import Link from "next/link";
+import { ChevronDownIcon } from "@/components/ui/icons";
+import { cx } from "@/components/ui/button";
 
-const FAQS = [
+const INLINE_LINK = "font-semibold text-fg underline underline-offset-4 transition-colors duration-150 hover:text-fg-2";
+
+const FAQS: { q: string; a: ReactNode }[] = [
   {
     q: "구독이 자동으로 갱신되나요?",
     a: "네, 다음 결제일 이전에 구독을 취소하지 않으면 동일한 플랜과 금액으로 자동 갱신됩니다. 마이페이지에서 언제든지 구독을 취소할 수 있습니다.",
   },
   {
     q: "플랜 변경은 어떻게 하나요?",
-    a: "마이페이지 > 구독 관리에서 플랜을 변경할 수 있습니다. 업그레이드 시 즉시 적용되며, 다운그레이드는 현재 구독 기간 종료 후 적용됩니다.",
+    a: (
+      <>
+        <Link href="/mypage" className={INLINE_LINK}>마이페이지 &gt; 구독 관리</Link>에서 플랜을 변경할 수 있습니다. 업그레이드 시 즉시 적용되며, 다운그레이드는 현재 구독 기간 종료 후 적용됩니다.
+      </>
+    ),
   },
   {
     q: "환불 정책이 어떻게 되나요?",
-    a: "결제일로부터 7일 이내 미사용 시 전액 환불이 가능합니다. 서비스 이용 이력이 있는 경우 잔여 기간에 비례하여 환불 처리됩니다. 자세한 내용은 환불 정책 페이지를 확인해주세요.",
+    a: (
+      <>
+        결제일로부터 7일 이내 미사용 시 전액 환불이 가능합니다. 서비스 이용 이력이 있는 경우 잔여 기간에 비례하여 환불 처리됩니다. 자세한 내용은 <Link href="/refund" className={INLINE_LINK}>환불 정책 페이지</Link>를 확인해주세요.
+      </>
+    ),
   },
   {
     q: "검색 횟수는 언제 초기화되나요?",
@@ -35,38 +55,64 @@ const FAQS = [
 
 export default function FaqAccordion() {
   const [openIdx, setOpenIdx] = useState<number | null>(0);
+  const answerRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  // 닫힌 답: hidden="" → hidden="until-found"(지원하지 않는 브라우저는 그대로 접혀 있다)
+  useEffect(() => {
+    answerRefs.current.forEach((el, i) => {
+      if (el && i !== openIdx) el.setAttribute("hidden", "until-found");
+    });
+  }, [openIdx]);
+
+  // 페이지 안 찾기로 닫힌 답이 펼쳐지면 그 질문을 연 상태로 맞춘다
+  useEffect(() => {
+    const cleanups = answerRefs.current.map((el, i) => {
+      if (!el) return () => {};
+      const onMatch = () => setOpenIdx(i);
+      el.addEventListener("beforematch", onMatch);
+      return () => el.removeEventListener("beforematch", onMatch);
+    });
+    return () => cleanups.forEach((fn) => fn());
+  }, []);
 
   return (
-    <div className="mt-20 max-w-2xl mx-auto">
-      <h2 className="text-xl font-bold text-white text-center mb-8">자주 묻는 질문</h2>
-      <div className="divide-y divide-neutral-800 border-t border-neutral-800">
-        {FAQS.map((faq, i) => {
-          const isOpen = openIdx === i;
-          return (
-            <div key={i}>
+    <div className="divide-y divide-line border-y border-line">
+      {FAQS.map((faq, i) => {
+        const isOpen = openIdx === i;
+        const qid = `faq-q-${i}`;
+        const aid = `faq-a-${i}`;
+        return (
+          <div key={faq.q}>
+            <h3>
               <button
+                type="button"
+                id={qid}
+                aria-expanded={isOpen}
+                aria-controls={aid}
                 onClick={() => setOpenIdx(isOpen ? null : i)}
-                className="w-full flex items-center justify-between py-4 text-left group"
+                className="flex w-full items-center justify-between gap-4 py-5 text-left text-ui font-semibold text-fg transition-colors duration-150 hover:text-fg-2 md:text-body"
               >
-                <span className={`text-sm font-medium transition ${isOpen ? "text-white" : "text-neutral-300 group-hover:text-white"}`}>
-                  {faq.q}
-                </span>
-                <svg
-                  className={`w-4 h-4 shrink-0 ml-4 transition-transform text-neutral-500 ${isOpen ? "rotate-180" : ""}`}
-                  viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2"
-                >
-                  <path d="M3 6l5 5 5-5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
+                {faq.q}
+                <ChevronDownIcon
+                  size={20}
+                  className={cx("text-fg-3 transition-transform duration-150", isOpen && "rotate-180")}
+                />
               </button>
-              {isOpen && (
-                <p className="pb-4 text-sm text-neutral-400 leading-relaxed">
-                  {faq.a}
-                </p>
-              )}
+            </h3>
+            <div
+              id={aid}
+              ref={(el) => {
+                answerRefs.current[i] = el;
+              }}
+              role="region"
+              aria-labelledby={qid}
+              hidden={!isOpen}
+            >
+              <p className="pb-5 text-body-sm text-fg-2 md:text-ui">{faq.a}</p>
             </div>
-          );
-        })}
-      </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
