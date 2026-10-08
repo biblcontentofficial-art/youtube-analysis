@@ -406,6 +406,24 @@ export function excerpt(content: string, max = 120): string {
   return flat.length <= max ? flat : `${flat.slice(0, max)}…`;
 }
 
+/** 미리보기에서 뺄 줄: 본문 렌더러(PostContent)가 이미지·영상·유튜브로 그리는 주소 한 줄 */
+const PREVIEW_MEDIA_LINE_RE =
+  /^(?:https?:\/\/[^\s<>"']+\.(?:png|jpe?g|webp|gif|mp4|mov|webm)(?:\?[^\s<>"']*)?|\/api\/community\/image\?p=[^\s<>"']+|\/[A-Za-z0-9_\-/.]+\.(?:png|jpe?g|webp|gif|mp4|mov|webm)|https?:\/\/(?:www\.)?(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)\S+)$/i;
+
+/**
+ * 표시용 본문 요약(메타 설명·미리보기). 이미지·영상·유튜브 줄과 '---' 줄을 빼고,
+ * '## '·'> ' 표시는 떼어 글자만 남긴 뒤 excerpt 로 줄인다. 저장·검색에 쓰는 본문은 바꾸지 않는다.
+ */
+export function toPreviewText(content: string, max = 120): string {
+  const text = content
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((t) => t !== "---" && !PREVIEW_MEDIA_LINE_RE.test(t))
+    .map((t) => (t.startsWith("## ") ? t.slice(3) : t.startsWith("> ") ? t.slice(2) : t))
+    .join("\n");
+  return excerpt(text, max);
+}
+
 /** 게시판 목록을 그룹별로 묶는다 */
 export function groupBoards(boards: Board[]): { group: string; boards: Board[] }[] {
   const map = new Map<string, Board[]>();

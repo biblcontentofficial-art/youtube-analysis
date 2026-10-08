@@ -1,6 +1,7 @@
 /**
  * 첨부파일 표시 (서버 컴포넌트)
  * 사진·영상은 글 본문 아래에 바로 그리고(/api/community/media), 그 외 파일만 다운로드 목록으로 붙인다.
+ * 사진·영상 높이 상한은 본문 렌더러(PostContent)와 같다(70vh). 다운로드 링크에는 download 속성을 둔다.
  */
 
 import { formatFileSize, mediaKind, type Attachment } from "@/lib/community";
@@ -28,7 +29,7 @@ export default function AttachmentList({ attachments }: Props) {
                   controls
                   playsInline
                   preload="metadata"
-                  className="w-full rounded-2xl border border-neutral-800 bg-black"
+                  className="mx-auto block w-auto max-w-full max-h-[70vh] rounded-panel border border-line bg-canvas"
                 />
               ) : (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -36,16 +37,17 @@ export default function AttachmentList({ attachments }: Props) {
                   src={`/api/community/media/${f.id}`}
                   alt={f.file_name}
                   loading="lazy"
-                  className="w-full rounded-2xl border border-neutral-800"
+                  className="mx-auto block h-auto w-auto max-w-full max-h-[70vh] rounded-panel border border-line"
                 />
               )}
-              <figcaption className="mt-2 flex items-center gap-2 text-xs text-neutral-500">
+              <figcaption className="mt-2 flex items-center gap-2 text-caption text-fg-3">
                 <span className="min-w-0 truncate">{f.file_name}</span>
                 <span aria-hidden="true">·</span>
                 <span className="shrink-0">{formatFileSize(f.file_size)}</span>
                 <a
                   href={`/api/community/download/${f.id}`}
-                  className="ml-auto shrink-0 text-neutral-400 transition-colors hover:text-white"
+                  download
+                  className="-my-3 ml-auto inline-flex h-11 shrink-0 items-center font-medium text-fg-2 transition-colors hover:text-fg"
                 >
                   원본 저장
                 </a>
@@ -58,17 +60,18 @@ export default function AttachmentList({ attachments }: Props) {
       {/* 그 외 파일 — 다운로드 목록 */}
       {files.length > 0 && (
         <section className="pb-8">
-          <h2 className="text-xs font-bold tracking-tight text-neutral-500 mb-3">
+          <h2 className="mb-3 text-caption font-semibold text-fg-3">
             첨부파일 {files.length}
           </h2>
-          <ul className="rounded-2xl border border-neutral-800 bg-neutral-900 divide-y divide-white/[0.06] overflow-hidden">
+          <ul className="divide-y divide-line-soft overflow-hidden rounded-card border border-line bg-surface">
             {files.map((f) => (
               <li key={f.id}>
                 <a
                   href={`/api/community/download/${f.id}`}
-                  className="flex items-center gap-3 px-4 py-3 bg-white/[0.02] hover:bg-white/[0.05] transition-colors"
+                  download
+                  className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-surface-2"
                 >
-                  <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5 shrink-0 text-neutral-500" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" className="size-5 shrink-0 text-fg-3" aria-hidden="true">
                     <path
                       d="M14 3v5h5M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5z"
                       stroke="currentColor"
@@ -79,15 +82,15 @@ export default function AttachmentList({ attachments }: Props) {
                   </svg>
 
                   <span className="min-w-0 flex-1">
-                    <span className="block text-sm text-neutral-200 truncate">{f.file_name}</span>
-                    <span className="block text-xs text-neutral-500 mt-0.5">
+                    <span className="block truncate text-body-sm text-fg-1">{f.file_name}</span>
+                    <span className="mt-0.5 block text-caption text-fg-3">
                       {formatFileSize(f.file_size)}
                       <span aria-hidden="true"> · </span>
                       다운로드 {f.download_count.toLocaleString()}
                     </span>
                   </span>
 
-                  <svg viewBox="0 0 24 24" fill="none" className="w-4 h-4 shrink-0 text-neutral-500" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" className="size-4 shrink-0 text-fg-3" aria-hidden="true">
                     <path
                       d="M12 4v11m0 0l-4-4m4 4l4-4M5 19h14"
                       stroke="currentColor"
