@@ -44,8 +44,8 @@ import { cx } from "./button";
 
 export type DialogPlacement = "center" | "sheet";
 
-/** 패널 공통: neutral 면 + 1px 선, 그림자·블러 없음 */
-const PANEL = "border border-neutral-800 bg-neutral-900 p-6 text-white backdrop:bg-[rgb(0_0_0/0.8)]";
+/** 패널 공통: surface-2 면 + 1px line 선, 그림자·블러 없음(DESIGN 6.11). 배경 막은 리터럴(위 주석) */
+const PANEL = "border border-line bg-surface-2 p-6 text-fg backdrop:bg-[rgb(0_0_0/0.8)]";
 
 /**
  * 위치. preflight 가 dialog 의 margin:auto 를 지우므로 여기서 다시 준다.

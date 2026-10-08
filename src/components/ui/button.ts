@@ -1,13 +1,13 @@
 /**
  * 버튼 클래스. <button>·<a>·<Link> 에 같은 함수를 쓴다(서버·클라이언트 공용, 의존성 없음).
- * 레시피 근거: docs/ux-renewal/ROADMAP.md R04 · spec/reference-design.md §4.4
+ * 레시피 근거: DESIGN.md 6.5 (모노크롬 실버)
  *
  *   <Link href="/" className={buttonClass()}>홈으로</Link>
  *   <button className={buttonClass({ variant: "secondary", size: "sm" })}>취소</button>
  *
  * - Tailwind 가 클래스를 찾을 수 있게 맵 값은 모두 완성된 문자열이다. 이름을 조립하지 않는다(T17).
  * - 흰 면(primary)은 화면 한 폴드에 하나만 쓴다. 네비 "시작하기"는 별도.
- * - 포커스 링은 globals.css 의 전역 :focus-visible(에메랄드 2px)을 그대로 쓴다.
+ * - 포커스 링은 globals.css 의 전역 :focus-visible(흰 2px)을 그대로 쓴다.
  *   outline-none·outline-hidden 을 섞으면 그 링이 사라지므로 넣지 않는다.
  */
 
@@ -18,20 +18,22 @@ const BUTTON_BASE =
   "inline-flex items-center justify-center gap-2 rounded-control whitespace-nowrap transition-colors duration-150 disabled:pointer-events-none disabled:opacity-40";
 
 const BUTTON_VARIANT: Record<ButtonVariant, string> = {
-  primary: "bg-white text-black font-bold hover:bg-neutral-200 active:bg-neutral-300",
+  // 흰 면. hover 한 단 어둡게, 누르면 실버 판 색
+  primary: "bg-accent font-bold text-accent-ink hover:bg-accent-hover active:bg-accent-active",
   secondary:
-    "border border-neutral-700 bg-neutral-900 text-white font-semibold hover:border-neutral-600 hover:bg-neutral-800",
-  ghost: "text-neutral-300 font-medium hover:bg-neutral-900 hover:text-white",
-  danger: "border border-red-400/40 text-red-400 font-semibold hover:bg-red-500/10",
+    "border border-line-strong bg-surface font-semibold text-fg hover:border-line-hover hover:bg-surface-2",
+  ghost: "font-semibold text-fg-2 hover:bg-surface-2 hover:text-fg",
+  // 삭제·해지. 빨간 면 금지, negative 테두리·글자만
+  danger: "border border-negative/40 font-semibold text-negative hover:border-negative hover:bg-surface-2",
   // 카카오 브랜드 예외(노란 면). 카카오 로그인·문의·공유 버튼에만
   kakao: "bg-kakao text-kakao-ink font-bold hover:bg-kakao-hover",
 };
 
 /** 높이 sm 36px(네비·카드 안) · md 44px(기본, 모바일 터치 크기) · lg 48px(히어로·요금제) */
 const BUTTON_SIZE: Record<ButtonSize, string> = {
-  sm: "h-9 px-3.5 text-sm",
-  md: "h-11 px-5 text-[15px]",
-  lg: "h-12 px-6 text-base",
+  sm: "h-9 px-3.5 text-body-sm",
+  md: "h-11 px-5 text-ui",
+  lg: "h-12 px-6 text-ui",
 };
 
 export function buttonClass({

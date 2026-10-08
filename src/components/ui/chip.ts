@@ -1,6 +1,6 @@
 /**
- * 칩(필터·기간·키워드)과 세그먼트 토글. 선택되면 면이 한 단 올라간다(Raycast 칩, reference-design §2.7).
- * 근거: docs/ux-renewal/ROADMAP.md R04 · spec/reference-design.md §4.4
+ * 칩(필터·기간·키워드)과 세그먼트 토글. 선택되면 면이 한 단 올라간다(surface-3). 알약 모양 금지, 반경 8px.
+ * 근거: DESIGN.md 6.6 (모노크롬 실버)
  *
  * 선택 상태는 색 클래스를 갈아 끼우지 않고 ARIA 속성으로 표시한다(스크린 리더에도 같은 상태가 전달된다).
  *   필터 칩(켜고 끄기)      <button aria-pressed={on} className={CHIP}>쇼츠</button>
@@ -14,12 +14,13 @@
  *   탭이면 role="tab" + aria-selected, 토글 버튼이면 aria-pressed 를 쓴다(셋 다 같은 모양).
  */
 
+/** 높이 40px(모바일) · 640 이상 36px · 터치 기기 44px */
 export const CHIP =
-  "inline-flex h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border border-neutral-800 px-3 text-[13px] text-neutral-300 transition-colors duration-150 hover:border-neutral-700 hover:text-white aria-pressed:border-neutral-600 aria-pressed:bg-neutral-800 aria-pressed:text-white aria-[current=page]:border-neutral-600 aria-[current=page]:bg-neutral-800 aria-[current=page]:text-white";
+  "inline-flex h-10 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-control border border-line px-3 text-caption font-medium text-fg-2 transition-colors duration-150 hover:border-line-hover hover:text-fg sm:h-9 sm:px-2.5 pointer-coarse:h-11 aria-pressed:border-line-hover aria-pressed:bg-surface-3 aria-pressed:text-fg aria-[current=page]:border-line-hover aria-[current=page]:bg-surface-3 aria-[current=page]:text-fg";
 
-/** 세그먼트 토글 틀(오목면) */
-export const SEGMENT = "inline-flex rounded-full border border-neutral-800 bg-neutral-950 p-1";
+/** 세그먼트 토글 틀 */
+export const SEGMENT = "inline-flex rounded-control border border-line p-1";
 
-/** 세그먼트 항목. 선택된 항목만 면이 neutral-800 으로 올라간다 */
+/** 세그먼트 항목. 선택된 항목만 면이 surface-3 으로 올라간다. 높이 40px · 768 이상 32px · 터치 기기 44px */
 export const SEGMENT_ITEM =
-  "inline-flex h-10 items-center justify-center whitespace-nowrap rounded-full px-6 text-sm font-semibold text-neutral-400 transition-colors duration-150 hover:text-white aria-selected:bg-neutral-800 aria-selected:text-white aria-checked:bg-neutral-800 aria-checked:text-white aria-pressed:bg-neutral-800 aria-pressed:text-white";
+  "inline-flex h-10 items-center justify-center whitespace-nowrap rounded-md px-3 text-caption font-medium text-fg-3 transition-colors duration-150 hover:text-fg md:h-8 pointer-coarse:h-11 aria-[current=true]:bg-surface-3 aria-[current=true]:font-semibold aria-[current=true]:text-fg aria-selected:bg-surface-3 aria-selected:font-semibold aria-selected:text-fg aria-checked:bg-surface-3 aria-checked:font-semibold aria-checked:text-fg aria-pressed:bg-surface-3 aria-pressed:font-semibold aria-pressed:text-fg";

@@ -2,43 +2,100 @@
 
 /*
  * 디자인 토큰 (Tailwind v4 @theme)
- * 값의 근거: docs/ux-renewal/ROADMAP.md 1.1, docs/ux-renewal/spec/reference-design.md §4.1
- * neutral 은 Tailwind 기본값을 그대로 쓴다(bg-black · neutral-900 카드 · neutral-800 선).
+ * 값의 근거: DESIGN.md 2.2 (모노크롬 실버 M, docs/ux-renewal/design-final/silver/_work/theme-final.css)
+ * 그래파이트 면·선·글자 토큰은 neutral 과 같은 단계 값이다. 기본 팔레트(neutral 등)는 전환 기간에 그대로 둔다(DESIGN 9장).
  */
 @theme {
-  /*
-   * 글꼴. Pretendard 파일은 아직 싣지 않는다(소유자 결정 F 대기).
-   * 지금 body 는 next/font Inter(라틴) + OS 한글 글꼴이고, 파일을 들이는 커밋에서 Inter 를 지운다.
-   */
+  /* 글꼴: Pretendard Variable 자체 호스팅(public/fonts/pretendard, layout.tsx <head> 의 link) */
   --font-sans: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
-  /* 색. 액센트는 글자·포커스 자리에만, 브랜드색은 해당 표식에만 쓴다 */
-  --color-accent: #00e5a0;
-  --color-accent-hover: #66ffcc;
-  --color-surface-raised: #1f1f1f;
+  /* --color-*: initial;  ← DESIGN 9장 단계 3b(C18b, 잔여 0 확인 뒤)에만 켠다 */
+
+  /* 바탕·면 */
+  --color-canvas: #000000;
+  --color-surface: #0a0a0a;
+  --color-surface-2: #171717;
+  --color-surface-3: #262626;
+
+  /* 선 */
+  --color-line: #262626;
+  --color-line-soft: #171717;
+  --color-line-strong: #404040;
+  --color-line-hover: #525252;
+  --color-line-control: #7a7a7a;
+
+  /* 글자 */
+  --color-fg: #ffffff;
+  --color-fg-1: #e5e5e5;
+  --color-fg-2: #c6c6c6;
+  --color-fg-3: #949494;
+  --color-fg-4: #7a7a7a;
+
+  /* 액센트: 채도 0, 밝기 단계만 */
+  --color-accent: #ffffff;
+  --color-accent-hover: #e5e5e5;
+  --color-accent-active: #c6c6c6;
+  --color-accent-ink: #000000;
+  --color-silver: #c6c6c6;
+  --color-logo-plate: #e3e3e3;
+
+  /* 기능 색(앱 전용, 글자 라벨·기호와 함께) */
+  --color-positive: #5ee39a;
+  --color-caution: #f5b73b;
+  --color-negative: #fa5570;
+  --color-competition-low: var(--color-positive);
+  --color-competition-mid: var(--color-caution);
+  --color-competition-high: var(--color-negative);
+
+  /* 차트·히트맵 */
+  --color-chart-1: #ffffff;
+  --color-chart-2: #949494;
+  --color-chart-3: #525252;
+  --color-chart-grid: #262626;
+  --color-heat-1: #1f1f1f;
+  --color-heat-2: #474747;
+  --color-heat-3: #7a7a7a;
+  --color-heat-4: #b0b0b0;
+  --color-heat-5: #ededed;
+
+  /* 흰 바탕 문서 */
+  --color-paper: #ffffff;
+  --color-paper-ink: #000000;
+  --color-paper-muted: #6b6b6b;
+
+  /* 외부 브랜드: 해당 표식에만 */
+  --color-youtube: #ff0000;
   --color-kakao: #fee500;
   --color-kakao-hover: #fdd835;
   --color-kakao-ink: #191919;
-  --color-youtube: #ff0000;
+  --color-kakao-icon: #3a1d1d;
+
+  /* 소유자 예외(DESIGN 3.4). 기본 팔레트를 비운 뒤에도 남겨야 해서 토큰으로 둔다 */
+  --color-owner-red: #e5484d;       /* /studio 강조·커뮤니티 N 배지 */
+  --color-owner-yellow: #facc15;    /* 커뮤니티 사이드바 '유튜브 인큐베이팅 지원하세요!' */
 
   /* 글자 단계. text-* 하나가 크기·행간·자간·굵기를 함께 정한다 */
   --text-display: 3.75rem;
   --text-display--line-height: 1.15;
   --text-display--letter-spacing: -0.03em;
-  --text-display--font-weight: 900;
+  --text-display--font-weight: 800;
   --text-h1: 3rem;
   --text-h1--line-height: 1.2;
   --text-h1--letter-spacing: -0.025em;
-  --text-h1--font-weight: 900;
+  --text-h1--font-weight: 800;
   --text-h2: 2.25rem;
   --text-h2--line-height: 1.25;
   --text-h2--letter-spacing: -0.02em;
-  --text-h2--font-weight: 900;
+  --text-h2--font-weight: 800;
   --text-h3: 1.75rem;
   --text-h3--line-height: 1.3;
   --text-h3--letter-spacing: -0.02em;
-  --text-h3--font-weight: 900;
+  --text-h3--font-weight: 800;
+  --text-title: 1.5rem;
+  --text-title--line-height: 1.3;
+  --text-title--letter-spacing: -0.02em;
+  --text-title--font-weight: 800;
   --text-h4: 1.25rem;
   --text-h4--line-height: 1.4;
   --text-h4--letter-spacing: -0.01em;
@@ -48,6 +105,8 @@
   --text-lead--letter-spacing: -0.005em;
   --text-body: 1rem;
   --text-body--line-height: 1.75;
+  --text-ui: 0.9375rem;
+  --text-ui--line-height: 1.6;
   --text-body-sm: 0.875rem;
   --text-body-sm--line-height: 1.7;
   --text-caption: 0.8125rem;
@@ -66,7 +125,8 @@
   --radius-card: 0.75rem;
   --radius-panel: 1rem;
 
-  /* 컨테이너: 페이지 1200px · 글 폭 672px */
+  /* 컨테이너: 홈·앱 1280px · 페이지 1200px · 글 폭 672px */
+  --container-wide: 80rem;
   --container-page: 75rem;
   --container-reading: 42rem;
 
@@ -141,8 +201,8 @@
  */
 @layer base {
   html {
-    background-color: #000;
-    color: #fff;
+    background-color: var(--color-canvas);
+    color: var(--color-fg);
     color-scheme: dark;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -166,7 +226,7 @@
     text-wrap-style: pretty;
   }
 
-  /* 키보드 포커스: 에메랄드 2px 외곽선 하나로 통일 */
+  /* 키보드 포커스: 흰 2px 외곽선(간격 2px) 하나로 통일 */
   :focus-visible {
     outline: 2px solid var(--color-accent);
     outline-offset: 2px;
@@ -179,8 +239,8 @@
   }
 
   ::selection {
-    background-color: var(--color-accent);
-    color: #000;
+    background-color: var(--color-silver);
+    color: var(--color-accent-ink);
   }
 
   /*
@@ -209,6 +269,77 @@
   -ms-overflow-style: none;
   &::-webkit-scrollbar {
     display: none;
+  }
+}
+
+/* 숫자 자리 맞춤(표·실적·가격·남은 횟수). 시안의 .tnum 과 같은 값, Tailwind tabular-nums 와 같다 */
+@utility tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+/* 긴 결과 목록의 화면 밖 행 렌더 지연. 96px 는 앱 표 한 행 높이(DESIGN 6.0·6.10) */
+@utility content-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 96px;
+}
+
+/*
+ * 공용 부품(DESIGN 6.10·6.15). 값은 확정 시안(design-final/silver app.html .chk · home.html .ext) 그대로.
+ * components 레이어라 같은 요소의 유틸리티가 이긴다. 이후 항목은 이 정의를 쓰기만 한다.
+ */
+@layer components {
+  /* 체크박스: 18px, 테두리 1.5px line-control(검정 위 4.89:1), 선택·부분 선택 = 흰 면 + 검정 표시. 누름 영역은 감싼 label 로 40~44px */
+  .chk {
+    appearance: none;
+    display: inline-grid;
+    place-content: center;
+    width: 1.125rem;
+    height: 1.125rem;
+    margin: 0;
+    border: 1.5px solid var(--color-line-control);
+    border-radius: 0.25rem;
+    background: transparent;
+    cursor: pointer;
+    transition:
+      border-color 0.15s ease-out,
+      background-color 0.15s ease-out;
+  }
+  .chk:hover {
+    border-color: var(--color-fg-2);
+  }
+  .chk:checked,
+  .chk:indeterminate {
+    border-color: var(--color-accent);
+    background: var(--color-accent);
+  }
+  .chk:checked::after {
+    content: "";
+    width: 0.55rem;
+    height: 0.3rem;
+    border-left: 2px solid var(--color-accent-ink);
+    border-bottom: 2px solid var(--color-accent-ink);
+    transform: translateY(-1px) rotate(-45deg);
+  }
+  .chk:indeterminate::after {
+    content: "";
+    width: 0.5rem;
+    height: 2px;
+    background: var(--color-accent-ink);
+  }
+
+  /* 유튜브로 나가는 ↗ 표시: 평소 무채색, 링크에 올리거나 포커스할 때만 유튜브 빨강 */
+  .ext {
+    display: inline-block;
+    width: 0.8em;
+    height: 0.8em;
+    flex-shrink: 0;
+    vertical-align: -0.05em;
+    color: var(--color-fg-3);
+    transition: color 0.15s ease-out;
+  }
+  a:hover .ext,
+  a:focus-visible .ext {
+    color: var(--color-youtube);
   }
 }
 

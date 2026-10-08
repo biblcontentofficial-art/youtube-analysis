@@ -68,7 +68,7 @@ python3 scripts/ux/shot.py http://localhost:3001 <태그> /경로 ...   # 1440·
 
 검증 원칙: 로그인 화면은 `ux-preview` 고정 화면으로, 파괴적 동작(삭제·해지·결제·수집 실패 등)은 고정 화면 state 로만, 쿼터를 쓰는 경로(`/search?q=`·`/channels?q=`·`/my-channel?channel=`·채널 상세)는 열지 않는다. `src/app/ux-preview/` 는 git 에 없으니 지우지 않는다.
 
-- [ ] C01 글꼴·실버 토큰·공용 부품 (Pretendard 연결, Inter 제거, @theme 실버, R04 부품 색 교체, 검사 규칙)
+- [x] C01 글꼴·실버 토큰·공용 부품 (Pretendard 연결, Inter 제거, @theme 실버, R04 부품 색 교체, 검사 규칙)
 - [ ] C02 전역 네비·모바일 메뉴 시트·푸터·OG (F 두 묶음 네비, 현재 위치, --nav-h)
 - [ ] C03 홈 = design-final home (F 8구역, 결과 미리보기 HTML 표, 서버 컴포넌트 분리)
 - [ ] C04 요금제 (실버 플랜 카드·실제 청구액·현재 플랜·결제 실패 안내·비교표·FAQ)

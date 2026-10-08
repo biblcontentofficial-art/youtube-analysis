@@ -13,16 +13,16 @@ export default function KakaoChatButton() {
       aria-label="카카오톡 채널로 문의하기"
       title="카카오톡 문의"
       data-kakao-fab=""
-      className="group fixed bottom-5 right-5 z-40 flex size-14 items-center justify-center rounded-full bg-kakao transition-colors duration-150 hover:bg-kakao-hover md:bottom-6 md:right-6"
+      className="group fixed bottom-5 right-5 z-40 flex size-14 items-center justify-center rounded-full bg-kakao text-kakao-icon transition-colors duration-150 hover:bg-kakao-hover md:bottom-6 md:right-6"
     >
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
         <path
           d="M12 3C6.477 3 2 6.477 2 10.5c0 2.568 1.524 4.832 3.848 6.24L4.5 21l4.38-2.318A11.3 11.3 0 0012 19c5.523 0 10-3.477 10-7.5S17.523 3 12 3z"
-          fill="#3A1D1D"
+          fill="currentColor"
         />
       </svg>
       {/* 데스크탑 호버 라벨 */}
-      <span className="pointer-events-none absolute right-full mr-3 px-3 py-1.5 rounded-lg bg-neutral-900 border border-neutral-700 text-white text-xs font-semibold whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity hidden md:block">
+      <span className="pointer-events-none absolute right-full mr-3 hidden whitespace-nowrap rounded-lg border border-line-strong bg-surface-2 px-3 py-1.5 text-xs font-semibold text-fg opacity-0 transition-opacity group-hover:opacity-100 md:block">
         카카오톡 문의
       </span>
     </a>

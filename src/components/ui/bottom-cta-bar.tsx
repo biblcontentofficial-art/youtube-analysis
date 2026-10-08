@@ -29,7 +29,7 @@ const HIDE_FROM: Record<BottomBarBreakpoint, string> = {
 };
 
 const BAR =
-  "sticky bottom-0 z-30 border-t border-neutral-800 bg-black/95 px-4 pt-3 pb-[max(12px,env(safe-area-inset-bottom))]";
+  "sticky bottom-0 z-30 border-t border-line bg-canvas px-4 pt-3 pb-[max(12px,env(safe-area-inset-bottom))]";
 
 /** 화면 위에 붙어 내용을 가리는 전역 네비(루트 레이아웃의 body > nav). R06c 에서 --nav-h 가 생기면 그 값으로 바꾼다 */
 const STICKY_HEADER = "body > nav, body > header";

@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
 import SearchUsageBadge from "./_components/SearchUsageBadge";
 import NavigationLoader from "./_components/NavigationLoader";
 import { ConfirmProvider } from "./_components/ConfirmDialog";
@@ -8,8 +7,6 @@ import ReferralApply from "./_components/ReferralApply";
 import KakaoChatButton from "./_components/KakaoChatButton";
 import "./globals.css";
 
-
-const inter = Inter({ subsets: ["latin"] });
 
 // 모바일 브라우저 상단바·스크롤바·체크박스 같은 기본 컨트롤을 어두운 모양으로 (정적 값이라 정적 렌더 유지)
 export const viewport: Viewport = {
@@ -281,11 +278,14 @@ export default async function RootLayout({
   const content = (
     <html lang="ko">
       <head>
+        {/* Pretendard Variable 자체 호스팅(unicode-range 조각이라 페이지에 필요한 글자 조각만 받는다) */}
+        {/* eslint-disable-next-line @next/next/no-css-tags */}
+        <link rel="stylesheet" href="/fonts/pretendard/pretendardvariable-dynamic-subset.css" />
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="icon" href="/icon" type="image/png" sizes="32x32" />
         <link rel="apple-touch-icon" href="/apple-icon" sizes="180x180" />
       </head>
-      <body className={`${inter.className} bg-black text-white`}>
+      <body className="bg-canvas text-fg">
         {jsonLd.map((schema, i) => (
           <script
             key={i}

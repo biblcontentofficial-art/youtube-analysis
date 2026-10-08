@@ -1,7 +1,7 @@
 /**
  * 섹션 헤더(소유자 확정 패턴): 좌측 한글 캡션 + 우측 영문 라벨 + 헤어라인, 그 아래 두 톤 제목.
- * /studio 의 SectionLabel 마크업을 옮기고 캡션 대비만 올렸다(neutral-500 → neutral-400).
- * 근거: docs/ux-renewal/ROADMAP.md R04 · spec/reference-design.md §4.4 "섹션 헤더"
+ * 영문 라벨은 실버(비블을 알리는 반복 장치), 캡션·리드는 fg-3, 제목 굵기는 글자 토큰(800).
+ * 근거: DESIGN.md 6.4 · 4.2 (라벨은 시안 .sec-head__label 14/20 → md 16/24, text-label-en 토큰은 쓰지 않는다)
  *
  *   <SectionHeader caption="비블의 유튜브 채널 대행" label="PROBLEM" />
  *   <TwoToneHeading lead="유튜브를 혼자 운영하면서">답답하지 않으셨나요?</TwoToneHeading>
@@ -30,12 +30,16 @@ export function SectionHeader({
     <div
       data-animate={animate}
       className={cx(
-        "mb-10 flex items-center justify-between gap-4 border-b border-neutral-800 pb-4 md:mb-12",
+        "mb-10 flex items-center justify-between gap-4 border-b border-line pb-4 md:mb-12",
         className,
       )}
     >
-      <span className="text-xs text-neutral-400 md:text-sm">{caption}</span>
-      <span lang="en" aria-hidden="true" className="shrink-0 text-sm font-black tracking-[0.25em] text-white md:text-base">
+      <span className="text-xs text-fg-3 md:text-sm">{caption}</span>
+      <span
+        lang="en"
+        aria-hidden="true"
+        className="shrink-0 text-sm font-black leading-5 tracking-[0.25em] text-silver md:text-base md:leading-6"
+      >
         {label}
       </span>
     </div>
@@ -43,7 +47,7 @@ export function SectionHeader({
 }
 
 /**
- * 두 톤 제목: 회색 리드 한 줄 + 흰 본문. 글자 단계는 모바일 h3(28px) · md 이상 h1(48px), 굵기 900.
+ * 두 톤 제목: 앞줄 fg-3 + 뒷줄 fg. 글자 단계는 모바일 h3(28px) · md 이상 h1(48px), 굵기 800(토큰).
  * 리드는 block 으로 줄을 바꾼다(<br> 없이, ux-rules T18).
  */
 export function TwoToneHeading({
@@ -60,10 +64,10 @@ export function TwoToneHeading({
   children: ReactNode;
 }) {
   return (
-    <Tag data-animate={animate} className={cx("text-h3 text-white md:text-h1", className)}>
+    <Tag data-animate={animate} className={cx("text-h3 text-fg md:text-h1", className)}>
       {lead ? (
         <>
-          <span className="block text-neutral-400">{lead}</span>{" "}
+          <span className="block text-fg-3">{lead}</span>{" "}
         </>
       ) : null}
       {children}

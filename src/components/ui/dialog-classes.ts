@@ -9,6 +9,6 @@
  *   </Dialog>
  */
 
-export const DIALOG_TITLE = "text-body font-semibold text-white";
-export const DIALOG_DESCRIPTION = "mt-2 text-body-sm text-neutral-400";
+export const DIALOG_TITLE = "text-body font-semibold text-fg";
+export const DIALOG_DESCRIPTION = "mt-2 text-body-sm text-fg-3";
 export const DIALOG_ACTIONS = "mt-6 flex justify-end gap-2";

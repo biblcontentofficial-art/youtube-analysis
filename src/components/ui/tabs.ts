@@ -1,6 +1,6 @@
 /**
- * 밑줄 탭(CommunityTabs 패턴). 현재 탭은 흰 글자 + 에메랄드 2px 밑줄.
- * 근거: docs/ux-renewal/ROADMAP.md R04 · ux-rules 5.7(이동은 링크 + aria-current, 전환은 role="tab" + aria-selected)
+ * 밑줄 탭(CommunityTabs 패턴). 현재 탭은 흰 글자 + 흰 2px 밑줄(accent).
+ * 근거: DESIGN.md 6.3 · ux-rules 5.7(이동은 링크 + aria-current, 전환은 role="tab" + aria-selected)
  *
  *   <nav aria-label="커뮤니티 메뉴" className={TAB_BAR}>
  *     <div className={TAB_LIST}>
@@ -14,11 +14,11 @@
  */
 
 /** 탭 줄 바깥: 바닥 헤어라인 */
-export const TAB_BAR = "border-b border-neutral-800";
+export const TAB_BAR = "border-b border-line";
 
 /** 탭 목록: 좁은 화면에서 가로로 스크롤 */
 export const TAB_LIST = "-mb-px flex gap-1 overflow-x-auto";
 
 /** 탭 하나. 상태는 aria-current="page"(링크) 또는 aria-selected(role="tab")로만 바뀐다 */
 export const TAB =
-  "shrink-0 whitespace-nowrap border-b-2 border-transparent px-3 py-2.5 text-sm text-neutral-400 transition-colors duration-150 hover:text-white aria-[current=page]:border-accent aria-[current=page]:font-semibold aria-[current=page]:text-white aria-selected:border-accent aria-selected:font-semibold aria-selected:text-white";
+  "shrink-0 whitespace-nowrap border-b-2 border-transparent px-3 py-2.5 text-sm text-fg-3 transition-colors duration-150 hover:text-fg aria-[current=page]:border-accent aria-[current=page]:font-semibold aria-[current=page]:text-accent aria-selected:border-accent aria-selected:font-semibold aria-selected:text-accent";

@@ -19,11 +19,11 @@ export default function GlobalError({
   return (
     <main className="flex min-h-[60vh] items-center py-16 md:py-24">
       <Container size="reading" className="text-center">
-        <div aria-hidden="true" className="text-display font-black text-neutral-700">
+        <div aria-hidden="true" className="text-display font-black text-fg-4">
           ERROR
         </div>
-        <h1 className="mt-4 text-h4 text-white">오류가 발생했습니다</h1>
-        <p className="mt-3 text-body-sm text-neutral-400 md:text-body">
+        <h1 className="mt-4 text-h4 text-fg">오류가 발생했습니다</h1>
+        <p className="mt-3 text-body-sm text-fg-3 md:text-body">
           일시적인 오류입니다. 잠시 후 다시 시도해주세요.
         </p>
         <div className="mt-8 flex flex-wrap justify-center gap-3">

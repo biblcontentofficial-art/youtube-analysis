@@ -5,15 +5,17 @@
  *   <section className={SECTION}>
  *     <Container>…</Container>                 페이지 폭 1200px
  *   </section>
+ *   <Container size="wide">…</Container>       홈·앱 폭 1280px(DESIGN 5.5, 거터 24 · 1024 이상 32)
  *   <Container size="reading">…</Container>    글 폭 672px(약관·글 본문·폼·안내 화면)
  */
 import type { ReactNode } from "react";
 import { cx } from "./button";
 
-export type ContainerSize = "page" | "reading";
+export type ContainerSize = "wide" | "page" | "reading";
 
 /** Container 컴포넌트를 쓸 수 없는 곳(이미 있는 요소에 붙일 때)용 완성 문자열 */
 export const CONTAINER: Record<ContainerSize, string> = {
+  wide: "mx-auto w-full max-w-wide px-6 lg:px-8",
   page: "mx-auto w-full max-w-page px-4 md:px-6",
   reading: "mx-auto w-full max-w-reading px-4 md:px-6",
 };

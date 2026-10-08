@@ -18,11 +18,11 @@ export default function MaintenancePage() {
   return (
     <main className="flex min-h-[60vh] items-center py-16 md:py-24">
       <Container size="reading" className="text-center">
-        <div aria-hidden="true" className="text-display font-black text-neutral-700">
+        <div aria-hidden="true" className="text-display font-black text-fg-4">
           점검 중
         </div>
-        <h1 className="mt-4 text-h4 text-white">시스템 점검 중입니다</h1>
-        <p className="mt-3 text-body-sm text-neutral-400 md:text-body">
+        <h1 className="mt-4 text-h4 text-fg">시스템 점검 중입니다</h1>
+        <p className="mt-3 text-body-sm text-fg-3 md:text-body">
           더 나은 서비스를 위해 시스템 점검을 진행하고 있습니다.{" "}
           <br className="hidden sm:block" />
           빠르게 복구하겠습니다. 잠시만 기다려주세요.
@@ -41,7 +41,7 @@ export default function MaintenancePage() {
             이메일 문의
           </a>
         </div>
-        <p className="mt-4 text-xs text-neutral-400">문의: {CONTACT_EMAIL}</p>
+        <p className="mt-4 text-xs text-fg-3">문의: {CONTACT_EMAIL}</p>
       </Container>
     </main>
   );
