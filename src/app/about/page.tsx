@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { OG_DEFAULT } from "@/lib/seo";
 import Link from "next/link";
 
 export const metadata: Metadata = {
@@ -11,6 +12,7 @@ export const metadata: Metadata = {
   ],
   alternates: { canonical: "https://bibllab.com/about" },
   openGraph: {
+    ...OG_DEFAULT,
     title: "비블랩 소개 — 유튜브 키워드·채널 분석 도구",
     description: "비블랩은 유튜버와 크리에이터를 위한 유튜브 분석 SaaS입니다.",
     url: "https://bibllab.com/about",

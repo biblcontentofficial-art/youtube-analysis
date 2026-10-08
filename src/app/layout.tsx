@@ -1,10 +1,12 @@
 import type { Metadata, Viewport } from "next";
-import SearchUsageBadge from "./_components/SearchUsageBadge";
+import Link from "next/link";
 import NavigationLoader from "./_components/NavigationLoader";
 import { ConfirmProvider } from "./_components/ConfirmDialog";
-import NavUser from "./_components/NavUser";
+import SiteNav from "./_components/SiteNav";
 import ReferralApply from "./_components/ReferralApply";
 import KakaoChatButton from "./_components/KakaoChatButton";
+import { Logo } from "@/components/ui/logo";
+import { OG_DEFAULT, OG_IMAGE } from "@/lib/seo";
 import "./globals.css";
 
 
@@ -34,27 +36,17 @@ export const metadata: Metadata = {
   publisher: "bibl lab",
   category: "technology",
   openGraph: {
-    type: "website",
-    locale: "ko_KR",
+    ...OG_DEFAULT,
     url: "https://bibllab.com",
-    siteName: "비블랩 (bibl lab)",
     title: "비블랩 (bibl lab) - 유튜브 키워드·채널 분석 도구",
     description:
       "비블랩 — 유튜브 키워드 트렌드 분석, 채널 찾기, 영상 수집. 크리에이터를 위한 데이터 인사이트.",
-    images: [
-      {
-        url: "https://bibllab.com/og-image.png",
-        width: 1280,
-        height: 720,
-        alt: "비블랩 - 유튜브 키워드·채널 분석 도구",
-      },
-    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "비블랩 (bibl lab) - 유튜브 키워드·채널 분석 도구",
     description: "유튜브 키워드·채널 분석, 영상 수집. 크리에이터를 위한 무료 도구.",
-    images: ["https://bibllab.com/og-image.png"],
+    images: [OG_IMAGE.url],
   },
   alternates: {
     canonical: "https://bibllab.com",
@@ -98,7 +90,7 @@ export default async function RootLayout({
   }
 
   // 주의: 이 레이아웃에서 auth()·cookies() 를 호출하면 사이트 전체가 동적 렌더로 떨어진다.
-  // 네비의 사용자 표시는 NavUser(클라이언트)가 담당하므로 여기서는 인증을 읽지 않는다.
+  // 네비의 경로 분기·현재 위치·사용자 표시는 SiteNav(클라이언트 잎)가 담당하므로 여기서는 인증을 읽지 않는다.
 
   const jsonLd = [
     {
@@ -155,7 +147,7 @@ export default async function RootLayout({
         "검색 기록 저장 및 관리",
         "쇼츠·일반 영상 필터",
       ],
-      screenshot: "https://bibllab.com/opengraph-image",
+      screenshot: OG_IMAGE.url,
       softwareVersion: "2.0",
       datePublished: "2024-01-01",
       dateModified: "2026-03-26",
@@ -281,11 +273,9 @@ export default async function RootLayout({
         {/* Pretendard Variable 자체 호스팅(unicode-range 조각이라 페이지에 필요한 글자 조각만 받는다) */}
         {/* eslint-disable-next-line @next/next/no-css-tags */}
         <link rel="stylesheet" href="/fonts/pretendard/pretendardvariable-dynamic-subset.css" />
-        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-        <link rel="icon" href="/icon" type="image/png" sizes="32x32" />
-        <link rel="apple-touch-icon" href="/apple-icon" sizes="180x180" />
+        {/* 아이콘 링크는 metadata.icons·app/icon.tsx·app/apple-icon.tsx 가 넣는다(수동 링크 중복 제거) */}
       </head>
-      <body className="bg-canvas text-fg">
+      <body className="flex min-h-dvh flex-col bg-canvas text-fg">
         {jsonLd.map((schema, i) => (
           <script
             key={i}
@@ -296,152 +286,15 @@ export default async function RootLayout({
         {/* 카카오 SDK 는 쓰는 곳(검색 결과 공유 버튼)에서만 싣는다: search/_components/ShareButton.tsx */}
         <NavigationLoader>
         <ConfirmProvider>
-        <nav className="border-b border-neutral-800 bg-black sticky top-0 z-50">
-          <div className="w-full px-3 h-14 flex items-center justify-between min-w-0 overflow-x-auto scrollbar-hide">
-            {/* 로고 */}
-            <a href="/" className="flex items-center gap-2 shrink-0">
-                <div className="w-8 h-8 bg-black border border-neutral-700 rounded-lg flex items-center justify-center">
-                  <span style={{ color: "white", fontSize: 18, fontWeight: 900, lineHeight: 1, fontFamily: "sans-serif" }}>B</span>
-                </div>
-                <span className="font-bold text-base tracking-tight">
-                  <span className="text-white">bibl</span>
-                  <span className="text-neutral-400"> lab</span>
-                </span>
-              </a>
-
-              <div className="hidden nav:flex flex-1 items-center justify-center gap-1 text-sm whitespace-nowrap min-w-0">
-                {/* 브랜드 인큐베이팅 (영어·수학 선생님 모집, 공개 페이지) — 화이트 필 강조 */}
-                <NavTab href="/incubating" label="브랜드 인큐베이팅" highlight icon={
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
-                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
-                  </svg>
-                } />
-                {/* 비블 커뮤니티 (자체 서비스) */}
-                <NavTab href="/community" label="커뮤니티&자료" highlight icon={
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
-                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                  </svg>
-                } />
-                {/* 유튜브 트렌드 서치 — 분석 기능 허브 */}
-                <NavTab href="/trend-search" label="유튜브 트렌드 서치" highlight icon={
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
-                    <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
-                  </svg>
-                } />
-                {/* 요금제 */}
-                <NavTab href="/pricing" label="요금제" icon={
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
-                    <rect x="1" y="4" width="22" height="16" rx="2" ry="2" /><line x1="1" y1="10" x2="23" y2="10" />
-                  </svg>
-                } />
-                {/* 메인 서비스: 팀비블 컨설팅 · 채널 대행 — 가장 우측, 에메랄드 강조 */}
-                <div className="w-px h-4 bg-neutral-700 mx-1" />
-                <NavTab href="/studio/class/consulting" label="팀비블 1:1 유튜브 컨설팅" isStudio />
-                <NavTab href="/studio" label="유튜브 채널 대행 문의" isStudio />
-              </div>
-
-            {/* 우측 */}
-            <div className="flex items-center gap-2 shrink-0 ml-2">
-              <SearchUsageBadge />
-              {/* 모바일·태블릿 전용(데스크톱 한 줄 메뉴 미만): 요금제 링크 */}
-              <a
-                href="/pricing"
-                className="nav:hidden text-xs text-neutral-400 hover:text-white px-2 py-1 rounded-md transition"
-                title="요금제"
-              >
-                요금제
-              </a>
-              <NavUser />
-            </div>
-          </div>
-          {/* 모바일·태블릿 전용(데스크톱 한 줄 메뉴 미만): 전체 메뉴 행 (줄바꿈 허용 · 스크롤 없이 모두 노출) */}
-          <div className="nav:hidden border-t border-neutral-800/60 bg-neutral-950">
-            <div className="max-w-screen-2xl mx-auto px-3 py-2 flex flex-wrap items-center justify-center gap-x-1 gap-y-1">
-              <a
-                href="/incubating"
-                className="text-xs text-white font-semibold px-2.5 py-1.5 rounded-md whitespace-nowrap bg-white/[0.06]"
-              >
-                브랜드 인큐베이팅
-              </a>
-              <a
-                href="/community"
-                className="text-xs text-white font-semibold px-2.5 py-1.5 rounded-md whitespace-nowrap bg-white/[0.06]"
-              >
-                커뮤니티&자료
-              </a>
-              <a
-                href="/trend-search"
-                className="text-xs text-white font-semibold px-2.5 py-1.5 rounded-md whitespace-nowrap bg-white/[0.06]"
-              >
-                유튜브 트렌드 서치
-              </a>
-              <a
-                href="/studio/class/consulting"
-                className="text-xs text-[#00E5A0] hover:text-[#66FFCC] font-semibold px-2.5 py-1.5 rounded-md whitespace-nowrap"
-              >
-                팀비블 1:1 유튜브 컨설팅
-              </a>
-              <a
-                href="/studio"
-                className="text-xs text-[#00E5A0] hover:text-[#66FFCC] font-semibold px-2.5 py-1.5 rounded-md whitespace-nowrap"
-              >
-                유튜브 채널 대행 문의
-              </a>
-            </div>
-          </div>
-        </nav>
-        {children}
+        {/* 건너뛰기 링크 + 전역 네비(body 바로 아래 header, BottomCTABar 가 이 위치로 찾는다) */}
+        <SiteNav />
+        <div id="content" tabIndex={-1} className="flex-1 focus:outline-0">
+          {children}
+        </div>
         <ReferralApply />
         <KakaoChatButton />
         {DevToolbar && <DevToolbar />}
-        <footer className="border-t border-neutral-800 bg-neutral-950 mt-16">
-
-          <div className="max-w-screen-xl mx-auto px-4 py-10">
-            <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-8">
-              {/* 브랜드 */}
-              <div className="shrink-0">
-                <a href="/" className="flex items-center gap-2 mb-3">
-                  <div className="w-7 h-7 bg-black border border-neutral-700 rounded-md flex items-center justify-center">
-                    <span style={{ color: "white", fontSize: 16, fontWeight: 900, lineHeight: 1, fontFamily: "sans-serif" }}>B</span>
-                  </div>
-                  <span className="font-bold text-sm tracking-tight">
-                    <span className="text-white">bibl</span>
-                    <span className="text-neutral-400"> lab</span>
-                  </span>
-                </a>
-                <p className="text-xs text-neutral-600 max-w-xs">유튜브 트렌드 분석 도구 — 크리에이터를 위한 데이터 인사이트</p>
-              </div>
-
-              {/* 사업자 정보 */}
-              <div className="text-xs text-neutral-600 space-y-1 leading-relaxed">
-                <p className="font-medium text-neutral-500">세모골프 &nbsp;|&nbsp; 대표: 김태민</p>
-                <p>사업자등록번호: 315-47-01018 &nbsp;|&nbsp; 통신판매업신고: 2023-수원권선-1549</p>
-                <p>주소: 경기도 수원시 권선구 세화로 151번길 29-2 1층 (우편번호 16619)</p>
-                <p>고객문의: bibl.content.official@gmail.com &nbsp;|&nbsp; 070-8027-2532</p>
-                <p>개인정보관리 책임자: 김태민</p>
-              </div>
-
-              {/* 링크 */}
-              <div className="flex flex-col gap-2 text-xs shrink-0">
-                <a href="/privacy" className="text-neutral-500 hover:text-neutral-300 transition">개인정보처리방침</a>
-                <a href="/terms" className="text-neutral-500 hover:text-neutral-300 transition">이용약관</a>
-                <a href="/refund" className="text-neutral-500 hover:text-neutral-300 transition">환불정책</a>
-                <a href="mailto:bibl.content.official@gmail.com" className="text-neutral-500 hover:text-neutral-300 transition">문의하기</a>
-              </div>
-            </div>
-
-            <div className="mt-8 pt-6 border-t border-neutral-900 text-xs text-neutral-700 text-center space-y-2">
-              <p>
-                본 서비스는 YouTube API Services를 사용합니다. 이용 시{" "}
-                <a href="https://www.youtube.com/t/terms" target="_blank" rel="noopener noreferrer" className="text-neutral-500 hover:text-neutral-300 underline">YouTube 서비스 약관</a>
-                {" "}및{" "}
-                <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="text-neutral-500 hover:text-neutral-300 underline">Google 개인정보처리방침</a>
-                에 동의한 것으로 간주됩니다.
-              </p>
-              <p>© {new Date().getFullYear()} 세모골프. All Rights Reserved. bibl lab은 세모골프의 서비스입니다.</p>
-            </div>
-          </div>
-        </footer>
+        <SiteFooter />
         </ConfirmProvider>
         </NavigationLoader>
       </body>
@@ -451,75 +304,103 @@ export default async function RootLayout({
   return content;
 }
 
-function NavTab({
-  href,
-  label,
-  icon,
-  requiredPlan,
-  isStudio,
-  highlight,
-}: {
-  href: string;
-  label: string;
-  icon?: React.ReactNode;
-  requiredPlan?: "Starter" | "Pro";
-  isStudio?: boolean;
-  highlight?: boolean;
-}) {
-  const locked = !!requiredPlan;
+/** 푸터 링크(누름 영역 44px, 768 이상 32px · 터치 기기는 44px 유지) */
+const FOOTER_LINK =
+  "inline-flex h-11 min-w-11 items-center text-body-sm text-fg-3 transition-colors duration-150 hover:text-fg md:h-8 pointer-coarse:h-11";
 
-  const planStyle: Record<string, string> = {
-    Starter: "border border-neutral-700 text-neutral-400",
-    Pro:     "border border-neutral-700 text-neutral-400",
-  };
+const FOOTER_GROUPS: { title: string; items: { href: string; label: string; prefetch?: false }[] }[] = [
+  {
+    title: "비블과 함께",
+    items: [
+      { href: "/studio/class/consulting", label: "팀비블 1:1 유튜브 컨설팅", prefetch: false },
+      { href: "/studio", label: "유튜브 채널 대행 문의" },
+      { href: "/incubating", label: "브랜드 인큐베이팅" },
+    ],
+  },
+  {
+    title: "직접 하기",
+    items: [
+      { href: "/trend-search", label: "유튜브 트렌드 서치" },
+      { href: "/community", label: "커뮤니티&자료" },
+      { href: "/pricing", label: "요금제" },
+    ],
+  },
+];
 
-  // 강조 탭 (비블의 칼럼) — 은은한 필 배경으로 차분하게 강조
-  if (highlight) {
-    return (
-      <a
-        href={href}
-        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-sm font-semibold bg-white/[0.06] text-white hover:bg-white/[0.10] transition-colors"
-      >
-        {icon}
-        {label}
-      </a>
-    );
-  }
-
-  if (isStudio) {
-    return (
-      <a
-        href={href}
-        className="flex items-center gap-1.5 px-2 py-1.5 rounded-md text-sm transition text-[#00E5A0] hover:text-[#66FFCC] hover:bg-neutral-900 font-semibold"
-      >
-        {icon}
-        {label}
-      </a>
-    );
-  }
-
+/** 푸터(DESIGN 6.16, 시안 home.html 865~915행). 정적 서버 렌더 */
+function SiteFooter() {
   return (
-    <a
-      href={locked ? "/pricing" : href}
-      title={locked ? `${requiredPlan} 플랜 이상에서 이용 가능` : undefined}
-      className={`flex items-center gap-1.5 px-2 py-1.5 rounded-md text-sm transition group ${
-        locked
-          ? "text-neutral-500 hover:text-neutral-300 hover:bg-neutral-800/50"
-          : "text-neutral-400 hover:text-white hover:bg-neutral-800"
-      }`}
-    >
-      {locked && (
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-3 h-3 text-neutral-500">
-          <rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />
-        </svg>
-      )}
-      {!locked && icon}
-      {label}
-      {locked && requiredPlan && (
-        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full leading-none ${planStyle[requiredPlan]}`}>
-          {requiredPlan}+
-        </span>
-      )}
-    </a>
+    <footer className="mt-16 border-t border-line bg-canvas">
+      <div className="mx-auto max-w-wide px-6 pb-28 pt-12 lg:px-8 lg:py-16">
+        <nav aria-label="푸터" className="grid grid-cols-2 gap-x-6 gap-y-8 lg:grid-cols-12 lg:gap-6">
+          <div className="col-span-2 lg:col-span-4">
+            <Link href="/" aria-label="bibl lab 홈" className="inline-flex h-11 items-center rounded-md">
+              <Logo variant="footer" />
+            </Link>
+            <p className="mt-4 max-w-xs text-body-sm text-fg-3">유튜브 트렌드 분석 도구 · 크리에이터를 위한 데이터 인사이트</p>
+          </div>
+          {FOOTER_GROUPS.map((group, gi) => (
+            <div key={group.title} className="lg:col-span-3">
+              <p id={`footer-g${gi}`} className="text-caption font-semibold text-fg">{group.title}</p>
+              <ul aria-labelledby={`footer-g${gi}`} className="mt-2 lg:mt-3">
+                {group.items.map((item) => (
+                  <li key={item.href}>
+                    <Link href={item.href} prefetch={item.prefetch} className={FOOTER_LINK}>
+                      {item.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+          <div className="col-span-2 lg:col-span-2">
+            <p id="footer-policy" className="text-caption font-semibold text-fg">정책</p>
+            <ul aria-labelledby="footer-policy" className="mt-2 flex flex-wrap gap-x-5 lg:mt-3 lg:block">
+              <li><Link href="/privacy" className={FOOTER_LINK}>개인정보처리방침</Link></li>
+              <li><Link href="/terms" className={FOOTER_LINK}>이용약관</Link></li>
+              <li><Link href="/refund" className={FOOTER_LINK}>환불정책</Link></li>
+              <li><a href="mailto:bibl.content.official@gmail.com" className={FOOTER_LINK}>문의하기</a></li>
+              <li>
+                <a href="https://pf.kakao.com/_beBNn/chat" target="_blank" rel="noopener noreferrer" className={FOOTER_LINK}>
+                  카카오톡 채널<span className="sr-only"> (새 창)</span>
+                </a>
+              </li>
+            </ul>
+          </div>
+        </nav>
+
+        <address className="mt-10 border-t border-line-soft pt-8 text-micro font-normal not-italic leading-[1.8] text-fg-3 lg:mt-12">
+          <p className="font-semibold text-fg-2">
+            <span className="whitespace-nowrap">세모골프</span> <span aria-hidden="true" className="text-fg-4">|</span>{" "}
+            <span className="whitespace-nowrap">대표: 김태민</span>
+          </p>
+          <p>
+            <span className="block whitespace-nowrap sm:inline">사업자등록번호: 315-47-01018</span>{" "}
+            <span aria-hidden="true" className="hidden text-fg-4 sm:inline">|</span>{" "}
+            <span className="block whitespace-nowrap sm:inline">통신판매업신고: 2023-수원권선-1549</span>
+          </p>
+          <p>
+            <span className="whitespace-nowrap">주소: 경기도 수원시 권선구</span>{" "}
+            <span className="whitespace-nowrap">세화로 151번길 29-2 1층 (우편번호 16619)</span>
+          </p>
+          <p>
+            <span className="block whitespace-nowrap sm:inline">고객문의: bibl.content.official@gmail.com</span>{" "}
+            <span aria-hidden="true" className="hidden text-fg-4 sm:inline">|</span>{" "}
+            <span className="block whitespace-nowrap sm:inline">070-8027-2532</span>
+          </p>
+          <p>개인정보관리 책임자: 김태민</p>
+        </address>
+        <div className="mt-6 space-y-1.5 text-micro font-normal leading-[1.7] text-fg-3">
+          <p>
+            본 서비스는 YouTube API Services를 사용합니다. 이용 시{" "}
+            <a href="https://www.youtube.com/t/terms" target="_blank" rel="noopener noreferrer" className="py-[15px] underline decoration-fg-4 underline-offset-2 transition-colors duration-150 hover:text-fg">YouTube 서비스 약관</a>
+            {" "}및{" "}
+            <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="py-[15px] underline decoration-fg-4 underline-offset-2 transition-colors duration-150 hover:text-fg">Google 개인정보처리방침</a>
+            에 동의한 것으로 간주됩니다.
+          </p>
+          <p>© {new Date().getFullYear()} 세모골프. All Rights Reserved. bibl lab은 세모골프의 서비스입니다.</p>
+        </div>
+      </div>
+    </footer>
   );
 }

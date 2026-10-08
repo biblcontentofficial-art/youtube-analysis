@@ -235,7 +235,7 @@ export default function PostEditor({ initial }: Props) {
   return (
     <div className="min-h-screen bg-gray-950">
       {/* 상단 툴바 */}
-      <header className="sticky top-14 z-40 bg-gray-950/95 backdrop-blur border-b border-white/[0.06]">
+      <header className="sticky top-[var(--nav-h)] z-40 bg-gray-950/95 backdrop-blur border-b border-white/[0.06]">
         <div className="max-w-5xl mx-auto px-4 md:px-6 py-3 flex items-center justify-between gap-3 flex-wrap">
           <div className="flex items-center gap-2">
             <Link href="/insights" className="text-sm text-slate-400 hover:text-white">← 목록</Link>

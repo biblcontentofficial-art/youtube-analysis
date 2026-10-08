@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import type { Metadata } from "next";
+import { OG_DEFAULT } from "@/lib/seo";
 import { searchVideos } from "@/lib/youtube";
 
 export const metadata: Metadata = {
@@ -13,6 +14,7 @@ export const metadata: Metadata = {
   ],
   alternates: { canonical: "https://bibllab.com/search" },
   openGraph: {
+    ...OG_DEFAULT,
     title: "유튜브 영상 찾기 · 키워드 검색 | 비블랩",
     description: "유튜브 키워드로 최신 영상을 검색하고 조회수·구독자·게시일을 확인하세요.",
     url: "https://bibllab.com/search",

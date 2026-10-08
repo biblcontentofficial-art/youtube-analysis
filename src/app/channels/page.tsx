@@ -1,6 +1,7 @@
 import { currentUser } from "@/lib/auth";
 import Link from "next/link";
 import type { Metadata } from "next";
+import { OG_DEFAULT } from "@/lib/seo";
 import { searchChannels, ChannelResult } from "@/lib/youtube";
 
 export const metadata: Metadata = {
@@ -13,6 +14,7 @@ export const metadata: Metadata = {
   ],
   alternates: { canonical: "https://bibllab.com/channels" },
   openGraph: {
+    ...OG_DEFAULT,
     title: "유튜브 채널 찾기 · 성장 채널 발견 | 비블랩",
     description: "키워드로 구독자 급상승·신생 채널을 찾아보세요.",
     url: "https://bibllab.com/channels",

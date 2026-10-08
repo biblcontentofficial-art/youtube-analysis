@@ -131,9 +131,9 @@
   --container-reading: 42rem;
 
   /*
-   * 데스크톱 한 줄 메뉴 시작점. 이 폭 미만은 네비 2행 메뉴를 쓴다.
+   * 데스크톱 한 줄 메뉴 시작점(1280px). 이 폭 미만은 56px 한 줄 헤더 + 메뉴 시트(NavMenuSheet)를 쓴다.
    * nav: / max-nav: 변형으로만 참조한다(네비·컨설팅 상세 보조 헤더·하단 신청 바).
-   * 최종 값은 R06a 에서 실측해 확정한다.
+   * C02 실측: 1280 에서 로그아웃·로그인(가장 긴 배지) 모두 메뉴 겹침 0.
    */
   --breakpoint-nav: 80rem;
 }
@@ -148,7 +148,7 @@
  *   z-80  페이지 이동 진행 막대·검색 중 오버레이
  * 모달(components/ui/dialog.tsx, ConfirmDialog)은 showModal() 로 브라우저 최상위 층(top layer)에 떠서 z 값을 쓰지 않는다.
  * showModal 이 없는 구형 브라우저에서만 셸이 z-90(위 단계보다 위)으로 대신 띄운다.
- * 아직 셸로 옮기지 않은 모달(z-50·z-[60]·z-[9990])과 진행 막대·오버레이(z-[9998]·z-[9999])는 맡은 항목에서 이 단계로 바꾼다.
+ * 아직 셸로 옮기지 않은 모달(z-50·z-[60]·z-[9990])은 맡은 항목에서 이 단계로 바꾼다(진행 막대·오버레이는 C02 에서 z-80).
  */
 
 /*
@@ -224,6 +224,22 @@
   p,
   li {
     text-wrap-style: pretty;
+  }
+
+  /*
+   * 전역 네비 높이. 기본값은 1280 미만 56px · 이상 64px 이고, 실제 높이는 NavHeightObserver 가
+   * html 의 인라인 --nav-h 로 덮어쓴다. sticky 요소는 top-[var(--nav-h)] 로, 앵커 이동은 아래 scroll-padding 으로 네비를 피한다.
+   */
+  :root {
+    --nav-h: 56px;
+
+    @variant nav {
+      --nav-h: 64px;
+    }
+  }
+
+  html {
+    scroll-padding-top: calc(var(--nav-h, 56px) + 16px);
   }
 
   /* 키보드 포커스: 흰 2px 외곽선(간격 2px) 하나로 통일 */

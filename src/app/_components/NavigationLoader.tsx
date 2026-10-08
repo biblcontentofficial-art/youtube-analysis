@@ -10,6 +10,7 @@ import {
   Suspense,
 } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
+import { SEARCH_COMPLETE_EVENT } from "./SearchUsageBadge";
 
 // ─────────────────────────────────────────────────────────
 // Context
@@ -31,19 +32,31 @@ export function useNavigationLoading() {
 // ─────────────────────────────────────────────────────────
 // Watcher: pathname/searchParams 변경 감지 → 로딩 완료
 // ─────────────────────────────────────────────────────────
-function NavigationWatcher({ onNavigate }: { onNavigate: () => void }) {
+function NavigationWatcher({
+  onNavigate,
+  seenRef,
+}: {
+  onNavigate: () => void;
+  /** 마지막으로 그려진 주소(경로 + 쿼리). pushState 래핑이 이미 끝난 이동에 막대를 다시 띄우지 않게 쓴다 */
+  seenRef: React.MutableRefObject<string>;
+}) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const searchString = searchParams.toString();
   const isFirst = useRef(true);
 
   useEffect(() => {
+    seenRef.current = pathname + (searchString ? `?${searchString}` : "");
     // 최초 마운트 시에는 숨기지 않음 (페이지 이동 완료 시에만 숨김)
     if (isFirst.current) {
       isFirst.current = false;
       return;
     }
     onNavigate();
+    // 검색 결과(/search?q=…) 이동이 끝나면 = 서버 렌더(차감 포함)가 끝난 것. 네비 남은 횟수 배지가 다시 읽는다
+    if (pathname === "/search" && searchParams.has("q")) {
+      window.dispatchEvent(new Event(SEARCH_COMPLETE_EVENT));
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname, searchString]);
 
@@ -51,16 +64,19 @@ function NavigationWatcher({ onNavigate }: { onNavigate: () => void }) {
 }
 
 // ─────────────────────────────────────────────────────────
-// Progress Bar UI
+// Progress Bar UI (DESIGN 6.31: 흰 2px 막대, 끝 점·글로우 없음, z-80)
+// prefers-reduced-motion 이면 globals.css 전역 규칙이 전환을 끈다(나타났다 사라짐)
 // ─────────────────────────────────────────────────────────
 function ProgressBar({ visible }: { visible: boolean }) {
   const [width, setWidth] = useState(0);
   const [opacity, setOpacity] = useState(1);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // 단계 타이머를 모두 모아 둔다(하나만 기억하면 숨긴 뒤에도 남은 타이머가 막대 폭을 다시 늘린다)
+  const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
   const rafRef = useRef<number | null>(null);
 
   const clear = () => {
-    if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null; }
+    timersRef.current.forEach(clearTimeout);
+    timersRef.current = [];
     if (rafRef.current) { cancelAnimationFrame(rafRef.current); rafRef.current = null; }
   };
 
@@ -72,19 +88,23 @@ function ProgressBar({ visible }: { visible: boolean }) {
 
       rafRef.current = requestAnimationFrame(() => {
         setWidth(30); // 즉시 30%
-        timerRef.current = setTimeout(() => setWidth(55), 400);
-        timerRef.current = setTimeout(() => setWidth(72), 900);
-        timerRef.current = setTimeout(() => setWidth(85), 1800);
-        timerRef.current = setTimeout(() => setWidth(92), 3500);
+        timersRef.current.push(
+          setTimeout(() => setWidth(55), 400),
+          setTimeout(() => setWidth(72), 900),
+          setTimeout(() => setWidth(85), 1800),
+          setTimeout(() => setWidth(92), 3500),
+        );
       });
     } else {
       // 완료: 100%로 채우고 페이드 아웃
       clear();
       setWidth(100);
-      timerRef.current = setTimeout(() => {
-        setOpacity(0);
-        timerRef.current = setTimeout(() => setWidth(0), 300);
-      }, 200);
+      timersRef.current.push(
+        setTimeout(() => {
+          setOpacity(0);
+          timersRef.current.push(setTimeout(() => setWidth(0), 300));
+        }, 200),
+      );
     }
 
     return clear;
@@ -94,31 +114,19 @@ function ProgressBar({ visible }: { visible: boolean }) {
 
   return (
     <div
-      className="fixed top-0 left-0 right-0 z-[9999] pointer-events-none"
+      aria-hidden="true"
+      className="pointer-events-none fixed inset-x-0 top-0 z-80 h-0.5"
       style={{ opacity, transition: "opacity 0.4s ease" }}
     >
       <div
-        className="h-[3px] relative"
+        className="h-full bg-accent"
         style={{
           width: `${width}%`,
-          background: "#ffffff",
           transition: visible
             ? "width 0.6s cubic-bezier(0.1, 0.5, 0.5, 1)"
             : "width 0.15s ease-out",
         }}
-      >
-        {/* 오른쪽 끝 빛 번짐 */}
-        <span
-          className="absolute right-0 top-1/2 -translate-y-1/2 w-24 h-[3px]"
-          style={{
-            background: "transparent",
-          }}
-        />
-        {/* 끝점 원형 글로우 */}
-        <span
-          className="absolute -right-1 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-white"
-        />
-      </div>
+      />
     </div>
   );
 }
@@ -134,6 +142,7 @@ export default function NavigationLoader({
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | undefined>(undefined);
   const safetyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const seenRef = useRef("");
 
   const hideLoading = useCallback(() => {
     if (safetyTimerRef.current) { clearTimeout(safetyTimerRef.current); safetyTimerRef.current = null; }
@@ -165,8 +174,10 @@ export default function NavigationLoader({
       const href = anchor.getAttribute("href");
       if (!href) return;
 
-      // 외부링크·해시·메일·전화·새탭 무시
+      // 외부링크·해시·메일·전화·새탭·API·파일 내려받기 무시(문서 이동이 없어 막대가 10초 동안 남는다)
       if (
+        href.startsWith("/api/") ||
+        anchor.hasAttribute("download") ||
         href.startsWith("http") ||
         href.startsWith("//") ||
         href.startsWith("#") ||
@@ -194,7 +205,13 @@ export default function NavigationLoader({
     const originalReplaceState = history.replaceState.bind(history);
 
     history.pushState = (...args) => {
-      showLoading();
+      // Next 의 HistoryUpdater 가 useInsertionEffect 안에서 pushState 를 부른다. 그 안에서 setState 하면
+      // 'useInsertionEffect must not schedule updates' 경고가 나므로 상태 변경을 한 박자 미룬다.
+      // 미룬 사이 이동이 이미 그려졌으면(Watcher 가 새 주소를 봤으면) 띄우지 않는다(막대가 10초 남는 것 방지).
+      queueMicrotask(() => {
+        const qs = new URLSearchParams(window.location.search).toString();
+        if (window.location.pathname + (qs ? `?${qs}` : "") !== seenRef.current) showLoading();
+      });
       return originalPushState(...args);
     };
 
@@ -217,7 +234,7 @@ export default function NavigationLoader({
   return (
     <LoadingContext.Provider value={{ showLoading, hideLoading }}>
       <Suspense fallback={null}>
-        <NavigationWatcher onNavigate={hideLoading} />
+        <NavigationWatcher onNavigate={hideLoading} seenRef={seenRef} />
       </Suspense>
 
       {/* 상단 프로그레스 바 (항상 렌더, 내부에서 visible 제어) */}
@@ -227,10 +244,14 @@ export default function NavigationLoader({
 
       {/* 검색 로딩 오버레이 (message 있을 때만) */}
       {loading && message && (
-        <div className="fixed inset-0 z-[9998] flex items-center justify-center bg-black/60 backdrop-blur-sm pointer-events-none">
-          <div className="flex flex-col items-center gap-4 px-8 py-7 bg-neutral-900/90 border border-neutral-700 rounded-2xl shadow-2xl">
-            <div className="w-10 h-10 border-[3px] border-white/30 border-t-white rounded-full animate-spin" />
-            <p className="text-white text-sm font-medium">{message}</p>
+        <div
+          role="status"
+          aria-live="polite"
+          className="pointer-events-none fixed inset-0 z-80 flex items-center justify-center bg-canvas/60"
+        >
+          <div className="flex flex-col items-center gap-4 rounded-panel border border-line-strong bg-surface-2 px-8 py-7">
+            <div aria-hidden="true" className="size-10 animate-spin rounded-full border-[3px] border-line-strong border-t-accent" />
+            <p className="text-body-sm font-medium text-fg">{message}</p>
           </div>
         </div>
       )}

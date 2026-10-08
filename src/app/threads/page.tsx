@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { OG_DEFAULT } from "@/lib/seo";
 import { auth, currentUser } from "@/lib/auth";
 import { PLANS, PlanKey } from "@/lib/stripe";
 import { getThreadsConnection } from "@/lib/db";
@@ -19,6 +20,7 @@ export const metadata: Metadata = {
   ],
   alternates: { canonical: "https://bibllab.com/threads" },
   openGraph: {
+    ...OG_DEFAULT,
     title: "스레드 분석 | 비블랩",
     description: "내 Threads 계정 성과 분석, 게시물 데이터 인사이트.",
     url: "https://bibllab.com/threads",

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { OG_DEFAULT } from "@/lib/seo";
 import PricingCards from "./_components/PricingCards";
 import FaqAccordion from "./_components/FaqAccordion";
 
@@ -12,6 +13,7 @@ export const metadata: Metadata = {
   ],
   alternates: { canonical: "https://bibllab.com/pricing" },
   openGraph: {
+    ...OG_DEFAULT,
     title: "요금제 · 플랜 안내 | 비블랩",
     description: "비블랩 무료~비즈니스 플랜. 유튜브 분석·채널 찾기·영상 수집.",
     url: "https://bibllab.com/pricing",
