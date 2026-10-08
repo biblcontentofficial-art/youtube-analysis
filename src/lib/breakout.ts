@@ -92,9 +92,13 @@ const HANGUL = /[\uAC00-\uD7A3]/;
 function isKoreanScene(sn: any, views: number): boolean {
   if (views < MIN_VIEWS) return false;
   if (/ - Topic$/.test(sn.channelTitle ?? "")) return false;
+  if (isBlocked(sn.title)) return false;
   return HANGUL.test(sn.title ?? "") || HANGUL.test(sn.channelTitle ?? "");
 }
 const MIN_VIEWS = 1000;
+/** 도박·광고성 영상 제외 */
+const BLOCK = /홀덤|바둑이|섯다|토토|카지노|바카라|슬롯|파워볼|타짜엔터/;
+const isBlocked = (title?: string) => BLOCK.test(title ?? "");
 
 const POPULAR_CATEGORIES = ["", "1", "10", "17", "20", "22", "23", "24", "25", "26", "27", "28"];
 
@@ -183,7 +187,7 @@ export async function getBreakout(opts: {
   if (opts.type === "long") q = q.gt("duration_sec", SHORTS_MAX_SEC);
   const col = { ratio: "ratio", views: "view_count", subs: "subscriber_count", recent: "published_at" }[opts.sort];
   const { data } = await q.order(col, { ascending: false }).limit(opts.limit ?? 600);
-  return (data ?? []) as BreakoutVideo[];
+  return ((data ?? []) as BreakoutVideo[]).filter((v) => !isBlocked(v.title));
 }
 
 /** 수집된 날짜 목록(최근 순) */
