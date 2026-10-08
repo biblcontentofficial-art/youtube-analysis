@@ -3,49 +3,48 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
+import { buttonClass } from "@/components/ui/button";
+import { Container } from "@/components/ui/container";
+import { CloseIcon } from "@/components/ui/icons";
 
 function TossPaymentFailContent() {
   const searchParams = useSearchParams();
-  const message = searchParams.get("message") ?? "결제에 실패했습니다.";
+  const message = searchParams.get("message");
   const code = searchParams.get("code");
 
+  // 상태 화면 틀(DESIGN 6.18): 원인 기호(negative 맨 SVG) + 제목 + 설명 + 흰 버튼 하나와 보조 버튼
   return (
-    <div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center p-4 text-center">
-      <div className="w-full max-w-sm">
-        <div className="w-16 h-16 rounded-full bg-red-500/20 border border-red-500/40 flex items-center justify-center mb-6 mx-auto">
-          <svg className="w-8 h-8 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </div>
-
-        <h1 className="text-2xl font-black text-white mb-2">결제에 실패했습니다</h1>
-        <p className="text-gray-400 text-sm mb-2">{message}</p>
+    <main className="flex min-h-[60vh] items-center py-16 md:py-24">
+      <Container size="reading" className="text-center">
+        <CloseIcon size={24} className="mx-auto size-10 text-negative" />
+        <h1 className="mt-4 text-h4 text-fg">결제에 실패했습니다</h1>
+        {message && (
+          <p className="mt-3 text-body-sm text-fg-3 md:text-body">{message}</p>
+        )}
         {code && (
-          <p className="text-gray-600 text-xs mb-8">오류 코드: {code}</p>
+          <p className="mt-2 text-caption text-fg-3">오류 코드: {code}</p>
         )}
 
-        <div className="flex flex-col gap-3">
-          <Link
-            href="/pricing"
-            className="w-full py-3.5 bg-teal-500 hover:bg-teal-400 text-white font-bold rounded-xl transition text-sm"
-          >
+        <div className="mt-8 flex flex-wrap justify-center gap-3">
+          <Link href="/pricing" className={buttonClass()}>
             요금제 페이지로 돌아가기
           </Link>
           <button
+            type="button"
             onClick={() => window.history.back()}
-            className="w-full py-3.5 border border-gray-700 hover:border-gray-500 text-gray-400 hover:text-white font-semibold rounded-xl transition text-sm"
+            className={buttonClass({ variant: "secondary" })}
           >
             다시 시도하기
           </button>
         </div>
-      </div>
-    </div>
+      </Container>
+    </main>
   );
 }
 
 export default function TossPaymentFailPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-gray-950" />}>
+    <Suspense fallback={<div className="min-h-[60vh]" />}>
       <TossPaymentFailContent />
     </Suspense>
   );

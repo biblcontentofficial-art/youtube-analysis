@@ -60,17 +60,17 @@ export default function TossBillingButton({ plan, userId }: TossBillingButtonPro
       <button
         onClick={handleClick}
         disabled={loading}
-        className="w-full py-3 bg-[#3182F6] hover:bg-[#1B64DA] disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold rounded-xl transition text-sm flex items-center justify-center gap-2"
+        className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-control bg-accent px-6 text-ui font-bold text-accent-ink transition-colors duration-150 hover:bg-accent-hover active:bg-accent-active disabled:cursor-not-allowed disabled:opacity-40"
       >
         {loading ? (
           <>
-            <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            <span aria-hidden="true" className="size-4 animate-spin rounded-full border-2 border-accent-ink border-t-transparent" />
             이동 중...
           </>
         ) : "토스페이먼츠 정기결제"}
       </button>
       {error && (
-        <p className="text-red-400 text-xs text-center break-all">{error}</p>
+        <p role="alert" className="break-all text-center text-micro text-negative">{error}</p>
       )}
     </div>
   );

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { WarningIcon } from "@/components/ui/icons";
 
 interface Props {
   clientKey: string;
@@ -90,19 +91,15 @@ export default function TossPaymentWidget({
   return (
     <div className="w-full">
       {clientKey.startsWith("test_") && (
-        <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-4 text-amber-700 text-sm">
-          <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
-            <path fillRule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0v-4.5A.75.75 0 0110 5zm0 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z" clipRule="evenodd" />
-          </svg>
+        <div className="mb-4 flex items-center gap-2 rounded-card border border-caution/55 px-4 py-3 text-body-sm text-caution">
+          <WarningIcon size={16} className="shrink-0" />
           테스트 환경 · 실제로 결제되지 않습니다
         </div>
       )}
 
       {error && (
-        <div className="flex items-start gap-2 bg-red-50 border border-red-200 rounded-xl px-4 py-3 mb-4 text-red-600 text-sm">
-          <svg className="w-4 h-4 flex-shrink-0 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
-            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clipRule="evenodd" />
-          </svg>
+        <div role="alert" className="mb-4 flex items-start gap-2 rounded-card border border-negative/55 px-4 py-3 text-body-sm text-fg-1">
+          <WarningIcon size={16} className="mt-0.5 shrink-0 text-negative" />
           {error}
         </div>
       )}
@@ -111,7 +108,7 @@ export default function TossPaymentWidget({
       <div id="toss-payment-method" className="min-h-[200px]">
         {!ready && (
           <div className="flex items-center justify-center h-[200px]">
-            <span className="w-6 h-6 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+            <span aria-hidden="true" className="size-6 animate-spin rounded-full border-2 border-line-strong border-t-fg" />
           </div>
         )}
       </div>
@@ -123,11 +120,11 @@ export default function TossPaymentWidget({
       <button
         onClick={handlePay}
         disabled={!ready || paying}
-        className="w-full mt-4 py-4 bg-[#3182F6] hover:bg-[#1b6ef3] disabled:opacity-50 text-white font-bold text-base rounded-xl transition-colors flex items-center justify-center gap-2"
+        className="mt-4 inline-flex h-14 w-full items-center justify-center gap-2 rounded-control bg-accent px-7 text-body font-bold text-accent-ink transition-colors duration-150 hover:bg-accent-hover active:bg-accent-active disabled:opacity-40"
       >
         {paying ? (
           <>
-            <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            <span aria-hidden="true" className="size-4 animate-spin rounded-full border-2 border-accent-ink border-t-transparent" />
             처리 중...
           </>
         ) : (
@@ -135,7 +132,7 @@ export default function TossPaymentWidget({
         )}
       </button>
 
-      <p className="text-center text-xs text-gray-400 mt-3">
+      <p className="mt-3 text-center text-caption text-fg-3">
         언제든 해지 가능 · SSL 보안 결제
       </p>
     </div>

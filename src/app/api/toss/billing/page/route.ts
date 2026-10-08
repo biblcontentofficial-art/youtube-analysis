@@ -49,18 +49,20 @@ export async function GET(req: NextRequest) {
   <script src="https://js.tosspayments.com/v2/standard"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: #0a0a0f; color: #fff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 16px; }
-    .card { background: #fff; border-radius: 16px; padding: 32px 24px; max-width: 420px; width: 100%; color: #333; }
-    .plan { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding: 16px; background: #f7f8f9; border-radius: 12px; }
-    .plan-name { font-size: 14px; color: #666; }
-    .plan-price { font-size: 20px; font-weight: 700; }
-    .plan-period { font-size: 12px; color: #999; }
-    .btn { width: 100%; padding: 16px; background: #3182F6; color: #fff; border: none; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; transition: background 0.2s; }
-    .btn:hover { background: #1b6ef3; }
-    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-    .error { background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 12px 16px; color: #dc2626; font-size: 14px; margin-bottom: 16px; display: none; }
-    .info { font-size: 12px; color: #999; text-align: center; margin-top: 12px; }
-    .back { display: inline-flex; align-items: center; gap: 4px; color: #666; font-size: 14px; text-decoration: none; margin-bottom: 24px; }
+    body { background: #000; color: #fff; font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Segoe UI", sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 16px; }
+    .card { background: #171717; border: 1px solid #262626; border-radius: 16px; padding: 32px 24px; max-width: 420px; width: 100%; color: #fff; }
+    .plan { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding: 16px; background: #0a0a0a; border: 1px solid #262626; border-radius: 12px; }
+    .plan-name { font-size: 14px; color: #c6c6c6; }
+    .plan-price { font-size: 20px; font-weight: 700; color: #fff; }
+    .plan-period { font-size: 12px; color: #949494; }
+    .btn { width: 100%; padding: 16px; background: #fff; color: #000; border: none; border-radius: 8px; font-size: 16px; font-weight: 700; cursor: pointer; transition: background 0.15s; }
+    .btn:hover { background: #e5e5e5; }
+    .btn:active { background: #c6c6c6; }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn:focus-visible, .back:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+    .error { background: transparent; border: 1px solid rgba(250, 85, 112, 0.55); border-radius: 12px; padding: 12px 16px; color: #fa5570; font-size: 14px; margin-bottom: 16px; display: none; }
+    .info { font-size: 12px; color: #949494; text-align: center; margin-top: 12px; }
+    .back { display: inline-flex; align-items: center; gap: 4px; min-height: 44px; color: #949494; font-size: 14px; text-decoration: none; margin-bottom: 16px; }
     .back:hover { color: #fff; }
   </style>
 </head>

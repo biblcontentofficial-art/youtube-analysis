@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { PLANS, PlanKey, getPlanAmount, type BillingPeriod } from '@/lib/payple'
 import PaymentButtons from './_components/PaymentButtons'
+import { WarningIcon } from '@/components/ui/icons'
 import type { PortonePlanKey } from '@/lib/portone'
 
 export const metadata: Metadata = {
@@ -38,45 +39,48 @@ export default async function PaymentPage({
   const periodDesc = period === 'yearly' ? '연 1회 결제' : '매월 자동 결제'
 
   return (
-    <div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center p-4">
+    <main className="flex min-h-[calc(100dvh-var(--nav-h))] flex-col items-center bg-canvas px-6 py-8 sm:justify-center sm:py-16">
       <div className="w-full max-w-[420px]">
 
         {/* 뒤로가기 */}
         <Link
           href="/pricing"
-          className="inline-flex items-center gap-1.5 text-gray-500 hover:text-gray-300 text-sm mb-6 transition-colors"
+          className="mb-4 inline-flex h-11 items-center gap-1.5 text-body-sm text-fg-3 transition-colors hover:text-fg"
         >
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <svg aria-hidden="true" className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
           </svg>
           요금제로 돌아가기
         </Link>
 
         {/* 주문 요약 */}
-        <div className="bg-gray-900 rounded-2xl border border-gray-800 p-6 mb-4">
-          <div className="flex items-center gap-2 mb-3">
-            <span className="text-xs font-semibold text-gray-400">{PLANS[plan].name}</span>
-            <span className="text-[10px] bg-gray-800 text-gray-500 px-2 py-0.5 rounded-full border border-gray-700">{periodLabel}</span>
+        <div className="mb-4 rounded-card border border-line bg-surface p-6">
+          <div className="mb-3 flex items-center gap-2">
+            <span className="text-caption font-semibold text-fg-2">{PLANS[plan].name}</span>
+            <span className="inline-flex shrink-0 items-center rounded-md border border-line-strong px-1.5 py-0.5 text-micro text-fg-2">{periodLabel}</span>
           </div>
-          <p className="text-3xl font-extrabold text-white mb-1">
+          <p className="tnum mb-1 text-[30px] font-extrabold leading-tight tracking-[-0.02em] text-fg">
             ₩{amount.toLocaleString()}
           </p>
-          <p className="text-sm text-gray-500">{periodDesc}</p>
+          <p className="text-body-sm text-fg-3">{periodDesc}</p>
+          {period === 'yearly' && (
+            <p className="tnum mt-0.5 text-body-sm text-fg-3">
+              월 ₩{Math.round(amount / 12).toLocaleString()} 꼴 · 12개월
+            </p>
+          )}
         </div>
 
         {/* 에러 */}
         {errorMsg && (
-          <div className="flex items-center gap-2 bg-red-900/30 border border-red-800/60 rounded-xl px-4 py-3 mb-4 text-red-400 text-sm">
-            <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clipRule="evenodd" />
-            </svg>
+          <div role="alert" className="mb-4 flex items-center gap-2.5 rounded-card border border-negative/55 px-4 py-3 text-body-sm text-fg-1">
+            <WarningIcon size={16} className="text-negative" />
             {errorMsg}
           </div>
         )}
 
         {/* 결제수단 */}
-        <div className="bg-gray-900 rounded-2xl border border-gray-800 p-6 mb-4">
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">결제수단</p>
+        <div className="mb-4 rounded-card border border-line bg-surface p-5 sm:p-6">
+          <h1 className="mb-4 text-caption font-semibold text-fg-3">결제수단</h1>
           <PaymentButtons
             plan={plan as PortonePlanKey}
             userId={userId}
@@ -87,36 +91,36 @@ export default async function PaymentPage({
         </div>
 
         {/* 안내 문구 */}
-        <div className="space-y-2 text-center px-2">
-          <p className="text-xs text-gray-600">
+        <div className="space-y-2 px-2 text-center">
+          <p className="text-caption text-fg-3">
             ※ 정기 구독은 결제 후 유료 서비스를 사용하지 않은 경우 7일 내 취소할 수 있습니다.
           </p>
-          <p className="text-xs text-gray-600">
+          <p className="text-caption text-fg-3">
             ※ 구독 기간 마지막 날 다음 자동 결제가 이뤄집니다. 결제 후 구독 기간은 자동 갱신됩니다.
           </p>
         </div>
 
         {/* 하단 링크 */}
         <div className="mt-4 text-center">
-          <p className="text-[11px] text-gray-600">
+          <p className="text-micro text-fg-3">
             결제 시{' '}
-            <Link href="/terms" className="text-gray-500 underline hover:text-gray-400" target="_blank">이용약관</Link>
+            <Link href="/terms" className="text-fg-2 underline underline-offset-2 hover:text-fg" target="_blank">이용약관</Link>
             {' '}및{' '}
-            <Link href="/privacy" className="text-gray-500 underline hover:text-gray-400" target="_blank">개인정보처리방침</Link>
+            <Link href="/privacy" className="text-fg-2 underline underline-offset-2 hover:text-fg" target="_blank">개인정보처리방침</Link>
             에 동의합니다.{' '}
-            <Link href="/refund" className="text-gray-500 underline hover:text-gray-400" target="_blank">환불정책</Link>
+            <Link href="/refund" className="text-fg-2 underline underline-offset-2 hover:text-fg" target="_blank">환불정책</Link>
           </p>
         </div>
 
         {/* 보안 뱃지 */}
-        <div className="mt-3 flex items-center justify-center gap-1.5 text-gray-700">
-          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <div className="mt-3 flex items-center justify-center gap-1.5 text-fg-3">
+          <svg aria-hidden="true" className="size-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
           </svg>
-          <span className="text-[11px]">SSL 보안 결제</span>
+          <span className="text-micro">SSL 보안 결제</span>
         </div>
 
       </div>
-    </div>
+    </main>
   )
 }
