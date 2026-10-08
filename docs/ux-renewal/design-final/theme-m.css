@@ -1,0 +1,66 @@
+@theme {
+  --font-sans: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
+
+  /* 기본 팔레트를 비운다. 아래 토큰 밖의 색(neutral-*, white, black …)은 이 화면에서 쓰이지 않는다 */
+  --color-*: initial;
+
+  /* ── 바탕·면: 그래파이트 (지금 neutral 값과 같은 단계라 옮기는 범위가 작다) ── */
+  --color-canvas: #000000;       /* 비즈니스 블랙. 페이지 바탕 */
+  --color-surface: #0a0a0a;      /* 카드·입력 */
+  --color-surface-2: #171717;    /* hover·선택 행·이미지 자리 */
+  --color-surface-3: #262626;    /* 눌린 탭·아바타 */
+
+  /* ── 선 ── */
+  --color-line: #262626;         /* 구역·카드 테두리 */
+  --color-line-soft: #171717;    /* 표·목록 행 구분 */
+  --color-line-strong: #404040;  /* 입력·보조 버튼·배지 테두리 */
+  --color-line-hover: #525252;   /* 테두리 hover */
+  --color-line-control: #7a7a7a; /* 체크박스 테두리. 검정 위 4.9:1, #171717 위 4.2:1 (UI 3:1 이상) */
+
+  /* ── 글자: 실버 플레이 버튼에서 뽑은 무채색 단계 ── */
+  --color-fg: #ffffff;           /* 제목·숫자 */
+  --color-fg-1: #e5e5e5;         /* 영상 제목 같은 읽을 거리 */
+  --color-fg-2: #c6c6c6;         /* 본문. 실버 판의 브러시드 면 */
+  --color-fg-3: #949494;         /* 보조·캡션 */
+  --color-fg-4: #7a7a7a;         /* 장식 화살표·구분 기호 */
+
+  /* ── 액센트: 흰색·실버 한 가지(채도 0), 밝기 단계만 ── */
+  --color-accent: #ffffff;         /* 폴리시드 화이트. 핵심어·주 버튼·현재 위치·정렬·선택·포커스 */
+  --color-accent-hover: #e5e5e5;
+  --color-accent-active: #c6c6c6;  /* 누르면 실버 판 색으로 */
+  --color-accent-ink: #000000;     /* 흰·실버 면 위 글자 */
+  --color-silver: #c6c6c6;         /* 실버 판. 로고 판·섹션 라벨·실적 숫자의 + */
+
+  /* ── 기능 색: 앱 안에서만. 액센트(흰·실버)와 뜻이 겹치지 않는 색상(hue)을 쓴다 ── */
+  --color-positive: #3dd68c;     /* 좋음·성공·상승. Great/Good */
+  --color-caution: #f5b73b;      /* 주의·경고. Bad, 남은 횟수 적음 */
+  --color-negative: #ff7b72;     /* 나쁨·오류·하락. Worst. 유튜브 빨강과 다른 연한 빨강 */
+
+  /* ── 차트: 무채색 단계 + 기능 색 ── */
+  --color-chart-1: #ffffff;      /* 주 계열 */
+  --color-chart-2: #949494;      /* 비교 계열 */
+  --color-chart-3: #525252;      /* 배경 막대 */
+  --color-chart-grid: #262626;   /* 눈금선 */
+  --color-heat-1: #1f1f1f;
+  --color-heat-2: #474747;
+  --color-heat-3: #7a7a7a;
+  --color-heat-4: #b0b0b0;
+  --color-heat-5: #ededed;
+
+  /* ── 흰 바탕 문서·인쇄용 (로고를 흰 종이 위에 둘 때만) ── */
+  --color-paper: #ffffff;
+  --color-paper-ink: #000000;
+  --color-paper-muted: #6b6b6b;  /* 흰 위 5.3:1 */
+
+  /* ── 외부 브랜드: 그 표시에만 ── */
+  --color-youtube: #ff0000;      /* 유튜브 로고·유튜브로 나가는 링크 표시 */
+  --color-kakao: #fee500;
+  --color-kakao-hover: #fdd835;
+  --color-kakao-ink: #191919;     /* 카카오 버튼 글자 (지금 사이트 값 그대로) */
+  --color-kakao-icon: #3a1d1d;    /* 상담 버튼 말풍선 (지금 KakaoChatButton 값) */
+
+  --radius-control: 0.5rem;
+  --radius-card: 0.75rem;
+  --radius-media: 1rem;
+  --container-page: 80rem;
+}

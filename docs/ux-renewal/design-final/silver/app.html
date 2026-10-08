@@ -1,0 +1,881 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>영상 찾기 · 최종 시안</title>
+<meta name="description" content="bibllab.com 최종 디자인 시안(모노크롬 실버). 로그인 후 영상 찾기 결과 화면, Starter 계정 예시 화면·조회수 순 정렬·2개 선택한 상태.">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+<style type="text/tailwindcss">
+@theme {
+  --font-sans: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
+
+  /* 기본 팔레트를 비운다. 아래 토큰 밖의 색(neutral-*, white, black, teal …)은 쓸 수 없다 */
+  --color-*: initial;
+
+  /* ── 바탕·면: 그래파이트 (지금 neutral 값과 같은 단계) ── */
+  --color-canvas: #000000;       /* 비즈니스 블랙. 페이지 바탕 */
+  --color-surface: #0a0a0a;      /* 카드·입력·검색창 */
+  --color-surface-2: #171717;    /* hover·선택 행·이미지 자리·대화상자 */
+  --color-surface-3: #262626;    /* 눌린 탭·아바타 */
+
+  /* ── 선 ── */
+  --color-line: #262626;         /* 구역·카드 테두리 */
+  --color-line-soft: #171717;    /* 표·목록 행 구분 */
+  --color-line-strong: #404040;  /* 입력·보조 버튼·배지 테두리 */
+  --color-line-hover: #525252;   /* 테두리 hover */
+  --color-line-control: #7a7a7a; /* 체크박스 테두리 (검정 위 4.89:1, UI 3:1 이상) */
+
+  /* ── 글자: 실버 플레이 버튼에서 뽑은 무채색 단계 ── */
+  --color-fg: #ffffff;           /* 제목·숫자 */
+  --color-fg-1: #e5e5e5;         /* 영상 제목 같은 읽을 거리 */
+  --color-fg-2: #c6c6c6;         /* 본문 (실버 판) */
+  --color-fg-3: #949494;         /* 보조·캡션 */
+  --color-fg-4: #7a7a7a;         /* 장식 화살표·구분 기호. 작은 글자 하한 */
+
+  /* ── 액센트: 흰색·실버, 채도 0. 밝기 단계만 ── */
+  --color-accent: #ffffff;         /* 핵심어·주 버튼·현재 위치·정렬·선택·포커스 */
+  --color-accent-hover: #e5e5e5;
+  --color-accent-active: #c6c6c6;  /* 누르면 실버 판 색으로 */
+  --color-accent-ink: #000000;     /* 흰·실버 면 위 글자 */
+  --color-silver: #c6c6c6;         /* 실버 판: 섹션 라벨·lab·실적 숫자의 +·첫 화면 제목 맥락 */
+  --color-logo-plate: #e3e3e3;     /* 로고 B 판: 실버 판의 하이라이트 면. 32~36px 에서 꺼진 아이콘처럼 보이지 않게 한 단 밝다 */
+
+  /* ── 기능 색: 앱 안에서만. 언제나 글자 라벨·기호와 함께 ── */
+  --color-positive: #5ee39a;     /* 좋음·성공·상승. Great/Good, 경쟁 낮음 */
+  --color-caution: #f5b73b;      /* 주의·경고. Bad, 남은 횟수 5회 이하, 경쟁 보통 */
+  --color-negative: #fa5570;     /* 나쁨·오류·하락. Worst, 경쟁 높음. 녹색약에서도 positive 와 구별(ΔE2000 11.8) */
+  --color-competition-low: var(--color-positive);   /* 키워드 경쟁도 낮음(0~35점): 진입하기 좋음 */
+  --color-competition-mid: var(--color-caution);    /* 보통(36~65점) */
+  --color-competition-high: var(--color-negative);  /* 높음(66~100점) */
+
+  /* ── 차트: 무채색 단계 + 기능 색 ── */
+  --color-chart-1: #ffffff;      /* 주 계열 */
+  --color-chart-2: #949494;      /* 비교 계열(점선) */
+  --color-chart-3: #525252;      /* 배경 막대·Normal 막대 */
+  --color-chart-grid: #262626;   /* 눈금선 */
+  --color-heat-1: #1f1f1f;
+  --color-heat-2: #474747;
+  --color-heat-3: #7a7a7a;
+  --color-heat-4: #b0b0b0;
+  --color-heat-5: #ededed;
+
+  /* ── 흰 바탕 문서·인쇄용 (로고를 흰 종이 위에 둘 때만) ── */
+  --color-paper: #ffffff;
+  --color-paper-ink: #000000;
+  --color-paper-muted: #6b6b6b;  /* 흰 위 5.33:1 */
+
+  /* ── 외부 브랜드: 그 표시에만 ── */
+  --color-youtube: #ff0000;      /* 유튜브 로고, 유튜브로 나가는 ↗ 의 hover */
+  --color-kakao: #fee500;
+  --color-kakao-hover: #fdd835;
+  --color-kakao-ink: #191919;
+  --color-kakao-icon: #3a1d1d;
+
+  /* ── 글자 단계 (R03 이름·값 그대로) ── */
+  --text-display: 3.75rem;
+  --text-display--line-height: 1.15;
+  --text-display--letter-spacing: -0.03em;
+  --text-display--font-weight: 800;
+  --text-h1: 3rem;
+  --text-h1--line-height: 1.2;
+  --text-h1--letter-spacing: -0.025em;
+  --text-h1--font-weight: 800;
+  --text-h2: 2.25rem;
+  --text-h2--line-height: 1.25;
+  --text-h2--letter-spacing: -0.02em;
+  --text-h2--font-weight: 800;
+  --text-h3: 1.75rem;
+  --text-h3--line-height: 1.3;
+  --text-h3--letter-spacing: -0.02em;
+  --text-h3--font-weight: 800;
+  --text-title: 1.5rem;
+  --text-title--line-height: 1.3;
+  --text-title--letter-spacing: -0.02em;
+  --text-title--font-weight: 800;
+  --text-h4: 1.25rem;
+  --text-h4--line-height: 1.4;
+  --text-h4--letter-spacing: -0.01em;
+  --text-h4--font-weight: 700;
+  --text-lead: 1.125rem;
+  --text-lead--line-height: 1.7;
+  --text-lead--letter-spacing: -0.005em;
+  --text-body: 1rem;
+  --text-body--line-height: 1.75;
+  --text-ui: 0.9375rem;
+  --text-ui--line-height: 1.6;
+  --text-body-sm: 0.875rem;
+  --text-body-sm--line-height: 1.7;
+  --text-caption: 0.8125rem;
+  --text-caption--line-height: 1.5;
+  --text-caption--font-weight: 500;
+  --text-micro: 0.75rem;
+  --text-micro--line-height: 1.5;
+  --text-micro--font-weight: 500;
+
+  --radius-control: 0.5rem;
+  --radius-card: 0.75rem;
+  --radius-panel: 1rem;
+
+  --container-page: 75rem;
+  --container-reading: 42rem;
+  --container-wide: 80rem;
+
+  --breakpoint-nav: 80rem;
+}
+@layer base {
+  html {
+    background: var(--color-canvas);
+    color: var(--color-fg);
+    color-scheme: dark;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    word-break: keep-all;
+    overflow-wrap: break-word;
+  }
+  h1, h2, h3 { text-wrap-style: balance; }
+  p, li, dd { text-wrap-style: pretty; }
+  :focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+  ::selection { background: var(--color-silver); color: var(--color-accent-ink); }
+  button:not(:disabled), summary { cursor: pointer; }
+  summary { list-style: none; }
+  summary::-webkit-details-marker { display: none; }
+  img { color: transparent; }
+  input[type="search"]::-webkit-search-cancel-button { display: none; }
+}
+@layer components {
+  .tnum { font-variant-numeric: tabular-nums; }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: .375rem;
+    white-space: nowrap; border-radius: var(--radius-control); font-weight: 700;
+    transition: background-color .15s ease-out, border-color .15s ease-out, color .15s ease-out;
+  }
+  .btn-primary { background: var(--color-accent); color: var(--color-accent-ink); }
+  .btn-primary:hover { background: var(--color-accent-hover); }
+  .btn-primary:active { background: var(--color-accent-active); }
+  .btn-secondary { border: 1px solid var(--color-line-strong); background: var(--color-surface); color: var(--color-fg); font-weight: 600; }
+  .btn-secondary:hover { border-color: var(--color-line-hover); background: var(--color-surface-2); }
+  .btn-ghost { color: var(--color-fg-2); font-weight: 600; }
+  .btn-ghost:hover { background: var(--color-surface-2); color: var(--color-fg); }
+  /* 잠긴 기능(요금제 필요): 라벨 한 단 낮춤 + 'Pro' 테두리 태그 한 모양. 누르면 그 자리에서 안내(선택 유지) */
+  .is-locked { color: var(--color-fg-3); }
+  .pro { display: inline-flex; align-items: center; border: 1px solid var(--color-line-strong); border-radius: .25rem; padding-inline: .25rem; font-size: .75rem; line-height: 1.125rem; font-weight: 500; color: var(--color-fg-3); }
+  .tag { display: inline-flex; flex-shrink: 0; align-items: center; border: 1px solid var(--color-line-strong); border-radius: .375rem; padding: .125rem .375rem; font-size: .75rem; line-height: 1.125rem; font-weight: 500; color: var(--color-fg-2); }
+  /* 앱 셸 네비: 모두 같은 회색, 현재 위치만 흰 글자(막대는 도구 탭에만) */
+  .navlink {
+    display: inline-flex; height: 2.25rem; align-items: center; gap: .25rem; border-radius: var(--radius-control);
+    padding-inline: .75rem; font-size: .875rem; font-weight: 500; color: var(--color-fg-3); transition: color .15s ease-out;
+  }
+  .navlink:hover, details[open] > .navlink { color: var(--color-fg); }
+  .navlink[aria-current="page"] { color: var(--color-accent); font-weight: 600; }
+  /* 도구 탭: R04 TAB 그대로(현재 탭 흰 글자 + 흰 2px 밑줄) */
+  .tooltab { display: inline-flex; height: 2.75rem; flex-shrink: 0; align-items: center; gap: .375rem; border-bottom: 2px solid transparent; font-size: .875rem; font-weight: 500; color: var(--color-fg-3); transition: color .15s ease-out; }
+  .tooltab:hover { color: var(--color-fg); }
+  .tooltab[aria-current="page"] { border-color: var(--color-accent); font-weight: 600; color: var(--color-accent); }
+  @media (width >= 48rem) { .tooltab { height: 3rem; } }
+  /* 길이 필터(세그먼트): 선택 = 면 한 단(neutral-800) */
+  .seg-item { display: inline-flex; height: 2.5rem; align-items: center; justify-content: center; border-radius: .375rem; padding-inline: .75rem; font-size: .8125rem; font-weight: 500; color: var(--color-fg-3); transition: color .15s, background-color .15s; }
+  .seg-item:hover { color: var(--color-fg); }
+  .seg-item[aria-current="true"] { background: var(--color-surface-3); color: var(--color-fg); font-weight: 600; }
+  @media (width >= 48rem) { .seg-item { height: 2rem; } }
+  @media (pointer: coarse) { .seg-item { height: 2.75rem; } }
+  /* 표 머리: 화면 위에 붙는다(전역 네비 아래) */
+  .th { position: sticky; top: 3.5rem; z-index: 10; border-block: 1px solid var(--color-line); background: var(--color-canvas); padding-block: .125rem; font-weight: 500; }
+  @media (width >= 80rem) { .th { top: 4rem; } }
+  .td { border-bottom: 1px solid var(--color-line-soft); padding-block: .625rem; vertical-align: middle; }
+  .th-sort { display: inline-flex; height: 2.5rem; align-items: center; gap: .25rem; margin-inline: -.5rem; padding-inline: .5rem; border-radius: .375rem; color: inherit; }
+  .th-sort:hover { color: var(--color-fg); }
+  @media (pointer: coarse) { .th-sort { height: 2.75rem; } }
+  .optin { display: inline-flex; height: 1.75rem; align-items: center; border: 1px solid var(--color-line-strong); border-radius: .375rem; padding-inline: .5rem; font-size: .75rem; font-weight: 600; color: var(--color-fg-2); transition: border-color .15s, color .15s; }
+  .optin:hover { border-color: var(--color-line-hover); color: var(--color-fg); }
+  @media (pointer: coarse) { .optin { height: 2.75rem; } }
+  .chk {
+    appearance: none; display: inline-grid; place-content: center; width: 1.125rem; height: 1.125rem; margin: 0;
+    border: 1.5px solid var(--color-line-control); border-radius: .25rem; background: transparent; cursor: pointer;
+    transition: border-color .15s ease-out, background-color .15s ease-out;
+  }
+  .chk:hover { border-color: var(--color-fg-2); }
+  .chk:checked, .chk:indeterminate { border-color: var(--color-accent); background: var(--color-accent); }
+  .chk:checked::after {
+    content: ""; width: .55rem; height: .3rem; border-left: 2px solid var(--color-accent-ink); border-bottom: 2px solid var(--color-accent-ink);
+    transform: translateY(-1px) rotate(-45deg);
+  }
+  .chk:indeterminate::after { content: ""; width: .5rem; height: 2px; background: var(--color-accent-ink); }
+  /* 결과 행: hover 는 검정 위에서 보이는 한 단, 선택은 neutral-900 + 왼쪽 흰 2px */
+  .row > td, li.row { transition: background-color .15s ease-out; }
+  tr.row:hover > td, li.row:hover { background: color-mix(in srgb, var(--color-surface-2) 55%, transparent); }
+  tr.row.is-selected > td, li.row.is-selected { background: var(--color-surface-2); }
+  tr.row.is-selected > td:first-child, li.row.is-selected { box-shadow: inset 2px 0 0 var(--color-accent); }
+  /* 행 열기 버튼: 썸네일까지 덮는 ::after 가 누름 영역, 포커스 링도 그 둘레에 */
+  .open-btn:focus-visible { outline: none; }
+  .open-btn:focus-visible::after { outline: 2px solid var(--color-accent); outline-offset: -2px; border-radius: .5rem; }
+  .select {
+    appearance: none; height: 2.75rem; border: 1px solid var(--color-line); border-radius: var(--radius-control); background: var(--color-surface);
+    padding: 0 2.25rem 0 .75rem; font-size: .875rem; color: var(--color-fg);
+  }
+  @media (width < 48rem) { .select { font-size: 1rem; } }
+  /* 대화상자(R05 셸 모양): neutral-900 면 + 1px 선 + 반경 16, 배경 막 검정 80%. 그림자·블러 없음 */
+  .dlg { margin: auto; width: calc(100% - 2rem); max-width: 24rem; max-height: calc(100dvh - 2rem); overflow-y: auto; border: 1px solid var(--color-line); border-radius: var(--radius-panel); background: var(--color-surface-2); padding: 0; color: var(--color-fg); }
+  .dlg::backdrop { background: color-mix(in srgb, var(--color-canvas) 80%, transparent); }
+  .dlg-video { max-width: 36rem; }
+  @media (width < 48rem) {
+    .dlg-video { margin: auto 0 0; width: 100%; max-width: none; height: 100dvh; max-height: 100dvh; border-width: 0; border-radius: 0; }
+  }
+  /* 로고 B 판: 실버 판의 하이라이트 면 위 검정 B (판은 단색. 그라데이션·광택·그림자 없음) */
+  .logo-plate { background: var(--color-logo-plate); color: var(--color-accent-ink); }
+  /* 정렬 select 펼침 화살표: 토큰 색으로 그리도록 감싼 label 의 ::after (data URI 안에 hex 를 두지 않는다) */
+  .select-wrap { position: relative; }
+  .select-wrap::after {
+    content: ""; position: absolute; right: .625rem; top: 50%; width: 1rem; height: 1rem; margin-top: -.5rem; pointer-events: none;
+    background: var(--color-fg-3);
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") center / contain no-repeat;
+            mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") center / contain no-repeat;
+  }
+  .no-scrollbar { scrollbar-width: none; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+}
+/* 선택 모드 막대가 보이는 768px 미만: 카카오 버튼을 숨긴다(선택 동작이 아래를 차지하는 동안만, 선택을 풀면 돌아온다).
+   하단 고정 CTA 바(data-bottom-bar, 버튼을 88px 올림)와는 다른 규칙이다 */
+@media (width < 48rem) {
+  body:has([data-selection-bar]:not([hidden])) [data-kakao-fab] { display: none; }
+}
+</style>
+</head>
+<body class="bg-canvas font-sans text-fg" data-app-shell>
+<a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-control focus:bg-accent focus:px-4 focus:py-2 focus:text-accent-ink">본문으로 건너뛰기</a>
+
+<!-- ───────── 네비 (로그인 상태, 앱 셸): 도구가 먼저, '비블과 함께' 세 곳은 한 메뉴로 접는다 ───────── -->
+<header class="sticky top-0 z-50 border-b border-line bg-canvas">
+  <div class="mx-auto flex h-14 max-w-wide items-center gap-6 px-6 lg:px-8 nav:h-16">
+    <a href="/" class="inline-flex h-11 shrink-0 items-center rounded-md" aria-label="bibl lab 홈">
+      <span class="inline-flex items-center gap-2.5">
+        <span aria-hidden="true" class="logo-plate inline-flex size-9 shrink-0 items-center justify-center rounded-lg text-[22px] font-black leading-none">B</span>
+        <span class="text-[17px] font-bold tracking-tight">bibl<span class="text-silver"> lab</span></span>
+      </span>
+    </a>
+    <nav aria-label="주 메뉴" class="hidden min-w-0 flex-1 items-center nav:flex">
+      <ul class="flex items-center">
+        <li><a class="navlink" href="/trend-search" aria-current="page">유튜브 트렌드 서치</a></li>
+        <li><a class="navlink" href="/community">커뮤니티&amp;자료</a></li>
+        <li><a class="navlink" href="/pricing">요금제</a></li>
+      </ul>
+      <span aria-hidden="true" class="mx-3 h-4 w-px bg-line"></span>
+      <details class="relative">
+        <summary class="navlink">비블과 함께<svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <ul class="absolute left-0 top-full z-10 mt-3 w-64 rounded-card border border-line bg-surface p-1.5">
+          <li><a href="/studio/class/consulting" class="flex h-11 items-center rounded-md px-3 text-body-sm text-fg-2 transition-colors hover:bg-surface-2 hover:text-fg">팀비블 1:1 유튜브 컨설팅</a></li>
+          <li><a href="/studio" class="flex h-11 items-center rounded-md px-3 text-body-sm text-fg-2 transition-colors hover:bg-surface-2 hover:text-fg">유튜브 채널 대행 문의</a></li>
+          <li><a href="/incubating" class="flex h-11 items-center rounded-md px-3 text-body-sm text-fg-2 transition-colors hover:bg-surface-2 hover:text-fg">브랜드 인큐베이팅</a></li>
+        </ul>
+      </details>
+    </nav>
+    <div class="ml-auto flex items-center gap-1">
+      <!-- 남은 횟수는 여기 한 곳에만. 누르면 요금제(실제 SearchUsageBadge 와 같은 이동), 누름 영역 44px -->
+      <a href="/pricing" title="이번 달 50회 중 12회 사용" class="group inline-flex h-11 items-center px-1">
+        <span class="tnum inline-flex h-8 items-center rounded-control border border-line px-2.5 text-micro text-fg-2 transition-colors group-hover:border-line-hover group-hover:text-fg"><span class="hidden sm:inline">이번 달&nbsp;</span>38회 남음</span>
+      </a>
+      <a href="/mypage" aria-label="내 계정" class="inline-flex size-11 items-center justify-center rounded-full">
+        <span class="inline-flex size-9 items-center justify-center rounded-full bg-surface-3 text-caption font-bold text-fg-1">김</span>
+      </a>
+      <details class="group nav:hidden">
+        <summary class="-mr-2 flex size-11 items-center justify-center rounded-control text-fg transition-colors hover:bg-surface-2" aria-label="전체 메뉴">
+          <svg class="size-6 group-open:hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+          <svg class="hidden size-6 group-open:block" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </summary>
+        <div class="fixed inset-x-0 bottom-0 top-14 overflow-y-auto border-t border-line bg-canvas">
+          <div class="mx-auto max-w-wide px-6 pb-28 pt-2 lg:px-8">
+            <p class="pt-4 text-caption text-fg-3">직접 하기</p>
+            <ul class="mt-1 divide-y divide-line-soft">
+              <li><a href="/trend-search" aria-current="page" class="flex h-14 items-center justify-between text-lead font-semibold">유튜브 트렌드 서치<span aria-hidden="true" class="text-fg-4">→</span></a></li>
+              <li><a href="/community" class="flex h-14 items-center justify-between text-lead font-semibold">커뮤니티&amp;자료<span aria-hidden="true" class="text-fg-4">→</span></a></li>
+              <li><a href="/pricing" class="flex h-14 items-center justify-between text-lead font-semibold">요금제<span aria-hidden="true" class="text-fg-4">→</span></a></li>
+            </ul>
+            <p class="mt-6 text-caption text-fg-3">비블과 함께</p>
+            <ul class="mt-1 divide-y divide-line-soft">
+              <li><a href="/studio/class/consulting" class="flex h-14 items-center justify-between text-lead font-semibold">팀비블 1:1 유튜브 컨설팅<span aria-hidden="true" class="text-fg-4">→</span></a></li>
+              <li><a href="/studio" class="flex h-14 items-center justify-between text-lead font-semibold">유튜브 채널 대행 문의<span aria-hidden="true" class="text-fg-4">→</span></a></li>
+              <li><a href="/incubating" class="flex h-14 items-center justify-between text-lead font-semibold">브랜드 인큐베이팅<span aria-hidden="true" class="text-fg-4">→</span></a></li>
+              <!-- 선택 모드에서는 떠 있는 카카오 버튼이 숨으므로 메뉴에도 둔다 -->
+              <li><a href="https://pf.kakao.com/_beBNn/chat" target="_blank" rel="noopener noreferrer" class="flex h-14 items-center justify-between text-lead font-semibold">카카오톡 문의<span aria-hidden="true" class="text-fg-4">↗</span></a></li>
+            </ul>
+          </div>
+        </div>
+      </details>
+    </div>
+  </div>
+</header>
+
+<!-- ───────── 트렌드 서치 도구 탭: R04 TAB(현재 탭 흰 글자 + 흰 밑줄 2px) ───────── -->
+<div class="border-b border-line">
+  <div class="mx-auto flex max-w-wide items-center justify-between gap-4 px-6 lg:px-8">
+    <nav aria-label="트렌드 서치 도구" class="no-scrollbar -mb-px flex gap-6 overflow-x-auto">
+      <a href="/search" aria-current="page" class="tooltab">영상 찾기</a>
+      <a href="/channels" class="tooltab">채널 찾기</a>
+      <a href="/my-channel" class="tooltab">채널 분석</a>
+      <a href="/saved" class="tooltab">수집한 영상<span class="pro">Pro</span></a>
+    </nav>
+    <span class="tag hidden md:inline-flex">예시 화면 · Starter 계정 · 10행만 그림 · 2개 선택</span>
+  </div>
+</div>
+
+<main id="main" class="mx-auto max-w-wide px-6 pb-36 md:pb-28 lg:px-8">
+
+  <!-- 검색 (구현: 기존 SearchBar 를 스타일만 바꿔 쓴다. 같은 키워드 재검색 시 prevCount + 1, 결과 누적 규칙 불변) -->
+  <section aria-label="검색" class="pt-4 lg:pt-6">
+    <form role="search" data-try-search class="flex h-[50px] items-center gap-2 rounded-card border border-line-strong bg-surface p-0.5 pl-4 transition-colors focus-within:border-accent sm:h-14 sm:p-1 lg:pl-5">
+      <svg class="size-5 shrink-0 text-fg-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <label for="q" class="sr-only">검색어</label>
+      <input id="q" name="q" type="search" value="캠핑" enterkeyhint="search" autocomplete="off" class="h-full min-w-0 flex-1 bg-transparent text-body font-medium text-fg outline-none placeholder:text-fg-3 lg:text-[17px]">
+      <button type="button" class="hidden h-full items-center gap-1 rounded-control px-3 text-body-sm font-medium text-fg-2 transition-colors hover:bg-surface-2 hover:text-fg sm:inline-flex" aria-label="검색 국가: 한국">한국<svg class="size-4 text-fg-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
+      <button type="submit" class="btn btn-primary h-full px-5 text-ui lg:px-7">검색</button>
+    </form>
+    <p class="mt-1.5 text-caption text-fg-3 sm:mt-2">검색할 때마다 1회 차감 · 매월 1일 초기화</p>
+  </section>
+
+  <section aria-labelledby="result-title" class="pt-4 lg:pt-6">
+    <!-- 결과 머리: 실제 툴바의 자리 그대로(필터 + 조회수 합계(유료) + 오늘 검색 수 | 채널 리포트 · 영상 수집 · 공유).
+         채널 리포트는 검색 결과 전체, 영상 수집은 고른 영상(없으면 전체)에 대해 동작하므로 선택과 상관없이 늘 보인다 -->
+    <div class="flex flex-wrap items-center gap-x-4 gap-y-2.5">
+      <div class="order-1 flex min-w-0 items-center gap-2">
+        <h1 id="result-title" class="text-h4 font-extrabold">‘캠핑’ 결과 <span class="tnum">50</span>개</h1>
+        <span class="tag md:hidden">예시 화면</span>
+      </div>
+      <div class="order-2 ml-auto flex items-center gap-1.5 lg:order-4">
+        <button type="button" class="btn btn-secondary is-locked hidden h-9 px-3 text-body-sm lg:inline-flex pointer-coarse:h-11" data-confirm="pro" data-feature="채널 리포트는" aria-haspopup="dialog">채널 리포트<span class="pro">Pro</span></button>
+        <button type="button" class="btn btn-secondary is-locked hidden h-9 px-3 text-body-sm lg:inline-flex pointer-coarse:h-11" data-confirm="pro" data-feature="영상 수집은" aria-haspopup="dialog">영상 수집<span class="pro">Pro</span></button>
+        <button type="button" class="btn btn-ghost h-11 px-3 text-body-sm lg:h-9 pointer-coarse:h-11">공유</button>
+      </div>
+      <nav aria-label="영상 길이" class="order-3 flex w-full rounded-control border border-line bg-surface p-1 md:w-auto lg:order-2">
+        <a href="#" class="seg-item flex-1 md:flex-none">전체</a>
+        <a href="#" class="seg-item flex-1 md:flex-none" aria-current="true">쇼츠 제외</a>
+        <a href="#" class="seg-item flex-1 md:flex-none">쇼츠만</a>
+      </nav>
+      <!-- ViewStatsInline(유료) · TodaySearchCount(5건 이상일 때): 위치·조건·문구 그대로, 모양만 -->
+      <p class="order-4 w-full text-caption text-fg-3 md:w-auto lg:order-3">조회수 합계 <span class="tnum font-semibold text-fg-1">312.6만</span> · 오늘 <span class="tnum font-semibold text-fg-1">1,284</span>건 검색됨</p>
+    </div>
+
+    <!-- 분석 도구 줄(로드맵 R17): 키워드 인사이트 · 경쟁도 · 제목 패턴 패널을 한 줄로 접고, 누른 도구만 이 줄 아래에 펼친다.
+         옵트인 단계·확인창·디스클레이머 문구는 그대로. Free 계정은 경쟁도·제목 패턴 자리에 '키워드 경쟁도 · 제목 패턴 분석 Starter' 잠금 버튼 하나 -->
+    <div class="mt-4 border-y border-line">
+      <div class="no-scrollbar -mx-6 flex items-center gap-2 overflow-x-auto px-6 py-2 lg:mx-0 lg:px-0 lg:py-2.5">
+        <p class="mr-2 hidden shrink-0 text-caption text-fg-3 xl:block">‘캠핑’ 키워드 인사이트</p>
+        <button type="button" class="btn btn-secondary h-9 shrink-0 px-3 text-body-sm pointer-coarse:h-11">상위 영상 패턴 보기</button>
+        <button type="button" class="btn btn-secondary h-9 shrink-0 px-3 text-body-sm pointer-coarse:h-11">연관 키워드 추천</button>
+        <span aria-hidden="true" class="mx-1 h-4 w-px shrink-0 bg-line"></span>
+        <button type="button" class="btn btn-secondary h-9 shrink-0 px-3 text-body-sm pointer-coarse:h-11" data-confirm="competition" aria-haspopup="dialog">경쟁도 분석 시작</button>
+        <button type="button" class="btn btn-secondary h-9 shrink-0 gap-1 px-3 text-body-sm pointer-coarse:h-11" aria-expanded="false">제목 패턴 분석<svg class="size-4 text-fg-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
+        <span class="contents lg:hidden">
+          <span aria-hidden="true" class="mx-1 h-4 w-px shrink-0 bg-line"></span>
+          <button type="button" class="btn btn-secondary is-locked h-9 shrink-0 px-3 text-body-sm pointer-coarse:h-11" data-confirm="pro" data-feature="채널 리포트는" aria-haspopup="dialog">채널 리포트<span class="pro">Pro</span></button>
+          <button type="button" class="btn btn-secondary is-locked h-9 shrink-0 px-3 text-body-sm pointer-coarse:h-11" data-confirm="pro" data-feature="영상 수집은" aria-haspopup="dialog">영상 수집<span class="pro">Pro</span></button>
+        </span>
+        <a href="/studio/consulting?source=keyword&amp;query=%EC%BA%A0%ED%95%91" class="ml-auto inline-flex h-11 shrink-0 items-center gap-1 pl-3 text-body-sm font-semibold text-accent transition-colors hover:text-accent-hover lg:h-9 pointer-coarse:h-11">유튜브 채널 대행 문의 <span aria-hidden="true">→</span></a>
+      </div>
+    </div>
+    <p class="mt-1.5 text-micro text-fg-3">경쟁도 분석 · 사용자 자가 계산 도구 (YouTube 공식 메트릭 아님)</p>
+
+    <!-- 1024 미만: 전체 선택 + 정렬(기본은 관련도순. 이 예시는 조회수 순으로 바꾼 상태) -->
+    <div class="-mx-6 mt-2 flex items-center justify-between gap-3 border-b border-line pl-[11px] pr-6 lg:hidden">
+      <label class="flex h-11 cursor-pointer items-center text-body-sm text-fg-2"><span class="flex w-11 justify-center"><input type="checkbox" class="chk" data-pick-all></span>전체 선택</label>
+      <label class="select-wrap flex items-center"><span class="sr-only">정렬</span>
+        <select class="select">
+          <option>관련도순(기본)</option>
+          <option selected>조회수 높은 순</option>
+          <option>구독자 많은 순</option>
+          <option>최근 게시 순</option>
+        </select>
+      </label>
+    </div>
+  </section>
+
+  <!-- 결과 표 (1024 이상): 체크 · 영상(1280 미만은 채널을 제목 아래) · 채널 · 조회수 · 구독자 · 게시일 · 알고리즘 확률(옵트인, 맨 끝).
+       머리줄은 전역 네비 아래에 붙는다. 마지막 열이 옵트인 칸이라 카카오 버튼(1375px 이하에서 표 오른쪽 끝에 겹침)이 숫자를 가리지 않는다 -->
+  <div class="mt-2 hidden lg:block">
+    <table class="w-full table-fixed border-separate border-spacing-0 text-left">
+      <caption class="sr-only">‘캠핑’ 검색 결과, 조회수 높은 순으로 정렬</caption>
+      <thead class="text-micro text-fg-3">
+        <tr>
+          <th scope="col" class="th w-11"><label class="flex size-11 cursor-pointer items-center justify-center"><input type="checkbox" class="chk" aria-label="전체 선택" data-pick-all></label></th>
+          <th scope="col" class="th">영상 <span class="tnum">50</span></th>
+          <th scope="col" class="th hidden w-[200px] xl:table-cell">채널</th>
+          <th scope="col" class="th w-24 pr-4 text-right" aria-sort="descending"><button type="button" class="th-sort font-semibold text-accent">조회수<svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M6 13l6 6 6-6"/></svg></button></th>
+          <th scope="col" class="th w-[92px] pr-4 text-right" aria-sort="none"><button type="button" class="th-sort">구독자<svg class="size-3.5 text-fg-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m8 9 4-4 4 4M16 15l-4 4-4-4"/></svg></button></th>
+          <th scope="col" class="th w-[88px] pr-4 text-right" aria-sort="none"><button type="button" class="th-sort">게시일<svg class="size-3.5 text-fg-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m8 9 4-4 4 4M16 15l-4 4-4-4"/></svg></button></th>
+          <th scope="col" class="th w-28 text-right"><button type="button" class="optin" data-confirm="prob" aria-haspopup="dialog">알고리즘 확률</button></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="row is-selected" data-row data-ch="[그리는연유]Drawing YeonYoo">
+          <td class="td"><label class="flex size-11 cursor-pointer items-center justify-center"><input type="checkbox" class="chk" aria-label="거친 폭우 속 아늑한 오두막 트럭에서 강아지와 우중캠핑 | 몰아보기ASMR 선택" checked data-pick data-i="0"></label></td>
+          <td class="td relative pr-6">
+            <div class="flex items-center gap-4">
+              <span class="relative block w-32 shrink-0 overflow-hidden rounded-control bg-surface-2 xl:w-36"><img src="https://i.ytimg.com/vi/m-4iFexC194/mqdefault.jpg" alt="" width="320" height="180" class="aspect-video w-full object-cover" loading="lazy" decoding="async"><span class="tnum absolute bottom-1.5 right-1.5 px-1.5 py-0.5 rounded bg-canvas/80 text-micro font-semibold leading-none">2:14:50</span></span>
+              <div class="min-w-0 flex-1">
+                <h3 class="text-ui font-medium text-fg-1"><button type="button" class="open-btn line-clamp-2 text-left leading-[1.5] after:absolute after:inset-0 hover:underline hover:underline-offset-4" aria-haspopup="dialog" data-open data-i="0">거친 폭우 속 아늑한 오두막 트럭에서 강아지와 우중캠핑 | 몰아보기ASMR</button></h3>
+                <p class="mt-1 flex min-w-0 items-center gap-2 text-caption text-fg-3 xl:hidden"><img src="https://yt3.ggpht.com/LmllKjdJtSemlBsFr0jV-xhQuiHjqbEX3YDe24xus9Se80kmwk6FB1Ew7JVQzhumpJfYILSgjw=s48-c-k-c0x00ffffff-no-rj" alt="" width="20" height="20" class="size-5 shrink-0 rounded-full bg-surface-2" loading="lazy" decoding="async"><span class="truncate">[그리는연유]Drawing YeonYoo</span></p>
+              </div>
+            </div>
+          </td>
+          <td class="td hidden pr-4 xl:table-cell"><span class="flex min-w-0 items-center gap-2.5"><img src="https://yt3.ggpht.com/LmllKjdJtSemlBsFr0jV-xhQuiHjqbEX3YDe24xus9Se80kmwk6FB1Ew7JVQzhumpJfYILSgjw=s88-c-k-c0x00ffffff-no-rj" alt="" width="32" height="32" class="size-8 shrink-0 rounded-full bg-surface-2" loading="lazy" decoding="async"><span class="truncate text-body-sm text-fg-2">[그리는연유]Drawing YeonYoo</span></span></td>
+          <td class="td tnum pr-4 text-right"><span class="text-[18px] font-extrabold tracking-[-0.02em]" title="74.4만회">74.4만</span></td>
+          <td class="td tnum pr-4 text-right text-body-sm text-fg-2">18.2만</td>
+          <td class="td pr-4 text-right text-body-sm text-fg-3">9일 전</td>
+          <td class="td"></td>
+        </tr>
+        <tr class="row" data-row data-ch="RYUCAMP">
+          <td class="td"><label class="flex size-11 cursor-pointer items-center justify-center"><input type="checkbox" class="chk" aria-label="캠핑 브이로그 . 3만원짜리 작은 텐트로 강아지와 최고의 낭만을 찾아 떠난 하루 여행 . 한우 소고기 숯불구이 . 바다 파도소리 ASMR 선택" data-pick data-i="1"></label></td>
+          <td class="td relative pr-6">
+            <div class="flex items-center gap-4">
+              <span class="relative block w-32 shrink-0 overflow-hidden rounded-control bg-surface-2 xl:w-36"><img src="https://i.ytimg.com/vi/RJjYrO9ucwc/mqdefault.jpg" alt="" width="320" height="180" class="aspect-video w-full object-cover" loading="lazy" decoding="async"><span class="tnum absolute bottom-1.5 right-1.5 px-1.5 py-0.5 rounded bg-canvas/80 text-micro font-semibold leading-none">38:22</span></span>
+              <div class="min-w-0 flex-1">
+                <h3 class="text-ui font-medium text-fg-1"><button type="button" class="open-btn line-clamp-2 text-left leading-[1.5] after:absolute after:inset-0 hover:underline hover:underline-offset-4" aria-haspopup="dialog" data-open data-i="1">캠핑 브이로그 . 3만원짜리 작은 텐트로 강아지와 최고의 낭만을 찾아 떠난 하루 여행 . 한우 소고기 숯불구이 . 바다 파도소리 ASMR</button></h3>
+                <p class="mt-1 flex min-w-0 items-center gap-2 text-caption text-fg-3 xl:hidden"><img src="https://yt3.ggpht.com/GXHQaBDvcaQULKWPHCZAQyFHz0Dg01a8yKwrf-A1r2ry8iCRp1A45DDD9iTc9S6gmR-ALLkVbo4=s48-c-k-c0x00ffffff-no-rj" alt="" width="20" height="20" class="size-5 shrink-0 rounded-full bg-surface-2" loading="lazy" decoding="async"><span class="truncate">RYUCAMP</span></p>
+              </div>
+            </div>
+          </td>
+          <td class="td hidden pr-4 xl:table-cell"><span class="flex min-w-0 items-center gap-2.5"><img src="https://yt3.ggpht.com/GXHQaBDvcaQULKWPHCZAQyFHz0Dg01a8yKwrf-A1r2ry8iCRp1A45DDD9iTc9S6gmR-ALLkVbo4=s88-c-k-c0x00ffffff-no-rj" alt="" width="32" height="32" class="size-8 shrink-0 rounded-full bg-surface-2" loading="lazy" decoding="async"><span class="truncate text-body-sm text-fg-2">RYUCAMP</span></span></td>
+          <td class="td tnum pr-4 text-right"><span class="text-[18px] font-extrabold tracking-[-0.02em]" title="48.4만회">48.4만</span></td>
+          <td class="td tnum pr-4 text-right text-body-sm text-fg-2">1.09만</td>
+          <td class="td pr-4 text-right text-body-sm text-fg-3">4일 전</td>
+          <td class="td"></td>
+        </tr>
+        <tr class="row is-selected" data-row data-ch="경가캠핑">
+          <td class="td"><label class="flex size-11 cursor-pointer items-center justify-center"><input type="checkbox" class="chk" aria-label="캠핑 5년 하고 알았습니다… 처음부터 알았으면 좋았을 캠핑팁 12가지 선택" checked data-pick data-i="2"></label></td>
+          <td class="td relative pr-6">
+            <div class="flex items-center gap-4">
+              <span class="relative block w-32 shrink-0 overflow-hidden rounded-control bg-surface-2 xl:w-36"><img src="https://i.ytimg.com/vi/wTrF4puRFak/mqdefault.jpg" alt="" width="320" height="180" class="aspect-video w-full object-cover" loading="lazy" decoding="async"><span class="tnum absolute bottom-1.5 right-1.5 px-1.5 py-0.5 rounded bg-canvas/80 text-micro font-semibold leading-none">18:46</span></span>
+              <div class="min-w-0 flex-1">
+                <h3 class="text-ui font-medium text-fg-1"><button type="button" class="open-btn line-clamp-2 text-left leading-[1.5] after:absolute after:inset-0 hover:underline hover:underline-offset-4" aria-haspopup="dialog" data-open data-i="2">캠핑 5년 하고 알았습니다… 처음부터 알았으면 좋았을 캠핑팁 12가지</button></h3>
+                <p class="mt-1 flex min-w-0 items-center gap-2 text-caption text-fg-3 xl:hidden"><img src="https://yt3.ggpht.com/X_oNGd2py-Fb7XXaRZdBWKK3v4xFMaKXfi7wE2GbZKYXM7IqYXlwHs7dALJTbFphbM5UxRQES-o=s48-c-k-c0x00ffffff-no-rj" alt="" width="20" height="20" class="size-5 shrink-0 rounded-full bg-surface-2" loading="lazy" decoding="async"><span class="truncate">경가캠핑</span></p>
+              </div>
+            </div>
+          </td>
+          <td class="td hidden pr-4 xl:table-cell"><span class="flex min-w-0 items-center gap-2.5"><img src="https://yt3.ggpht.com/X_oNGd2py-Fb7XXaRZdBWKK3v4xFMaKXfi7wE2GbZKYXM7IqYXlwHs7dALJTbFphbM5UxRQES-o=s88-c-k-c0x00ffffff-no-rj" alt="" width="32" height="32" class="size-8 shrink-0 rounded-full bg-surface-2" loading="lazy" decoding="async"><span class="truncate text-body-sm text-fg-2">경가캠핑</span></span></td>
+          <td class="td tnum pr-4 text-right"><span class="text-[18px] font-extrabold tracking-[-0.02em]" title="22.8만회">22.8만</span></td>
+          <td class="td tnum pr-4 text-right text-body-sm text-fg-2">3.29만</td>
+          <td class="td pr-4 text-right text-body-sm text-fg-3">1개월 전</td>
+          <td class="td"></td>
+        </tr>
+        <tr class="row" data-row data-ch="토리 캠핑 TORI CAMP">
+          <td class="td"><label class="flex size-11 cursor-pointer items-center justify-center"><input type="checkbox" class="chk" aria-label="6m 텐트 치고 나니… 캠핑할 힘이 없네요 + 타스만 캠핑카 계약 선택" data-pick data-i="3"></label></td>
+          <td class="td relative pr-6">
+            <div class="flex items-center gap-4">
+              <span class="relative block w-32 shrink-0 overflow-hidden rounded-control bg-surface-2 xl:w-36"><img src="https://i.ytimg.com/vi/qFOVzc1Kacg/mqdefault.jpg" alt="" width="320" height="180" class="aspect-video w-full object-cover" loading="lazy" decoding="async"><span class="tnum absolute bottom-1.5 right-1.5 px-1.5 py-0.5 rounded bg-canvas/80 text-micro font-semibold leading-none">25:59</span></span>
+              <div class="min-w-0 flex-1">
+                <h3 class="text-ui font-medium text-fg-1"><button type="button" class="open-btn line-clamp-2 text-left leading-[1.5] after:absolute after:inset-0 hover:underline hover:underline-offset-4" aria-haspopup="dialog" data-open data-i="3">6m 텐트 치고 나니… 캠핑할 힘이 없네요 + 타스만 캠핑카 계약</button></h3>
+                <p class="mt-1 flex min-w-0 items-center gap-2 text-caption text-fg-3 xl:hidden"><img src="https://yt3.ggpht.com/I29ElLQ_x4YJT15COuxdRmyqbpmNyZf9U-4STz-jl6jQGjuCBkInpJ6DTgW1180VC262Ba7C=s48-c-k-c0x00ffffff-no-rj" alt="" width="20" height="20" class="size-5 shrink-0 rounded-full bg-surface-2" loading="lazy" decoding="async"><span class="truncate">토리 캠핑 TORI CAMP</span></p>
+              </div>
+            </div>
+          </td>
+          <td class="td hidden pr-4 xl:table-cell"><span class="flex min-w-0 items-center gap-2.5"><img src="https://yt3.ggpht.com/I29ElLQ_x4YJT15COuxdRmyqbpmNyZf9U-4STz-jl6jQGjuCBkInpJ6DTgW1180VC262Ba7C=s88-c-k-c0x00ffffff-no-rj" alt="" width="32" height="32" class="size-8 shrink-0 rounded-full bg-surface-2" loading="lazy" decoding="async"><span class="truncate text-body-sm text-fg-2">토리 캠핑 TORI CAMP</span></span></td>
+          <td class="td tnum pr-4 text-right"><span class="text-[18px] font-extrabold tracking-[-0.02em]" title="22.1만회">22.1만</span></td>
+          <td class="td tnum pr-4 text-right text-body-sm text-fg-2">36.9만</td>
+          <td class="td pr-4 text-right text-body-sm text-fg-3">2일 전</td>
+          <td class="td"></td>
+        </tr>
+        <tr class="row" data-row data-ch="캠핑쥐campingG">
+          <td class="td"><label class="flex size-11 cursor-pointer items-center justify-center"><input type="checkbox" class="chk" aria-label="사는 곳이 여행지가 되는 삶 / 3평 캠핑카 생활하는 법 선택" data-pick data-i="4"></label></td>
+          <td class="td relative pr-6">
+            <div class="flex items-center gap-4">
+              <span class="relative block w-32 shrink-0 overflow-hidden rounded-control bg-surface-2 xl:w-36"><img src="https://i.ytimg.com/vi/odYrfTCO3z4/mqdefault.jpg" alt="" width="320" height="180" class="aspect-video w-full object-cover" loading="lazy" decoding="async"><span class="tnum absolute bottom-1.5 right-1.5 px-1.5 py-0.5 rounded bg-canvas/80 text-micro font-semibold leading-none">15:24</span></span>
+              <div class="min-w-0 flex-1">
+                <h3 class="text-ui font-medium text-fg-1"><button type="button" class="open-btn line-clamp-2 text-left leading-[1.5] after:absolute after:inset-0 hover:underline hover:underline-offset-4" aria-haspopup="dialog" data-open data-i="4">사는 곳이 여행지가 되는 삶 / 3평 캠핑카 생활하는 법</button></h3>
+                <p class="mt-1 flex min-w-0 items-center gap-2 text-caption text-fg-3 xl:hidden"><img src="https://yt3.ggpht.com/ytc/AIdro_nJ4nepK03e0l5VmBnALATw_koWJdgf-PgNZOfIQr7Sg2I=s48-c-k-c0x00ffffff-no-rj" alt="" width="20" height="20" class="size-5 shrink-0 rounded-full bg-surface-2" loading="lazy" decoding="async"><span class="truncate">캠핑쥐campingG</span></p>
+              </div>
+            </div>
+          </td>
+          <td class="td hidden pr-4 xl:table-cell"><span class="flex min-w-0 items-center gap-2.5"><img src="https://yt3.ggpht.com/ytc/AIdro_nJ4nepK03e0l5VmBnALATw_koWJdgf-PgNZOfIQr7Sg2I=s88-c-k-c0x00ffffff-no-rj" alt="" width="32" height="32" class="size-8 shrink-0 rounded-full bg-surface-2" loading="lazy" decoding="async"><span class="truncate text-body-sm text-fg-2">캠핑쥐campingG</span></span></td>
+          <td class="td tnum pr-4 text-right"><span class="text-[18px] font-extrabold tracking-[-0.02em]" title="18.8만회">18.8만</span></td>
+          <td class="td tnum pr-4 text-right text-body-sm text-fg-2">44.8만</td>
+          <td class="td pr-4 text-right text-body-sm text-fg-3">1일 전</td>
+          <td class="td"></td>
+        </tr>
+        <tr class="row" data-row data-ch="조조캠핑 JOJOCAMPING">
+          <td class="td"><label class="flex size-11 cursor-pointer items-center justify-center"><input type="checkbox" class="chk" aria-label="게판 5분전!? 가을 꽃게와 함께하는 충주호 캠핑 | 꽃게구이, 꽃게찜, 꽃게라면 3중주 | 충주 퀸스타운캠핑장 선택" data-pick data-i="5"></label></td>
+          <td class="td relative pr-6">
+            <div class="flex items-center gap-4">
+              <span class="relative block w-32 shrink-0 overflow-hidden rounded-control bg-surface-2 xl:w-36"><img src="https://i.ytimg.com/vi/IslRWwmf_0s/mqdefault.jpg" alt="" width="320" height="180" class="aspect-video w-full object-cover" loading="lazy" decoding="async"><span class="tnum absolute bottom-1.5 right-1.5 px-1.5 py-0.5 rounded bg-canvas/80 text-micro font-semibold leading-none">34:21</span></span>
+              <div class="min-w-0 flex-1">
+                <h3 class="text-ui font-medium text-fg-1"><button type="button" class="open-btn line-clamp-2 text-left leading-[1.5] after:absolute after:inset-0 hover:underline hover:underline-offset-4" aria-haspopup="dialog" data-open data-i="5">게판 5분전!? 가을 꽃게와 함께하는 충주호 캠핑 | 꽃게구이, 꽃게찜, 꽃게라면 3중주 | 충주 퀸스타운캠핑장</button></h3>
+                <p class="mt-1 flex min-w-0 items-center gap-2 text-caption text-fg-3 xl:hidden"><img src="https://yt3.ggpht.com/18YJR5w6PzfAFHXKH_Mnr2mxQ2pyTcwl0ayC5ojTVzb91pDf7MbzrBwY2EkZjaQH1Uk_PZHPBg=s48-c-k-c0x00ffffff-no-rj" alt="" width="20" height="20" class="size-5 shrink-0 rounded-full bg-surface-2" loading="lazy" decoding="async"><span class="truncate">조조캠핑 JOJOCAMPING</span></p>
+              </div>
+            </div>
+          </td>
+          <td class="td hidden pr-4 xl:table-cell"><span class="flex min-w-0 items-center gap-2.5"><img src="https://yt3.ggpht.com/18YJR5w6PzfAFHXKH_Mnr2mxQ2pyTcwl0ayC5ojTVzb91pDf7MbzrBwY2EkZjaQH1Uk_PZHPBg=s88-c-k-c0x00ffffff-no-rj" alt="" width="32" height="32" class="size-8 shrink-0 rounded-full bg-surface-2" loading="lazy" decoding="async"><span class="truncate text-body-sm text-fg-2">조조캠핑 JOJOCAMPING</span></span></td>
+          <td class="td tnum pr-4 text-right"><span class="text-[18px] font-extrabold tracking-[-0.02em]" title="18.6만회">18.6만</span></td>
+          <td class="td tnum pr-4 text-right text-body-sm text-fg-2">80.5만</td>
+          <td class="td pr-4 text-right text-body-sm text-fg-3">2일 전</td>
+          <td class="td"></td>
+        </tr>
+        <tr class="row" data-row data-ch="짱크루TV Camping">
+          <td class="td"><label class="flex size-11 cursor-pointer items-center justify-center"><input type="checkbox" class="chk" aria-label="이제 가을캠핑 준비해야죠!? 최애 텐트+여유로운 캠핑장=완벽한 가을캠핑, 게다가 3시퇴실!? 너무 좋아요, camping 브이로그 선택" data-pick data-i="6"></label></td>
+          <td class="td relative pr-6">
+            <div class="flex items-center gap-4">
+              <span class="relative block w-32 shrink-0 overflow-hidden rounded-control bg-surface-2 xl:w-36"><img src="https://i.ytimg.com/vi/vq8MDM9XyCY/mqdefault.jpg" alt="" width="320" height="180" class="aspect-video w-full object-cover" loading="lazy" decoding="async"><span class="tnum absolute bottom-1.5 right-1.5 px-1.5 py-0.5 rounded bg-canvas/80 text-micro font-semibold leading-none">34:57</span></span>
+              <div class="min-w-0 flex-1">
+                <h3 class="text-ui font-medium text-fg-1"><button type="button" class="open-btn line-clamp-2 text-left leading-[1.5] after:absolute after:inset-0 hover:underline hover:underline-offset-4" aria-haspopup="dialog" data-open data-i="6">이제 가을캠핑 준비해야죠!? 최애 텐트+여유로운 캠핑장=완벽한 가을캠핑, 게다가 3시퇴실!? 너무 좋아요, camping 브이로그</button></h3>
+                <p class="mt-1 flex min-w-0 items-center gap-2 text-caption text-fg-3 xl:hidden"><img src="https://yt3.ggpht.com/ytc/AIdro_lZXlcjxtv8eiGPivmht6Moeh9nTy9D-37q4ceEUjQ9Yqc=s48-c-k-c0x00ffffff-no-rj" alt="" width="20" height="20" class="size-5 shrink-0 rounded-full bg-surface-2" loading="lazy" decoding="async"><span class="truncate">짱크루TV Camping</span></p>
+              </div>
+            </div>
+          </td>
+          <td class="td hidden pr-4 xl:table-cell"><span class="flex min-w-0 items-center gap-2.5"><img src="https://yt3.ggpht.com/ytc/AIdro_lZXlcjxtv8eiGPivmht6Moeh9nTy9D-37q4ceEUjQ9Yqc=s88-c-k-c0x00ffffff-no-rj" alt="" width="32" height="32" class="size-8 shrink-0 rounded-full bg-surface-2" loading="lazy" decoding="async"><span class="truncate text-body-sm text-fg-2">짱크루TV Camping</span></span></td>
+          <td class="td tnum pr-4 text-right"><span class="text-[18px] font-extrabold tracking-[-0.02em]" title="4.8만회">4.8만</span></td>
+          <td class="td tnum pr-4 text-right text-body-sm text-fg-2">4.79만</td>
+          <td class="td pr-4 text-right text-body-sm text-fg-3">4일 전</td>
+          <td class="td"></td>
+        </tr>
+        <tr class="row" data-row data-ch="박소령">
+          <td class="td"><label class="flex size-11 cursor-pointer items-center justify-center"><input type="checkbox" class="chk" aria-label="1일 9끼 먹는 가을 캠핑 맛있다(?) VLOG 선택" data-pick data-i="7"></label></td>
+          <td class="td relative pr-6">
+            <div class="flex items-center gap-4">
+              <span class="relative block w-32 shrink-0 overflow-hidden rounded-control bg-surface-2 xl:w-36"><img src="https://i.ytimg.com/vi/ZB30xIO1vRQ/mqdefault.jpg" alt="" width="320" height="180" class="aspect-video w-full object-cover" loading="lazy" decoding="async"><span class="tnum absolute bottom-1.5 right-1.5 px-1.5 py-0.5 rounded bg-canvas/80 text-micro font-semibold leading-none">19:50</span></span>
+              <div class="min-w-0 flex-1">
+                <h3 class="text-ui font-medium text-fg-1"><button type="button" class="open-btn line-clamp-2 text-left leading-[1.5] after:absolute after:inset-0 hover:underline hover:underline-offset-4" aria-haspopup="dialog" data-open data-i="7">1일 9끼 먹는 가을 캠핑 맛있다(?) VLOG</button></h3>
+                <p class="mt-1 flex min-w-0 items-center gap-2 text-caption text-fg-3 xl:hidden"><img src="https://yt3.ggpht.com/7dtHKetoy6CY8G7d8nH5OPvopWbg9_PVnBsObEi--uxyfCKNlbmZ2QlO_gp4xHZFEpH1J5LlTQ=s48-c-k-c0x00ffffff-no-rj" alt="" width="20" height="20" class="size-5 shrink-0 rounded-full bg-surface-2" loading="lazy" decoding="async"><span class="truncate">박소령</span></p>
+              </div>
+            </div>
+          </td>
+          <td class="td hidden pr-4 xl:table-cell"><span class="flex min-w-0 items-center gap-2.5"><img src="https://yt3.ggpht.com/7dtHKetoy6CY8G7d8nH5OPvopWbg9_PVnBsObEi--uxyfCKNlbmZ2QlO_gp4xHZFEpH1J5LlTQ=s88-c-k-c0x00ffffff-no-rj" alt="" width="32" height="32" class="size-8 shrink-0 rounded-full bg-surface-2" loading="lazy" decoding="async"><span class="truncate text-body-sm text-fg-2">박소령</span></span></td>
+          <td class="td tnum pr-4 text-right"><span class="text-[18px] font-extrabold tracking-[-0.02em]" title="4.4만회">4.4만</span></td>
+          <td class="td tnum pr-4 text-right text-body-sm text-fg-2">5.3만</td>
+          <td class="td pr-4 text-right text-body-sm text-fg-3">8일 전</td>
+          <td class="td"></td>
+        </tr>
+        <tr class="row" data-row data-ch="김선찌 kimseonjji">
+          <td class="td"><label class="flex size-11 cursor-pointer items-center justify-center"><input type="checkbox" class="chk" aria-label="나의 첫 솔로 캠핑 • 혼자서 제철 꽃게로 삼시세끼 차려먹기 • 산청 지리산 당근 캠핑장 선택" data-pick data-i="8"></label></td>
+          <td class="td relative pr-6">
+            <div class="flex items-center gap-4">
+              <span class="relative block w-32 shrink-0 overflow-hidden rounded-control bg-surface-2 xl:w-36"><img src="https://i.ytimg.com/vi/OpyExrVf_OA/mqdefault.jpg" alt="" width="320" height="180" class="aspect-video w-full object-cover" loading="lazy" decoding="async"><span class="tnum absolute bottom-1.5 right-1.5 px-1.5 py-0.5 rounded bg-canvas/80 text-micro font-semibold leading-none">29:00</span></span>
+              <div class="min-w-0 flex-1">
+                <h3 class="text-ui font-medium text-fg-1"><button type="button" class="open-btn line-clamp-2 text-left leading-[1.5] after:absolute after:inset-0 hover:underline hover:underline-offset-4" aria-haspopup="dialog" data-open data-i="8">나의 첫 솔로 캠핑 • 혼자서 제철 꽃게로 삼시세끼 차려먹기 • 산청 지리산 당근 캠핑장</button></h3>
+                <p class="mt-1 flex min-w-0 items-center gap-2 text-caption text-fg-3 xl:hidden"><img src="https://yt3.ggpht.com/_hWm-xAfB1E6qupSvUebCTHoK5bYSPcVRQgasXb6STGBce0P7az-MGEHhDDpGmi8lVqlKynwYA=s48-c-k-c0x00ffffff-no-rj" alt="" width="20" height="20" class="size-5 shrink-0 rounded-full bg-surface-2" loading="lazy" decoding="async"><span class="truncate">김선찌 kimseonjji</span></p>
+              </div>
+            </div>
+          </td>
+          <td class="td hidden pr-4 xl:table-cell"><span class="flex min-w-0 items-center gap-2.5"><img src="https://yt3.ggpht.com/_hWm-xAfB1E6qupSvUebCTHoK5bYSPcVRQgasXb6STGBce0P7az-MGEHhDDpGmi8lVqlKynwYA=s88-c-k-c0x00ffffff-no-rj" alt="" width="32" height="32" class="size-8 shrink-0 rounded-full bg-surface-2" loading="lazy" decoding="async"><span class="truncate text-body-sm text-fg-2">김선찌 kimseonjji</span></span></td>
+          <td class="td tnum pr-4 text-right"><span class="text-[18px] font-extrabold tracking-[-0.02em]" title="4.1만회">4.1만</span></td>
+          <td class="td tnum pr-4 text-right text-body-sm text-fg-2">7.15만</td>
+          <td class="td pr-4 text-right text-body-sm text-fg-3">14시간 전</td>
+          <td class="td"></td>
+        </tr>
+        <tr class="row" data-row data-ch="해피지유데이_Hi Jiyu">
+          <td class="td"><label class="flex size-11 cursor-pointer items-center justify-center"><input type="checkbox" class="chk" aria-label="생에 첫 차박을 했습니다! 아늑하면서도 불편했던 차박 캠핑 #차박 #차박캠핑 선택" data-pick data-i="9"></label></td>
+          <td class="td relative pr-6">
+            <div class="flex items-center gap-4">
+              <span class="relative block w-32 shrink-0 overflow-hidden rounded-control bg-surface-2 xl:w-36"><img src="https://i.ytimg.com/vi/Usgr6KczKKg/mqdefault.jpg" alt="" width="320" height="180" class="aspect-video w-full object-cover" loading="lazy" decoding="async"><span class="tnum absolute bottom-1.5 right-1.5 px-1.5 py-0.5 rounded bg-canvas/80 text-micro font-semibold leading-none">37:58</span></span>
+              <div class="min-w-0 flex-1">
+                <h3 class="text-ui font-medium text-fg-1"><button type="button" class="open-btn line-clamp-2 text-left leading-[1.5] after:absolute after:inset-0 hover:underline hover:underline-offset-4" aria-haspopup="dialog" data-open data-i="9">생에 첫 차박을 했습니다! 아늑하면서도 불편했던 차박 캠핑 #차박 #차박캠핑</button></h3>
+                <p class="mt-1 flex min-w-0 items-center gap-2 text-caption text-fg-3 xl:hidden"><img src="https://yt3.ggpht.com/w3aH0it6tsTDUTRIhO-wSK5iExRw0z_uGPa7SO09FlkWc1DAfZqMqJX7mBigbtM_Ycz-HHz7=s48-c-k-c0x00ffffff-no-rj" alt="" width="20" height="20" class="size-5 shrink-0 rounded-full bg-surface-2" loading="lazy" decoding="async"><span class="truncate">해피지유데이_Hi Jiyu</span></p>
+              </div>
+            </div>
+          </td>
+          <td class="td hidden pr-4 xl:table-cell"><span class="flex min-w-0 items-center gap-2.5"><img src="https://yt3.ggpht.com/w3aH0it6tsTDUTRIhO-wSK5iExRw0z_uGPa7SO09FlkWc1DAfZqMqJX7mBigbtM_Ycz-HHz7=s88-c-k-c0x00ffffff-no-rj" alt="" width="32" height="32" class="size-8 shrink-0 rounded-full bg-surface-2" loading="lazy" decoding="async"><span class="truncate text-body-sm text-fg-2">해피지유데이_Hi Jiyu</span></span></td>
+          <td class="td tnum pr-4 text-right"><span class="text-[18px] font-extrabold tracking-[-0.02em]" title="1.8만회">1.8만</span></td>
+          <td class="td tnum pr-4 text-right text-body-sm text-fg-2">9,940</td>
+          <td class="td pr-4 text-right text-body-sm text-fg-3">17시간 전</td>
+          <td class="td"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 결과 목록 (1024 미만): 왼쪽 44px 띠 = 선택, 나머지(썸네일·제목) = 영상 정보 열기 -->
+  <ul class="divide-y divide-line-soft border-b border-line-soft lg:hidden" aria-label="‘캠핑’ 검색 결과, 조회수 높은 순">
+    <li class="row is-selected -mx-6 flex pl-[11px] pr-6" data-row data-ch="[그리는연유]Drawing YeonYoo">
+      <label class="flex w-11 shrink-0 cursor-pointer justify-center pt-[19px]"><input type="checkbox" class="chk" aria-label="거친 폭우 속 아늑한 오두막 트럭에서 강아지와 우중캠핑 | 몰아보기ASMR 선택" checked data-pick data-i="0"></label>
+      <div class="relative flex min-w-0 flex-1 gap-3 py-4">
+        <span class="relative block w-28 shrink-0 self-start overflow-hidden rounded-control bg-surface-2 md:w-44"><img src="https://i.ytimg.com/vi/m-4iFexC194/mqdefault.jpg" alt="" width="320" height="180" class="aspect-video w-full object-cover" loading="lazy" decoding="async"><span class="tnum absolute bottom-1 right-1 px-1 py-0.5 rounded bg-canvas/80 text-micro font-semibold leading-none">2:14:50</span></span>
+        <div class="min-w-0 flex-1">
+          <h3 class="text-ui font-medium text-fg-1 md:text-body"><button type="button" class="open-btn line-clamp-2 text-left leading-[1.45] after:absolute after:inset-0" aria-haspopup="dialog" data-open data-i="0">거친 폭우 속 아늑한 오두막 트럭에서 강아지와 우중캠핑 | 몰아보기ASMR</button></h3>
+          <p class="mt-1 truncate text-micro text-fg-3">[그리는연유]Drawing YeonYoo</p>
+          <span class="tnum mt-0.5 flex flex-wrap items-baseline gap-x-1 text-micro text-fg-3"><span class="text-body-sm font-extrabold leading-[1.4] tracking-[-0.02em] text-fg">74.4만회</span><span>· 구독자 18.2만</span><span>· 9일 전</span></span>
+        </div>
+      </div>
+    </li>
+    <li class="row -mx-6 flex pl-[11px] pr-6" data-row data-ch="RYUCAMP">
+      <label class="flex w-11 shrink-0 cursor-pointer justify-center pt-[19px]"><input type="checkbox" class="chk" aria-label="캠핑 브이로그 . 3만원짜리 작은 텐트로 강아지와 최고의 낭만을 찾아 떠난 하루 여행 . 한우 소고기 숯불구이 . 바다 파도소리 ASMR 선택" data-pick data-i="1"></label>
+      <div class="relative flex min-w-0 flex-1 gap-3 py-4">
+        <span class="relative block w-28 shrink-0 self-start overflow-hidden rounded-control bg-surface-2 md:w-44"><img src="https://i.ytimg.com/vi/RJjYrO9ucwc/mqdefault.jpg" alt="" width="320" height="180" class="aspect-video w-full object-cover" loading="lazy" decoding="async"><span class="tnum absolute bottom-1 right-1 px-1 py-0.5 rounded bg-canvas/80 text-micro font-semibold leading-none">38:22</span></span>
+        <div class="min-w-0 flex-1">
+          <h3 class="text-ui font-medium text-fg-1 md:text-body"><button type="button" class="open-btn line-clamp-2 text-left leading-[1.45] after:absolute after:inset-0" aria-haspopup="dialog" data-open data-i="1">캠핑 브이로그 . 3만원짜리 작은 텐트로 강아지와 최고의 낭만을 찾아 떠난 하루 여행 . 한우 소고기 숯불구이 . 바다 파도소리 ASMR</button></h3>
+          <p class="mt-1 truncate text-micro text-fg-3">RYUCAMP</p>
+          <span class="tnum mt-0.5 flex flex-wrap items-baseline gap-x-1 text-micro text-fg-3"><span class="text-body-sm font-extrabold leading-[1.4] tracking-[-0.02em] text-fg">48.4만회</span><span>· 구독자 1.09만</span><span>· 4일 전</span></span>
+        </div>
+      </div>
+    </li>
+    <li class="row is-selected -mx-6 flex pl-[11px] pr-6" data-row data-ch="경가캠핑">
+      <label class="flex w-11 shrink-0 cursor-pointer justify-center pt-[19px]"><input type="checkbox" class="chk" aria-label="캠핑 5년 하고 알았습니다… 처음부터 알았으면 좋았을 캠핑팁 12가지 선택" checked data-pick data-i="2"></label>
+      <div class="relative flex min-w-0 flex-1 gap-3 py-4">
+        <span class="relative block w-28 shrink-0 self-start overflow-hidden rounded-control bg-surface-2 md:w-44"><img src="https://i.ytimg.com/vi/wTrF4puRFak/mqdefault.jpg" alt="" width="320" height="180" class="aspect-video w-full object-cover" loading="lazy" decoding="async"><span class="tnum absolute bottom-1 right-1 px-1 py-0.5 rounded bg-canvas/80 text-micro font-semibold leading-none">18:46</span></span>
+        <div class="min-w-0 flex-1">
+          <h3 class="text-ui font-medium text-fg-1 md:text-body"><button type="button" class="open-btn line-clamp-2 text-left leading-[1.45] after:absolute after:inset-0" aria-haspopup="dialog" data-open data-i="2">캠핑 5년 하고 알았습니다… 처음부터 알았으면 좋았을 캠핑팁 12가지</button></h3>
+          <p class="mt-1 truncate text-micro text-fg-3">경가캠핑</p>
+          <span class="tnum mt-0.5 flex flex-wrap items-baseline gap-x-1 text-micro text-fg-3"><span class="text-body-sm font-extrabold leading-[1.4] tracking-[-0.02em] text-fg">22.8만회</span><span>· 구독자 3.29만</span><span>· 1개월 전</span></span>
+        </div>
+      </div>
+    </li>
+    <li class="row -mx-6 flex pl-[11px] pr-6" data-row data-ch="토리 캠핑 TORI CAMP">
+      <label class="flex w-11 shrink-0 cursor-pointer justify-center pt-[19px]"><input type="checkbox" class="chk" aria-label="6m 텐트 치고 나니… 캠핑할 힘이 없네요 + 타스만 캠핑카 계약 선택" data-pick data-i="3"></label>
+      <div class="relative flex min-w-0 flex-1 gap-3 py-4">
+        <span class="relative block w-28 shrink-0 self-start overflow-hidden rounded-control bg-surface-2 md:w-44"><img src="https://i.ytimg.com/vi/qFOVzc1Kacg/mqdefault.jpg" alt="" width="320" height="180" class="aspect-video w-full object-cover" loading="lazy" decoding="async"><span class="tnum absolute bottom-1 right-1 px-1 py-0.5 rounded bg-canvas/80 text-micro font-semibold leading-none">25:59</span></span>
+        <div class="min-w-0 flex-1">
+          <h3 class="text-ui font-medium text-fg-1 md:text-body"><button type="button" class="open-btn line-clamp-2 text-left leading-[1.45] after:absolute after:inset-0" aria-haspopup="dialog" data-open data-i="3">6m 텐트 치고 나니… 캠핑할 힘이 없네요 + 타스만 캠핑카 계약</button></h3>
+          <p class="mt-1 truncate text-micro text-fg-3">토리 캠핑 TORI CAMP</p>
+          <span class="tnum mt-0.5 flex flex-wrap items-baseline gap-x-1 text-micro text-fg-3"><span class="text-body-sm font-extrabold leading-[1.4] tracking-[-0.02em] text-fg">22.1만회</span><span>· 구독자 36.9만</span><span>· 2일 전</span></span>
+        </div>
+      </div>
+    </li>
+    <li class="row -mx-6 flex pl-[11px] pr-6" data-row data-ch="캠핑쥐campingG">
+      <label class="flex w-11 shrink-0 cursor-pointer justify-center pt-[19px]"><input type="checkbox" class="chk" aria-label="사는 곳이 여행지가 되는 삶 / 3평 캠핑카 생활하는 법 선택" data-pick data-i="4"></label>
+      <div class="relative flex min-w-0 flex-1 gap-3 py-4">
+        <span class="relative block w-28 shrink-0 self-start overflow-hidden rounded-control bg-surface-2 md:w-44"><img src="https://i.ytimg.com/vi/odYrfTCO3z4/mqdefault.jpg" alt="" width="320" height="180" class="aspect-video w-full object-cover" loading="lazy" decoding="async"><span class="tnum absolute bottom-1 right-1 px-1 py-0.5 rounded bg-canvas/80 text-micro font-semibold leading-none">15:24</span></span>
+        <div class="min-w-0 flex-1">
+          <h3 class="text-ui font-medium text-fg-1 md:text-body"><button type="button" class="open-btn line-clamp-2 text-left leading-[1.45] after:absolute after:inset-0" aria-haspopup="dialog" data-open data-i="4">사는 곳이 여행지가 되는 삶 / 3평 캠핑카 생활하는 법</button></h3>
+          <p class="mt-1 truncate text-micro text-fg-3">캠핑쥐campingG</p>
+          <span class="tnum mt-0.5 flex flex-wrap items-baseline gap-x-1 text-micro text-fg-3"><span class="text-body-sm font-extrabold leading-[1.4] tracking-[-0.02em] text-fg">18.8만회</span><span>· 구독자 44.8만</span><span>· 1일 전</span></span>
+        </div>
+      </div>
+    </li>
+    <li class="row -mx-6 flex pl-[11px] pr-6" data-row data-ch="조조캠핑 JOJOCAMPING">
+      <label class="flex w-11 shrink-0 cursor-pointer justify-center pt-[19px]"><input type="checkbox" class="chk" aria-label="게판 5분전!? 가을 꽃게와 함께하는 충주호 캠핑 | 꽃게구이, 꽃게찜, 꽃게라면 3중주 | 충주 퀸스타운캠핑장 선택" data-pick data-i="5"></label>
+      <div class="relative flex min-w-0 flex-1 gap-3 py-4">
+        <span class="relative block w-28 shrink-0 self-start overflow-hidden rounded-control bg-surface-2 md:w-44"><img src="https://i.ytimg.com/vi/IslRWwmf_0s/mqdefault.jpg" alt="" width="320" height="180" class="aspect-video w-full object-cover" loading="lazy" decoding="async"><span class="tnum absolute bottom-1 right-1 px-1 py-0.5 rounded bg-canvas/80 text-micro font-semibold leading-none">34:21</span></span>
+        <div class="min-w-0 flex-1">
+          <h3 class="text-ui font-medium text-fg-1 md:text-body"><button type="button" class="open-btn line-clamp-2 text-left leading-[1.45] after:absolute after:inset-0" aria-haspopup="dialog" data-open data-i="5">게판 5분전!? 가을 꽃게와 함께하는 충주호 캠핑 | 꽃게구이, 꽃게찜, 꽃게라면 3중주 | 충주 퀸스타운캠핑장</button></h3>
+          <p class="mt-1 truncate text-micro text-fg-3">조조캠핑 JOJOCAMPING</p>
+          <span class="tnum mt-0.5 flex flex-wrap items-baseline gap-x-1 text-micro text-fg-3"><span class="text-body-sm font-extrabold leading-[1.4] tracking-[-0.02em] text-fg">18.6만회</span><span>· 구독자 80.5만</span><span>· 2일 전</span></span>
+        </div>
+      </div>
+    </li>
+    <li class="row -mx-6 flex pl-[11px] pr-6" data-row data-ch="짱크루TV Camping">
+      <label class="flex w-11 shrink-0 cursor-pointer justify-center pt-[19px]"><input type="checkbox" class="chk" aria-label="이제 가을캠핑 준비해야죠!? 최애 텐트+여유로운 캠핑장=완벽한 가을캠핑, 게다가 3시퇴실!? 너무 좋아요, camping 브이로그 선택" data-pick data-i="6"></label>
+      <div class="relative flex min-w-0 flex-1 gap-3 py-4">
+        <span class="relative block w-28 shrink-0 self-start overflow-hidden rounded-control bg-surface-2 md:w-44"><img src="https://i.ytimg.com/vi/vq8MDM9XyCY/mqdefault.jpg" alt="" width="320" height="180" class="aspect-video w-full object-cover" loading="lazy" decoding="async"><span class="tnum absolute bottom-1 right-1 px-1 py-0.5 rounded bg-canvas/80 text-micro font-semibold leading-none">34:57</span></span>
+        <div class="min-w-0 flex-1">
+          <h3 class="text-ui font-medium text-fg-1 md:text-body"><button type="button" class="open-btn line-clamp-2 text-left leading-[1.45] after:absolute after:inset-0" aria-haspopup="dialog" data-open data-i="6">이제 가을캠핑 준비해야죠!? 최애 텐트+여유로운 캠핑장=완벽한 가을캠핑, 게다가 3시퇴실!? 너무 좋아요, camping 브이로그</button></h3>
+          <p class="mt-1 truncate text-micro text-fg-3">짱크루TV Camping</p>
+          <span class="tnum mt-0.5 flex flex-wrap items-baseline gap-x-1 text-micro text-fg-3"><span class="text-body-sm font-extrabold leading-[1.4] tracking-[-0.02em] text-fg">4.8만회</span><span>· 구독자 4.79만</span><span>· 4일 전</span></span>
+        </div>
+      </div>
+    </li>
+    <li class="row -mx-6 flex pl-[11px] pr-6" data-row data-ch="박소령">
+      <label class="flex w-11 shrink-0 cursor-pointer justify-center pt-[19px]"><input type="checkbox" class="chk" aria-label="1일 9끼 먹는 가을 캠핑 맛있다(?) VLOG 선택" data-pick data-i="7"></label>
+      <div class="relative flex min-w-0 flex-1 gap-3 py-4">
+        <span class="relative block w-28 shrink-0 self-start overflow-hidden rounded-control bg-surface-2 md:w-44"><img src="https://i.ytimg.com/vi/ZB30xIO1vRQ/mqdefault.jpg" alt="" width="320" height="180" class="aspect-video w-full object-cover" loading="lazy" decoding="async"><span class="tnum absolute bottom-1 right-1 px-1 py-0.5 rounded bg-canvas/80 text-micro font-semibold leading-none">19:50</span></span>
+        <div class="min-w-0 flex-1">
+          <h3 class="text-ui font-medium text-fg-1 md:text-body"><button type="button" class="open-btn line-clamp-2 text-left leading-[1.45] after:absolute after:inset-0" aria-haspopup="dialog" data-open data-i="7">1일 9끼 먹는 가을 캠핑 맛있다(?) VLOG</button></h3>
+          <p class="mt-1 truncate text-micro text-fg-3">박소령</p>
+          <span class="tnum mt-0.5 flex flex-wrap items-baseline gap-x-1 text-micro text-fg-3"><span class="text-body-sm font-extrabold leading-[1.4] tracking-[-0.02em] text-fg">4.4만회</span><span>· 구독자 5.3만</span><span>· 8일 전</span></span>
+        </div>
+      </div>
+    </li>
+    <li class="row -mx-6 flex pl-[11px] pr-6" data-row data-ch="김선찌 kimseonjji">
+      <label class="flex w-11 shrink-0 cursor-pointer justify-center pt-[19px]"><input type="checkbox" class="chk" aria-label="나의 첫 솔로 캠핑 • 혼자서 제철 꽃게로 삼시세끼 차려먹기 • 산청 지리산 당근 캠핑장 선택" data-pick data-i="8"></label>
+      <div class="relative flex min-w-0 flex-1 gap-3 py-4">
+        <span class="relative block w-28 shrink-0 self-start overflow-hidden rounded-control bg-surface-2 md:w-44"><img src="https://i.ytimg.com/vi/OpyExrVf_OA/mqdefault.jpg" alt="" width="320" height="180" class="aspect-video w-full object-cover" loading="lazy" decoding="async"><span class="tnum absolute bottom-1 right-1 px-1 py-0.5 rounded bg-canvas/80 text-micro font-semibold leading-none">29:00</span></span>
+        <div class="min-w-0 flex-1">
+          <h3 class="text-ui font-medium text-fg-1 md:text-body"><button type="button" class="open-btn line-clamp-2 text-left leading-[1.45] after:absolute after:inset-0" aria-haspopup="dialog" data-open data-i="8">나의 첫 솔로 캠핑 • 혼자서 제철 꽃게로 삼시세끼 차려먹기 • 산청 지리산 당근 캠핑장</button></h3>
+          <p class="mt-1 truncate text-micro text-fg-3">김선찌 kimseonjji</p>
+          <span class="tnum mt-0.5 flex flex-wrap items-baseline gap-x-1 text-micro text-fg-3"><span class="text-body-sm font-extrabold leading-[1.4] tracking-[-0.02em] text-fg">4.1만회</span><span>· 구독자 7.15만</span><span>· 14시간 전</span></span>
+        </div>
+      </div>
+    </li>
+    <li class="row -mx-6 flex pl-[11px] pr-6" data-row data-ch="해피지유데이_Hi Jiyu">
+      <label class="flex w-11 shrink-0 cursor-pointer justify-center pt-[19px]"><input type="checkbox" class="chk" aria-label="생에 첫 차박을 했습니다! 아늑하면서도 불편했던 차박 캠핑 #차박 #차박캠핑 선택" data-pick data-i="9"></label>
+      <div class="relative flex min-w-0 flex-1 gap-3 py-4">
+        <span class="relative block w-28 shrink-0 self-start overflow-hidden rounded-control bg-surface-2 md:w-44"><img src="https://i.ytimg.com/vi/Usgr6KczKKg/mqdefault.jpg" alt="" width="320" height="180" class="aspect-video w-full object-cover" loading="lazy" decoding="async"><span class="tnum absolute bottom-1 right-1 px-1 py-0.5 rounded bg-canvas/80 text-micro font-semibold leading-none">37:58</span></span>
+        <div class="min-w-0 flex-1">
+          <h3 class="text-ui font-medium text-fg-1 md:text-body"><button type="button" class="open-btn line-clamp-2 text-left leading-[1.45] after:absolute after:inset-0" aria-haspopup="dialog" data-open data-i="9">생에 첫 차박을 했습니다! 아늑하면서도 불편했던 차박 캠핑 #차박 #차박캠핑</button></h3>
+          <p class="mt-1 truncate text-micro text-fg-3">해피지유데이_Hi Jiyu</p>
+          <span class="tnum mt-0.5 flex flex-wrap items-baseline gap-x-1 text-micro text-fg-3"><span class="text-body-sm font-extrabold leading-[1.4] tracking-[-0.02em] text-fg">1.8만회</span><span>· 구독자 9,940</span><span>· 17시간 전</span></span>
+        </div>
+      </div>
+    </li>
+  </ul>
+
+  <div class="mt-8 flex flex-col items-center gap-2">
+    <button type="button" class="btn btn-secondary h-12 px-8 text-ui">더보기</button>
+    <p class="tnum text-caption text-fg-3">50개 표시 · 더보기로 최대 100개</p>
+  </div>
+
+  <div class="mt-12 grid gap-3 md:grid-cols-2 md:gap-4">
+    <aside class="flex flex-col justify-between gap-5 rounded-card border border-line bg-surface p-5 lg:p-6">
+      <div>
+        <p class="text-caption text-fg-3">Pro 플랜</p>
+        <p class="mt-1 text-lead font-bold leading-[1.45]"><span class="whitespace-nowrap">영상 수집</span> · <span class="whitespace-nowrap">CSV 내보내기</span> · <span class="whitespace-nowrap">채널 분석 리포트</span></p>
+        <p class="tnum mt-1.5 text-caption text-fg-3"><span class="whitespace-nowrap">월 45,000원</span> <span class="whitespace-nowrap">(연간 결제 시 월 39,000원)</span> · <span class="whitespace-nowrap">영상 검색 월 500회</span></p>
+      </div>
+      <a href="/pricing" class="btn btn-secondary h-11 self-start px-5 text-body-sm">요금제 보기</a>
+    </aside>
+    <aside class="flex flex-col justify-between gap-5 rounded-card border border-line bg-surface p-5 lg:p-6">
+      <div class="flex items-start gap-4">
+        <img src="https://yt3.googleusercontent.com/1wD45zOpnfNTAG4Kq8qs2T27tNyxqXTKC5a23qB6N8zl5SNlU8ugdUCx2yywcrFnBqywfz2z9w=s240-c-k-c0x00ffffff-no-rj" alt="" width="48" height="48" class="size-12 shrink-0 rounded-full bg-surface-2" loading="lazy" decoding="async">
+        <div>
+          <p class="text-caption text-fg-3">팀비블 1:1 유튜브 컨설팅</p>
+          <p class="mt-1 text-lead font-bold leading-[1.45]">검색 결과를 어떤 영상으로 만들지 막막하다면, 비블과 1:1로 정하세요</p>
+          <p class="tnum mt-1.5 text-caption text-fg-3"><span class="whitespace-nowrap">월 49만원</span> · <span class="whitespace-nowrap">매주 1:1 미팅</span> · <span class="whitespace-nowrap">VOD 100강</span></p>
+        </div>
+      </div>
+      <a href="/studio/class/consulting" class="btn btn-secondary h-11 self-start px-5 text-body-sm">컨설팅 알아보기</a>
+    </aside>
+  </div>
+</main>
+
+<!-- ───────── 선택 모드 막대: 고른 영상이 있어야 하는 동작(채널 제거)만. 768 미만은 화면 아래 전체 폭, 768 이상은 가운데에 떠 있는 막대 ───────── -->
+<div data-selbar data-selection-bar class="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-canvas px-3 pb-[max(.75rem,env(safe-area-inset-bottom))] pt-3 md:hidden">
+  <div class="mx-auto flex max-w-md items-center gap-2">
+    <button type="button" class="btn btn-ghost size-11 shrink-0 p-0" aria-label="선택 해제" data-clear><svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    <p class="tnum text-body-sm font-semibold"><span data-count>2</span>개 선택</p>
+    <button type="button" class="btn btn-secondary ml-auto h-11 shrink-0 px-4 text-body-sm" data-remove>채널 제거</button>
+  </div>
+</div>
+<div data-selbar class="pointer-events-none fixed inset-x-0 bottom-6 z-30 hidden justify-center px-6 md:flex">
+  <div class="pointer-events-auto flex items-center gap-1 rounded-card border border-line-strong bg-surface-2 p-1.5">
+    <button type="button" class="btn btn-ghost size-9 shrink-0 p-0 pointer-coarse:size-11" aria-label="선택 해제" data-clear><svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    <p class="tnum px-1.5 text-body-sm font-semibold"><span data-count>2</span>개 선택</p>
+    <span aria-hidden="true" class="mx-1 h-4 w-px bg-line-strong"></span>
+    <button type="button" class="btn btn-secondary h-9 shrink-0 px-3 text-body-sm pointer-coarse:h-11" data-remove>채널 제거</button>
+  </div>
+</div>
+
+<!-- 채널 제거 뒤 되돌리기(R05 토스트 층 z-70, 5초). 모바일은 카카오 버튼 위 -->
+<div id="toast" role="status" hidden class="fixed inset-x-4 bottom-24 z-70 mx-auto flex max-w-md items-center gap-3 rounded-card border border-line-strong bg-surface-2 py-1.5 pl-4 pr-1.5 md:bottom-6">
+  <p class="min-w-0 flex-1 text-body-sm" data-toast-text>2개 채널을 목록에서 숨겼습니다</p>
+  <button type="button" class="btn btn-ghost h-11 shrink-0 px-3 text-body-sm text-fg" data-undo>되돌리기</button>
+</div>
+
+<!-- 영상 정보(VideoModal 자리): 모바일은 전체 화면 시트, 768 이상은 가운데 상자. YouTube 이동은 이 안에서 -->
+<dialog id="video-dialog" class="dlg dlg-video" aria-labelledby="vd-title">
+  <div class="p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] md:p-6">
+    <div class="flex items-center justify-between gap-3">
+      <p class="text-caption text-fg-3">영상 정보 · 예시 화면</p>
+      <button type="button" class="btn btn-ghost -mr-2 size-11 p-0" aria-label="닫기" data-close><svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <div class="mt-2 overflow-hidden rounded-control bg-surface"><img data-v="thumb" alt="" width="640" height="360" class="aspect-video w-full object-cover"></div>
+    <h2 id="vd-title" class="mt-4 text-lead font-bold leading-[1.45]" data-v="title"></h2>
+    <div class="mt-3 flex items-center gap-2.5">
+      <img data-v="avatar" alt="" width="32" height="32" class="size-8 shrink-0 rounded-full bg-surface-3">
+      <p class="min-w-0 text-body-sm"><span class="font-semibold" data-v="ch"></span> <span class="tnum text-fg-3" data-v="subs"></span></p>
+    </div>
+    <p class="tnum mt-3 text-body-sm text-fg-2"><span class="font-extrabold text-fg" data-v="views"></span> · <span data-v="pub"></span> · <span data-v="len"></span></p>
+    <p class="mt-3 text-micro text-fg-3">설명⁠·⁠댓글⁠·⁠채널 정보는 실제 화면에서 이 아래에 이어집니다.</p>
+    <div class="mt-6 flex gap-2">
+      <a data-v="yt" target="_blank" rel="noopener noreferrer" class="btn btn-primary h-11 flex-1 px-5 text-ui">YouTube에서 보기</a>
+      <button type="button" class="btn btn-secondary h-11 px-5 text-ui" data-close>닫기</button>
+    </div>
+  </div>
+</dialog>
+
+<!-- 확인창·안내창(R05 셸 + useConfirm 모양). 내용은 아래 템플릿에서 채운다 -->
+<dialog id="confirm-dialog" class="dlg" aria-labelledby="cd-title">
+  <div class="p-6" data-body></div>
+</dialog>
+<template id="tpl-competition">
+  <h2 id="cd-title" class="text-body font-semibold">키워드 경쟁도 분석</h2>
+  <p class="mt-2 text-body-sm text-fg-3">경쟁도 분석을 진행하시겠습니까?</p>
+  <p class="mt-4 rounded-control border border-line bg-surface p-3 text-micro font-normal leading-[1.7] text-fg-2">※ 이 도구는 사용자가 직접 활성화하는 자가 계산 도구입니다. YouTube 공식 메트릭이 아니며, bibl lab의 평가 지표가 아닙니다. 공개된 데이터를 사용자 브라우저에서 단순 산술로 처리한 참고 값입니다.</p>
+  <div class="mt-6 flex justify-end gap-2">
+    <button type="button" class="btn btn-secondary h-11 px-5 text-ui" data-close>취소</button>
+    <button type="button" class="btn btn-primary h-11 px-5 text-ui" data-close autofocus>확인</button>
+  </div>
+</template>
+<template id="tpl-prob">
+  <h2 id="cd-title" class="text-body font-semibold">알고리즘 확률 분석</h2>
+  <p class="mt-2 text-body-sm text-fg-3">알고리즘 확률 분석을 진행하시겠습니까?</p>
+  <p class="mt-4 rounded-control border border-line bg-surface p-3 text-micro font-normal leading-[1.7] text-fg-2">※ 이 도구는 사용자가 직접 활성화하는 자가 계산 도구입니다. YouTube의 공식 메트릭이 아니며, bibl lab이 제공하는 평가 지표가 아닙니다. 공개된 메타데이터를 사용자 브라우저에서 단순 산술로 처리한 참고 값입니다.</p>
+  <div class="mt-6 flex justify-end gap-2">
+    <button type="button" class="btn btn-secondary h-11 px-5 text-ui" data-close>취소</button>
+    <button type="button" class="btn btn-primary h-11 px-5 text-ui" data-close autofocus>확인</button>
+  </div>
+</template>
+<template id="tpl-pro">
+  <h2 id="cd-title" class="text-body font-semibold"><span data-feature-name>채널 리포트는</span> Pro 플랜부터 쓸 수 있습니다</h2>
+  <p class="mt-2 text-body-sm text-fg-3">Pro 플랜에는 <span class="whitespace-nowrap">영상 수집</span> · <span class="whitespace-nowrap">CSV 내보내기</span> · <span class="whitespace-nowrap">채널 분석 리포트</span>가 들어 있습니다.</p>
+  <p class="tnum mt-4 text-body-sm"><span class="font-bold">월 45,000원</span> <span class="text-fg-3">· 연간 결제 시 월 39,000원</span></p>
+  <p class="mt-1 text-caption text-fg-3" data-keep>고른 영상 <span data-keep-count>2</span>개는 그대로 남아 있습니다.</p>
+  <div class="mt-6 flex justify-end gap-2">
+    <button type="button" class="btn btn-secondary h-11 px-5 text-ui" data-close>닫기</button>
+    <a href="/pricing" class="btn btn-primary h-11 px-5 text-ui">요금제 보기</a>
+  </div>
+</template>
+
+<!-- 실제 사이트의 카카오 상담 버튼(KakaoChatButton.tsx)과 같은 자리·크기·층 -->
+<a href="https://pf.kakao.com/_beBNn/chat" target="_blank" rel="noopener noreferrer" aria-label="카카오톡 채널로 문의하기" title="카카오톡 문의" data-kakao-fab class="group fixed bottom-5 right-5 z-40 flex size-14 items-center justify-center rounded-full bg-kakao text-kakao-icon transition-colors duration-150 hover:bg-kakao-hover md:bottom-6 md:right-6">
+  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3C6.477 3 2 6.477 2 10.5c0 2.568 1.524 4.832 3.848 6.24L4.5 21l4.38-2.318A11.3 11.3 0 0012 19c5.523 0 10-3.477 10-7.5S17.523 3 12 3z" fill="currentColor"/></svg>
+  <span class="pointer-events-none absolute right-full mr-3 hidden whitespace-nowrap rounded-lg border border-line-strong bg-surface-2 px-3 py-1.5 text-micro font-semibold text-fg opacity-0 transition-opacity group-hover:opacity-100 md:block">카카오톡 문의</span>
+</a>
+
+<script type="application/json" id="rows-data">[{"id": "m-4iFexC194", "title": "거친 폭우 속 아늑한 오두막 트럭에서 강아지와 우중캠핑 | 몰아보기ASMR", "ch": "[그리는연유]Drawing YeonYoo", "s": "18.2만", "views": "조회수 74.4만회", "pub": "9일 전", "len": "2:14:50", "avatar": "https://yt3.ggpht.com/LmllKjdJtSemlBsFr0jV-xhQuiHjqbEX3YDe24xus9Se80kmwk6FB1Ew7JVQzhumpJfYILSgjw=s88-c-k-c0x00ffffff-no-rj"}, {"id": "RJjYrO9ucwc", "title": "캠핑 브이로그 . 3만원짜리 작은 텐트로 강아지와 최고의 낭만을 찾아 떠난 하루 여행 . 한우 소고기 숯불구이 . 바다 파도소리 ASMR", "ch": "RYUCAMP", "s": "1.09만", "views": "조회수 48.4만회", "pub": "4일 전", "len": "38:22", "avatar": "https://yt3.ggpht.com/GXHQaBDvcaQULKWPHCZAQyFHz0Dg01a8yKwrf-A1r2ry8iCRp1A45DDD9iTc9S6gmR-ALLkVbo4=s88-c-k-c0x00ffffff-no-rj"}, {"id": "wTrF4puRFak", "title": "캠핑 5년 하고 알았습니다… 처음부터 알았으면 좋았을 캠핑팁 12가지", "ch": "경가캠핑", "s": "3.29만", "views": "조회수 22.8만회", "pub": "1개월 전", "len": "18:46", "avatar": "https://yt3.ggpht.com/X_oNGd2py-Fb7XXaRZdBWKK3v4xFMaKXfi7wE2GbZKYXM7IqYXlwHs7dALJTbFphbM5UxRQES-o=s88-c-k-c0x00ffffff-no-rj"}, {"id": "qFOVzc1Kacg", "title": "6m 텐트 치고 나니… 캠핑할 힘이 없네요 + 타스만 캠핑카 계약", "ch": "토리 캠핑 TORI CAMP", "s": "36.9만", "views": "조회수 22.1만회", "pub": "2일 전", "len": "25:59", "avatar": "https://yt3.ggpht.com/I29ElLQ_x4YJT15COuxdRmyqbpmNyZf9U-4STz-jl6jQGjuCBkInpJ6DTgW1180VC262Ba7C=s88-c-k-c0x00ffffff-no-rj"}, {"id": "odYrfTCO3z4", "title": "사는 곳이 여행지가 되는 삶 / 3평 캠핑카 생활하는 법", "ch": "캠핑쥐campingG", "s": "44.8만", "views": "조회수 18.8만회", "pub": "1일 전", "len": "15:24", "avatar": "https://yt3.ggpht.com/ytc/AIdro_nJ4nepK03e0l5VmBnALATw_koWJdgf-PgNZOfIQr7Sg2I=s88-c-k-c0x00ffffff-no-rj"}, {"id": "IslRWwmf_0s", "title": "게판 5분전!? 가을 꽃게와 함께하는 충주호 캠핑 | 꽃게구이, 꽃게찜, 꽃게라면 3중주 | 충주 퀸스타운캠핑장", "ch": "조조캠핑 JOJOCAMPING", "s": "80.5만", "views": "조회수 18.6만회", "pub": "2일 전", "len": "34:21", "avatar": "https://yt3.ggpht.com/18YJR5w6PzfAFHXKH_Mnr2mxQ2pyTcwl0ayC5ojTVzb91pDf7MbzrBwY2EkZjaQH1Uk_PZHPBg=s88-c-k-c0x00ffffff-no-rj"}, {"id": "vq8MDM9XyCY", "title": "이제 가을캠핑 준비해야죠!? 최애 텐트+여유로운 캠핑장=완벽한 가을캠핑, 게다가 3시퇴실!? 너무 좋아요, camping 브이로그", "ch": "짱크루TV Camping", "s": "4.79만", "views": "조회수 4.8만회", "pub": "4일 전", "len": "34:57", "avatar": "https://yt3.ggpht.com/ytc/AIdro_lZXlcjxtv8eiGPivmht6Moeh9nTy9D-37q4ceEUjQ9Yqc=s88-c-k-c0x00ffffff-no-rj"}, {"id": "ZB30xIO1vRQ", "title": "1일 9끼 먹는 가을 캠핑 맛있다(?) VLOG", "ch": "박소령", "s": "5.3만", "views": "조회수 4.4만회", "pub": "8일 전", "len": "19:50", "avatar": "https://yt3.ggpht.com/7dtHKetoy6CY8G7d8nH5OPvopWbg9_PVnBsObEi--uxyfCKNlbmZ2QlO_gp4xHZFEpH1J5LlTQ=s88-c-k-c0x00ffffff-no-rj"}, {"id": "OpyExrVf_OA", "title": "나의 첫 솔로 캠핑 • 혼자서 제철 꽃게로 삼시세끼 차려먹기 • 산청 지리산 당근 캠핑장", "ch": "김선찌 kimseonjji", "s": "7.15만", "views": "조회수 4.1만회", "pub": "14시간 전", "len": "29:00", "avatar": "https://yt3.ggpht.com/_hWm-xAfB1E6qupSvUebCTHoK5bYSPcVRQgasXb6STGBce0P7az-MGEHhDDpGmi8lVqlKynwYA=s88-c-k-c0x00ffffff-no-rj"}, {"id": "Usgr6KczKKg", "title": "생에 첫 차박을 했습니다! 아늑하면서도 불편했던 차박 캠핑 #차박 #차박캠핑", "ch": "해피지유데이_Hi Jiyu", "s": "9,940", "views": "조회수 1.8만회", "pub": "17시간 전", "len": "37:58", "avatar": "https://yt3.ggpht.com/w3aH0it6tsTDUTRIhO-wSK5iExRw0z_uGPa7SO09FlkWc1DAfZqMqJX7mBigbtM_Ycz-HHz7=s88-c-k-c0x00ffffff-no-rj"}]</script>
+<!-- 정적 시안의 작은 스크립트: 선택(표·목록 동기화)·채널 제거와 되돌리기·대화상자 열고 닫기만. 검색·정렬·필터는 동작하지 않는다 -->
+<script>
+(() => {
+  const rows = JSON.parse(document.getElementById('rows-data').textContent);
+  const picks = [...document.querySelectorAll('[data-pick]')];
+  const alls = [...document.querySelectorAll('[data-pick-all]')];
+  const bars = [...document.querySelectorAll('[data-selbar]')];
+  const counts = [...document.querySelectorAll('[data-count]')];
+  const rowEls = [...document.querySelectorAll('[data-row]')];
+  const shown = (p) => !p.closest('[data-row]').hidden;
+  const selected = () => new Set(picks.filter((p) => p.checked && shown(p)).map((p) => p.dataset.i));
+  const total = () => new Set(picks.filter(shown).map((p) => p.dataset.i)).size;
+  const render = () => {
+    const on = selected();
+    picks.forEach((p) => p.closest('[data-row]').classList.toggle('is-selected', p.checked));
+    counts.forEach((c) => { c.textContent = on.size; });
+    bars.forEach((b) => { b.hidden = on.size === 0; });
+    alls.forEach((a) => { a.checked = on.size > 0 && on.size === total(); a.indeterminate = on.size > 0 && on.size < total(); });
+  };
+  picks.forEach((p) => p.addEventListener('change', () => {
+    picks.filter((q) => q.dataset.i === p.dataset.i).forEach((q) => { q.checked = p.checked; });
+    render();
+  }));
+  alls.forEach((a) => a.addEventListener('change', () => { picks.filter(shown).forEach((p) => { p.checked = a.checked; }); render(); }));
+  document.querySelectorAll('[data-clear]').forEach((b) => b.addEventListener('click', () => { picks.forEach((p) => { p.checked = false; }); render(); }));
+
+  const toast = document.getElementById('toast');
+  let undo = null; let timer = null;
+  document.querySelectorAll('[data-remove]').forEach((b) => b.addEventListener('click', () => {
+    const chs = new Set([...selected()].map((i) => rows[i].ch));
+    const hide = rowEls.filter((r) => chs.has(r.dataset.ch) && !r.hidden);
+    hide.forEach((r) => { r.hidden = true; });
+    picks.forEach((p) => { p.checked = false; });
+    render();
+    undo = () => { hide.forEach((r) => { r.hidden = false; }); render(); };
+    toast.querySelector('[data-toast-text]').textContent = `${chs.size}개 채널을 목록에서 숨겼습니다`;
+    toast.hidden = false; clearTimeout(timer); timer = setTimeout(() => { toast.hidden = true; }, 5000);
+  }));
+  toast.querySelector('[data-undo]').addEventListener('click', () => { if (undo) undo(); toast.hidden = true; });
+
+  const vd = document.getElementById('video-dialog');
+  const set = (k, v) => { vd.querySelector(`[data-v="${k}"]`).textContent = v; };
+  document.querySelectorAll('[data-open]').forEach((btn) => btn.addEventListener('click', () => {
+    const r = rows[btn.dataset.i];
+    vd.querySelector('[data-v="thumb"]').src = `https://i.ytimg.com/vi/${r.id}/sddefault.jpg`;
+    vd.querySelector('[data-v="avatar"]').src = r.avatar;
+    vd.querySelector('[data-v="yt"]').href = `https://www.youtube.com/watch?v=${r.id}`;
+    set('title', r.title); set('ch', r.ch); set('subs', `구독자 ${r.s}`);
+    set('views', r.views); set('pub', r.pub); set('len', r.len);
+    vd.showModal();
+  }));
+  const cd = document.getElementById('confirm-dialog');
+  document.querySelectorAll('[data-confirm]').forEach((btn) => btn.addEventListener('click', () => {
+    const body = cd.querySelector('[data-body]');
+    body.replaceChildren(document.getElementById(`tpl-${btn.dataset.confirm}`).content.cloneNode(true));
+    if (btn.dataset.feature) {
+      body.querySelector('[data-feature-name]').textContent = btn.dataset.feature;
+      const n = selected().size;
+      body.querySelector('[data-keep]').hidden = n === 0;
+      body.querySelector('[data-keep-count]').textContent = n;
+    }
+    cd.showModal();
+  }));
+  document.querySelectorAll('dialog').forEach((d) => d.addEventListener('click', (e) => {
+    if (e.target === d || e.target.closest('[data-close]')) d.close();
+  }));
+  document.querySelectorAll('form[data-try-search]').forEach((f) => f.addEventListener('submit', (e) => e.preventDefault()));
+  render();
+})();
+</script>
+</body>
+</html>

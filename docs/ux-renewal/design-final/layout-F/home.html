@@ -1,0 +1,761 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>비블랩 홈 · 최종 시안 F</title>
+<meta name="description" content="bibllab.com 최종 디자인 시안. 시안 C(크리에이터 브랜드)의 언어 위에 시안 A 의 유튜브 트렌드 첫 화면을 얹은 홈.">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+<style type="text/tailwindcss">
+/* 토큰: R03(globals.css) 이름·값을 그대로 쓰고, 제목 굵기만 800(F 제안, R03 900). F 가 더한 것은 title·ui·container-wide 셋 */
+@theme {
+  --font-sans: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
+  --color-accent: #00e5a0;
+  --color-accent-hover: #66ffcc;
+  --color-kakao: #fee500;
+  --color-kakao-hover: #fdd835;
+  --color-kakao-ink: #191919;
+
+  --text-display: 3.75rem;
+  --text-display--line-height: 1.15;
+  --text-display--letter-spacing: -0.03em;
+  --text-display--font-weight: 800;
+  --text-h1: 3rem;
+  --text-h1--line-height: 1.2;
+  --text-h1--letter-spacing: -0.025em;
+  --text-h1--font-weight: 800;
+  --text-h2: 2.25rem;
+  --text-h2--line-height: 1.25;
+  --text-h2--letter-spacing: -0.02em;
+  --text-h2--font-weight: 800;
+  --text-h3: 1.75rem;
+  --text-h3--line-height: 1.3;
+  --text-h3--letter-spacing: -0.02em;
+  --text-h3--font-weight: 800;
+  --text-title: 1.5rem;
+  --text-title--line-height: 1.3;
+  --text-title--letter-spacing: -0.02em;
+  --text-title--font-weight: 800;
+  --text-h4: 1.25rem;
+  --text-h4--line-height: 1.4;
+  --text-h4--letter-spacing: -0.01em;
+  --text-h4--font-weight: 700;
+  --text-lead: 1.125rem;
+  --text-lead--line-height: 1.7;
+  --text-lead--letter-spacing: -0.005em;
+  --text-body: 1rem;
+  --text-body--line-height: 1.75;
+  --text-ui: 0.9375rem;
+  --text-ui--line-height: 1.6;
+  --text-body-sm: 0.875rem;
+  --text-body-sm--line-height: 1.7;
+  --text-caption: 0.8125rem;
+  --text-caption--line-height: 1.5;
+  --text-caption--font-weight: 500;
+  --text-micro: 0.75rem;
+  --text-micro--line-height: 1.5;
+  --text-micro--font-weight: 500;
+
+  --radius-control: 0.5rem;
+  --radius-card: 0.75rem;
+  --radius-panel: 1rem;
+
+  --container-page: 75rem;
+  --container-reading: 42rem;
+  --container-wide: 80rem;
+
+  --breakpoint-nav: 80rem;
+}
+@layer base {
+  html {
+    background: #000;
+    color: #fff;
+    color-scheme: dark;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    word-break: keep-all;
+    overflow-wrap: break-word;
+  }
+  h1, h2, h3, h4 { text-wrap-style: balance; }
+  p, li, dd, figcaption { text-wrap-style: pretty; }
+  :focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+  ::selection { background: var(--color-accent); color: #000; }
+  button:not(:disabled), summary { cursor: pointer; }
+  summary { list-style: none; }
+  summary::-webkit-details-marker { display: none; }
+  img { color: transparent; }
+  input[type="search"]::-webkit-search-cancel-button { display: none; }
+}
+@layer components {
+  .tnum { font-variant-numeric: tabular-nums; }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
+    white-space: nowrap; border-radius: var(--radius-control); font-weight: 700;
+    transition: background-color .15s ease-out, border-color .15s ease-out, color .15s ease-out;
+  }
+  .btn-primary { background: #fff; color: #000; }
+  .btn-primary:hover { background: #e5e5e5; }
+  .btn-primary:active { background: #d4d4d4; }
+  .btn-secondary { border: 1px solid #404040; background: #0a0a0a; color: #fff; font-weight: 600; }
+  .btn-secondary:hover { border-color: #525252; background: #171717; }
+  .navlink {
+    display: inline-flex; height: 2.25rem; align-items: center; border-radius: var(--radius-control);
+    padding-inline: .75rem; font-size: .875rem; font-weight: 500; color: #a1a1a1; transition: color .15s ease-out;
+  }
+  .navlink:hover { color: #fff; }
+  .navlink.is-strong { color: #fff; font-weight: 600; }
+  /* 섹션 머리: R04 SectionHeader 와 같은 값(캡션 12/14 · 영문 라벨 14/16 900 0.25em · 헤어라인 · 아래 40/48) */
+  .sec-head {
+    display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    margin-bottom: 2.5rem; border-bottom: 1px solid #262626; padding-bottom: 1rem;
+  }
+  .sec-head__caption { font-size: .75rem; line-height: 1.5; color: #a1a1a1; }
+  .sec-head__label { flex-shrink: 0; font-size: .875rem; line-height: 1.25rem; font-weight: 900; letter-spacing: .25em; color: #fff; }
+  @media (width >= 48rem) {
+    .sec-head { margin-bottom: 3rem; }
+    .sec-head__caption { font-size: .875rem; }
+    .sec-head__label { font-size: 1rem; line-height: 1.5rem; }
+  }
+  .card {
+    position: relative; display: flex; flex-direction: column; overflow: hidden;
+    border: 1px solid #262626; border-radius: var(--radius-panel); background: #0a0a0a;
+    transition: border-color .15s ease-out;
+  }
+  .card:hover { border-color: #525252; }
+  .card-link::after { content: ""; position: absolute; inset: 0; }
+  /* 카드 전체가 링크라 포커스 링도 카드 둘레에 그린다 */
+  .card-link:focus-visible { outline: none; }
+  .card:has(.card-link:focus-visible) { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+  .chip {
+    display: inline-flex; height: 2.5rem; flex-shrink: 0; align-items: center; border-radius: var(--radius-control);
+    border: 1px solid #262626; padding-inline: .75rem; font-size: .8125rem; font-weight: 500; color: #d4d4d4;
+    transition: border-color .15s ease-out, color .15s ease-out;
+  }
+  .chip:hover { border-color: #525252; color: #fff; }
+  @media (width >= 40rem) { .chip { height: 2.25rem; padding-inline: .625rem; } }
+  @media (pointer: coarse) { .chip { height: 2.75rem; } }
+  .ext { display: inline-block; width: .8em; height: .8em; flex-shrink: 0; vertical-align: -.05em; color: #a1a1a1; }
+  .no-scrollbar { scrollbar-width: none; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+}
+</style>
+</head>
+<body class="bg-black font-sans text-white">
+<a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-control focus:bg-white focus:px-4 focus:py-2 focus:text-black">본문으로 건너뛰기</a>
+
+<!-- ───────── 네비 (시안 C): 비블과 함께 | 직접 하기. 한 줄 메뉴 시작점은 R03 의 --breakpoint-nav(1280) ───────── -->
+<header class="sticky top-0 z-50 border-b border-neutral-800 bg-black">
+  <div class="mx-auto flex h-14 max-w-wide items-center gap-6 px-6 lg:px-8 nav:h-16">
+    <a href="/" class="inline-flex h-11 shrink-0 items-center rounded-md" aria-label="bibl lab 홈">
+      <span class="inline-flex items-center gap-2">
+        <span aria-hidden="true" class="inline-flex size-8 shrink-0 items-center justify-center rounded-lg border border-neutral-700 bg-black text-lg font-black leading-none">B</span>
+        <span class="text-base font-bold tracking-tight">bibl<span class="text-neutral-400"> lab</span></span>
+      </span>
+    </a>
+
+    <nav aria-label="주 메뉴" class="hidden min-w-0 flex-1 items-center nav:flex">
+      <ul class="flex items-center" aria-label="비블과 함께">
+        <li><a class="navlink is-strong" href="/studio/class/consulting">팀비블 1:1 유튜브 컨설팅</a></li>
+        <li><a class="navlink is-strong" href="/studio">유튜브 채널 대행 문의</a></li>
+        <li><a class="navlink is-strong" href="/incubating">브랜드 인큐베이팅</a></li>
+      </ul>
+      <span aria-hidden="true" class="mx-3 h-4 w-px bg-neutral-800"></span>
+      <ul class="flex items-center" aria-label="직접 하기">
+        <li><a class="navlink" href="/trend-search">유튜브 트렌드 서치</a></li>
+        <li><a class="navlink" href="/community">커뮤니티&amp;자료</a></li>
+        <li><a class="navlink" href="/pricing">요금제</a></li>
+      </ul>
+    </nav>
+
+    <div class="ml-auto flex items-center gap-1.5">
+      <a href="/sign-in" class="hidden h-9 items-center rounded-control px-3 text-body-sm font-medium text-neutral-300 transition-colors hover:text-white nav:inline-flex">로그인</a>
+      <!-- 첫 화면의 흰 버튼은 검색창의 '분석 시작' 하나. 네비는 보조 버튼 -->
+      <a href="/sign-up" class="btn btn-secondary h-11 px-4 text-body-sm nav:h-9">시작하기</a>
+      <details class="group nav:hidden">
+        <summary class="-mr-2 flex size-11 items-center justify-center rounded-control text-white transition-colors hover:bg-neutral-900" aria-label="전체 메뉴">
+          <svg class="size-6 group-open:hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+          <svg class="hidden size-6 group-open:block" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </summary>
+        <div class="fixed inset-x-0 bottom-0 top-14 overflow-y-auto border-t border-neutral-800 bg-black">
+          <div class="mx-auto max-w-wide px-6 pb-28 pt-2 lg:px-8">
+            <p class="pt-4 text-caption text-neutral-400">비블과 함께</p>
+            <ul class="mt-1 divide-y divide-neutral-900">
+              <li><a href="/studio/class/consulting" class="flex h-14 items-center justify-between text-lead font-semibold">팀비블 1:1 유튜브 컨설팅<span aria-hidden="true" class="text-neutral-500">→</span></a></li>
+              <li><a href="/studio" class="flex h-14 items-center justify-between text-lead font-semibold">유튜브 채널 대행 문의<span aria-hidden="true" class="text-neutral-500">→</span></a></li>
+              <li><a href="/incubating" class="flex h-14 items-center justify-between text-lead font-semibold">브랜드 인큐베이팅<span aria-hidden="true" class="text-neutral-500">→</span></a></li>
+            </ul>
+            <p class="mt-6 text-caption text-neutral-400">직접 하기</p>
+            <ul class="mt-1 divide-y divide-neutral-900">
+              <li><a href="/trend-search" class="flex h-14 items-center justify-between text-lead font-semibold">유튜브 트렌드 서치<span aria-hidden="true" class="text-neutral-500">→</span></a></li>
+              <li><a href="/community" class="flex h-14 items-center justify-between text-lead font-semibold">커뮤니티&amp;자료<span aria-hidden="true" class="text-neutral-500">→</span></a></li>
+              <li><a href="/pricing" class="flex h-14 items-center justify-between text-lead font-semibold">요금제<span aria-hidden="true" class="text-neutral-500">→</span></a></li>
+            </ul>
+            <div class="mt-8 grid gap-2">
+              <a href="/sign-up" class="btn btn-primary h-12 w-full text-ui">무료로 검색 시작하기</a>
+              <a href="/sign-in" class="btn btn-secondary h-12 w-full text-ui">로그인</a>
+            </div>
+          </div>
+        </div>
+      </details>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+
+<!-- ───────── 첫 화면: 시안 A 의 유튜브 트렌드 구역을 C 언어로 (인물 사진 없음) ───────── -->
+<section id="trend" aria-labelledby="trend-title" class="border-b border-neutral-800">
+  <div class="mx-auto max-w-wide px-6 pb-16 pt-8 sm:pt-12 lg:px-8 lg:pb-24 lg:pt-14">
+    <div class="grid grid-cols-1 gap-7 sm:gap-8 lg:grid-cols-12 lg:items-start lg:gap-6">
+
+      <div class="min-w-0 lg:col-span-8 lg:pr-6">
+        <h1 id="trend-title" class="text-h2 sm:text-[44px] lg:text-h1 xl:text-display">
+          <span class="block">키워드 하나로</span>
+          <span class="block"><span class="text-accent">유튜브 트렌드</span>를 파악하세요</span>
+        </h1>
+        <p class="mt-3 max-w-[34em] text-body text-neutral-300 sm:mt-4 lg:mt-5 lg:text-lead">조회수⁠·⁠구독자⁠·⁠게시일을 한눈에 확인하고 경쟁력 있는 콘텐츠 주제를 발견해 보세요.</p>
+
+        <!-- 구현: <form onSubmit> 과 예시 칩 onClick 은 기존 trySearch(키워드)를 그대로 부른다
+             (비로그인 → 로그인 모달 + setPendingKeyword, 로그인 → 확인창 → saveToHistory 로 반복 검색 횟수 → /search?q=…&count=N).
+             action="/search" 로 바로 보내면 로그인 게이트·count(반복 검색 누적 정책)·검색 기록이 빠진다 -->
+        <form role="search" data-try-search class="mt-6 flex h-14 max-w-[640px] items-center gap-2 rounded-card border border-neutral-700 bg-neutral-950 p-1 pl-4 transition-colors focus-within:border-accent lg:mt-8">
+          <svg class="size-5 shrink-0 text-neutral-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <label for="q" class="sr-only">분석할 키워드</label>
+          <input id="q" name="q" type="search" enterkeyhint="search" autocomplete="off" placeholder="분석할 키워드를 입력하세요" class="h-full min-w-0 flex-1 bg-transparent text-body text-white outline-none placeholder:text-neutral-400">
+          <button type="submit" class="btn btn-primary h-full px-5 text-ui">분석 시작</button>
+        </form>
+        <p class="mt-3 text-caption text-neutral-400">가입 후 하루 2회 무료 검색 · 1분 만에 시작</p>
+
+        <div class="no-scrollbar -mx-6 mt-4 flex items-center gap-1.5 overflow-x-auto px-6 sm:mx-0 sm:mt-5 sm:flex-wrap sm:overflow-visible sm:px-0">
+          <span class="mr-1 shrink-0 text-caption text-neutral-400">예시</span>
+          <button type="button" class="chip" data-example>캠핑</button>
+          <button type="button" class="chip" data-example>영어 공부</button>
+          <button type="button" class="chip" data-example>주식 투자</button>
+          <button type="button" class="chip" data-example>다이어트</button>
+          <button type="button" class="chip" data-example>여행 브이로그</button>
+          <button type="button" class="chip" data-example>요리 레시피</button>
+        </div>
+      </div>
+
+      <!-- 실적 열: 누구의 숫자인지 먼저, 숫자는 그 아래. 제목과 글자 윗선을 맞춘다(1024 이상).
+           숫자는 h1 보다 한 단계 아래(1024~1279 32px · 1280 이상 40px). 모바일은 왼쪽에 모아 카카오 버튼 자리(오른쪽 76px)를 비운다 -->
+      <aside aria-labelledby="trend-proof-title" class="lg:col-span-4 lg:border-l lg:border-neutral-800 lg:pl-8 lg:pt-[2px] xl:pt-[4px]">
+        <div class="flex items-baseline justify-between gap-4">
+          <p id="trend-proof-title" class="text-lead font-bold leading-[1.4]">비블이 운영⁠·⁠기획한 채널</p>
+          <a href="#channels" class="-my-3 inline-flex h-11 shrink-0 items-center gap-1 text-caption font-semibold text-neutral-300 transition-colors hover:text-white lg:hidden">채널 보기 <span aria-hidden="true">→</span></a>
+        </div>
+        <p class="mt-1 text-caption text-neutral-400"><span class="whitespace-nowrap">세계유명 골프정보⁠·⁠영어 키위새 외</span> <span class="whitespace-nowrap">전체 채널 기준 · <time datetime="2026-10">2026.10</time></span></p>
+        <dl class="mt-3 grid grid-cols-[auto_auto_auto] justify-start gap-x-4 border-t border-neutral-800 sm:grid-cols-3 sm:justify-normal lg:mt-5 lg:grid-cols-1 lg:divide-y lg:divide-neutral-900">
+          <div class="flex flex-col-reverse gap-1 pt-3 sm:gap-1.5 sm:pt-4 lg:py-4">
+            <dt class="text-caption text-neutral-400"><span class="sm:hidden">총 구독자</span><span class="hidden sm:inline">채널 총 구독자</span></dt>
+            <dd class="tnum text-[22px] font-extrabold leading-none tracking-[-0.03em] sm:text-[30px] lg:text-[32px] xl:text-[40px]">70만+</dd>
+          </div>
+          <div class="flex flex-col-reverse gap-1 pt-3 sm:gap-1.5 sm:pt-4 lg:py-4">
+            <dt class="text-caption text-neutral-400"><span class="sm:hidden">누적 조회수</span><span class="hidden sm:inline">채널 누적 조회수</span></dt>
+            <dd class="tnum text-[22px] font-extrabold leading-none tracking-[-0.03em] sm:text-[30px] lg:text-[32px] xl:text-[40px]">1.7억회+</dd>
+          </div>
+          <div class="flex flex-col-reverse gap-1 pt-3 sm:gap-1.5 sm:pt-4 lg:py-4">
+            <dt class="text-caption text-neutral-400">유튜브 매출</dt>
+            <dd class="tnum text-[22px] font-extrabold leading-none tracking-[-0.03em] sm:text-[30px] lg:text-[32px] xl:text-[40px]">10억원+</dd>
+          </div>
+        </dl>
+      </aside>
+    </div>
+
+    <!-- 검색 결과 미리보기: 앱(app.html) 결과 표와 같은 열·같은 단계(1280 미만은 채널을 제목 아래로).
+         에메랄드는 '지금 보는 자리'에만: 현재 도구 탭 밑줄 · 정렬 중인 열 -->
+    <figure class="mt-7 overflow-hidden rounded-panel border border-neutral-800 bg-neutral-950 sm:mt-8 lg:mt-10">
+      <div aria-hidden="true" class="pointer-events-none select-none">
+        <div class="hidden items-center justify-between gap-4 border-b border-neutral-800 px-5 sm:flex">
+          <div class="-mb-px flex gap-5 text-caption">
+            <span class="inline-flex h-11 items-center border-b-2 border-accent font-semibold text-white">영상 찾기</span>
+            <span class="inline-flex h-11 items-center border-b-2 border-transparent text-neutral-400">채널 찾기</span>
+            <span class="inline-flex h-11 items-center border-b-2 border-transparent text-neutral-400">채널 분석</span>
+            <span class="inline-flex h-11 items-center border-b-2 border-transparent text-neutral-400">수집한 영상</span>
+          </div>
+          <span class="shrink-0 rounded-md border border-neutral-700 px-2 py-0.5 text-micro text-neutral-300">예시 화면</span>
+        </div>
+        <div class="flex items-center gap-2 border-b border-neutral-800 px-4 py-3 sm:justify-between sm:gap-3 sm:px-5 lg:border-b-0">
+          <p class="text-body-sm font-extrabold">‘캠핑’ 결과 50개</p>
+          <div class="hidden rounded-control border border-neutral-800 p-1 text-micro sm:inline-flex">
+            <span class="rounded-md px-2.5 py-1 text-neutral-400">전체</span>
+            <span class="rounded-md bg-neutral-800 px-2.5 py-1 font-semibold text-white">쇼츠 제외</span>
+            <span class="rounded-md px-2.5 py-1 text-neutral-400">쇼츠만</span>
+          </div>
+          <span class="shrink-0 rounded-md border border-neutral-700 px-2 py-0.5 text-micro text-neutral-300 sm:hidden">예시 화면</span>
+        </div>
+
+        <!-- 데스크톱 표: 영상 · 채널(1280 이상) · 조회수 · 구독자 · 게시일 -->
+        <table class="hidden w-full table-fixed border-separate border-spacing-0 text-left lg:table">
+          <thead class="text-micro text-neutral-400">
+            <tr>
+              <th scope="col" class="border-y border-neutral-800 py-2.5 pl-5 font-medium">영상</th>
+              <th scope="col" class="hidden w-[208px] border-y border-neutral-800 py-2.5 font-medium xl:table-cell">채널</th>
+              <th scope="col" class="w-[104px] border-y border-neutral-800 py-2.5 pr-5 text-right font-semibold text-accent">조회수 ↓</th>
+              <th scope="col" class="w-24 border-y border-neutral-800 py-2.5 pr-5 text-right font-medium">구독자</th>
+              <th scope="col" class="w-[136px] border-y border-neutral-800 py-2.5 pr-16 text-right font-medium min-[1376px]:w-24 min-[1376px]:pr-5">게시일</th>
+            </tr>
+          </thead>
+          <tbody>
+
+          </tbody>
+        </table>
+
+        <!-- 1024 미만 목록: 앱 목록과 같은 메타(채널 한 줄 / 조회수 · 구독자 · 게시일) -->
+        <ul class="divide-y divide-neutral-900 lg:hidden">
+
+        </ul>
+      </div>
+      <figcaption class="flex flex-col gap-1 border-t border-neutral-800 px-4 py-3 text-caption sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:px-5">
+        <span class="text-neutral-400">2026.10.07 YouTube 공개 검색 결과 · 조회수 높은 순</span>
+        <a href="/sign-in" class="inline-flex h-11 items-center gap-1.5 self-start font-semibold text-white transition-colors hover:text-neutral-300 sm:-my-2 sm:self-auto">로그인하고 전체 결과 보기 <span aria-hidden="true">→</span></a>
+      </figcaption>
+    </figure>
+
+    <!-- 이용 방법 3단계 (소유자가 살리라고 한 범위). 원형 배지 없이 글자 숫자 -->
+    <h2 class="sr-only">3단계로 바로 시작</h2>
+    <ol class="mt-10 grid gap-5 sm:grid-cols-3 sm:gap-6 lg:mt-12">
+      <li class="grid grid-cols-[2.25rem_1fr] border-t border-neutral-800 pt-5 sm:block">
+        <span class="tnum pt-0.5 text-body-sm font-bold text-neutral-400 sm:block sm:pt-0">01</span>
+        <div>
+          <h3 class="text-lead font-bold leading-[1.4] sm:mt-2">키워드 입력</h3>
+          <p class="mt-1 text-ui text-neutral-400">분석하고 싶은 유튜브 키워드를 검색창에 입력하세요.</p>
+        </div>
+      </li>
+      <li class="grid grid-cols-[2.25rem_1fr] border-t border-neutral-800 pt-5 sm:block">
+        <span class="tnum pt-0.5 text-body-sm font-bold text-neutral-400 sm:block sm:pt-0">02</span>
+        <div>
+          <h3 class="text-lead font-bold leading-[1.4] sm:mt-2">실시간 분석</h3>
+          <p class="mt-1 text-ui text-neutral-400">YouTube 최신 영상 데이터를 수집⁠·⁠분석합니다.</p>
+        </div>
+      </li>
+      <li class="grid grid-cols-[2.25rem_1fr] border-t border-neutral-800 pt-5 sm:block">
+        <span class="tnum pt-0.5 text-body-sm font-bold text-neutral-400 sm:block sm:pt-0">03</span>
+        <div>
+          <h3 class="text-lead font-bold leading-[1.4] sm:mt-2">인사이트 확인</h3>
+          <p class="mt-1 text-ui text-neutral-400">조회수와 채널 정보를 바탕으로 내 채널에 맞는 콘텐츠를 기획해보세요.</p>
+        </div>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<!-- ───────── 서비스 5가지 (시안 C): 네비와 같은 두 묶음. 카드 뼈대 하나(미디어 340 → 제목 24 → 설명 → 선 → 가격 → 링크) + 가로 띠 ───────── -->
+<section id="services" aria-labelledby="services-title" class="scroll-mt-16 border-b border-neutral-800">
+  <div class="mx-auto max-w-wide px-6 py-16 md:py-24 lg:px-8">
+    <div class="sec-head">
+      <span class="sec-head__caption">비블랩 서비스 5가지</span>
+      <span lang="en" aria-hidden="true" class="sec-head__label">SERVICES</span>
+    </div>
+    <h2 id="services-title" class="text-h3 md:text-h1">
+      <span class="block text-neutral-400">비블과 함께하거나, 직접 하거나</span>
+      <span class="block">필요한 만큼 고르세요</span>
+    </h2>
+
+    <!-- 비블과 함께 -->
+    <div class="mt-12 md:mt-16">
+      <div class="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
+        <h3 class="text-ui font-bold">비블과 함께</h3>
+        <p class="text-caption text-neutral-400">비블이 직접 가르치고, 맡아서 운영하고, 함께 만듭니다</p>
+      </div>
+      <div class="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-12 lg:gap-6">
+
+        <!-- 컨설팅 사진은 원본이 작아(가로 약 680px) 좁은 5칸에 둔다. 1920px 이상 새 프레임이 오면 바꾼다 -->
+        <article class="card group lg:col-span-5">
+          <div class="aspect-[16/10] overflow-hidden bg-neutral-900 lg:aspect-auto lg:h-[340px]">
+            <img src="file:///private/tmp/claude-501/-Users-taemin-Downloads-youtube-analysis/1d99949a-0887-493d-9185-e77ff6634445/scratchpad/mockups/F/assets/svc-consulting.jpg" width="1360" height="850" alt="책장 앞에서 이야기하는 비블. 뒤 책장에 유튜브 실버 플레이 버튼이 놓여 있다" class="size-full object-cover object-[95%_50%]" loading="lazy" decoding="async">
+          </div>
+          <div class="flex flex-1 flex-col p-5 sm:p-6 lg:p-8">
+            <h4 class="text-title"><a href="/studio/class/consulting" class="card-link">팀비블 1:1 유튜브 컨설팅</a></h4>
+            <p class="mt-2.5 text-ui text-neutral-300 lg:text-body">유튜브 채널 성장과 함께 사업을 성장시키는 방법까지, 비블이 1:1로 함께합니다.</p>
+            <div class="mt-auto pt-6 lg:pt-8">
+              <div class="border-t border-neutral-800 pt-4">
+                <p class="tnum text-h4 font-extrabold">월 49만원</p>
+                <p class="mt-1 text-caption text-neutral-400"><span class="whitespace-nowrap">매주 1:1 미팅</span> · <span class="whitespace-nowrap">VOD 100강</span> · <span class="whitespace-nowrap">오프라인 커뮤니티</span></p>
+              </div>
+              <p aria-hidden="true" class="mt-4 inline-flex items-center gap-1.5 text-ui font-semibold">1:1 팀비블 신청하기 <span class="transition-transform group-hover:translate-x-0.5">→</span></p>
+            </div>
+          </div>
+        </article>
+
+        <!-- 대행: 선명한 사진이 큰 7칸. 마지막 CTA(채널 대행 문의)와 같은 서비스. 마이크의 초록 불빛은 무채색으로 바꾼 사본 -->
+        <article class="card group lg:col-span-7">
+          <div class="aspect-[16/10] overflow-hidden bg-neutral-900 lg:aspect-auto lg:h-[340px]">
+            <img src="file:///private/tmp/claude-501/-Users-taemin-Downloads-youtube-analysis/1d99949a-0887-493d-9185-e77ff6634445/scratchpad/mockups/F/assets/svc-studio-neutral.jpg" width="1160" height="725" alt="촬영 스튜디오에서 마이크 앞에 앉아 이야기하는 비블" class="size-full object-cover object-[60%_53%]" loading="lazy" decoding="async">
+          </div>
+          <div class="flex flex-1 flex-col p-5 sm:p-6 lg:p-8">
+            <h4 class="text-title"><a href="/studio" class="card-link">유튜브 채널 대행</a></h4>
+            <p class="mt-2.5 text-ui text-neutral-300 lg:text-body">검증된 유튜브 전문가와 성장을 함께하세요. 기획⁠·⁠촬영⁠·⁠편집⁠·⁠업로드⁠·⁠채널관리까지 책임지고 운영해드립니다.</p>
+            <div class="mt-auto pt-6 lg:pt-8">
+              <div class="border-t border-neutral-800 pt-4">
+                <p class="tnum text-h4 font-extrabold">월 350만원</p>
+                <p class="mt-1 text-caption text-neutral-400"><span class="whitespace-nowrap">부가세 별도</span> · <span class="whitespace-nowrap">롱폼 4개 + 쇼츠 4개</span></p>
+              </div>
+              <p aria-hidden="true" class="mt-4 inline-flex items-center gap-1.5 text-ui font-semibold">채널 대행 문의하기 <span class="transition-transform group-hover:translate-x-0.5">→</span></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="card group p-5 sm:p-6 lg:col-span-12 lg:grid lg:grid-cols-12 lg:items-center lg:gap-6 lg:px-8 lg:py-7">
+          <div class="lg:col-span-4">
+            <h4 class="text-title"><a href="/incubating" class="card-link">브랜드 인큐베이팅</a></h4>
+            <p class="mt-1 text-caption text-neutral-400"><span class="whitespace-nowrap">영어⁠·⁠수학 선생님 모집</span> · <span class="whitespace-nowrap">오픈채팅⁠·⁠메일로 지원</span></p>
+          </div>
+          <p class="mt-3 text-ui text-neutral-300 lg:col-span-5 lg:mt-0 lg:text-body">채널 기획⁠·⁠제작⁠·⁠마케팅⁠·⁠상품화는 레이블이, 선생님은 가르치는 일에만 집중합니다.</p>
+          <p aria-hidden="true" class="mt-4 inline-flex items-center gap-1.5 text-ui font-semibold lg:col-span-3 lg:mt-0 lg:justify-self-end">오픈채팅으로 지원하기 <span class="transition-transform group-hover:translate-x-0.5">→</span></p>
+        </article>
+      </div>
+    </div>
+
+    <!-- 직접 하기: 미디어 칸은 위 사진 카드와 같은 340px(1024 이상). 목록이 보이는 폭에서는 같은 말을 하는 설명 문장을 숨긴다 -->
+    <div class="mt-12 md:mt-16">
+      <div class="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
+        <h3 class="text-ui font-bold">직접 하기</h3>
+        <p class="text-caption text-neutral-400">분석 도구와 실무 자료로 혼자서도 꾸준히</p>
+      </div>
+      <div class="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-12 lg:gap-6">
+
+        <article class="card group lg:col-span-6">
+          <div aria-hidden="true" data-media-panel class="pointer-events-none hidden select-none flex-col overflow-hidden border-b border-neutral-800 bg-black lg:flex lg:h-[340px]">
+            <div class="flex h-11 shrink-0 items-center justify-between gap-4 border-b border-neutral-900 px-6">
+              <span class="text-caption font-semibold text-white">분석 도구 4가지</span>
+              <span class="text-micro text-neutral-400">Free · Starter · Pro</span>
+            </div>
+            <ul class="divide-y divide-neutral-900 px-6">
+              <li class="py-2.5"><p class="text-body-sm font-semibold leading-[1.5]">영상 찾기</p><p class="mt-0.5 truncate text-caption text-neutral-400">키워드로 최신 유튜브 영상을 수집합니다.</p></li>
+              <li class="py-2.5"><p class="text-body-sm font-semibold leading-[1.5]">채널 찾기</p><p class="mt-0.5 truncate text-caption text-neutral-400">구독자 급상승⁠·⁠신생 채널 필터를 제공합니다.</p></li>
+              <li class="py-2.5"><p class="text-body-sm font-semibold leading-[1.5]">채널 분석</p><p class="mt-0.5 truncate text-caption text-neutral-400">내 채널의 데이터를 분석해 개선 포인트를 확인합니다.</p></li>
+              <li class="py-2.5"><p class="flex items-center gap-1.5 text-body-sm font-semibold leading-[1.5]">수집한 영상<span class="rounded border border-neutral-700 px-1 text-micro leading-[18px] text-neutral-400">Pro</span></p><p class="mt-0.5 truncate text-caption text-neutral-400">마음에 드는 영상을 수집하고 CSV로 내보냅니다.</p></li>
+            </ul>
+          </div>
+          <div class="flex flex-1 items-center gap-4 p-5 sm:p-6 lg:flex-col lg:items-stretch lg:gap-0 lg:p-8">
+            <div class="min-w-0 flex-1 lg:flex lg:flex-col">
+              <h4 class="text-title"><a href="/trend-search" class="card-link">유튜브 트렌드 서치</a></h4>
+              <p class="mt-1.5 text-body-sm text-neutral-300 lg:hidden">키워드⁠·⁠채널⁠·⁠데이터 분석 도구를 한곳에서 사용하세요.</p>
+              <div class="mt-3 lg:mt-auto lg:pt-6">
+                <div class="flex flex-wrap items-baseline gap-x-2 lg:block lg:border-t lg:border-neutral-800 lg:pt-4">
+                  <p class="tnum text-h4 font-extrabold">무료</p>
+                  <p class="text-caption text-neutral-400 lg:mt-1"><span class="whitespace-nowrap">영상 검색 하루 2회</span> · <span class="whitespace-nowrap">유료 월 19,000원부터</span></p>
+                </div>
+                <p aria-hidden="true" class="mt-4 hidden items-center gap-1.5 text-ui font-semibold lg:inline-flex">도구 4가지 보기 <span class="transition-transform group-hover:translate-x-0.5">→</span></p>
+              </div>
+            </div>
+            <span aria-hidden="true" class="shrink-0 text-h4 text-neutral-400 transition-transform group-hover:translate-x-0.5 lg:hidden">→</span>
+          </div>
+        </article>
+
+        <article class="card group lg:col-span-6">
+          <div aria-hidden="true" data-media-panel class="pointer-events-none hidden select-none flex-col overflow-hidden border-b border-neutral-800 bg-black lg:flex lg:h-[340px]">
+            <div class="flex h-11 shrink-0 items-center justify-between gap-4 border-b border-neutral-900 px-6">
+              <img src="file:///private/tmp/claude-501/-Users-taemin-Downloads-youtube-analysis/1d99949a-0887-493d-9185-e77ff6634445/scratchpad/mockups/F/assets/community-wordmark.png" width="743" height="91" alt="" class="h-[18px] w-auto" loading="lazy" decoding="async">
+              <span class="text-micro text-neutral-400">회원 전용 게시판</span>
+            </div>
+            <ul class="divide-y divide-neutral-900 px-6">
+              <li class="py-2.5"><p class="text-body-sm font-semibold leading-[1.5]">유튜브 실전 Q&amp;A</p><p class="mt-0.5 truncate text-caption text-neutral-400">막히는 지점을 묻고, 먼저 겪은 회원들의 답을 받습니다.</p></li>
+              <li class="py-2.5"><p class="text-body-sm font-semibold leading-[1.5]">자료실 다운로드</p><p class="mt-0.5 truncate text-caption text-neutral-400">기획 템플릿⁠·⁠체크리스트⁠·⁠전자책 등 실무 자료를 받아갑니다.</p></li>
+              <li class="py-2.5"><p class="text-body-sm font-semibold leading-[1.5]">매일 챌린지 · 스터디</p><p class="mt-0.5 truncate text-caption text-neutral-400">혼자서는 못 지키는 업로드 루틴을 함께 만듭니다.</p></li>
+              <li class="py-2.5"><p class="text-body-sm font-semibold leading-[1.5]">성과 공유 · 협업</p><p class="mt-0.5 truncate text-caption text-neutral-400">채널 성장과 매출 사례, 구인구직과 협업 제안이 오갑니다.</p></li>
+            </ul>
+          </div>
+          <div class="flex flex-1 items-center gap-4 p-5 sm:p-6 lg:flex-col lg:items-stretch lg:gap-0 lg:p-8">
+            <div class="min-w-0 flex-1 lg:flex lg:flex-col">
+              <h4 class="text-title"><a href="/community" class="card-link">커뮤니티&amp;자료</a></h4>
+              <p class="mt-1.5 text-body-sm text-neutral-300 lg:hidden">막히는 지점을 묻고, 기획 템플릿⁠·⁠체크리스트⁠·⁠전자책 같은 실무 자료를 받아갑니다.</p>
+              <div class="mt-3 lg:mt-auto lg:pt-6">
+                <div class="flex flex-wrap items-baseline gap-x-2 lg:block lg:border-t lg:border-neutral-800 lg:pt-4">
+                  <p class="tnum text-h4 font-extrabold">무료</p>
+                  <p class="tnum text-caption text-neutral-400 lg:mt-1"><span class="whitespace-nowrap">회원가입만 하면 입장</span> · <span class="whitespace-nowrap">멤버 1,409명</span></p>
+                </div>
+                <p aria-hidden="true" class="mt-4 hidden items-center gap-1.5 text-ui font-semibold lg:inline-flex">무료로 가입하고 입장하기 <span class="transition-transform group-hover:translate-x-0.5">→</span></p>
+              </div>
+            </div>
+            <span aria-hidden="true" class="shrink-0 text-h4 text-neutral-400 transition-transform group-hover:translate-x-0.5 lg:hidden">→</span>
+          </div>
+        </article>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ───────── 채널 실적 (시안 C): 대표 채널 4곳. 해명은 숫자가 보이는 두 곳(첫 화면 캡션, 목록 끝 각주)에만 ───────── -->
+<section id="channels" aria-labelledby="proof-title" class="scroll-mt-16 border-b border-neutral-800">
+  <div class="mx-auto max-w-wide px-6 py-16 md:py-24 lg:px-8">
+    <div class="sec-head">
+      <span class="sec-head__caption">비블이 운영⁠·⁠기획한 채널</span>
+      <span lang="en" aria-hidden="true" class="sec-head__label">CHANNELS</span>
+    </div>
+    <h2 id="proof-title" class="text-h3 md:text-h1">
+      <span class="block text-neutral-400">말이 아닌,</span>
+      <span class="block">결과로 증명합니다</span>
+    </h2>
+
+    <p class="mt-10 text-caption text-neutral-400 md:mt-12">대표 채널 4곳 · 공개 구독자 수 · <time datetime="2026-10">2026.10</time></p>
+    <div class="mt-4 sm:hidden">
+    <ul class="grid grid-cols-2 gap-x-4 gap-y-7 border-t border-neutral-800 pt-5">
+      <li class="min-w-0">
+        <div class="flex items-center gap-2">
+          <img src="https://yt3.googleusercontent.com/c1FBPCbt8LgbSD35amjUZOfgyqf-GjqpJ-XIx1rX37qyulT5Jscqumkqlk7SCCKWoj4xtdwaeQ4=s240-c-k-c0x00ffffff-no-rj" alt="" width="32" height="32" class="size-8 shrink-0 rounded-full bg-neutral-900" loading="lazy" decoding="async">
+          <a href="https://www.youtube.com/@세계유명골프정보" class="-my-3 inline-flex min-h-11 min-w-0 items-center text-body-sm font-bold leading-[1.35] hover:underline hover:underline-offset-4"><span>세계유명 골프정보 <svg class="ext" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 11 11 5M6 5h5v5"/></svg></span></a>
+        </div>
+        <p class="tnum mt-3 text-[28px] font-extrabold leading-none tracking-[-0.03em]">25.8만</p>
+        <p class="mt-1.5 text-caption text-neutral-400">골프 · 구독자</p>
+      </li>
+      <li class="min-w-0">
+        <div class="flex items-center gap-2">
+          <img src="https://yt3.googleusercontent.com/s0W_yZEOUs466pSMRDegQDGeEJF5Q-TaCGgj4_gQ_eSSpROj0fnvVFXzU3QwmXgyP7-xxyRe=s240-c-k-c0x00ffffff-no-rj" alt="" width="32" height="32" class="size-8 shrink-0 rounded-full bg-neutral-900" loading="lazy" decoding="async">
+          <a href="https://www.youtube.com/@eng_kiwi" class="-my-3 inline-flex min-h-11 min-w-0 items-center text-body-sm font-bold leading-[1.35] hover:underline hover:underline-offset-4"><span>영어 키위새 <svg class="ext" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 11 11 5M6 5h5v5"/></svg></span></a>
+        </div>
+        <p class="tnum mt-3 text-[28px] font-extrabold leading-none tracking-[-0.03em]">24.5만</p>
+        <p class="mt-1.5 text-caption text-neutral-400">영어 교육 · 구독자</p>
+      </li>
+      <li class="min-w-0">
+        <div class="flex items-center gap-2">
+          <img src="https://yt3.googleusercontent.com/DxGEnYcDFNMqQ4rqQ7sYFZFlPksnfh7BJOPOtYM_gDWlTrumru1ohHXga8Pko_xkPsUsrfSq_Hw=s240-c-k-c0x00ffffff-no-rj" alt="" width="32" height="32" class="size-8 shrink-0 rounded-full bg-neutral-900" loading="lazy" decoding="async">
+          <a href="https://www.youtube.com/@swim_class" class="-my-3 inline-flex min-h-11 min-w-0 items-center text-body-sm font-bold leading-[1.35] hover:underline hover:underline-offset-4"><span>스윔클래스 <svg class="ext" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 11 11 5M6 5h5v5"/></svg></span></a>
+        </div>
+        <p class="tnum mt-3 text-[28px] font-extrabold leading-none tracking-[-0.03em]">8.57만</p>
+        <p class="mt-1.5 text-caption text-neutral-400">수영 · 구독자</p>
+      </li>
+      <li class="min-w-0">
+        <div class="flex items-center gap-2">
+          <img src="https://yt3.googleusercontent.com/1wD45zOpnfNTAG4Kq8qs2T27tNyxqXTKC5a23qB6N8zl5SNlU8ugdUCx2yywcrFnBqywfz2z9w=s240-c-k-c0x00ffffff-no-rj" alt="" width="32" height="32" class="size-8 shrink-0 rounded-full bg-neutral-900" loading="lazy" decoding="async">
+          <a href="https://www.youtube.com/@bibl_youtube" class="-my-3 inline-flex min-h-11 min-w-0 items-center text-body-sm font-bold leading-[1.35] hover:underline hover:underline-offset-4"><span>비블 bibl <svg class="ext" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 11 11 5M6 5h5v5"/></svg></span></a>
+        </div>
+        <p class="tnum mt-3 text-[28px] font-extrabold leading-none tracking-[-0.03em]">4.2만</p>
+        <p class="mt-1.5 text-caption text-neutral-400">사업⁠·⁠마케팅 · 구독자</p>
+      </li>
+    </ul>
+    <div class="no-scrollbar -mx-6 mt-7 flex snap-x snap-mandatory scroll-px-6 gap-3 overflow-x-auto px-6 pb-1" aria-label="대표 영상">
+      <a href="https://www.youtube.com/watch?v=9hndIlWLWaM" class="block w-[64%] shrink-0 snap-start">
+        <span class="block overflow-hidden rounded-lg bg-neutral-900"><img src="https://i.ytimg.com/vi/9hndIlWLWaM/mqdefault.jpg" srcset="https://i.ytimg.com/vi/9hndIlWLWaM/mqdefault.jpg 320w, https://i.ytimg.com/vi/9hndIlWLWaM/sddefault.jpg 640w, https://i.ytimg.com/vi/9hndIlWLWaM/maxresdefault.jpg 1280w" sizes="64vw" width="320" height="180" alt="드라이버 이게 전부입니다, 가장 쉽게 잘 치는 법" class="aspect-video w-full object-cover " loading="lazy" decoding="async"></span>
+        <span class="mt-2 block truncate text-caption text-neutral-400">세계유명 골프정보</span>
+      </a>
+      <a href="https://www.youtube.com/watch?v=XaT3VzlTnoI" class="block w-[64%] shrink-0 snap-start">
+        <span class="block overflow-hidden rounded-lg bg-neutral-900"><img src="https://i.ytimg.com/vi/XaT3VzlTnoI/mqdefault.jpg" srcset="https://i.ytimg.com/vi/XaT3VzlTnoI/mqdefault.jpg 320w, https://i.ytimg.com/vi/XaT3VzlTnoI/sddefault.jpg 640w, https://i.ytimg.com/vi/XaT3VzlTnoI/maxresdefault.jpg 1280w" sizes="64vw" width="320" height="180" alt="멀리 치고 싶다면 백스윙 회전 하지 마세요" class="aspect-video w-full object-cover " loading="lazy" decoding="async"></span>
+        <span class="mt-2 block truncate text-caption text-neutral-400">세계유명 골프정보</span>
+      </a>
+      <a href="https://www.youtube.com/watch?v=-jWdORm55Kc" class="block w-[64%] shrink-0 snap-start">
+        <span class="block overflow-hidden rounded-lg bg-neutral-900"><img src="https://i.ytimg.com/vi/-jWdORm55Kc/mqdefault.jpg" srcset="https://i.ytimg.com/vi/-jWdORm55Kc/mqdefault.jpg 320w, https://i.ytimg.com/vi/-jWdORm55Kc/sddefault.jpg 640w, https://i.ytimg.com/vi/-jWdORm55Kc/maxresdefault.jpg 1280w" sizes="64vw" width="320" height="180" alt="외우지 말고 그냥 보세요, 영어말하기 코어동사 5개" class="aspect-video w-full object-cover " loading="lazy" decoding="async"></span>
+        <span class="mt-2 block truncate text-caption text-neutral-400">영어 키위새</span>
+      </a>
+      <a href="https://www.youtube.com/watch?v=JHeJYy_A0aw" class="block w-[64%] shrink-0 snap-start">
+        <span class="block overflow-hidden rounded-lg bg-neutral-900"><img src="https://i.ytimg.com/vi/JHeJYy_A0aw/mqdefault.jpg" srcset="https://i.ytimg.com/vi/JHeJYy_A0aw/mqdefault.jpg 320w, https://i.ytimg.com/vi/JHeJYy_A0aw/sddefault.jpg 640w, https://i.ytimg.com/vi/JHeJYy_A0aw/maxresdefault.jpg 1280w" sizes="64vw" width="320" height="180" alt="퇴직후 영어공부 3년, 60대 엄마 말하기 진단" class="aspect-video w-full object-cover " loading="lazy" decoding="async"></span>
+        <span class="mt-2 block truncate text-caption text-neutral-400">영어 키위새</span>
+      </a>
+      <a href="https://www.youtube.com/watch?v=_5ELU7Bx_J4" class="block w-[64%] shrink-0 snap-start">
+        <span class="block overflow-hidden rounded-lg bg-neutral-900"><img src="https://i.ytimg.com/vi/_5ELU7Bx_J4/mqdefault.jpg" srcset="https://i.ytimg.com/vi/_5ELU7Bx_J4/mqdefault.jpg 320w, https://i.ytimg.com/vi/_5ELU7Bx_J4/sddefault.jpg 640w, https://i.ytimg.com/vi/_5ELU7Bx_J4/maxresdefault.jpg 1280w" sizes="64vw" width="320" height="180" alt="발차기가 이런거였어? 편안한 발차기 꿀팁" class="aspect-video w-full object-cover " loading="lazy" decoding="async"></span>
+        <span class="mt-2 block truncate text-caption text-neutral-400">스윔클래스</span>
+      </a>
+      <a href="https://www.youtube.com/watch?v=ouwAdBTIJwA" class="block w-[64%] shrink-0 snap-start">
+        <span class="block overflow-hidden rounded-lg bg-neutral-900"><img src="https://i.ytimg.com/vi/ouwAdBTIJwA/mqdefault.jpg" srcset="https://i.ytimg.com/vi/ouwAdBTIJwA/mqdefault.jpg 320w, https://i.ytimg.com/vi/ouwAdBTIJwA/sddefault.jpg 640w, https://i.ytimg.com/vi/ouwAdBTIJwA/maxresdefault.jpg 1280w" sizes="64vw" width="320" height="180" alt="내가 이걸 몰라서 수영할 때 숨이 찼구나" class="aspect-video w-full object-cover " loading="lazy" decoding="async"></span>
+        <span class="mt-2 block truncate text-caption text-neutral-400">스윔클래스</span>
+      </a>
+      <a href="https://www.youtube.com/watch?v=N_816X7TFRU" class="block w-[64%] shrink-0 snap-start">
+        <span class="block overflow-hidden rounded-lg bg-neutral-900"><img src="https://i.ytimg.com/vi/N_816X7TFRU/mqdefault.jpg" srcset="https://i.ytimg.com/vi/N_816X7TFRU/mqdefault.jpg 320w, https://i.ytimg.com/vi/N_816X7TFRU/sddefault.jpg 640w, https://i.ytimg.com/vi/N_816X7TFRU/maxresdefault.jpg 1280w" sizes="64vw" width="320" height="180" alt="유튜브 5년동안 했더니 달라진 놀라운 변화" class="aspect-video w-full object-cover " loading="lazy" decoding="async"></span>
+        <span class="mt-2 block truncate text-caption text-neutral-400">비블 bibl</span>
+      </a>
+      <a href="https://www.youtube.com/watch?v=Bnp0HyZXOAk" class="block w-[64%] shrink-0 snap-start">
+        <span class="block overflow-hidden rounded-lg bg-neutral-900"><img src="https://i.ytimg.com/vi/Bnp0HyZXOAk/mqdefault.jpg" srcset="https://i.ytimg.com/vi/Bnp0HyZXOAk/mqdefault.jpg 320w, https://i.ytimg.com/vi/Bnp0HyZXOAk/sddefault.jpg 640w, https://i.ytimg.com/vi/Bnp0HyZXOAk/maxresdefault.jpg 1280w" sizes="64vw" width="320" height="180" alt="돈 내고 쓰지 마세요, 쇼츠제작과 업로드 자동화" class="aspect-video w-full object-cover " loading="lazy" decoding="async"></span>
+        <span class="mt-2 block truncate text-caption text-neutral-400">비블 bibl</span>
+      </a>
+    </div>
+    </div>
+    <ol class="mt-4 hidden border-b border-neutral-800 sm:block">
+      <li class="grid gap-5 border-t border-neutral-800 py-7 lg:grid-cols-12 lg:gap-6 lg:py-9">
+        <div class="flex flex-col gap-4 lg:col-span-4 lg:justify-between">
+          <div class="flex items-center gap-3">
+            <img src="https://yt3.googleusercontent.com/c1FBPCbt8LgbSD35amjUZOfgyqf-GjqpJ-XIx1rX37qyulT5Jscqumkqlk7SCCKWoj4xtdwaeQ4=s240-c-k-c0x00ffffff-no-rj" alt="" width="48" height="48" class="size-11 shrink-0 rounded-full bg-neutral-900 lg:size-12" loading="lazy" decoding="async">
+            <div class="min-w-0">
+              <p class="text-lead font-extrabold leading-tight"><a href="https://www.youtube.com/@세계유명골프정보" class="-my-3 inline-block py-3 hover:underline hover:underline-offset-4">세계유명 골프정보 <svg class="ext" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 11 11 5M6 5h5v5"/></svg></a></p>
+              <p class="mt-1 text-caption text-neutral-400">골프</p>
+            </div>
+          </div>
+          <p class="flex items-baseline gap-2 lg:block">
+            <span class="tnum block text-[28px] font-extrabold leading-none tracking-[-0.03em] lg:text-[36px]">25.8만</span>
+            <span class="block text-caption text-neutral-400 lg:mt-1.5">구독자</span>
+          </p>
+        </div>
+        <div class="grid grid-cols-2 content-start gap-2 self-center lg:col-span-8 lg:grid-cols-3 lg:gap-4">
+          <a href="https://www.youtube.com/watch?v=9hndIlWLWaM" class="block overflow-hidden rounded-lg bg-neutral-900"><img src="https://i.ytimg.com/vi/9hndIlWLWaM/mqdefault.jpg" srcset="https://i.ytimg.com/vi/9hndIlWLWaM/mqdefault.jpg 320w, https://i.ytimg.com/vi/9hndIlWLWaM/sddefault.jpg 640w, https://i.ytimg.com/vi/9hndIlWLWaM/maxresdefault.jpg 1280w" sizes="(min-width: 1024px) 257px, 45vw" width="320" height="180" alt="드라이버 이게 전부입니다, 가장 쉽게 잘 치는 법" class="aspect-video w-full object-cover " loading="lazy" decoding="async"></a>
+          <a href="https://www.youtube.com/watch?v=XaT3VzlTnoI" class="block overflow-hidden rounded-lg bg-neutral-900"><img src="https://i.ytimg.com/vi/XaT3VzlTnoI/mqdefault.jpg" srcset="https://i.ytimg.com/vi/XaT3VzlTnoI/mqdefault.jpg 320w, https://i.ytimg.com/vi/XaT3VzlTnoI/sddefault.jpg 640w, https://i.ytimg.com/vi/XaT3VzlTnoI/maxresdefault.jpg 1280w" sizes="(min-width: 1024px) 257px, 45vw" width="320" height="180" alt="멀리 치고 싶다면 백스윙 회전 하지 마세요" class="aspect-video w-full object-cover " loading="lazy" decoding="async"></a>
+          <a href="https://www.youtube.com/watch?v=cBlr5P0_KcM" class="hidden lg:block overflow-hidden rounded-lg bg-neutral-900"><img src="https://i.ytimg.com/vi/cBlr5P0_KcM/mqdefault.jpg" srcset="https://i.ytimg.com/vi/cBlr5P0_KcM/mqdefault.jpg 320w, https://i.ytimg.com/vi/cBlr5P0_KcM/sddefault.jpg 640w, https://i.ytimg.com/vi/cBlr5P0_KcM/maxresdefault.jpg 1280w" sizes="(min-width: 1024px) 257px, 45vw" width="320" height="180" alt="아이언 툭 쳐서 가볍게 150m 보내는 방법" class="aspect-video w-full object-cover " loading="lazy" decoding="async"></a>
+        </div>
+      </li>
+      <li class="grid gap-5 border-t border-neutral-800 py-7 lg:grid-cols-12 lg:gap-6 lg:py-9">
+        <div class="flex flex-col gap-4 lg:col-span-4 lg:justify-between">
+          <div class="flex items-center gap-3">
+            <img src="https://yt3.googleusercontent.com/s0W_yZEOUs466pSMRDegQDGeEJF5Q-TaCGgj4_gQ_eSSpROj0fnvVFXzU3QwmXgyP7-xxyRe=s240-c-k-c0x00ffffff-no-rj" alt="" width="48" height="48" class="size-11 shrink-0 rounded-full bg-neutral-900 lg:size-12" loading="lazy" decoding="async">
+            <div class="min-w-0">
+              <p class="text-lead font-extrabold leading-tight"><a href="https://www.youtube.com/@eng_kiwi" class="-my-3 inline-block py-3 hover:underline hover:underline-offset-4">영어 키위새 <svg class="ext" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 11 11 5M6 5h5v5"/></svg></a></p>
+              <p class="mt-1 text-caption text-neutral-400">영어 교육</p>
+            </div>
+          </div>
+          <p class="flex items-baseline gap-2 lg:block">
+            <span class="tnum block text-[28px] font-extrabold leading-none tracking-[-0.03em] lg:text-[36px]">24.5만</span>
+            <span class="block text-caption text-neutral-400 lg:mt-1.5">구독자</span>
+          </p>
+        </div>
+        <div class="grid grid-cols-2 content-start gap-2 self-center lg:col-span-8 lg:grid-cols-3 lg:gap-4">
+          <a href="https://www.youtube.com/watch?v=-jWdORm55Kc" class="block overflow-hidden rounded-lg bg-neutral-900"><img src="https://i.ytimg.com/vi/-jWdORm55Kc/mqdefault.jpg" srcset="https://i.ytimg.com/vi/-jWdORm55Kc/mqdefault.jpg 320w, https://i.ytimg.com/vi/-jWdORm55Kc/sddefault.jpg 640w, https://i.ytimg.com/vi/-jWdORm55Kc/maxresdefault.jpg 1280w" sizes="(min-width: 1024px) 257px, 45vw" width="320" height="180" alt="외우지 말고 그냥 보세요, 영어말하기 코어동사 5개" class="aspect-video w-full object-cover " loading="lazy" decoding="async"></a>
+          <a href="https://www.youtube.com/watch?v=JHeJYy_A0aw" class="block overflow-hidden rounded-lg bg-neutral-900"><img src="https://i.ytimg.com/vi/JHeJYy_A0aw/mqdefault.jpg" srcset="https://i.ytimg.com/vi/JHeJYy_A0aw/mqdefault.jpg 320w, https://i.ytimg.com/vi/JHeJYy_A0aw/sddefault.jpg 640w, https://i.ytimg.com/vi/JHeJYy_A0aw/maxresdefault.jpg 1280w" sizes="(min-width: 1024px) 257px, 45vw" width="320" height="180" alt="퇴직후 영어공부 3년, 60대 엄마 말하기 진단" class="aspect-video w-full object-cover " loading="lazy" decoding="async"></a>
+          <a href="https://www.youtube.com/watch?v=4F2kGFDUo5M" class="hidden lg:block overflow-hidden rounded-lg bg-neutral-900"><img src="https://i.ytimg.com/vi/4F2kGFDUo5M/mqdefault.jpg" srcset="https://i.ytimg.com/vi/4F2kGFDUo5M/mqdefault.jpg 320w, https://i.ytimg.com/vi/4F2kGFDUo5M/sddefault.jpg 640w, https://i.ytimg.com/vi/4F2kGFDUo5M/maxresdefault.jpg 1280w" sizes="(min-width: 1024px) 257px, 45vw" width="320" height="180" alt="이거였구나, 영어 전치사 제대로 쓰는 방법" class="aspect-video w-full object-cover " loading="lazy" decoding="async"></a>
+        </div>
+      </li>
+      <li class="grid gap-5 border-t border-neutral-800 py-7 lg:grid-cols-12 lg:gap-6 lg:py-9">
+        <div class="flex flex-col gap-4 lg:col-span-4 lg:justify-between">
+          <div class="flex items-center gap-3">
+            <img src="https://yt3.googleusercontent.com/DxGEnYcDFNMqQ4rqQ7sYFZFlPksnfh7BJOPOtYM_gDWlTrumru1ohHXga8Pko_xkPsUsrfSq_Hw=s240-c-k-c0x00ffffff-no-rj" alt="" width="48" height="48" class="size-11 shrink-0 rounded-full bg-neutral-900 lg:size-12" loading="lazy" decoding="async">
+            <div class="min-w-0">
+              <p class="text-lead font-extrabold leading-tight"><a href="https://www.youtube.com/@swim_class" class="-my-3 inline-block py-3 hover:underline hover:underline-offset-4">스윔클래스 <svg class="ext" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 11 11 5M6 5h5v5"/></svg></a></p>
+              <p class="mt-1 text-caption text-neutral-400">수영</p>
+            </div>
+          </div>
+          <p class="flex items-baseline gap-2 lg:block">
+            <span class="tnum block text-[28px] font-extrabold leading-none tracking-[-0.03em] lg:text-[36px]">8.57만</span>
+            <span class="block text-caption text-neutral-400 lg:mt-1.5">구독자</span>
+          </p>
+        </div>
+        <div class="grid grid-cols-2 content-start gap-2 self-center lg:col-span-8 lg:grid-cols-3 lg:gap-4">
+          <a href="https://www.youtube.com/watch?v=_5ELU7Bx_J4" class="block overflow-hidden rounded-lg bg-neutral-900"><img src="https://i.ytimg.com/vi/_5ELU7Bx_J4/mqdefault.jpg" srcset="https://i.ytimg.com/vi/_5ELU7Bx_J4/mqdefault.jpg 320w, https://i.ytimg.com/vi/_5ELU7Bx_J4/sddefault.jpg 640w, https://i.ytimg.com/vi/_5ELU7Bx_J4/maxresdefault.jpg 1280w" sizes="(min-width: 1024px) 257px, 45vw" width="320" height="180" alt="발차기가 이런거였어? 편안한 발차기 꿀팁" class="aspect-video w-full object-cover " loading="lazy" decoding="async"></a>
+          <a href="https://www.youtube.com/watch?v=ouwAdBTIJwA" class="block overflow-hidden rounded-lg bg-neutral-900"><img src="https://i.ytimg.com/vi/ouwAdBTIJwA/mqdefault.jpg" srcset="https://i.ytimg.com/vi/ouwAdBTIJwA/mqdefault.jpg 320w, https://i.ytimg.com/vi/ouwAdBTIJwA/sddefault.jpg 640w, https://i.ytimg.com/vi/ouwAdBTIJwA/maxresdefault.jpg 1280w" sizes="(min-width: 1024px) 257px, 45vw" width="320" height="180" alt="내가 이걸 몰라서 수영할 때 숨이 찼구나" class="aspect-video w-full object-cover " loading="lazy" decoding="async"></a>
+          <a href="https://www.youtube.com/watch?v=yaw140V8dcM" class="hidden lg:block overflow-hidden rounded-lg bg-neutral-900"><img src="https://i.ytimg.com/vi/yaw140V8dcM/mqdefault.jpg" srcset="https://i.ytimg.com/vi/yaw140V8dcM/mqdefault.jpg 320w, https://i.ytimg.com/vi/yaw140V8dcM/sddefault.jpg 640w, https://i.ytimg.com/vi/yaw140V8dcM/maxresdefault.jpg 1280w" sizes="(min-width: 1024px) 257px, 45vw" width="320" height="180" alt="자유형 잘하고 싶다면 이대로만 해보세요" class="aspect-video w-full object-cover " loading="lazy" decoding="async"></a>
+        </div>
+      </li>
+      <li class="grid gap-5 border-t border-neutral-800 py-7 lg:grid-cols-12 lg:gap-6 lg:py-9">
+        <div class="flex flex-col gap-4 lg:col-span-4 lg:justify-between">
+          <div class="flex items-center gap-3">
+            <img src="https://yt3.googleusercontent.com/1wD45zOpnfNTAG4Kq8qs2T27tNyxqXTKC5a23qB6N8zl5SNlU8ugdUCx2yywcrFnBqywfz2z9w=s240-c-k-c0x00ffffff-no-rj" alt="" width="48" height="48" class="size-11 shrink-0 rounded-full bg-neutral-900 lg:size-12" loading="lazy" decoding="async">
+            <div class="min-w-0">
+              <p class="text-lead font-extrabold leading-tight"><a href="https://www.youtube.com/@bibl_youtube" class="-my-3 inline-block py-3 hover:underline hover:underline-offset-4">비블 bibl <svg class="ext" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 11 11 5M6 5h5v5"/></svg></a></p>
+              <p class="mt-1 text-caption text-neutral-400">사업⁠·⁠마케팅</p>
+            </div>
+          </div>
+          <p class="flex items-baseline gap-2 lg:block">
+            <span class="tnum block text-[28px] font-extrabold leading-none tracking-[-0.03em] lg:text-[36px]">4.2만</span>
+            <span class="block text-caption text-neutral-400 lg:mt-1.5">구독자</span>
+          </p>
+        </div>
+        <div class="grid grid-cols-2 content-start gap-2 self-center lg:col-span-8 lg:grid-cols-3 lg:gap-4">
+          <a href="https://www.youtube.com/watch?v=N_816X7TFRU" class="block overflow-hidden rounded-lg bg-neutral-900"><img src="https://i.ytimg.com/vi/N_816X7TFRU/mqdefault.jpg" srcset="https://i.ytimg.com/vi/N_816X7TFRU/mqdefault.jpg 320w, https://i.ytimg.com/vi/N_816X7TFRU/sddefault.jpg 640w, https://i.ytimg.com/vi/N_816X7TFRU/maxresdefault.jpg 1280w" sizes="(min-width: 1024px) 257px, 45vw" width="320" height="180" alt="유튜브 5년동안 했더니 달라진 놀라운 변화" class="aspect-video w-full object-cover " loading="lazy" decoding="async"></a>
+          <a href="https://www.youtube.com/watch?v=Bnp0HyZXOAk" class="block overflow-hidden rounded-lg bg-neutral-900"><img src="https://i.ytimg.com/vi/Bnp0HyZXOAk/mqdefault.jpg" srcset="https://i.ytimg.com/vi/Bnp0HyZXOAk/mqdefault.jpg 320w, https://i.ytimg.com/vi/Bnp0HyZXOAk/sddefault.jpg 640w, https://i.ytimg.com/vi/Bnp0HyZXOAk/maxresdefault.jpg 1280w" sizes="(min-width: 1024px) 257px, 45vw" width="320" height="180" alt="돈 내고 쓰지 마세요, 쇼츠제작과 업로드 자동화" class="aspect-video w-full object-cover " loading="lazy" decoding="async"></a>
+          <a href="https://www.youtube.com/watch?v=0pyLmSNThh4" class="hidden lg:block overflow-hidden rounded-lg bg-neutral-900"><img src="https://i.ytimg.com/vi/0pyLmSNThh4/mqdefault.jpg" srcset="https://i.ytimg.com/vi/0pyLmSNThh4/mqdefault.jpg 320w, https://i.ytimg.com/vi/0pyLmSNThh4/sddefault.jpg 640w, https://i.ytimg.com/vi/0pyLmSNThh4/maxresdefault.jpg 1280w" sizes="(min-width: 1024px) 257px, 45vw" width="320" height="180" alt="에어비앤비 vs 단기임대, 이 순서대로만 따라하세요" class="aspect-video w-full object-cover " loading="lazy" decoding="async"></a>
+        </div>
+      </li>
+    </ol>
+    <p class="tnum mt-4 text-caption text-neutral-400">표시한 4곳 외 운영⁠·⁠기획 채널 포함 총 구독자 70만+</p>
+
+    <!-- 실버 플레이 버튼 + 매출. 숫자는 CTA 제목과 같은 단계(1280 이상 56px · 1024~1279 48px, 언제나 h1 이하) -->
+    <div class="mt-14 grid grid-cols-1 gap-8 lg:mt-20 lg:grid-cols-12 lg:gap-6">
+      <figure class="lg:col-span-5">
+        <div class="overflow-hidden rounded-panel border border-neutral-800 bg-neutral-900">
+          <img src="file:///private/tmp/claude-501/-Users-taemin-Downloads-youtube-analysis/1d99949a-0887-493d-9185-e77ff6634445/scratchpad/mockups/F/assets/silver-play-button-neutral.jpg" width="1600" height="1200" alt="세계유명 골프정보가 받은 유튜브 실버 플레이 버튼" class="aspect-[4/3] w-full object-cover" loading="lazy" decoding="async">
+        </div>
+        <figcaption class="mt-3 text-caption text-neutral-400"><span class="font-semibold text-neutral-200">유튜브가 직접 수여한 실버 플레이 버튼.</span> 세계유명 골프정보 10만&nbsp;구독자 달성</figcaption>
+      </figure>
+      <div class="flex flex-col justify-end lg:col-span-7 lg:pl-10">
+        <p class="tnum text-[44px] font-extrabold leading-none tracking-[-0.035em] sm:text-[48px] xl:text-[56px]"><span aria-hidden="true">7억+</span><span class="sr-only">7억 원 이상</span></p>
+        <p class="mt-2.5 text-caption text-neutral-400 lg:text-ui">골프 쇼핑몰 연 매출</p>
+        <h3 class="mt-8 text-h4 font-extrabold lg:mt-10 lg:text-h3">채널 성과에서 끝나지 않습니다</h3>
+        <p class="mt-3 max-w-[34em] text-body text-neutral-300 lg:text-lead">세계유명 골프정보의 조회수는 쇼핑몰 매출로 이어졌습니다. 다양한 채널을 직접 운영⁠·⁠기획하고 사업으로 연결한 실전 경험을 그대로 여러분의 채널에 적용합니다.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ───────── 마지막 행동: 기존 대행 페이지 문구, 약속(비블이 연락)과 행동(문의 양식)이 같다 ───────── -->
+<section id="contact" aria-labelledby="cta-title" class="border-b border-neutral-800">
+  <div class="mx-auto max-w-wide px-6 py-16 md:py-24 lg:px-8">
+    <div class="grid grid-cols-1 gap-10 lg:grid-cols-12 lg:items-end lg:gap-6">
+      <div class="lg:col-span-8">
+        <div class="flex items-center gap-3">
+          <img src="https://yt3.googleusercontent.com/1wD45zOpnfNTAG4Kq8qs2T27tNyxqXTKC5a23qB6N8zl5SNlU8ugdUCx2yywcrFnBqywfz2z9w=s240-c-k-c0x00ffffff-no-rj" alt="" width="48" height="48" class="size-12 rounded-full bg-neutral-900" loading="lazy" decoding="async">
+          <div>
+            <p class="text-ui font-bold">비블 김태민</p>
+            <p class="text-caption text-neutral-400">TMK STUDIO 대표</p>
+          </div>
+        </div>
+        <h2 id="cta-title" class="mt-8 text-h3 sm:text-[40px] sm:leading-[1.2] lg:text-h1 xl:text-[56px] xl:leading-[1.15]">
+          <span class="block text-neutral-400">지금 <span class="whitespace-nowrap">채널 대행을</span> 문의해보세요</span>
+          <span class="block">비블이 직접 연락드립니다</span>
+        </h2>
+        <p class="mt-5 text-body text-neutral-300 lg:text-lead">여러분의 채널에 맞는 대행 방향을 제안해드립니다.</p>
+      </div>
+      <div class="lg:col-span-4">
+        <a href="/studio/consulting" class="btn btn-primary h-14 px-7 text-body">채널 대행 문의하기</a>
+        <div class="mt-6 flex flex-col items-start border-t border-neutral-800 pt-4">
+          <a href="/studio/class/consulting" class="inline-flex h-11 items-center gap-1.5 text-ui font-semibold transition-colors hover:text-neutral-300">1:1 팀비블 신청하기 <span aria-hidden="true">→</span></a>
+          <a href="/sign-up" class="inline-flex h-11 items-center gap-1.5 text-ui font-semibold text-neutral-300 transition-colors hover:text-white">가볍게 시작하려면 무료로 검색 시작하기 <span aria-hidden="true">→</span></a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ───────── 푸터 (시안 C). 모바일은 메뉴 두 묶음을 나란히, 정책은 한 줄로 ───────── -->
+<footer class="bg-black">
+  <div class="mx-auto max-w-wide px-6 pb-28 pt-12 lg:px-8 lg:py-16">
+    <div class="grid grid-cols-2 gap-x-6 gap-y-8 lg:grid-cols-12 lg:gap-6">
+      <div class="col-span-2 lg:col-span-4">
+        <a href="/" class="inline-flex h-11 items-center rounded-md" aria-label="bibl lab 홈">
+          <span class="inline-flex items-center gap-2">
+            <span aria-hidden="true" class="inline-flex size-7 shrink-0 items-center justify-center rounded-md border border-neutral-700 bg-black text-base font-black leading-none">B</span>
+            <span class="text-body-sm font-bold tracking-tight">bibl<span class="text-neutral-400"> lab</span></span>
+          </span>
+        </a>
+        <p class="mt-4 max-w-xs text-body-sm text-neutral-400">유튜브로 사업을 키우는 분들을 위한 비블의 분석 도구, 커뮤니티, 컨설팅, 채널 대행.</p>
+      </div>
+      <nav aria-label="비블과 함께" class="lg:col-span-3">
+        <p class="text-caption font-semibold text-white">비블과 함께</p>
+        <ul class="mt-2 lg:mt-3">
+          <li><a href="/studio/class/consulting" class="inline-flex h-11 min-w-11 items-center text-body-sm text-neutral-400 transition-colors hover:text-white md:h-8 pointer-coarse:h-11">팀비블 1:1 유튜브 컨설팅</a></li>
+          <li><a href="/studio" class="inline-flex h-11 min-w-11 items-center text-body-sm text-neutral-400 transition-colors hover:text-white md:h-8 pointer-coarse:h-11">유튜브 채널 대행 문의</a></li>
+          <li><a href="/incubating" class="inline-flex h-11 min-w-11 items-center text-body-sm text-neutral-400 transition-colors hover:text-white md:h-8 pointer-coarse:h-11">브랜드 인큐베이팅</a></li>
+        </ul>
+      </nav>
+      <nav aria-label="직접 하기" class="lg:col-span-3">
+        <p class="text-caption font-semibold text-white">직접 하기</p>
+        <ul class="mt-2 lg:mt-3">
+          <li><a href="/trend-search" class="inline-flex h-11 min-w-11 items-center text-body-sm text-neutral-400 transition-colors hover:text-white md:h-8 pointer-coarse:h-11">유튜브 트렌드 서치</a></li>
+          <li><a href="/community" class="inline-flex h-11 min-w-11 items-center text-body-sm text-neutral-400 transition-colors hover:text-white md:h-8 pointer-coarse:h-11">커뮤니티&amp;자료</a></li>
+          <li><a href="/pricing" class="inline-flex h-11 min-w-11 items-center text-body-sm text-neutral-400 transition-colors hover:text-white md:h-8 pointer-coarse:h-11">요금제</a></li>
+        </ul>
+      </nav>
+      <nav aria-label="정책" class="col-span-2 lg:col-span-2">
+        <p class="text-caption font-semibold text-white">정책</p>
+        <ul class="mt-2 flex flex-wrap gap-x-5 lg:mt-3 lg:block">
+          <li><a href="/privacy" class="inline-flex h-11 min-w-11 items-center text-body-sm text-neutral-400 transition-colors hover:text-white md:h-8 pointer-coarse:h-11">개인정보처리방침</a></li>
+          <li><a href="/terms" class="inline-flex h-11 min-w-11 items-center text-body-sm text-neutral-400 transition-colors hover:text-white md:h-8 pointer-coarse:h-11">이용약관</a></li>
+          <li><a href="/refund" class="inline-flex h-11 min-w-11 items-center text-body-sm text-neutral-400 transition-colors hover:text-white md:h-8 pointer-coarse:h-11">환불정책</a></li>
+          <li><a href="mailto:bibl.content.official@gmail.com" class="inline-flex h-11 min-w-11 items-center text-body-sm text-neutral-400 transition-colors hover:text-white md:h-8 pointer-coarse:h-11">문의하기</a></li>
+        </ul>
+      </nav>
+    </div>
+
+    <address class="mt-10 border-t border-neutral-900 pt-8 text-micro font-normal not-italic leading-[1.8] text-neutral-400 lg:mt-12">
+      <p class="font-semibold text-neutral-300"><span class="whitespace-nowrap">세모골프</span> <span class="text-neutral-600" aria-hidden="true">|</span> <span class="whitespace-nowrap">대표 김태민</span></p>
+      <p><span class="block whitespace-nowrap sm:inline">사업자등록번호 315-47-01018</span> <span class="hidden text-neutral-600 sm:inline" aria-hidden="true">|</span> <span class="block whitespace-nowrap sm:inline">통신판매업신고 2023-수원권선-1549</span></p>
+      <p><span class="whitespace-nowrap">주소 경기도 수원시 권선구</span> <span class="whitespace-nowrap">세화로 151번길 29-2 1층</span></p>
+      <p><span class="whitespace-nowrap">고객문의 bibl.content.official@gmail.com</span> · <span class="whitespace-nowrap">070-8027-2532</span></p>
+    </address>
+    <div class="mt-6 space-y-1.5 text-micro font-normal leading-[1.7] text-neutral-400">
+      <p>본 서비스는 YouTube API Services를 사용합니다. 이용 시 <a href="https://www.youtube.com/t/terms" class="underline decoration-neutral-600 underline-offset-2 hover:text-white">YouTube 서비스 약관</a> 및 <a href="https://policies.google.com/privacy" class="underline decoration-neutral-600 underline-offset-2 hover:text-white">Google 개인정보처리방침</a>에 동의한 것으로 간주됩니다.</p>
+      <p>© 2026 세모골프. All Rights Reserved. bibl lab은 세모골프의 서비스입니다.</p>
+    </div>
+  </div>
+</footer>
+
+<!-- 실제 사이트의 카카오 상담 버튼(KakaoChatButton.tsx)과 같은 자리·크기·층: fixed bottom-5 right-5 md:bottom-6 md:right-6 size-14 z-40 -->
+<a href="https://pf.kakao.com/_beBNn/chat" target="_blank" rel="noopener noreferrer" aria-label="카카오톡 채널로 문의하기" title="카카오톡 문의" data-kakao-fab class="group fixed bottom-5 right-5 z-40 flex size-14 items-center justify-center rounded-full bg-kakao transition-colors duration-150 hover:bg-kakao-hover md:bottom-6 md:right-6">
+  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3C6.477 3 2 6.477 2 10.5c0 2.568 1.524 4.832 3.848 6.24L4.5 21l4.38-2.318A11.3 11.3 0 0012 19c5.523 0 10-3.477 10-7.5S17.523 3 12 3z" fill="#3A1D1D"/></svg>
+  <span class="pointer-events-none absolute right-full mr-3 hidden whitespace-nowrap rounded-lg border border-neutral-700 bg-neutral-900 px-3 py-1.5 text-micro font-semibold text-white opacity-0 transition-opacity group-hover:opacity-100 md:block">카카오톡 문의</span>
+</a>
+
+<!-- 정적 시안: 검색·칩은 이동하지 않는다(구현은 trySearch) -->
+<script>
+document.querySelectorAll('form[data-try-search]').forEach((f) => f.addEventListener('submit', (e) => e.preventDefault()));
+</script>
+</body>
+</html>

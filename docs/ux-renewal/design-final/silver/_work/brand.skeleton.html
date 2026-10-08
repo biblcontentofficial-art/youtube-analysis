@@ -1,0 +1,759 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>비블랩 브랜드 시트</title>
+<meta name="description" content="bibllab.com 최종 시안(레이아웃 F + 모노크롬 실버)의 한 장짜리 브랜드 시트. 견본·비율·글자·부품·차트 기능 색·색약 검증·로고·대비 표·해야 할 것과 하지 말 것.">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+<style type="text/tailwindcss">
+/*THEME*/
+@layer base {
+  html {
+    background: var(--color-canvas);
+    color: var(--color-fg);
+    color-scheme: dark;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    word-break: keep-all;
+    overflow-wrap: break-word;
+  }
+  h1, h2, h3, h4 { text-wrap: balance; }
+  p, li, dd, figcaption, td { text-wrap: pretty; }
+  :focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+  ::selection { background: var(--color-silver); color: var(--color-accent-ink); }
+  img { color: transparent; }
+  input[type="search"]::-webkit-search-cancel-button { display: none; }
+}
+@layer components {
+  .tnum { font-variant-numeric: tabular-nums; }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
+    white-space: nowrap; border-radius: var(--radius-control); font-weight: 700;
+    transition: background-color .15s ease-out, border-color .15s ease-out, color .15s ease-out;
+  }
+  .btn-primary { background: var(--color-accent); color: var(--color-accent-ink); }
+  .btn-primary:hover, .btn-primary.st-hover { background: var(--color-accent-hover); }
+  .btn-primary:active, .btn-primary.st-active { background: var(--color-accent-active); }
+  .btn-secondary { border: 1px solid var(--color-line-strong); background: var(--color-surface); color: var(--color-fg); font-weight: 600; }
+  .btn-secondary:hover, .btn-secondary.st-hover { border-color: var(--color-line-hover); background: var(--color-surface-2); }
+  .btn-ghost { color: var(--color-fg-2); font-weight: 600; }
+  .btn-ghost:hover, .btn-ghost.st-hover { background: var(--color-surface-2); color: var(--color-fg); }
+  .btn[aria-disabled="true"] { border-color: var(--color-line); background: transparent; color: var(--color-fg-4); cursor: not-allowed; }
+  .st-focus { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+  .is-locked { color: var(--color-fg-3); }
+  .pro { display: inline-flex; align-items: center; border: 1px solid var(--color-line-strong); border-radius: .25rem; padding-inline: .25rem; font-size: .75rem; line-height: 1.125rem; font-weight: 500; color: var(--color-fg-3); }
+  .logo-plate { background: var(--color-logo-plate); color: var(--color-accent-ink); }
+  .navlink {
+    display: inline-flex; height: 2.25rem; align-items: center; border-radius: var(--radius-control);
+    padding-inline: .75rem; font-size: .875rem; font-weight: 500; color: var(--color-fg-3); transition: color .15s ease-out;
+  }
+  .navlink:hover, .navlink.st-hover { color: var(--color-fg); }
+  .navlink[aria-current="page"] { color: var(--color-accent); font-weight: 600; }
+  .sec-head {
+    display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    border-bottom: 1px solid var(--color-line); padding-bottom: 1rem;
+  }
+  .sec-head__caption { font-size: .8125rem; color: var(--color-fg-3); }
+  .sec-head__label { font-size: .8125rem; font-weight: 900; letter-spacing: .25em; color: var(--color-silver); }
+  @media (width >= 48rem) {
+    .sec-head__caption { font-size: .875rem; }
+    .sec-head__label { font-size: .875rem; }
+  }
+  .panel { border: 1px solid var(--color-line); border-radius: var(--radius-card); background: var(--color-surface); }
+  .chip {
+    display: inline-flex; height: 2.25rem; flex-shrink: 0; align-items: center; border-radius: var(--radius-control);
+    border: 1px solid var(--color-line); padding-inline: .625rem; font-size: .8125rem; color: var(--color-fg-2);
+  }
+  .ext { display: inline-block; width: .8em; height: .8em; vertical-align: -.05em; color: var(--color-fg-3); transition: color .15s ease-out; }
+  a:hover .ext, a:focus-visible .ext, .st-hover .ext { color: var(--color-youtube); }
+  /* 키워드 경쟁도 막대: 3칸 중 채운 칸 수 = 단계. 색만으로 말하지 않는다 */
+  .meter { display: inline-flex; gap: 3px; }
+  .meter > span { width: .875rem; height: .375rem; border-radius: 1px; background: var(--color-surface-3); }
+  .meter[data-level="1"] > span:nth-child(-n+1) { background: var(--color-competition-low); }
+  .meter[data-level="2"] > span:nth-child(-n+2) { background: var(--color-competition-mid); }
+  .meter[data-level="3"] > span { background: var(--color-competition-high); }
+  .chk {
+    appearance: none; display: inline-grid; place-content: center; width: 1.125rem; height: 1.125rem; margin: 0;
+    border: 1.5px solid var(--color-line-control); border-radius: .25rem; background: transparent; cursor: pointer;
+  }
+  .chk:checked, .chk:indeterminate { border-color: var(--color-accent); background: var(--color-accent); }
+  .chk:checked::after {
+    content: ""; width: .55rem; height: .3rem; border-left: 2px solid var(--color-accent-ink); border-bottom: 2px solid var(--color-accent-ink);
+    transform: translateY(-1px) rotate(-45deg);
+  }
+  .chk:indeterminate::after { content: ""; width: .5rem; height: 2px; background: var(--color-accent-ink); }
+  .select {
+    appearance: none; height: 2.75rem; border: 1px solid var(--color-line); border-radius: var(--radius-control); background: var(--color-surface);
+    padding: 0 2.25rem 0 .75rem; font-size: .875rem; color: var(--color-fg);
+  }
+  .select-wrap { position: relative; display: inline-flex; }
+  .select-wrap::after {
+    content: ""; position: absolute; right: .625rem; top: 50%; width: 1rem; height: 1rem; margin-top: -.5rem; pointer-events: none;
+    background: var(--color-fg-3);
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") center / contain no-repeat;
+            mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") center / contain no-repeat;
+  }
+  /* 등급 배지: Great 만 면(작은 배지), 나머지는 테두리+글자. 항상 라벨과 함께 */
+  .grade { display: inline-flex; align-items: center; height: 1.375rem; border-radius: .3125rem; padding-inline: .4375rem; font-size: .75rem; font-weight: 700; line-height: 1; border: 1px solid transparent; }
+  .grade-great { background: var(--color-positive); color: var(--color-accent-ink); }
+  .grade-good { border-color: color-mix(in srgb, var(--color-positive) 55%, transparent); color: var(--color-positive); }
+  .grade-normal { border-color: var(--color-line-strong); color: var(--color-fg-3); }
+  .grade-bad { border-color: color-mix(in srgb, var(--color-caution) 55%, transparent); color: var(--color-caution); }
+  .grade-worst { border-color: color-mix(in srgb, var(--color-negative) 55%, transparent); color: var(--color-negative); }
+  /* 남은 횟수 칩: 보통은 무채색, 5회 이하 주의, 0회 오류 */
+  .quota { display: inline-flex; height: 2rem; align-items: center; border-radius: var(--radius-control); border: 1px solid var(--color-line); padding-inline: .625rem; font-size: .75rem; font-weight: 500; color: var(--color-fg-2); }
+  .quota-low { border-color: color-mix(in srgb, var(--color-caution) 55%, transparent); color: var(--color-caution); }
+  .quota-out { border-color: color-mix(in srgb, var(--color-negative) 55%, transparent); color: var(--color-negative); }
+  .row-hover { background: color-mix(in srgb, var(--color-surface-2) 55%, transparent); }
+  .row-selected { background: var(--color-surface-2); }
+  .row-selected > td:first-child { box-shadow: inset 2px 0 0 var(--color-accent); }
+  .spec { font-size: .75rem; line-height: 1.6; color: var(--color-fg-3); font-variant-numeric: tabular-nums; }
+  .swatch-chip { height: 5.5rem; border-bottom: 1px solid var(--color-line); }
+  .no-scrollbar { scrollbar-width: none; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+}
+</style>
+</head>
+<body class="bg-canvas font-sans text-fg">
+<a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-control focus:bg-accent focus:px-4 focus:py-2 focus:text-accent-ink">본문으로 건너뛰기</a>
+
+<header class="border-b border-line bg-canvas">
+  <div class="mx-auto flex h-14 max-w-page items-center gap-4 px-6 xl:h-16 xl:px-8">
+    <span class="flex shrink-0 items-center gap-2.5" aria-label="bibl lab">
+      <span aria-hidden="true" class="logo-plate inline-flex size-9 items-center justify-center rounded-lg text-[22px] font-black leading-none">B</span>
+      <span class="text-[17px] font-bold tracking-[-0.01em]">bibl<span class="text-silver"> lab</span></span>
+    </span>
+    <span aria-hidden="true" class="h-4 w-px bg-line"></span>
+    <span class="text-[14px] font-semibold text-fg-2">브랜드 시트</span>
+    <span class="ml-auto hidden rounded-md border border-line-strong px-2 py-0.5 text-[12px] font-medium text-fg-2 sm:inline-flex">최종 시안 · 2026.10.08</span>
+  </div>
+</header>
+
+<main id="main">
+
+<!-- ───────── 0. 한 줄 정의 + 브랜드 자산 ───────── -->
+<section aria-labelledby="intro-title" class="border-b border-line">
+  <div class="mx-auto max-w-page px-6 pb-16 pt-12 lg:px-8 lg:pb-24 lg:pt-16">
+    <div class="grid grid-cols-1 gap-10 lg:grid-cols-12 lg:gap-6">
+      <div class="lg:col-span-7 lg:pr-6">
+        <p lang="en" class="text-[13px] font-black tracking-[.25em] text-silver">BIBL LAB · MONOCHROME SILVER</p>
+        <h1 id="intro-title" class="mt-5 text-[clamp(34px,4.2vw,60px)] font-extrabold leading-[1.16] tracking-[-0.025em] text-silver">
+          <span class="block">색은 빼고</span>
+          <span class="block"><span class="text-accent">빛의 밝기</span>로 강조합니다</span>
+        </h1>
+        <p class="mt-5 max-w-[36em] text-base leading-[1.75] text-fg-2 lg:text-lg lg:leading-[1.7]">비블의 콘텐츠 자산에서 무채색만 가져왔습니다. 바탕은 커뮤니티 이름 그대로 Business Black, 브랜드의 재질은 실버 플레이 버튼의 실버, 강조는 가장 밝은 흰색입니다. 실버 판 로고, 실버 섹션 라벨, 실적 숫자의 실버 +, 실버 플레이 버튼 사진이 모든 화면에서 비블을 알립니다.</p>
+        <dl class="mt-8 grid grid-cols-1 gap-x-6 gap-y-4 border-t border-line pt-6 sm:grid-cols-3">
+          <div><dt class="text-[13px] text-fg-3">강조</dt><dd class="mt-1 text-[15px] font-bold">흰색 #FFFFFF</dd></div>
+          <div><dt class="text-[13px] text-fg-3">재질·본문</dt><dd class="mt-1 text-[15px] font-bold text-silver">실버 #C6C6C6</dd></div>
+          <div><dt class="text-[13px] text-fg-3">유튜브 ↗, 올렸을 때만</dt><dd class="mt-1 text-[15px] font-bold"><a href="#" class="st-hover">유튜브 빨강 <svg class="ext" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 11 11 5M6 5h5v5"/></svg></a></dd></div>
+        </dl>
+      </div>
+
+      <div class="grid grid-cols-1 gap-3 sm:grid-cols-3 lg:col-span-5 lg:grid-cols-1">
+        <figure class="panel flex gap-4 overflow-hidden p-3 sm:flex-col lg:flex-row">
+          <img src="file:///private/tmp/claude-501/-Users-taemin-Downloads-youtube-analysis/1d99949a-0887-493d-9185-e77ff6634445/scratchpad/mockups/final/assets/silver-play-button-neutral.jpg" width="1600" height="1200" alt="세계유명 골프정보가 받은 실버 플레이 버튼" class="aspect-video w-32 shrink-0 self-center rounded-md object-cover object-[36%_30%] sm:w-full lg:w-36">
+          <figcaption class="min-w-0 self-center">
+            <p class="text-[14px] font-bold">실버 플레이 버튼</p>
+            <p class="tnum mt-1 text-[12px] leading-[1.6] text-fg-3">사진에서 뽑은 판 #C6C6C6 · 하이라이트 #D0D0D0 · 선반 #282828 → 실버 글자·라벨, 로고 판 #E3E3E3</p>
+          </figcaption>
+        </figure>
+        <figure class="panel flex gap-4 overflow-hidden p-3 sm:flex-col lg:flex-row">
+          <img src="file:///Users/taemin/Downloads/youtube-analysis/public/community-images/community-banner.png" alt="Business Black 커뮤니티 배너" class="aspect-video w-32 shrink-0 self-center rounded-md border border-line bg-canvas object-contain sm:w-full lg:w-36">
+          <figcaption class="min-w-0 self-center">
+            <p class="text-[14px] font-bold">커뮤니티 Business Black</p>
+            <p class="tnum mt-1 text-[12px] leading-[1.6] text-fg-3">검정 92% · 흰 손글씨 → 바탕 #000000 과 흰 강조</p>
+          </figcaption>
+        </figure>
+        <figure class="panel flex gap-4 overflow-hidden p-3 sm:flex-col lg:flex-row">
+          <img src="file:///Users/taemin/Downloads/youtube-analysis/public/studio/team-bibl/hero-thumbnail.png" alt="팀비블 2기 썸네일" class="aspect-video w-32 shrink-0 self-center rounded-md border border-line object-cover sm:w-full lg:w-36">
+          <figcaption class="min-w-0 self-center">
+            <p class="text-[14px] font-bold">팀비블 썸네일</p>
+            <p class="tnum mt-1 text-[12px] leading-[1.6] text-fg-3">검정 78% · 흰 큰 글자의 대비만 가져옴. 빨강 제목은 콘텐츠 몫으로 둔다</p>
+          </figcaption>
+        </figure>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ───────── 1. 팔레트 견본 ───────── -->
+<section aria-labelledby="palette-title" class="border-b border-line">
+  <div class="mx-auto max-w-page px-6 py-16 lg:px-8 lg:py-24">
+    <div class="sec-head">
+      <span class="sec-head__caption">팔레트 견본 · 대비는 WCAG 2.2 상대 휘도 기준</span>
+      <span lang="en" aria-hidden="true" class="sec-head__label">PALETTE</span>
+    </div>
+    <h2 id="palette-title" class="mt-10 text-[28px] font-extrabold leading-[1.28] tracking-[-0.02em] lg:text-[40px]">
+      <span class="block text-fg-3">검정·그래파이트·실버,</span>
+      <span class="block">색(채도)은 기능과 외부 브랜드에만</span>
+    </h2>
+<!--SWATCHES-->
+  </div>
+</section>
+
+<!-- ───────── 2. 사용 비율 + 액센트 자리 ───────── -->
+<section aria-labelledby="ratio-title" class="border-b border-line">
+  <div class="mx-auto max-w-page px-6 py-16 lg:px-8 lg:py-24">
+    <div class="sec-head">
+      <span class="sec-head__caption">한 화면 면적 기준 사용 비율과 액센트 자리</span>
+      <span lang="en" aria-hidden="true" class="sec-head__label">RATIO</span>
+    </div>
+    <h2 id="ratio-title" class="mt-10 text-[28px] font-extrabold leading-[1.28] tracking-[-0.02em] lg:text-[40px]">
+      <span class="block text-fg-3">검정 80 · 그래파이트 12 · 실버 6,</span>
+      <span class="block">흰색 강조는 2 이하</span>
+    </h2>
+
+    <div class="mt-10" role="img" aria-label="사용 비율 막대: 검정 80, 그래파이트 12, 실버 6, 흰색 2. 유튜브 빨강과 카카오 노랑은 표시 크기만큼.">
+      <div class="flex h-12 overflow-hidden rounded-card border border-line">
+        <span class="bg-canvas" style="width:80%"></span>
+        <span class="border-l border-line bg-surface-3" style="width:12%"></span>
+        <span class="bg-silver" style="width:6%"></span>
+        <span class="bg-accent" style="width:2%"></span>
+      </div>
+      <ol class="tnum mt-4 grid grid-cols-2 gap-x-6 gap-y-3 text-[13px] sm:grid-cols-4">
+        <li><span class="block text-[20px] font-extrabold leading-tight">80</span><span class="text-fg-3">비즈니스 블랙 바탕</span></li>
+        <li><span class="block text-[20px] font-extrabold leading-tight">12</span><span class="text-fg-3">그래파이트 면·선</span></li>
+        <li><span class="block text-[20px] font-extrabold leading-tight text-silver">6</span><span class="text-fg-3">실버 본문·라벨·로고 판</span></li>
+        <li><span class="block text-[20px] font-extrabold leading-tight">2</span><span class="text-fg-3">흰색 제목·핵심어·주 버튼</span></li>
+      </ol>
+      <p class="mt-4 text-[13px] leading-[1.6] text-fg-3">사진·썸네일은 비율에서 뺀다(콘텐츠의 색). 유튜브 빨강과 카카오 노랑은 그 표시 크기만큼만 쓴다.</p>
+    </div>
+
+    <div class="mt-12 grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-6">
+      <div class="panel p-5 lg:p-6">
+        <h3 class="text-[17px] font-bold">홈 화면의 액센트 자리 (3곳)</h3>
+        <ol class="mt-4 divide-y divide-line-soft text-[15px]">
+          <li class="flex items-baseline gap-3 py-3"><span class="tnum w-6 shrink-0 text-[13px] font-bold text-fg-3">01</span><span class="min-w-0"><span class="font-semibold">로고 B 마크</span><span class="text-fg-3"> · 밝은 실버 판 #E3E3E3 위 검정 B, 헤더 36px</span></span></li>
+          <li class="flex items-baseline gap-3 py-3"><span class="tnum w-6 shrink-0 text-[13px] font-bold text-fg-3">02</span><span class="min-w-0"><span class="font-semibold">첫 화면 핵심어</span><span class="text-fg-3"> · 실버 제목 속 ‘유튜브 트렌드’만 흰색</span></span></li>
+          <li class="flex items-baseline gap-3 py-3"><span class="tnum w-6 shrink-0 text-[13px] font-bold text-fg-3">03</span><span class="min-w-0"><span class="font-semibold">섹션 라벨</span><span class="text-fg-3"> · SERVICES·CHANNELS 와 01·02·03 을 실버로, 실적 숫자의 + 도 실버</span></span></li>
+        </ol>
+        <p class="mt-3 text-[13px] leading-[1.6] text-fg-3">흰 면은 첫 화면의 ‘분석 시작’과 마지막 ‘채널 대행 문의하기’ 두 버튼뿐이다. 채널 이름 옆 ↗ 는 평소 회색 #949494, 링크에 올렸을 때만 유튜브 빨강.</p>
+      </div>
+      <div class="panel p-5 lg:p-6">
+        <h3 class="text-[17px] font-bold">앱 화면의 액센트 자리 (4곳)</h3>
+        <ol class="mt-4 divide-y divide-line-soft text-[15px]">
+          <li class="flex items-baseline gap-3 py-3"><span class="tnum w-6 shrink-0 text-[13px] font-bold text-fg-3">01</span><span class="min-w-0"><span class="font-semibold">로고 B 마크</span><span class="text-fg-3"> · 밝은 실버 판</span></span></li>
+          <li class="flex items-baseline gap-3 py-3"><span class="tnum w-6 shrink-0 text-[13px] font-bold text-fg-3">02</span><span class="min-w-0"><span class="font-semibold">현재 위치</span><span class="text-fg-3"> · 네비 ‘유튜브 트렌드 서치’ 흰 글자, 도구 탭 ‘영상 찾기’ 흰 막대</span></span></li>
+          <li class="flex items-baseline gap-3 py-3"><span class="tnum w-6 shrink-0 text-[13px] font-bold text-fg-3">03</span><span class="min-w-0"><span class="font-semibold">정렬 열</span><span class="text-fg-3"> · ‘조회수 ↓’ 만 흰 글자, 나머지 열 머리는 회색</span></span></li>
+          <li class="flex items-baseline gap-3 py-3"><span class="tnum w-6 shrink-0 text-[13px] font-bold text-fg-3">04</span><span class="min-w-0"><span class="font-semibold">선택한 행</span><span class="text-fg-3"> · 흰 체크박스 + 왼쪽 흰 막대 2px</span></span></li>
+        </ol>
+        <p class="mt-3 text-[13px] leading-[1.6] text-fg-3">흰색은 ‘지금·여기·선택’이라는 한 가지 뜻만 가진다. 좋음·나쁨은 흰색으로 표시하지 않는다.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ───────── 3. 글자 ───────── -->
+<section aria-labelledby="type-title" class="border-b border-line">
+  <div class="mx-auto max-w-page px-6 py-16 lg:px-8 lg:py-24">
+    <div class="sec-head">
+      <span class="sec-head__caption">Pretendard 단계 견본 · 색은 토큰 이름으로</span>
+      <span lang="en" aria-hidden="true" class="sec-head__label">TYPE</span>
+    </div>
+    <h2 id="type-title" class="sr-only">글자 단계</h2>
+    <ol class="mt-6 divide-y divide-line">
+      <li class="grid gap-3 py-7 lg:grid-cols-12 lg:items-end lg:gap-6">
+        <p class="text-[clamp(34px,4.45vw,64px)] font-extrabold leading-[1.16] tracking-[-0.025em] text-silver lg:col-span-9">키워드 하나로 <span class="text-accent">유튜브 트렌드</span>를 파악하세요</p>
+        <p class="spec lg:col-span-3 lg:text-right"><span class="font-semibold text-fg-2">디스플레이</span><br>800 · 64px(모바일 36) · 행간 1.16 · 자간 −0.025em<br>맥락 silver, 핵심어 accent</p>
+      </li>
+      <li class="grid gap-3 py-7 lg:grid-cols-12 lg:items-end lg:gap-6">
+        <p class="text-[30px] font-extrabold leading-[1.28] tracking-[-0.02em] lg:col-span-9 lg:text-[48px] lg:leading-[1.2]"><span class="block text-fg-3">말이 아닌,</span><span class="block">결과로 증명합니다</span></p>
+        <p class="spec lg:col-span-3 lg:text-right"><span class="font-semibold text-fg-2">섹션 제목</span><br>800 · 48px(모바일 30) · 행간 1.2<br>앞줄 fg-3, 뒷줄 fg</p>
+      </li>
+      <li class="grid gap-3 py-7 lg:grid-cols-12 lg:items-end lg:gap-6">
+        <p class="tnum flex flex-wrap items-baseline gap-x-8 gap-y-2 lg:col-span-9"><span class="text-[44px] font-extrabold leading-none tracking-[-0.03em]">70만<span class="text-silver">+</span></span><span class="text-[44px] font-extrabold leading-none tracking-[-0.03em]">1.7억회<span class="text-silver">+</span></span><span class="text-[44px] font-extrabold leading-none tracking-[-0.03em]">25.8만</span></p>
+        <p class="spec lg:col-span-3 lg:text-right"><span class="font-semibold text-fg-2">실적 숫자</span><br>800 · 44px · 표 숫자(tnum)<br>숫자 fg, 뒤의 + 는 silver</p>
+      </li>
+      <li class="grid gap-3 py-7 lg:grid-cols-12 lg:items-end lg:gap-6">
+        <p class="text-[24px] font-extrabold leading-[1.3] tracking-[-0.02em] lg:col-span-9">팀비블 1:1 유튜브 컨설팅</p>
+        <p class="spec lg:col-span-3 lg:text-right"><span class="font-semibold text-fg-2">카드 제목</span><br>800 · 24px · 행간 1.3 · fg</p>
+      </li>
+      <li class="grid gap-3 py-7 lg:grid-cols-12 lg:items-end lg:gap-6">
+        <p class="max-w-[36em] text-base leading-[1.75] text-fg-2 lg:col-span-9 lg:text-lg lg:leading-[1.7]">세계유명 골프정보의 조회수는 세모골프 연 매출 7억 원 이상으로 이어졌습니다. 다양한 채널을 직접 운영·기획하고 사업으로 연결한 실전 경험을 그대로 여러분의 채널에 적용합니다.</p>
+        <p class="spec lg:col-span-3 lg:text-right"><span class="font-semibold text-fg-2">본문</span><br>400 · 16–18px · 행간 1.7 · fg-2 실버</p>
+      </li>
+      <li class="grid gap-3 py-7 lg:grid-cols-12 lg:items-end lg:gap-6">
+        <p class="text-[13px] leading-[1.6] text-fg-3 lg:col-span-9">가입 후 하루 2회 무료 검색 · 1분 만에 시작</p>
+        <p class="spec lg:col-span-3 lg:text-right"><span class="font-semibold text-fg-2">보조·캡션</span><br>400 · 13px · fg-3 (검정 위 6.9:1)</p>
+      </li>
+      <li class="grid gap-3 py-7 lg:grid-cols-12 lg:items-end lg:gap-6">
+        <p lang="en" class="text-[14px] font-black tracking-[.25em] text-silver lg:col-span-9">SERVICES</p>
+        <p class="spec lg:col-span-3 lg:text-right"><span class="font-semibold text-fg-2">섹션 라벨</span><br>900 · 13–14px · 자간 0.25em · silver</p>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<!-- ───────── 4. 부품 ───────── -->
+<section aria-labelledby="ui-title" class="border-b border-line">
+  <div class="mx-auto max-w-page px-6 py-16 lg:px-8 lg:py-24">
+    <div class="sec-head">
+      <span class="sec-head__caption">버튼 · 링크 · 배지 · 입력 · 표 행 · 상태 메시지</span>
+      <span lang="en" aria-hidden="true" class="sec-head__label">COMPONENTS</span>
+    </div>
+    <h2 id="ui-title" class="mt-10 text-[28px] font-extrabold leading-[1.28] tracking-[-0.02em] lg:text-[40px]">
+      <span class="block text-fg-3">흰색은 지금·선택,</span>
+      <span class="block">초록·노랑·빨강은 좋음·주의·나쁨</span>
+    </h2>
+
+    <div class="mt-10 grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-6">
+      <!-- 버튼 -->
+      <div class="panel p-5 lg:p-6">
+        <h3 class="text-[17px] font-bold">버튼</h3>
+        <div class="mt-5 grid grid-cols-2 gap-x-3 gap-y-5 sm:grid-cols-4">
+          <div><span class="btn btn-primary h-11 w-full px-4 text-[15px]">분석 시작</span><p class="spec mt-2">주 버튼 · 기본</p></div>
+          <div><span class="btn btn-primary st-hover h-11 w-full px-4 text-[15px]">분석 시작</span><p class="spec mt-2">hover #E5E5E5</p></div>
+          <div><span class="btn btn-primary st-active h-11 w-full px-4 text-[15px]">분석 시작</span><p class="spec mt-2">누름 · 실버 판</p></div>
+          <div><span class="btn btn-primary st-focus h-11 w-full px-4 text-[15px]">분석 시작</span><p class="spec mt-2">키보드 포커스</p></div>
+          <div><span class="btn btn-secondary h-11 w-full px-4 text-[14px]">요금제 보기</span><p class="spec mt-2">보조 · 기본</p></div>
+          <div><span class="btn btn-secondary st-hover h-11 w-full px-4 text-[14px]">요금제 보기</span><p class="spec mt-2">보조 · hover</p></div>
+          <div><span class="btn btn-secondary is-locked h-11 w-full gap-1.5 px-3 text-[13px]">영상 수집<span class="pro">Pro</span></span><p class="spec mt-2">잠긴 기능</p></div>
+          <div><span class="btn btn-ghost h-11 w-full px-3 text-[13px]">선택 해제</span><p class="spec mt-2">고스트</p></div>
+        </div>
+        <p class="mt-5 border-t border-line-soft pt-4 text-[13px] leading-[1.6] text-fg-3">흰 면 버튼은 한 화면에 하나. 색 배경 버튼(초록·빨강 채움)은 만들지 않는다.</p>
+      </div>
+
+      <!-- 링크 -->
+      <div class="panel p-5 lg:p-6">
+        <h3 class="text-[17px] font-bold">링크·내비게이션</h3>
+        <ul class="mt-4 divide-y divide-line-soft">
+          <li class="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 py-3">
+            <p class="text-[14px] text-fg-2">이용 시 <a href="#" class="underline decoration-fg-4 underline-offset-2 hover:text-fg">YouTube 서비스 약관</a>에 동의</p>
+            <p class="spec">본문 속 링크 · 밑줄 fg-4 → hover fg</p>
+          </li>
+          <li class="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 py-3">
+            <p class="flex items-center"><span class="navlink -ml-3">커뮤니티&amp;자료</span><span class="navlink st-hover">요금제</span><span class="navlink" aria-current="page">유튜브 트렌드 서치</span></p>
+            <p class="spec">네비 · 기본 / hover / 현재 위치</p>
+          </li>
+          <li class="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 py-3">
+            <p class="-mb-px flex gap-5 text-[14px]"><span class="inline-flex h-10 items-center border-b-2 border-accent font-semibold text-accent">영상 찾기</span><span class="inline-flex h-10 items-center border-b-2 border-transparent text-fg-3">채널 찾기</span><span class="inline-flex h-10 items-center border-b-2 border-transparent text-fg-3">채널 분석</span></p>
+            <p class="spec">도구 탭 · 현재 위치는 흰 막대 2px</p>
+          </li>
+          <li class="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 py-3">
+            <p class="text-[15px] font-semibold">대표 채널 보기 <span aria-hidden="true">→</span></p>
+            <p class="spec">행동 링크 · fg, 화살표 1px 이동</p>
+          </li>
+          <li class="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 py-3">
+            <p class="flex flex-wrap items-center gap-x-6"><a href="#" class="text-[17px] font-extrabold">세계유명 골프정보 <svg class="ext" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 11 11 5M6 5h5v5"/></svg></a><a href="#" class="st-hover text-[17px] font-extrabold">올렸을 때 <svg class="ext" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 11 11 5M6 5h5v5"/></svg></a></p>
+            <p class="spec">유튜브로 나가는 링크 · ↗ 평소 #949494, hover·포커스 때만 #FF0000</p>
+          </li>
+        </ul>
+      </div>
+
+      <!-- 배지 + 기능 색 -->
+      <div class="panel p-5 lg:col-span-2 lg:p-6">
+        <div class="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between">
+          <h3 class="text-[17px] font-bold">배지 · 등급 · 남은 횟수</h3>
+          <p class="text-[13px] text-fg-3">기능 색은 앱 안에서만, 언제나 글자 라벨과 함께</p>
+        </div>
+        <div class="mt-5 grid grid-cols-1 gap-6 md:grid-cols-3">
+          <div>
+            <p class="text-[13px] font-semibold text-fg-2">무채색 배지</p>
+            <div class="mt-3 flex flex-wrap items-center gap-2">
+              <span class="rounded-md border border-line-strong px-2 py-0.5 text-[12px] font-medium text-fg-2">예시 화면</span>
+              <span class="pro">Pro</span>
+              <span class="rounded border border-line-strong px-1.5 text-[12px] font-medium leading-[20px] text-fg-2">쇼츠</span>
+              <span class="rounded border border-line-strong px-1.5 text-[12px] font-medium leading-[20px] text-fg-2">롱폼</span>
+            </div>
+            <p class="spec mt-3">상태·분류 배지는 테두리 #404040 + 글자 fg-2/fg-3. 쇼츠도 빨강을 쓰지 않는다.</p>
+          </div>
+          <div>
+            <p class="text-[13px] font-semibold text-fg-2">성과 등급 (조회수 ÷ 채널 평균)</p>
+            <ul class="tnum mt-3 grid grid-cols-1 gap-2 text-[12px] text-fg-3">
+              <li class="flex items-center gap-2.5"><span class="grade grade-great">Great</span>5배 이상</li>
+              <li class="flex items-center gap-2.5"><span class="grade grade-good">Good</span>2배 이상</li>
+              <li class="flex items-center gap-2.5"><span class="grade grade-normal">Normal</span>0.5배 이상</li>
+              <li class="flex items-center gap-2.5"><span class="grade grade-bad">Bad</span>0.1배 이상</li>
+              <li class="flex items-center gap-2.5"><span class="grade grade-worst">Worst</span>0.1배 미만</li>
+            </ul>
+          </div>
+          <div>
+            <p class="text-[13px] font-semibold text-fg-2">남은 검색 횟수 (네비 한 곳)</p>
+            <ul class="tnum mt-3 grid grid-cols-1 gap-2 text-[12px] text-fg-3">
+              <li class="flex flex-wrap items-center gap-2.5"><span class="quota">이번 달 38회 남음</span>보통</li>
+              <li class="flex flex-wrap items-center gap-2.5"><span class="quota quota-low">이번 달 3회 남음</span>5회 이하</li>
+              <li class="flex flex-wrap items-center gap-2.5"><span class="quota quota-out">이번 달 검색을 모두 썼어요</span>0회</li>
+            </ul>
+            <p class="spec mt-3">남은 횟수는 흰색으로 강조하지 않는다(흰색은 현재 위치의 뜻).</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 입력 -->
+      <div class="panel p-5 lg:p-6">
+        <h3 class="text-[17px] font-bold">입력</h3>
+        <div class="mt-5 grid gap-5">
+          <div>
+            <div class="flex h-12 items-center gap-2 rounded-card border border-line-strong bg-surface p-1.5 pl-4">
+              <svg class="size-5 shrink-0 text-fg-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+              <span class="min-w-0 flex-1 truncate text-[15px] text-fg-3">분석할 키워드를 입력하세요</span>
+            </div>
+            <p class="spec mt-2">기본 · 테두리 #404040, 자리표시 fg-3</p>
+          </div>
+          <div>
+            <div class="flex h-12 items-center gap-2 rounded-card border border-accent bg-surface p-1.5 pl-4">
+              <svg class="size-5 shrink-0 text-fg-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+              <span class="min-w-0 flex-1 truncate text-[15px] font-medium">캠핑<span class="ml-px inline-block h-5 w-px translate-y-[3px] bg-accent"></span></span>
+              <span class="btn btn-primary h-full px-4 text-[14px]">분석 시작</span>
+            </div>
+            <p class="spec mt-2">입력 중 · 테두리 흰색(액센트)</p>
+          </div>
+          <div>
+            <div class="flex h-12 items-center gap-2 rounded-card border border-negative bg-surface p-1.5 pl-4">
+              <svg class="size-5 shrink-0 text-fg-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+              <span class="min-w-0 flex-1 truncate text-[15px] text-fg-3">분석할 키워드를 입력하세요</span>
+            </div>
+            <p class="mt-2 flex items-center gap-1.5 text-[13px] font-medium text-negative"><svg class="size-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 8v5M12 16.5v.01"/><path d="M10.3 3.9 2.6 17.2A2 2 0 0 0 4.3 20h15.4a2 2 0 0 0 1.7-2.8L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>키워드를 입력해 주세요</p>
+          </div>
+          <div class="flex flex-wrap items-center gap-x-6 gap-y-4 border-t border-line-soft pt-5">
+            <label class="select-wrap"><span class="sr-only">정렬</span><select class="select"><option>조회수 높은 순</option><option>구독자 많은 순</option></select></label>
+            <span class="flex items-center gap-4">
+              <input type="checkbox" class="chk" aria-label="선택 안 함">
+              <input type="checkbox" class="chk" aria-label="선택함" checked>
+              <input type="checkbox" class="chk" aria-label="일부 선택" data-indeterminate>
+            </span>
+            <p class="spec">체크박스 테두리 #7A7A7A(3:1 이상) → 선택하면 흰 면</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 상태 메시지 -->
+      <div class="panel p-5 lg:p-6">
+        <h3 class="text-[17px] font-bold">상태 메시지</h3>
+        <ul class="mt-5 grid gap-3">
+          <li class="flex gap-3 rounded-control border border-line px-4 py-3.5">
+            <svg class="mt-0.5 size-5 shrink-0 text-positive" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>
+            <span class="min-w-0"><span class="block text-[15px] font-semibold text-positive">영상 2개를 수집했어요</span><span class="mt-0.5 block text-[13px] text-fg-3">수집한 영상에서 CSV로 내보낼 수 있어요</span></span>
+          </li>
+          <li class="flex gap-3 rounded-control border border-line px-4 py-3.5">
+            <svg class="mt-0.5 size-5 shrink-0 text-caution" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 8v5M12 16.5v.01"/><path d="M10.3 3.9 2.6 17.2A2 2 0 0 0 4.3 20h15.4a2 2 0 0 0 1.7-2.8L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>
+            <span class="min-w-0"><span class="block text-[15px] font-semibold text-caution">이번 달 검색이 3회 남았어요</span><span class="mt-0.5 block text-[13px] text-fg-3">매월 1일에 다시 채워져요</span></span>
+          </li>
+          <li class="flex gap-3 rounded-control border border-line px-4 py-3.5">
+            <svg class="mt-0.5 size-5 shrink-0 text-negative" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg>
+            <span class="min-w-0"><span class="block text-[15px] font-semibold text-negative">검색하지 못했어요</span><span class="mt-0.5 block text-[13px] text-fg-3">잠시 뒤 다시 시도해 주세요. 횟수는 차감되지 않았어요</span></span>
+          </li>
+          <li class="flex gap-3 rounded-control border border-line px-4 py-3.5">
+            <svg class="mt-0.5 size-5 shrink-0 text-fg-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 10.5V18"/><circle cx="12" cy="6.5" r="1.4" fill="currentColor" stroke="none"/></svg>
+            <span class="min-w-0"><span class="block text-[15px] font-semibold text-fg-1">검색할 때마다 1회 차감돼요</span><span class="mt-0.5 block text-[13px] text-fg-3">안내는 파랑 대신 무채색</span></span>
+          </li>
+        </ul>
+        <p class="mt-4 text-[13px] leading-[1.6] text-fg-3">면을 색으로 칠하지 않는다. 기호와 제목 글자만 기능 색, 테두리·바탕은 그래파이트.</p>
+      </div>
+
+      <!-- 키워드 경쟁도 3단계 -->
+      <div class="panel p-5 lg:p-6">
+        <div class="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between">
+          <h3 class="text-[17px] font-bold">키워드 경쟁도 · 3단계</h3>
+          <p class="text-[13px] text-fg-3">점수 0~100, 낮을수록 진입하기 좋음</p>
+        </div>
+        <ul class="mt-5 grid gap-4">
+          <li class="grid grid-cols-[3rem_1fr] items-start gap-x-4">
+            <span class="tnum text-[26px] font-extrabold leading-none text-competition-low">28</span>
+            <span class="min-w-0"><span class="flex flex-wrap items-center gap-2.5"><span class="meter" data-level="1" aria-hidden="true"><span></span><span></span><span></span></span><span class="text-[14px] font-bold text-competition-low">경쟁 낮음</span><span class="spec">0~35점 · competition-low = positive</span></span><span class="mt-1 block text-[13px] leading-[1.55] text-fg-2">경쟁이 적어 진입하기 좋은 키워드입니다</span></span>
+          </li>
+          <li class="grid grid-cols-[3rem_1fr] items-start gap-x-4">
+            <span class="tnum text-[26px] font-extrabold leading-none text-competition-mid">52</span>
+            <span class="min-w-0"><span class="flex flex-wrap items-center gap-2.5"><span class="meter" data-level="2" aria-hidden="true"><span></span><span></span><span></span></span><span class="text-[14px] font-bold text-competition-mid">경쟁 보통</span><span class="spec">36~65점 · competition-mid = caution</span></span><span class="mt-1 block text-[13px] leading-[1.55] text-fg-2">적당한 경쟁이 있지만 차별화된 콘텐츠로 승부할 수 있습니다</span></span>
+          </li>
+          <li class="grid grid-cols-[3rem_1fr] items-start gap-x-4">
+            <span class="tnum text-[26px] font-extrabold leading-none text-competition-high">81</span>
+            <span class="min-w-0"><span class="flex flex-wrap items-center gap-2.5"><span class="meter" data-level="3" aria-hidden="true"><span></span><span></span><span></span></span><span class="text-[14px] font-bold text-competition-high">경쟁 높음</span><span class="spec">66~100점 · competition-high = negative</span></span><span class="mt-1 block text-[13px] leading-[1.55] text-fg-2">경쟁이 치열합니다. 니치한 세부 키워드를 노려보세요</span></span>
+          </li>
+        </ul>
+        <p class="mt-5 border-t border-line-soft pt-4 text-[13px] leading-[1.6] text-fg-3">지금 앱의 틸·노랑·빨강 칸과 원형 링을 대신한다. 단계는 색 + 칸 수(1·2·3) + ‘경쟁 낮음’ 글자로 세 번 말한다. 면 배경(bg-*-900/40)은 쓰지 않는다.</p>
+      </div>
+
+      <!-- 색약 검증 -->
+      <div class="panel p-5 lg:p-6">
+        <div class="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between">
+          <h3 class="text-[17px] font-bold">색약에서도 구별되나</h3>
+          <p class="text-[13px] text-fg-3">Machado 2009 시뮬레이션 · CIEDE2000</p>
+        </div>
+<!--CVD-->
+      </div>
+
+      <!-- 표 행 -->
+      <div class="panel overflow-hidden lg:col-span-2">
+        <div class="flex flex-col gap-1 px-5 pt-5 sm:flex-row sm:items-baseline sm:justify-between lg:px-6 lg:pt-6">
+          <h3 class="text-[17px] font-bold">표 행 · 정렬 · 선택</h3>
+          <p class="text-[13px] text-fg-3">1행 선택 · 2행 hover · 배수는 ▲▼ 기호를 함께 · 값은 예시</p>
+        </div>
+        <div class="no-scrollbar mt-4 overflow-x-auto">
+          <table class="w-full table-fixed text-left">
+            <colgroup><col class="w-11 sm:w-12"><col><col class="w-[76px] sm:w-[104px]"><col class="hidden w-[128px] sm:table-column"><col class="w-[84px] sm:w-[96px]"></colgroup>
+            <thead class="text-[12px] text-fg-3">
+              <tr class="border-y border-line">
+                <th scope="col" class="py-2.5 pl-4"><span class="sr-only">선택</span></th>
+                <th scope="col" class="py-2.5 font-medium">영상</th>
+                <th scope="col" class="py-2.5 pr-4 text-right font-semibold text-accent">조회수 ↓</th>
+                <th scope="col" class="hidden py-2.5 pr-4 text-right font-medium sm:table-cell">채널 평균 대비</th>
+                <th scope="col" class="py-2.5 pr-5 text-right font-medium">등급</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-line-soft">
+              <tr class="row-selected">
+                <td class="py-3 pl-4"><input type="checkbox" class="chk" checked aria-label="1행 선택함"></td>
+                <td class="py-3 pr-3 sm:pr-4"><span class="line-clamp-1 text-[14px] font-medium text-fg-1 sm:text-[15px]">거친 폭우 속 아늑한 오두막 트럭에서 강아지와 우중캠핑</span></td>
+                <td class="tnum py-3 pr-3 text-right text-[15px] font-extrabold sm:pr-4 sm:text-[17px]">74.4만</td>
+                <td class="tnum hidden py-3 pr-4 text-right text-[14px] font-semibold text-positive sm:table-cell"><span aria-hidden="true">▲ </span>×8.2</td>
+                <td class="py-3 pr-4 text-right sm:pr-5"><span class="grade grade-great">Great</span></td>
+              </tr>
+              <tr class="row-hover">
+                <td class="py-3 pl-4"><input type="checkbox" class="chk" aria-label="2행 선택"></td>
+                <td class="py-3 pr-3 sm:pr-4"><span class="line-clamp-1 text-[14px] font-medium text-fg-1 sm:text-[15px]">3만원짜리 작은 텐트로 강아지와 떠난 하루 여행</span></td>
+                <td class="tnum py-3 pr-3 text-right text-[15px] font-extrabold sm:pr-4 sm:text-[17px]">48.4만</td>
+                <td class="tnum hidden py-3 pr-4 text-right text-[14px] font-semibold text-positive sm:table-cell"><span aria-hidden="true">▲ </span>×2.6</td>
+                <td class="py-3 pr-4 text-right sm:pr-5"><span class="grade grade-good">Good</span></td>
+              </tr>
+              <tr>
+                <td class="py-3 pl-4"><input type="checkbox" class="chk" aria-label="3행 선택"></td>
+                <td class="py-3 pr-3 sm:pr-4"><span class="line-clamp-1 text-[14px] font-medium text-fg-1 sm:text-[15px]">캠핑 5년 하고 알았습니다, 처음부터 알았으면 좋았을 캠핑팁</span></td>
+                <td class="tnum py-3 pr-3 text-right text-[15px] font-extrabold sm:pr-4 sm:text-[17px]">22.8만</td>
+                <td class="tnum hidden py-3 pr-4 text-right text-[14px] text-fg-2 sm:table-cell">×0.9</td>
+                <td class="py-3 pr-4 text-right sm:pr-5"><span class="grade grade-normal">Normal</span></td>
+              </tr>
+              <tr>
+                <td class="py-3 pl-4"><input type="checkbox" class="chk" aria-label="4행 선택"></td>
+                <td class="py-3 pr-3 sm:pr-4"><span class="line-clamp-1 text-[14px] font-medium text-fg-1 sm:text-[15px]">6m 텐트 치고 나니 캠핑할 힘이 없네요</span></td>
+                <td class="tnum py-3 pr-3 text-right text-[15px] font-extrabold sm:pr-4 sm:text-[17px]">22.1만</td>
+                <td class="tnum hidden py-3 pr-4 text-right text-[14px] font-semibold text-caution sm:table-cell"><span aria-hidden="true">▼ </span>×0.3</td>
+                <td class="py-3 pr-4 text-right sm:pr-5"><span class="grade grade-bad">Bad</span></td>
+              </tr>
+              <tr>
+                <td class="py-3 pl-4"><input type="checkbox" class="chk" aria-label="5행 선택"></td>
+                <td class="py-3 pr-3 sm:pr-4"><span class="line-clamp-1 text-[14px] font-medium text-fg-1 sm:text-[15px]">사는 곳이 여행지가 되는 삶, 3평 캠핑카 생활하는 법</span></td>
+                <td class="tnum py-3 pr-3 text-right text-[15px] font-extrabold sm:pr-4 sm:text-[17px]">18.8만</td>
+                <td class="tnum hidden py-3 pr-4 text-right text-[14px] font-semibold text-negative sm:table-cell"><span aria-hidden="true">▼ </span>×0.06</td>
+                <td class="py-3 pr-4 text-right sm:pr-5"><span class="grade grade-worst">Worst</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ───────── 5. 차트 ───────── -->
+<section aria-labelledby="chart-title" class="border-b border-line">
+  <div class="mx-auto max-w-page px-6 py-16 lg:px-8 lg:py-24">
+    <div class="sec-head">
+      <span class="sec-head__caption">앱 차트 색 · 양은 무채색 단계로, 평가는 기능 색으로</span>
+      <span lang="en" aria-hidden="true" class="sec-head__label">CHARTS</span>
+    </div>
+    <h2 id="chart-title" class="sr-only">차트 색</h2>
+    <div class="mt-10 grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-6">
+
+      <figure class="panel p-5 lg:p-6">
+        <figcaption class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+          <span class="text-[15px] font-bold">최근 28일 조회수</span>
+          <span class="flex items-center gap-4 text-[12px] text-fg-3"><span class="inline-flex items-center gap-1.5"><span class="h-0.5 w-5 bg-chart-1"></span>이번 달</span><span class="inline-flex items-center gap-1.5"><span class="h-0 w-5 border-t-[1.5px] border-dashed border-chart-2"></span>지난달</span></span>
+        </figcaption>
+        <svg class="mt-4 w-full" viewBox="0 0 560 220" role="img" aria-label="이번 달 조회수가 지난달보다 높게 이어지는 선 차트">
+          <g class="text-chart-grid" stroke="currentColor" stroke-width="1">
+            <line x1="40" y1="20" x2="560" y2="20"/><line x1="40" y1="80" x2="560" y2="80"/><line x1="40" y1="140" x2="560" y2="140"/><line x1="40" y1="200" x2="560" y2="200"/>
+          </g>
+          <g class="text-fg-3" fill="currentColor" font-size="12" font-family="Pretendard Variable, sans-serif">
+            <text x="0" y="24">80만</text><text x="0" y="84">60만</text><text x="0" y="144">40만</text><text x="0" y="204">20만</text>
+          </g>
+          <polyline class="text-chart-2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="5 4" stroke-linejoin="round" points="40,182 98,176 156,170 214,174 272,160 330,156 388,150 446,146 504,140 560,136"/>
+          <polyline class="text-chart-1" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="40,170 98,158 156,150 214,138 272,128 330,104 388,92 446,74 504,58 560,40"/>
+          <circle class="text-chart-1" cx="560" cy="40" r="3.5" fill="currentColor"/>
+        </svg>
+        <p class="spec mt-3">주 계열 chart-1 흰색 2px · 비교 계열 chart-2 #949494 점선 · 눈금선 #262626 · 선 아래 칠하기 없음</p>
+      </figure>
+
+      <figure class="panel p-5 lg:p-6">
+        <figcaption class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+          <span class="text-[15px] font-bold">결과 50개의 성과 등급</span>
+          <span class="text-[12px] text-fg-3">평가가 있는 값만 기능 색</span>
+        </figcaption>
+        <div class="mt-6 flex h-9 overflow-hidden rounded-md" role="img" aria-label="Great 4, Good 9, Normal 25, Bad 9, Worst 3">
+          <span class="bg-positive" style="width:8%"></span>
+          <span class="bg-positive/45" style="width:18%"></span>
+          <span class="bg-chart-3" style="width:50%"></span>
+          <span class="bg-caution" style="width:18%"></span>
+          <span class="bg-negative" style="width:6%"></span>
+        </div>
+        <ul class="tnum mt-4 grid grid-cols-3 gap-x-4 gap-y-3 text-[12px] sm:grid-cols-5">
+          <li><span class="grade grade-great">Great</span><span class="mt-1.5 block text-[15px] font-bold">4</span></li>
+          <li><span class="grade grade-good">Good</span><span class="mt-1.5 block text-[15px] font-bold">9</span></li>
+          <li><span class="grade grade-normal">Normal</span><span class="mt-1.5 block text-[15px] font-bold">25</span></li>
+          <li><span class="grade grade-bad">Bad</span><span class="mt-1.5 block text-[15px] font-bold">9</span></li>
+          <li><span class="grade grade-worst">Worst</span><span class="mt-1.5 block text-[15px] font-bold">3</span></li>
+        </ul>
+        <p class="spec mt-4">보통(Normal)은 회색 #525252. 라벨 없이 색만으로 등급을 말하지 않는다(색약 대비, 아래 색약 검증).</p>
+      </figure>
+
+      <figure class="panel p-5 lg:p-6">
+        <figcaption class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+          <span class="text-[15px] font-bold">요일별 업로드 수와 평균 조회수</span>
+          <span class="text-[12px] text-fg-3">많을수록 밝게</span>
+        </figcaption>
+        <ol class="tnum mt-5 grid grid-cols-7 gap-1.5 text-center sm:gap-2">
+          <li><span class="text-[12px] text-fg-3">월</span><span class="mx-auto mt-2 flex aspect-square w-full max-w-12 items-center justify-center rounded-md bg-heat-2 text-[13px] font-semibold text-fg">3</span><span class="mt-1.5 block text-[11px] text-fg-3">4.1만</span></li>
+          <li><span class="text-[12px] text-fg-3">화</span><span class="mx-auto mt-2 flex aspect-square w-full max-w-12 items-center justify-center rounded-md bg-heat-3 text-[13px] font-semibold text-accent-ink">5</span><span class="mt-1.5 block text-[11px] text-fg-3">6.8만</span></li>
+          <li><span class="text-[12px] text-fg-3">수</span><span class="mx-auto mt-2 flex aspect-square w-full max-w-12 items-center justify-center rounded-md bg-heat-1 text-[13px] font-semibold text-fg">1</span><span class="mt-1.5 block text-[11px] text-fg-3">2.2만</span></li>
+          <li><span class="text-[12px] text-fg-3">목</span><span class="mx-auto mt-2 flex aspect-square w-full max-w-12 items-center justify-center rounded-md bg-heat-5 text-[13px] font-semibold text-accent-ink">9</span><span class="mt-1.5 block text-[11px] text-fg">12.4만</span></li>
+          <li><span class="text-[12px] text-fg-3">금</span><span class="mx-auto mt-2 flex aspect-square w-full max-w-12 items-center justify-center rounded-md bg-heat-4 text-[13px] font-semibold text-accent-ink">7</span><span class="mt-1.5 block text-[11px] text-fg-3">9.0만</span></li>
+          <li><span class="text-[12px] text-fg-3">토</span><span class="mx-auto mt-2 flex aspect-square w-full max-w-12 items-center justify-center rounded-md bg-heat-3 text-[13px] font-semibold text-accent-ink">4</span><span class="mt-1.5 block text-[11px] text-fg-3">5.5만</span></li>
+          <li><span class="text-[12px] text-fg-3">일</span><span class="mx-auto mt-2 flex aspect-square w-full max-w-12 items-center justify-center rounded-md bg-heat-2 text-[13px] font-semibold text-fg">2</span><span class="mt-1.5 block text-[11px] text-fg-3">3.0만</span></li>
+        </ol>
+        <div class="mt-5 flex items-center gap-2 text-[12px] text-fg-3"><span>적음</span><span class="flex overflow-hidden rounded"><span class="size-4 bg-heat-1"></span><span class="size-4 bg-heat-2"></span><span class="size-4 bg-heat-3"></span><span class="size-4 bg-heat-4"></span><span class="size-4 bg-heat-5"></span></span><span>많음</span></div>
+        <p class="spec mt-3">무채색 5단계 heat-1~5. 1·2단계 위 숫자는 흰색, 3단계부터 검정(대비 4.9:1 이상). 지금 앱의 에메랄드 농도 칸을 대신한다.</p>
+      </figure>
+
+      <figure class="panel p-5 lg:p-6">
+        <figcaption class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+          <span class="text-[15px] font-bold">알고리즘 점수 (높을수록 좋음)</span>
+          <span class="text-[12px] text-fg-3">최상위 단계만 초록</span>
+        </figcaption>
+        <ul class="tnum mt-5 grid gap-4 text-[13px]">
+          <li class="grid grid-cols-[3.25rem_1fr_4.5rem] items-center gap-3"><span class="text-[15px] font-bold text-positive">82</span><span class="h-2 overflow-hidden rounded-full bg-surface-3"><span class="block h-full rounded-full bg-positive" style="width:82%"></span></span><span class="text-right text-fg-3">70 이상</span></li>
+          <li class="grid grid-cols-[3.25rem_1fr_4.5rem] items-center gap-3"><span class="text-[15px] font-bold text-fg-2">61</span><span class="h-2 overflow-hidden rounded-full bg-surface-3"><span class="block h-full rounded-full bg-fg-2" style="width:61%"></span></span><span class="text-right text-fg-3">50~69</span></li>
+          <li class="grid grid-cols-[3.25rem_1fr_4.5rem] items-center gap-3"><span class="text-[15px] font-bold text-fg-3">38</span><span class="h-2 overflow-hidden rounded-full bg-surface-3"><span class="block h-full rounded-full bg-fg-3" style="width:38%"></span></span><span class="text-right text-fg-3">30~49</span></li>
+          <li class="grid grid-cols-[3.25rem_1fr_4.5rem] items-center gap-3"><span class="text-[15px] font-bold text-fg-4">17</span><span class="h-2 overflow-hidden rounded-full bg-surface-3"><span class="block h-full rounded-full bg-fg-4" style="width:17%"></span></span><span class="text-right text-fg-3">30 미만</span></li>
+        </ul>
+        <p class="spec mt-4">지금 앱의 주황·노랑·틸·회색 4단계를 초록 1단계 + 실버·스틸 회색 3단계로 바꾼다. 흰색(액센트)은 쓰지 않는다.</p>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- ───────── 6. 로고 조합 ───────── -->
+<section aria-labelledby="logo-title" class="border-b border-line">
+  <div class="mx-auto max-w-page px-6 py-16 lg:px-8 lg:py-24">
+    <div class="sec-head">
+      <span class="sec-head__caption">지금의 B 마크 + bibl lab 모양은 그대로, 색과 배치만</span>
+      <span lang="en" aria-hidden="true" class="sec-head__label">LOGO</span>
+    </div>
+    <h2 id="logo-title" class="mt-10 text-[28px] font-extrabold leading-[1.28] tracking-[-0.02em] lg:text-[40px]">
+      <span class="block text-fg-3">B 마크는 밝은 실버 판,</span>
+      <span class="block">흰 바탕에서는 검정 판</span>
+    </h2>
+    <div class="mt-10 grid grid-cols-1 gap-4 md:grid-cols-3 lg:gap-6">
+      <figure class="panel overflow-hidden">
+        <div class="flex aspect-[16/10] items-center justify-center bg-canvas">
+          <span class="flex items-center gap-3">
+            <span aria-hidden="true" class="logo-plate inline-flex size-11 items-center justify-center rounded-[10px] text-[24px] font-black leading-none">B</span>
+            <span class="text-[25px] font-bold tracking-[-0.01em]">bibl<span class="text-silver"> lab</span></span>
+          </span>
+        </div>
+        <figcaption class="border-t border-line p-5">
+          <p class="text-[15px] font-bold">A · 기본 가로형</p>
+          <p class="mt-1 text-[13px] leading-[1.6] text-fg-3">헤더(판 36px)·푸터(32px)·문서 머리. 판 #E3E3E3 · B #000000 · bibl #FFFFFF · lab #C6C6C6</p>
+        </figcaption>
+      </figure>
+      <figure class="panel overflow-hidden">
+        <div class="flex aspect-[16/10] items-center justify-center bg-surface">
+          <span class="flex flex-col items-center gap-3">
+            <span aria-hidden="true" class="logo-plate inline-flex size-16 items-center justify-center rounded-[14px] text-[36px] font-black leading-none">B</span>
+            <span class="text-[20px] font-bold tracking-[-0.01em]">bibl<span class="text-silver"> lab</span></span>
+          </span>
+        </div>
+        <figcaption class="border-t border-line p-5">
+          <p class="text-[15px] font-bold">B · 세로형 (정사각 자리)</p>
+          <p class="mt-1 text-[13px] leading-[1.6] text-fg-3">유튜브·카카오 채널 프로필, 공유 이미지. 판 아래에 워드마크를 가운데 정렬</p>
+        </figcaption>
+      </figure>
+      <figure class="panel overflow-hidden">
+        <div class="flex aspect-[16/10] items-center justify-center bg-paper">
+          <span class="flex items-center gap-3">
+            <span aria-hidden="true" class="inline-flex size-11 items-center justify-center rounded-[10px] bg-paper-ink text-[24px] font-black leading-none text-paper">B</span>
+            <span class="text-[25px] font-bold tracking-[-0.01em] text-paper-ink">bibl<span class="text-paper-muted"> lab</span></span>
+          </span>
+        </div>
+        <figcaption class="border-t border-line p-5">
+          <p class="text-[15px] font-bold">C · 반전 (흰 바탕)</p>
+          <p class="mt-1 text-[13px] leading-[1.6] text-fg-3">제안서·세금계산서·제휴사 로고 나열. 판 #000000 · B #FFFFFF · lab #6B6B6B(흰 위 5.3:1)</p>
+        </figcaption>
+      </figure>
+    </div>
+    <div class="mt-4 grid grid-cols-1 gap-4 lg:mt-6 lg:grid-cols-12 lg:gap-6">
+      <div class="panel flex flex-wrap items-end gap-6 p-5 lg:col-span-7 lg:p-6">
+        <span class="flex flex-col items-center gap-2"><span aria-hidden="true" class="logo-plate inline-flex size-12 items-center justify-center rounded-[11px] text-[26px] font-black leading-none">B</span><span class="spec">48</span></span>
+        <span class="flex flex-col items-center gap-2"><span aria-hidden="true" class="logo-plate inline-flex size-9 items-center justify-center rounded-lg text-[22px] font-black leading-none">B</span><span class="spec">36 헤더</span></span><span class="flex flex-col items-center gap-2"><span aria-hidden="true" class="logo-plate inline-flex size-8 items-center justify-center rounded-[7px] text-[19px] font-black leading-none">B</span><span class="spec">32 푸터</span></span>
+        <span class="flex flex-col items-center gap-2"><span aria-hidden="true" class="logo-plate inline-flex size-5 items-center justify-center rounded-[5px] text-[12px] font-black leading-none">B</span><span class="spec">20 최소</span></span>
+        <span class="flex flex-col items-center gap-2"><span class="inline-flex size-12 items-center justify-center rounded-[11px] bg-paper"><span aria-hidden="true" class="inline-flex size-8 items-center justify-center rounded-lg bg-paper-ink text-lg font-black leading-none text-paper">B</span></span><span class="spec">흰 바탕</span></span>
+        <p class="spec min-w-[14em] flex-1">파비콘·앱 아이콘은 B 판만. 판은 #E3E3E3(본문 실버 #C6C6C6 보다 한 단 밝게, 작은 크기에서 꺼진 아이콘처럼 보이지 않게). B 는 판 높이의 61%, 모서리 반경은 한 변의 22%, 둘레 여백은 판 높이의 1/2 이상.</p>
+      </div>
+      <div class="panel p-5 lg:col-span-5 lg:p-6">
+        <p class="text-[15px] font-bold">로고에서 하지 않는 것</p>
+        <ul class="mt-3 grid gap-1.5 text-[13px] leading-[1.6] text-fg-3">
+          <li>판에 그라데이션·광택·그림자를 넣어 금속처럼 만들기</li>
+          <li>판을 유튜브 빨강이나 기능 색으로 칠하기</li>
+          <li>사진 위에 실버 판을 바로 올리기(검정 띠 위에만)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ───────── 7. 대비 표 ───────── -->
+<section aria-labelledby="contrast-title" class="border-b border-line">
+  <div class="mx-auto max-w-page px-6 py-16 lg:px-8 lg:py-24">
+    <div class="sec-head">
+      <span class="sec-head__caption">본문 4.5:1 · 큰 글자(24px 이상, 19px 굵게) 3:1 · UI 경계 3:1</span>
+      <span lang="en" aria-hidden="true" class="sec-head__label">CONTRAST</span>
+    </div>
+    <h2 id="contrast-title" class="mt-10 text-[28px] font-extrabold leading-[1.28] tracking-[-0.02em] lg:text-[40px]">
+      <span class="block text-fg-3">작은 글자에 쓰는 가장 어두운 회색은</span>
+      <span class="block">#7A7A7A (검정 위 4.89:1)</span>
+    </h2>
+<!--CONTRAST-->
+  </div>
+</section>
+
+<!-- ───────── 8. 해야 할 것 / 하지 말 것 ───────── -->
+<section aria-labelledby="rules-title">
+  <div class="mx-auto max-w-page px-6 py-16 lg:px-8 lg:py-24">
+    <div class="sec-head">
+      <span class="sec-head__caption">이 팔레트를 쓰는 규칙</span>
+      <span lang="en" aria-hidden="true" class="sec-head__label">RULES</span>
+    </div>
+    <h2 id="rules-title" class="sr-only">해야 할 것과 하지 말 것</h2>
+    <div class="mt-10 grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-6">
+      <div class="panel p-5 lg:p-7">
+        <h3 class="flex items-center gap-2 text-[19px] font-extrabold"><svg class="size-5 text-fg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>해야 할 것</h3>
+        <ol class="mt-4 divide-y divide-line-soft text-[15px] leading-[1.65]">
+          <li class="py-3"><span class="font-semibold">강조는 밝기로 한다.</span> <span class="text-fg-2">맥락은 실버, 핵심어·숫자만 흰색.</span></li>
+          <li class="py-3"><span class="font-semibold">흰 면 버튼은 한 화면에 하나.</span> <span class="text-fg-2">나머지는 테두리 버튼이나 글자 링크.</span></li>
+          <li class="py-3"><span class="font-semibold">실버는 매 화면 보이게.</span> <span class="text-fg-2">실버 판 로고, 실버 섹션 라벨, 실적 숫자의 실버 +, 실버 플레이 버튼 사진. 넓은 면은 실버로 칠하지 않는다.</span></li>
+          <li class="py-3"><span class="font-semibold">흰색은 ‘지금·선택’ 한 가지 뜻.</span> <span class="text-fg-2">현재 위치·정렬 열·선택 행·포커스.</span></li>
+          <li class="py-3"><span class="font-semibold">기능 색은 앱 안에서, 글자와 함께.</span> <span class="text-fg-2">초록 좋음·노랑 주의·빨강 나쁨, 항상 라벨·▲▼ 기호·칸 수를 붙인다(녹색약은 초록과 빨강을 밝기로만 구별).</span></li>
+          <li class="py-3"><span class="font-semibold">회색은 무채색(R=G=B)만.</span> <span class="text-fg-2">사진도 무채색으로 보정한 판(실버 플레이 버튼)을 쓴다.</span></li>
+          <li class="py-3"><span class="font-semibold">작은 글자는 #7A7A7A 보다 밝게.</span> <span class="text-fg-2">보조 글자 기본은 #949494.</span></li>
+        </ol>
+      </div>
+      <div class="panel p-5 lg:p-7">
+        <h3 class="flex items-center gap-2 text-[19px] font-extrabold"><svg class="size-5 text-fg-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg>하지 말 것</h3>
+        <ol class="mt-4 divide-y divide-line-soft text-[15px] leading-[1.65]">
+          <li class="py-3"><span class="font-semibold">실버를 금속처럼 꾸미기.</span> <span class="text-fg-2">그라데이션·광택·반사·글로우 없이 단색으로만.</span></li>
+          <li class="py-3"><span class="font-semibold">유튜브 빨강을 다른 데 쓰기.</span> <span class="text-fg-2">오류·할인·강조·쇼츠 배지에 #FF0000 금지. 오류는 #FA5570 + 기호 + 문장. ↗ 도 평소엔 회색.</span></li>
+          <li class="py-3"><span class="font-semibold">기능 색으로 면 칠하기.</span> <span class="text-fg-2">노란 경고 띠, 빨간 배너, 초록 버튼을 만들지 않는다(Great 작은 배지만 예외).</span></li>
+          <li class="py-3"><span class="font-semibold">좋음을 흰색으로 표시하기.</span> <span class="text-fg-2">흰색은 선택의 뜻이라 등급과 섞이면 헷갈린다.</span></li>
+          <li class="py-3"><span class="font-semibold">청색기 회색과 보라·파랑 장식.</span> <span class="text-fg-2">slate·zinc·gray, 안내용 파랑도 쓰지 않는다.</span></li>
+          <li class="py-3"><span class="font-semibold">AI스러운 장식.</span> <span class="text-fg-2">펄스 점·아이콘 상자·원형 숫자 배지·이모지·네온 번짐.</span></li>
+          <li class="py-3"><span class="font-semibold">화면 문구의 긴 하이픈.</span> <span class="text-fg-2">쉼표·가운뎃점·줄바꿈으로 나눈다.</span></li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="border-t border-line">
+  <div class="mx-auto flex max-w-page flex-col gap-2 px-6 py-10 text-[12px] text-fg-3 sm:flex-row sm:items-center sm:justify-between lg:px-8">
+    <span class="flex items-center gap-2"><span aria-hidden="true" class="logo-plate inline-flex size-5 items-center justify-center rounded-[5px] text-[12px] font-black leading-none">B</span><span class="font-semibold text-fg-2">bibl lab 최종 시안 · 모노크롬 실버</span></span>
+    <span>레이아웃 F + 색 M · 토큰은 Tailwind v4 @theme (DESIGN-notes.md)</span>
+  </div>
+</footer>
+<script>
+document.querySelectorAll('[data-indeterminate]').forEach((el) => { el.indeterminate = true; });
+</script>
+</body>
+</html>

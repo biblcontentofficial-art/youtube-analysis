@@ -1,0 +1,521 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>영상 찾기 · 최종 시안 F</title>
+<meta name="description" content="bibllab.com 최종 디자인 시안. 로그인 후 영상 찾기 결과 화면(Starter 계정 예시 화면, 조회수 순 정렬·2개 선택한 상태).">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+<style type="text/tailwindcss">
+/* 토큰은 home.html 과 같다(R03 이름·값, 제목 굵기 800 · title·ui·container-wide 추가) */
+@theme {
+  --font-sans: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
+  --color-accent: #00e5a0;
+  --color-accent-hover: #66ffcc;
+  --color-kakao: #fee500;
+  --color-kakao-hover: #fdd835;
+  --color-kakao-ink: #191919;
+
+  --text-h3: 1.75rem;
+  --text-h3--line-height: 1.3;
+  --text-h3--letter-spacing: -0.02em;
+  --text-h3--font-weight: 800;
+  --text-h4: 1.25rem;
+  --text-h4--line-height: 1.4;
+  --text-h4--letter-spacing: -0.01em;
+  --text-h4--font-weight: 700;
+  --text-lead: 1.125rem;
+  --text-lead--line-height: 1.7;
+  --text-lead--letter-spacing: -0.005em;
+  --text-body: 1rem;
+  --text-body--line-height: 1.75;
+  --text-ui: 0.9375rem;
+  --text-ui--line-height: 1.6;
+  --text-body-sm: 0.875rem;
+  --text-body-sm--line-height: 1.7;
+  --text-caption: 0.8125rem;
+  --text-caption--line-height: 1.5;
+  --text-caption--font-weight: 500;
+  --text-micro: 0.75rem;
+  --text-micro--line-height: 1.5;
+  --text-micro--font-weight: 500;
+
+  --radius-control: 0.5rem;
+  --radius-card: 0.75rem;
+  --radius-panel: 1rem;
+
+  --container-page: 75rem;
+  --container-wide: 80rem;
+
+  --breakpoint-nav: 80rem;
+}
+@layer base {
+  html {
+    background: #000;
+    color: #fff;
+    color-scheme: dark;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    word-break: keep-all;
+    overflow-wrap: break-word;
+  }
+  h1, h2, h3 { text-wrap-style: balance; }
+  p, li, dd { text-wrap-style: pretty; }
+  :focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+  ::selection { background: var(--color-accent); color: #000; }
+  button:not(:disabled), summary { cursor: pointer; }
+  summary { list-style: none; }
+  summary::-webkit-details-marker { display: none; }
+  img { color: transparent; }
+  input[type="search"]::-webkit-search-cancel-button { display: none; }
+}
+@layer components {
+  .tnum { font-variant-numeric: tabular-nums; }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: .375rem;
+    white-space: nowrap; border-radius: var(--radius-control); font-weight: 700;
+    transition: background-color .15s ease-out, border-color .15s ease-out, color .15s ease-out;
+  }
+  .btn-primary { background: #fff; color: #000; }
+  .btn-primary:hover { background: #e5e5e5; }
+  .btn-primary:active { background: #d4d4d4; }
+  .btn-secondary { border: 1px solid #404040; background: #0a0a0a; color: #fff; font-weight: 600; }
+  .btn-secondary:hover { border-color: #525252; background: #171717; }
+  .btn-ghost { color: #d4d4d4; font-weight: 600; }
+  .btn-ghost:hover { background: #171717; color: #fff; }
+  /* 잠긴 기능(요금제 필요): 라벨 한 단 낮춤 + 'Pro' 테두리 태그 한 모양. 누르면 그 자리에서 안내(선택 유지) */
+  .is-locked { color: #a1a1a1; }
+  .pro { display: inline-flex; align-items: center; border: 1px solid #404040; border-radius: .25rem; padding-inline: .25rem; font-size: .75rem; line-height: 1.125rem; font-weight: 500; color: #a1a1a1; }
+  .tag { display: inline-flex; flex-shrink: 0; align-items: center; border: 1px solid #404040; border-radius: .375rem; padding: .125rem .375rem; font-size: .75rem; line-height: 1.125rem; font-weight: 500; color: #d4d4d4; }
+  /* 앱 셸 네비: 모두 같은 회색, 현재 위치만 흰 글자(막대는 도구 탭에만) */
+  .navlink {
+    display: inline-flex; height: 2.25rem; align-items: center; gap: .25rem; border-radius: var(--radius-control);
+    padding-inline: .75rem; font-size: .875rem; font-weight: 500; color: #a1a1a1; transition: color .15s ease-out;
+  }
+  .navlink:hover, details[open] > .navlink { color: #fff; }
+  .navlink[aria-current="page"] { color: #fff; font-weight: 600; }
+  /* 도구 탭: R04 TAB 그대로(현재 탭 흰 글자 + 에메랄드 2px 밑줄) */
+  .tooltab { display: inline-flex; height: 2.75rem; flex-shrink: 0; align-items: center; gap: .375rem; border-bottom: 2px solid transparent; font-size: .875rem; font-weight: 500; color: #a1a1a1; transition: color .15s ease-out; }
+  .tooltab:hover { color: #fff; }
+  .tooltab[aria-current="page"] { border-color: var(--color-accent); font-weight: 600; color: #fff; }
+  @media (width >= 48rem) { .tooltab { height: 3rem; } }
+  /* 길이 필터(세그먼트): 선택 = 면 한 단(neutral-800) */
+  .seg-item { display: inline-flex; height: 2.5rem; align-items: center; justify-content: center; border-radius: .375rem; padding-inline: .75rem; font-size: .8125rem; font-weight: 500; color: #a1a1a1; transition: color .15s, background-color .15s; }
+  .seg-item:hover { color: #fff; }
+  .seg-item[aria-current="true"] { background: #262626; color: #fff; font-weight: 600; }
+  @media (width >= 48rem) { .seg-item { height: 2rem; } }
+  @media (pointer: coarse) { .seg-item { height: 2.75rem; } }
+  /* 표 머리: 화면 위에 붙는다(전역 네비 아래) */
+  .th { position: sticky; top: 3.5rem; z-index: 10; border-block: 1px solid #262626; background: #000; padding-block: .125rem; font-weight: 500; }
+  @media (width >= 80rem) { .th { top: 4rem; } }
+  .td { border-bottom: 1px solid #171717; padding-block: .625rem; vertical-align: middle; }
+  .th-sort { display: inline-flex; height: 2.5rem; align-items: center; gap: .25rem; margin-inline: -.5rem; padding-inline: .5rem; border-radius: .375rem; color: inherit; }
+  .th-sort:hover { color: #fff; }
+  @media (pointer: coarse) { .th-sort { height: 2.75rem; } }
+  .optin { display: inline-flex; height: 1.75rem; align-items: center; border: 1px solid #404040; border-radius: .375rem; padding-inline: .5rem; font-size: .75rem; font-weight: 600; color: #d4d4d4; transition: border-color .15s, color .15s; }
+  .optin:hover { border-color: #525252; color: #fff; }
+  @media (pointer: coarse) { .optin { height: 2.75rem; } }
+  .chk {
+    appearance: none; display: inline-grid; place-content: center; width: 1.125rem; height: 1.125rem; margin: 0;
+    border: 1.5px solid #525252; border-radius: .25rem; background: transparent; cursor: pointer;
+    transition: border-color .15s ease-out, background-color .15s ease-out;
+  }
+  .chk:hover { border-color: #a1a1a1; }
+  .chk:checked, .chk:indeterminate { border-color: #fff; background: #fff; }
+  .chk:checked::after {
+    content: ""; width: .55rem; height: .3rem; border-left: 2px solid #000; border-bottom: 2px solid #000;
+    transform: translateY(-1px) rotate(-45deg);
+  }
+  .chk:indeterminate::after { content: ""; width: .5rem; height: 2px; background: #000; }
+  /* 결과 행: hover 는 검정 위에서 보이는 한 단, 선택은 neutral-900 + 왼쪽 흰 2px */
+  .row > td, li.row { transition: background-color .15s ease-out; }
+  tr.row:hover > td, li.row:hover { background: rgb(23 23 23 / .55); }
+  tr.row.is-selected > td, li.row.is-selected { background: #171717; }
+  tr.row.is-selected > td:first-child, li.row.is-selected { box-shadow: inset 2px 0 0 #fff; }
+  /* 행 열기 버튼: 썸네일까지 덮는 ::after 가 누름 영역, 포커스 링도 그 둘레에 */
+  .open-btn:focus-visible { outline: none; }
+  .open-btn:focus-visible::after { outline: 2px solid var(--color-accent); outline-offset: -2px; border-radius: .5rem; }
+  .select {
+    appearance: none; height: 2.75rem; border: 1px solid #262626; border-radius: var(--radius-control); background: #0a0a0a;
+    padding: 0 2.25rem 0 .75rem; font-size: .875rem; color: #fff;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a1a1a1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right .625rem center; background-size: 1rem;
+  }
+  @media (width < 48rem) { .select { font-size: 1rem; } }
+  /* 대화상자(R05 셸 모양): neutral-900 면 + 1px 선 + 반경 16, 배경 막 검정 80%. 그림자·블러 없음 */
+  .dlg { margin: auto; width: calc(100% - 2rem); max-width: 24rem; max-height: calc(100dvh - 2rem); overflow-y: auto; border: 1px solid #262626; border-radius: var(--radius-panel); background: #171717; padding: 0; color: #fff; }
+  .dlg::backdrop { background: rgb(0 0 0 / .8); }
+  .dlg-video { max-width: 36rem; }
+  @media (width < 48rem) {
+    .dlg-video { margin: auto 0 0; width: 100%; max-width: none; height: 100dvh; max-height: 100dvh; border-width: 0; border-radius: 0; }
+  }
+  .no-scrollbar { scrollbar-width: none; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+}
+/* 선택 모드 막대가 보이는 768px 미만: 카카오 버튼을 숨긴다(선택 동작이 아래를 차지하는 동안만, 선택을 풀면 돌아온다).
+   하단 고정 CTA 바(data-bottom-bar, 버튼을 88px 올림)와는 다른 규칙이다 */
+@media (width < 48rem) {
+  body:has([data-selection-bar]:not([hidden])) [data-kakao-fab] { display: none; }
+}
+</style>
+</head>
+<body class="bg-black font-sans text-white" data-app-shell>
+<a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-control focus:bg-white focus:px-4 focus:py-2 focus:text-black">본문으로 건너뛰기</a>
+
+<!-- ───────── 네비 (로그인 상태, 앱 셸): 도구가 먼저, '비블과 함께' 세 곳은 한 메뉴로 접는다 ───────── -->
+<header class="sticky top-0 z-50 border-b border-neutral-800 bg-black">
+  <div class="mx-auto flex h-14 max-w-wide items-center gap-6 px-6 lg:px-8 nav:h-16">
+    <a href="/" class="inline-flex h-11 shrink-0 items-center rounded-md" aria-label="bibl lab 홈">
+      <span class="inline-flex items-center gap-2">
+        <span aria-hidden="true" class="inline-flex size-8 shrink-0 items-center justify-center rounded-lg border border-neutral-700 bg-black text-lg font-black leading-none">B</span>
+        <span class="text-base font-bold tracking-tight">bibl<span class="text-neutral-400"> lab</span></span>
+      </span>
+    </a>
+    <nav aria-label="주 메뉴" class="hidden min-w-0 flex-1 items-center nav:flex">
+      <ul class="flex items-center">
+        <li><a class="navlink" href="/trend-search" aria-current="page">유튜브 트렌드 서치</a></li>
+        <li><a class="navlink" href="/community">커뮤니티&amp;자료</a></li>
+        <li><a class="navlink" href="/pricing">요금제</a></li>
+      </ul>
+      <span aria-hidden="true" class="mx-3 h-4 w-px bg-neutral-800"></span>
+      <details class="relative">
+        <summary class="navlink">비블과 함께<svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <ul class="absolute left-0 top-full z-10 mt-3 w-64 rounded-card border border-neutral-800 bg-neutral-950 p-1.5">
+          <li><a href="/studio/class/consulting" class="flex h-11 items-center rounded-md px-3 text-body-sm text-neutral-300 transition-colors hover:bg-neutral-900 hover:text-white">팀비블 1:1 유튜브 컨설팅</a></li>
+          <li><a href="/studio" class="flex h-11 items-center rounded-md px-3 text-body-sm text-neutral-300 transition-colors hover:bg-neutral-900 hover:text-white">유튜브 채널 대행 문의</a></li>
+          <li><a href="/incubating" class="flex h-11 items-center rounded-md px-3 text-body-sm text-neutral-300 transition-colors hover:bg-neutral-900 hover:text-white">브랜드 인큐베이팅</a></li>
+        </ul>
+      </details>
+    </nav>
+    <div class="ml-auto flex items-center gap-1">
+      <!-- 남은 횟수는 여기 한 곳에만. 누르면 요금제(실제 SearchUsageBadge 와 같은 이동), 누름 영역 44px -->
+      <a href="/pricing" title="이번 달 50회 중 12회 사용" class="group inline-flex h-11 items-center px-1">
+        <span class="tnum inline-flex h-8 items-center rounded-control border border-neutral-800 px-2.5 text-micro text-neutral-300 transition-colors group-hover:border-neutral-600 group-hover:text-white"><span class="hidden sm:inline">이번 달&nbsp;</span>38회 남음</span>
+      </a>
+      <a href="/mypage" aria-label="내 계정" class="inline-flex size-11 items-center justify-center rounded-full">
+        <span class="inline-flex size-9 items-center justify-center rounded-full bg-neutral-800 text-caption font-bold text-neutral-200">김</span>
+      </a>
+      <details class="group nav:hidden">
+        <summary class="-mr-2 flex size-11 items-center justify-center rounded-control text-white transition-colors hover:bg-neutral-900" aria-label="전체 메뉴">
+          <svg class="size-6 group-open:hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+          <svg class="hidden size-6 group-open:block" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </summary>
+        <div class="fixed inset-x-0 bottom-0 top-14 overflow-y-auto border-t border-neutral-800 bg-black">
+          <div class="mx-auto max-w-wide px-6 pb-28 pt-2 lg:px-8">
+            <p class="pt-4 text-caption text-neutral-400">직접 하기</p>
+            <ul class="mt-1 divide-y divide-neutral-900">
+              <li><a href="/trend-search" aria-current="page" class="flex h-14 items-center justify-between text-lead font-semibold">유튜브 트렌드 서치<span aria-hidden="true" class="text-neutral-500">→</span></a></li>
+              <li><a href="/community" class="flex h-14 items-center justify-between text-lead font-semibold">커뮤니티&amp;자료<span aria-hidden="true" class="text-neutral-500">→</span></a></li>
+              <li><a href="/pricing" class="flex h-14 items-center justify-between text-lead font-semibold">요금제<span aria-hidden="true" class="text-neutral-500">→</span></a></li>
+            </ul>
+            <p class="mt-6 text-caption text-neutral-400">비블과 함께</p>
+            <ul class="mt-1 divide-y divide-neutral-900">
+              <li><a href="/studio/class/consulting" class="flex h-14 items-center justify-between text-lead font-semibold">팀비블 1:1 유튜브 컨설팅<span aria-hidden="true" class="text-neutral-500">→</span></a></li>
+              <li><a href="/studio" class="flex h-14 items-center justify-between text-lead font-semibold">유튜브 채널 대행 문의<span aria-hidden="true" class="text-neutral-500">→</span></a></li>
+              <li><a href="/incubating" class="flex h-14 items-center justify-between text-lead font-semibold">브랜드 인큐베이팅<span aria-hidden="true" class="text-neutral-500">→</span></a></li>
+              <!-- 선택 모드에서는 떠 있는 카카오 버튼이 숨으므로 메뉴에도 둔다 -->
+              <li><a href="https://pf.kakao.com/_beBNn/chat" target="_blank" rel="noopener noreferrer" class="flex h-14 items-center justify-between text-lead font-semibold">카카오톡 문의<span aria-hidden="true" class="text-neutral-500">↗</span></a></li>
+            </ul>
+          </div>
+        </div>
+      </details>
+    </div>
+  </div>
+</header>
+
+<!-- ───────── 트렌드 서치 도구 탭: R04 TAB(현재 탭 흰 글자 + 에메랄드 밑줄) ───────── -->
+<div class="border-b border-neutral-800">
+  <div class="mx-auto flex max-w-wide items-center justify-between gap-4 px-6 lg:px-8">
+    <nav aria-label="트렌드 서치 도구" class="no-scrollbar -mb-px flex gap-6 overflow-x-auto">
+      <a href="/search" aria-current="page" class="tooltab">영상 찾기</a>
+      <a href="/channels" class="tooltab">채널 찾기</a>
+      <a href="/my-channel" class="tooltab">채널 분석</a>
+      <a href="/saved" class="tooltab">수집한 영상<span class="pro">Pro</span></a>
+    </nav>
+    <span class="tag hidden md:inline-flex">예시 화면 · Starter 계정 · 10행만 그림 · 2개 선택</span>
+  </div>
+</div>
+
+<main id="main" class="mx-auto max-w-wide px-6 pb-36 md:pb-28 lg:px-8">
+
+  <!-- 검색 (구현: 기존 SearchBar 를 스타일만 바꿔 쓴다. 같은 키워드 재검색 시 prevCount + 1, 결과 누적 규칙 불변) -->
+  <section aria-label="검색" class="pt-4 lg:pt-6">
+    <form role="search" data-try-search class="flex h-[50px] items-center gap-2 rounded-card border border-neutral-700 bg-neutral-950 p-0.5 pl-4 transition-colors focus-within:border-accent sm:h-14 sm:p-1 lg:pl-5">
+      <svg class="size-5 shrink-0 text-neutral-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <label for="q" class="sr-only">검색어</label>
+      <input id="q" name="q" type="search" value="캠핑" enterkeyhint="search" autocomplete="off" class="h-full min-w-0 flex-1 bg-transparent text-body font-medium text-white outline-none placeholder:text-neutral-400 lg:text-[17px]">
+      <button type="button" class="hidden h-full items-center gap-1 rounded-control px-3 text-body-sm font-medium text-neutral-300 transition-colors hover:bg-neutral-900 hover:text-white sm:inline-flex" aria-label="검색 국가: 한국">한국<svg class="size-4 text-neutral-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
+      <button type="submit" class="btn btn-primary h-full px-5 text-ui lg:px-7">검색</button>
+    </form>
+    <p class="mt-1.5 text-caption text-neutral-400 sm:mt-2">검색할 때마다 1회 차감 · 매월 1일 초기화</p>
+  </section>
+
+  <section aria-labelledby="result-title" class="pt-4 lg:pt-6">
+    <!-- 결과 머리: 실제 툴바의 자리 그대로(필터 + 조회수 합계(유료) + 오늘 검색 수 | 채널 리포트 · 영상 수집 · 공유).
+         채널 리포트는 검색 결과 전체, 영상 수집은 고른 영상(없으면 전체)에 대해 동작하므로 선택과 상관없이 늘 보인다 -->
+    <div class="flex flex-wrap items-center gap-x-4 gap-y-2.5">
+      <div class="order-1 flex min-w-0 items-center gap-2">
+        <h1 id="result-title" class="text-h4 font-extrabold">‘캠핑’ 결과 <span class="tnum">50</span>개</h1>
+        <span class="tag md:hidden">예시 화면</span>
+      </div>
+      <div class="order-2 ml-auto flex items-center gap-1.5 lg:order-4">
+        <button type="button" class="btn btn-secondary is-locked hidden h-9 px-3 text-body-sm lg:inline-flex pointer-coarse:h-11" data-confirm="pro" data-feature="채널 리포트는" aria-haspopup="dialog">채널 리포트<span class="pro">Pro</span></button>
+        <button type="button" class="btn btn-secondary is-locked hidden h-9 px-3 text-body-sm lg:inline-flex pointer-coarse:h-11" data-confirm="pro" data-feature="영상 수집은" aria-haspopup="dialog">영상 수집<span class="pro">Pro</span></button>
+        <button type="button" class="btn btn-ghost h-11 px-3 text-body-sm lg:h-9 pointer-coarse:h-11">공유</button>
+      </div>
+      <nav aria-label="영상 길이" class="order-3 flex w-full rounded-control border border-neutral-800 bg-neutral-950 p-1 md:w-auto lg:order-2">
+        <a href="#" class="seg-item flex-1 md:flex-none">전체</a>
+        <a href="#" class="seg-item flex-1 md:flex-none" aria-current="true">쇼츠 제외</a>
+        <a href="#" class="seg-item flex-1 md:flex-none">쇼츠만</a>
+      </nav>
+      <!-- ViewStatsInline(유료) · TodaySearchCount(5건 이상일 때): 위치·조건·문구 그대로, 모양만 -->
+      <p class="order-4 w-full text-caption text-neutral-400 md:w-auto lg:order-3">조회수 합계 <span class="tnum font-semibold text-neutral-200">312.6만</span> · 오늘 <span class="tnum font-semibold text-neutral-200">1,284</span>건 검색됨</p>
+    </div>
+
+    <!-- 분석 도구 줄(로드맵 R17): 키워드 인사이트 · 경쟁도 · 제목 패턴 패널을 한 줄로 접고, 누른 도구만 이 줄 아래에 펼친다.
+         옵트인 단계·확인창·디스클레이머 문구는 그대로. Free 계정은 경쟁도·제목 패턴 자리에 '키워드 경쟁도 · 제목 패턴 분석 Starter' 잠금 버튼 하나 -->
+    <div class="mt-4 border-y border-neutral-800">
+      <div class="no-scrollbar -mx-6 flex items-center gap-2 overflow-x-auto px-6 py-2 lg:mx-0 lg:px-0 lg:py-2.5">
+        <p class="mr-2 hidden shrink-0 text-caption text-neutral-400 xl:block">‘캠핑’ 키워드 인사이트</p>
+        <button type="button" class="btn btn-secondary h-9 shrink-0 px-3 text-body-sm pointer-coarse:h-11">상위 영상 패턴 보기</button>
+        <button type="button" class="btn btn-secondary h-9 shrink-0 px-3 text-body-sm pointer-coarse:h-11">연관 키워드 추천</button>
+        <span aria-hidden="true" class="mx-1 h-4 w-px shrink-0 bg-neutral-800"></span>
+        <button type="button" class="btn btn-secondary h-9 shrink-0 px-3 text-body-sm pointer-coarse:h-11" data-confirm="competition" aria-haspopup="dialog">경쟁도 분석 시작</button>
+        <button type="button" class="btn btn-secondary h-9 shrink-0 gap-1 px-3 text-body-sm pointer-coarse:h-11" aria-expanded="false">제목 패턴 분석<svg class="size-4 text-neutral-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
+        <span class="contents lg:hidden">
+          <span aria-hidden="true" class="mx-1 h-4 w-px shrink-0 bg-neutral-800"></span>
+          <button type="button" class="btn btn-secondary is-locked h-9 shrink-0 px-3 text-body-sm pointer-coarse:h-11" data-confirm="pro" data-feature="채널 리포트는" aria-haspopup="dialog">채널 리포트<span class="pro">Pro</span></button>
+          <button type="button" class="btn btn-secondary is-locked h-9 shrink-0 px-3 text-body-sm pointer-coarse:h-11" data-confirm="pro" data-feature="영상 수집은" aria-haspopup="dialog">영상 수집<span class="pro">Pro</span></button>
+        </span>
+        <a href="/studio/consulting?source=keyword&amp;query=%EC%BA%A0%ED%95%91" class="ml-auto inline-flex h-11 shrink-0 items-center gap-1 pl-3 text-body-sm font-semibold text-accent transition-colors hover:text-accent-hover lg:h-9 pointer-coarse:h-11">유튜브 채널 대행 문의 <span aria-hidden="true">→</span></a>
+      </div>
+    </div>
+    <p class="mt-1.5 text-micro text-neutral-400">경쟁도 분석 · 사용자 자가 계산 도구 (YouTube 공식 메트릭 아님)</p>
+
+    <!-- 1024 미만: 전체 선택 + 정렬(기본은 관련도순. 이 예시는 조회수 순으로 바꾼 상태) -->
+    <div class="-mx-6 mt-2 flex items-center justify-between gap-3 border-b border-neutral-800 pl-[11px] pr-6 lg:hidden">
+      <label class="flex h-11 cursor-pointer items-center text-body-sm text-neutral-300"><span class="flex w-11 justify-center"><input type="checkbox" class="chk" data-pick-all></span>전체 선택</label>
+      <label class="flex items-center"><span class="sr-only">정렬</span>
+        <select class="select">
+          <option>관련도순(기본)</option>
+          <option selected>조회수 높은 순</option>
+          <option>구독자 많은 순</option>
+          <option>최근 게시 순</option>
+        </select>
+      </label>
+    </div>
+  </section>
+
+  <!-- 결과 표 (1024 이상): 체크 · 영상(1280 미만은 채널을 제목 아래) · 채널 · 조회수 · 구독자 · 게시일 · 알고리즘 확률(옵트인, 맨 끝).
+       머리줄은 전역 네비 아래에 붙는다. 마지막 열이 옵트인 칸이라 카카오 버튼(1375px 이하에서 표 오른쪽 끝에 겹침)이 숫자를 가리지 않는다 -->
+  <div class="mt-2 hidden lg:block">
+    <table class="w-full table-fixed border-separate border-spacing-0 text-left">
+      <caption class="sr-only">‘캠핑’ 검색 결과, 조회수 높은 순으로 정렬</caption>
+      <thead class="text-micro text-neutral-400">
+        <tr>
+          <th scope="col" class="th w-11"><label class="flex size-11 cursor-pointer items-center justify-center"><input type="checkbox" class="chk" aria-label="전체 선택" data-pick-all></label></th>
+          <th scope="col" class="th">영상 <span class="tnum">50</span></th>
+          <th scope="col" class="th hidden w-[200px] xl:table-cell">채널</th>
+          <th scope="col" class="th w-24 pr-4 text-right" aria-sort="descending"><button type="button" class="th-sort font-semibold text-accent">조회수<svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M6 13l6 6 6-6"/></svg></button></th>
+          <th scope="col" class="th w-[92px] pr-4 text-right" aria-sort="none"><button type="button" class="th-sort">구독자<svg class="size-3.5 text-neutral-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m8 9 4-4 4 4M16 15l-4 4-4-4"/></svg></button></th>
+          <th scope="col" class="th w-[88px] pr-4 text-right" aria-sort="none"><button type="button" class="th-sort">게시일<svg class="size-3.5 text-neutral-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m8 9 4-4 4 4M16 15l-4 4-4-4"/></svg></button></th>
+          <th scope="col" class="th w-28 text-right"><button type="button" class="optin" data-confirm="prob" aria-haspopup="dialog">알고리즘 확률</button></th>
+        </tr>
+      </thead>
+      <tbody>
+{{TABLE_ROWS}}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 결과 목록 (1024 미만): 왼쪽 44px 띠 = 선택, 나머지(썸네일·제목) = 영상 정보 열기 -->
+  <ul class="divide-y divide-neutral-900 border-b border-neutral-900 lg:hidden" aria-label="‘캠핑’ 검색 결과, 조회수 높은 순">
+{{LIST_ROWS}}
+  </ul>
+
+  <div class="mt-8 flex flex-col items-center gap-2">
+    <button type="button" class="btn btn-secondary h-12 px-8 text-ui">더보기</button>
+    <p class="tnum text-caption text-neutral-400">50개 표시 · 더보기로 최대 100개</p>
+  </div>
+
+  <div class="mt-12 grid gap-3 md:grid-cols-2 md:gap-4">
+    <aside class="flex flex-col justify-between gap-5 rounded-card border border-neutral-800 bg-neutral-950 p-5 lg:p-6">
+      <div>
+        <p class="text-caption text-neutral-400">Pro 플랜</p>
+        <p class="mt-1 text-lead font-bold leading-[1.45]"><span class="whitespace-nowrap">영상 수집</span> · <span class="whitespace-nowrap">CSV 내보내기</span> · <span class="whitespace-nowrap">채널 분석 리포트</span></p>
+        <p class="tnum mt-1.5 text-caption text-neutral-400"><span class="whitespace-nowrap">월 45,000원</span> <span class="whitespace-nowrap">(연간 결제 시 월 39,000원)</span> · <span class="whitespace-nowrap">영상 검색 월 500회</span></p>
+      </div>
+      <a href="/pricing" class="btn btn-secondary h-11 self-start px-5 text-body-sm">요금제 보기</a>
+    </aside>
+    <aside class="flex flex-col justify-between gap-5 rounded-card border border-neutral-800 bg-neutral-950 p-5 lg:p-6">
+      <div class="flex items-start gap-4">
+        <img src="https://yt3.googleusercontent.com/1wD45zOpnfNTAG4Kq8qs2T27tNyxqXTKC5a23qB6N8zl5SNlU8ugdUCx2yywcrFnBqywfz2z9w=s240-c-k-c0x00ffffff-no-rj" alt="" width="48" height="48" class="size-12 shrink-0 rounded-full bg-neutral-900" loading="lazy" decoding="async">
+        <div>
+          <p class="text-caption text-neutral-400">팀비블 1:1 유튜브 컨설팅</p>
+          <p class="mt-1 text-lead font-bold leading-[1.45]">검색 결과를 어떤 영상으로 만들지 막막하다면, 비블과 1:1로 정하세요</p>
+          <p class="tnum mt-1.5 text-caption text-neutral-400"><span class="whitespace-nowrap">월 49만원</span> · <span class="whitespace-nowrap">매주 1:1 미팅</span> · <span class="whitespace-nowrap">VOD 100강</span></p>
+        </div>
+      </div>
+      <a href="/studio/class/consulting" class="btn btn-secondary h-11 self-start px-5 text-body-sm">컨설팅 알아보기</a>
+    </aside>
+  </div>
+</main>
+
+<!-- ───────── 선택 모드 막대: 고른 영상이 있어야 하는 동작(채널 제거)만. 768 미만은 화면 아래 전체 폭, 768 이상은 가운데에 떠 있는 막대 ───────── -->
+<div data-selbar data-selection-bar class="fixed inset-x-0 bottom-0 z-30 border-t border-neutral-800 bg-black px-3 pb-[max(.75rem,env(safe-area-inset-bottom))] pt-3 md:hidden">
+  <div class="mx-auto flex max-w-md items-center gap-2">
+    <button type="button" class="btn btn-ghost size-11 shrink-0 p-0" aria-label="선택 해제" data-clear><svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    <p class="tnum text-body-sm font-semibold"><span data-count>2</span>개 선택</p>
+    <button type="button" class="btn btn-secondary ml-auto h-11 shrink-0 px-4 text-body-sm" data-remove>채널 제거</button>
+  </div>
+</div>
+<div data-selbar class="pointer-events-none fixed inset-x-0 bottom-6 z-30 hidden justify-center px-6 md:flex">
+  <div class="pointer-events-auto flex items-center gap-1 rounded-card border border-neutral-700 bg-neutral-900 p-1.5">
+    <button type="button" class="btn btn-ghost size-9 shrink-0 p-0 pointer-coarse:size-11" aria-label="선택 해제" data-clear><svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    <p class="tnum px-1.5 text-body-sm font-semibold"><span data-count>2</span>개 선택</p>
+    <span aria-hidden="true" class="mx-1 h-4 w-px bg-neutral-700"></span>
+    <button type="button" class="btn btn-secondary h-9 shrink-0 px-3 text-body-sm pointer-coarse:h-11" data-remove>채널 제거</button>
+  </div>
+</div>
+
+<!-- 채널 제거 뒤 되돌리기(R05 토스트 층 z-70, 5초). 모바일은 카카오 버튼 위 -->
+<div id="toast" role="status" hidden class="fixed inset-x-4 bottom-24 z-70 mx-auto flex max-w-md items-center gap-3 rounded-card border border-neutral-700 bg-neutral-900 py-1.5 pl-4 pr-1.5 md:bottom-6">
+  <p class="min-w-0 flex-1 text-body-sm" data-toast-text>2개 채널을 목록에서 숨겼습니다</p>
+  <button type="button" class="btn btn-ghost h-11 shrink-0 px-3 text-body-sm text-white" data-undo>되돌리기</button>
+</div>
+
+<!-- 영상 정보(VideoModal 자리): 모바일은 전체 화면 시트, 768 이상은 가운데 상자. YouTube 이동은 이 안에서 -->
+<dialog id="video-dialog" class="dlg dlg-video" aria-labelledby="vd-title">
+  <div class="p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] md:p-6">
+    <div class="flex items-center justify-between gap-3">
+      <p class="text-caption text-neutral-400">영상 정보 · 예시 화면</p>
+      <button type="button" class="btn btn-ghost -mr-2 size-11 p-0" aria-label="닫기" data-close><svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <div class="mt-2 overflow-hidden rounded-control bg-neutral-950"><img data-v="thumb" alt="" width="640" height="360" class="aspect-video w-full object-cover"></div>
+    <h2 id="vd-title" class="mt-4 text-lead font-bold leading-[1.45]" data-v="title"></h2>
+    <div class="mt-3 flex items-center gap-2.5">
+      <img data-v="avatar" alt="" width="32" height="32" class="size-8 shrink-0 rounded-full bg-neutral-800">
+      <p class="min-w-0 text-body-sm"><span class="font-semibold" data-v="ch"></span> <span class="tnum text-neutral-400" data-v="subs"></span></p>
+    </div>
+    <p class="tnum mt-3 text-body-sm text-neutral-300"><span class="font-extrabold text-white" data-v="views"></span> · <span data-v="pub"></span> · <span data-v="len"></span></p>
+    <p class="mt-3 text-micro text-neutral-400">설명·댓글·채널 정보는 실제 화면에서 이 아래에 이어집니다.</p>
+    <div class="mt-6 flex gap-2">
+      <a data-v="yt" target="_blank" rel="noopener noreferrer" class="btn btn-primary h-11 flex-1 px-5 text-ui">YouTube에서 보기</a>
+      <button type="button" class="btn btn-secondary h-11 px-5 text-ui" data-close>닫기</button>
+    </div>
+  </div>
+</dialog>
+
+<!-- 확인창·안내창(R05 셸 + useConfirm 모양). 내용은 아래 템플릿에서 채운다 -->
+<dialog id="confirm-dialog" class="dlg" aria-labelledby="cd-title">
+  <div class="p-6" data-body></div>
+</dialog>
+<template id="tpl-competition">
+  <h2 id="cd-title" class="text-body font-semibold">키워드 경쟁도 분석</h2>
+  <p class="mt-2 text-body-sm text-neutral-400">경쟁도 분석을 진행하시겠습니까?</p>
+  <p class="mt-4 rounded-control border border-neutral-800 bg-neutral-950 p-3 text-micro font-normal leading-[1.7] text-neutral-300">※ 이 도구는 사용자가 직접 활성화하는 자가 계산 도구입니다. YouTube 공식 메트릭이 아니며, bibl lab의 평가 지표가 아닙니다. 공개된 데이터를 사용자 브라우저에서 단순 산술로 처리한 참고 값입니다.</p>
+  <div class="mt-6 flex justify-end gap-2">
+    <button type="button" class="btn btn-secondary h-11 px-5 text-ui" data-close>취소</button>
+    <button type="button" class="btn btn-primary h-11 px-5 text-ui" data-close autofocus>확인</button>
+  </div>
+</template>
+<template id="tpl-prob">
+  <h2 id="cd-title" class="text-body font-semibold">알고리즘 확률 분석</h2>
+  <p class="mt-2 text-body-sm text-neutral-400">알고리즘 확률 분석을 진행하시겠습니까?</p>
+  <p class="mt-4 rounded-control border border-neutral-800 bg-neutral-950 p-3 text-micro font-normal leading-[1.7] text-neutral-300">※ 이 도구는 사용자가 직접 활성화하는 자가 계산 도구입니다. YouTube의 공식 메트릭이 아니며, bibl lab이 제공하는 평가 지표가 아닙니다. 공개된 메타데이터를 사용자 브라우저에서 단순 산술로 처리한 참고 값입니다.</p>
+  <div class="mt-6 flex justify-end gap-2">
+    <button type="button" class="btn btn-secondary h-11 px-5 text-ui" data-close>취소</button>
+    <button type="button" class="btn btn-primary h-11 px-5 text-ui" data-close autofocus>확인</button>
+  </div>
+</template>
+<template id="tpl-pro">
+  <h2 id="cd-title" class="text-body font-semibold"><span data-feature-name>채널 리포트는</span> Pro 플랜부터 쓸 수 있습니다</h2>
+  <p class="mt-2 text-body-sm text-neutral-400">Pro 플랜에는 <span class="whitespace-nowrap">영상 수집</span> · <span class="whitespace-nowrap">CSV 내보내기</span> · <span class="whitespace-nowrap">채널 분석 리포트</span>가 들어 있습니다.</p>
+  <p class="tnum mt-4 text-body-sm"><span class="font-bold">월 45,000원</span> <span class="text-neutral-400">· 연간 결제 시 월 39,000원</span></p>
+  <p class="mt-1 text-caption text-neutral-400" data-keep>고른 영상 <span data-keep-count>2</span>개는 그대로 남아 있습니다.</p>
+  <div class="mt-6 flex justify-end gap-2">
+    <button type="button" class="btn btn-secondary h-11 px-5 text-ui" data-close>닫기</button>
+    <a href="/pricing" class="btn btn-primary h-11 px-5 text-ui">요금제 보기</a>
+  </div>
+</template>
+
+<!-- 실제 사이트의 카카오 상담 버튼(KakaoChatButton.tsx)과 같은 자리·크기·층 -->
+<a href="https://pf.kakao.com/_beBNn/chat" target="_blank" rel="noopener noreferrer" aria-label="카카오톡 채널로 문의하기" title="카카오톡 문의" data-kakao-fab class="group fixed bottom-5 right-5 z-40 flex size-14 items-center justify-center rounded-full bg-kakao transition-colors duration-150 hover:bg-kakao-hover md:bottom-6 md:right-6">
+  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3C6.477 3 2 6.477 2 10.5c0 2.568 1.524 4.832 3.848 6.24L4.5 21l4.38-2.318A11.3 11.3 0 0012 19c5.523 0 10-3.477 10-7.5S17.523 3 12 3z" fill="#3A1D1D"/></svg>
+  <span class="pointer-events-none absolute right-full mr-3 hidden whitespace-nowrap rounded-lg border border-neutral-700 bg-neutral-900 px-3 py-1.5 text-micro font-semibold text-white opacity-0 transition-opacity group-hover:opacity-100 md:block">카카오톡 문의</span>
+</a>
+
+<script type="application/json" id="rows-data">{{ROWS_JSON}}</script>
+<!-- 정적 시안의 작은 스크립트: 선택(표·목록 동기화)·채널 제거와 되돌리기·대화상자 열고 닫기만. 검색·정렬·필터는 동작하지 않는다 -->
+<script>
+(() => {
+  const rows = JSON.parse(document.getElementById('rows-data').textContent);
+  const picks = [...document.querySelectorAll('[data-pick]')];
+  const alls = [...document.querySelectorAll('[data-pick-all]')];
+  const bars = [...document.querySelectorAll('[data-selbar]')];
+  const counts = [...document.querySelectorAll('[data-count]')];
+  const rowEls = [...document.querySelectorAll('[data-row]')];
+  const shown = (p) => !p.closest('[data-row]').hidden;
+  const selected = () => new Set(picks.filter((p) => p.checked && shown(p)).map((p) => p.dataset.i));
+  const total = () => new Set(picks.filter(shown).map((p) => p.dataset.i)).size;
+  const render = () => {
+    const on = selected();
+    picks.forEach((p) => p.closest('[data-row]').classList.toggle('is-selected', p.checked));
+    counts.forEach((c) => { c.textContent = on.size; });
+    bars.forEach((b) => { b.hidden = on.size === 0; });
+    alls.forEach((a) => { a.checked = on.size > 0 && on.size === total(); a.indeterminate = on.size > 0 && on.size < total(); });
+  };
+  picks.forEach((p) => p.addEventListener('change', () => {
+    picks.filter((q) => q.dataset.i === p.dataset.i).forEach((q) => { q.checked = p.checked; });
+    render();
+  }));
+  alls.forEach((a) => a.addEventListener('change', () => { picks.filter(shown).forEach((p) => { p.checked = a.checked; }); render(); }));
+  document.querySelectorAll('[data-clear]').forEach((b) => b.addEventListener('click', () => { picks.forEach((p) => { p.checked = false; }); render(); }));
+
+  const toast = document.getElementById('toast');
+  let undo = null; let timer = null;
+  document.querySelectorAll('[data-remove]').forEach((b) => b.addEventListener('click', () => {
+    const chs = new Set([...selected()].map((i) => rows[i].ch));
+    const hide = rowEls.filter((r) => chs.has(r.dataset.ch) && !r.hidden);
+    hide.forEach((r) => { r.hidden = true; });
+    picks.forEach((p) => { p.checked = false; });
+    render();
+    undo = () => { hide.forEach((r) => { r.hidden = false; }); render(); };
+    toast.querySelector('[data-toast-text]').textContent = `${chs.size}개 채널을 목록에서 숨겼습니다`;
+    toast.hidden = false; clearTimeout(timer); timer = setTimeout(() => { toast.hidden = true; }, 5000);
+  }));
+  toast.querySelector('[data-undo]').addEventListener('click', () => { if (undo) undo(); toast.hidden = true; });
+
+  const vd = document.getElementById('video-dialog');
+  const set = (k, v) => { vd.querySelector(`[data-v="${k}"]`).textContent = v; };
+  document.querySelectorAll('[data-open]').forEach((btn) => btn.addEventListener('click', () => {
+    const r = rows[btn.dataset.i];
+    vd.querySelector('[data-v="thumb"]').src = `https://i.ytimg.com/vi/${r.id}/sddefault.jpg`;
+    vd.querySelector('[data-v="avatar"]').src = r.avatar;
+    vd.querySelector('[data-v="yt"]').href = `https://www.youtube.com/watch?v=${r.id}`;
+    set('title', r.title); set('ch', r.ch); set('subs', `구독자 ${r.s}`);
+    set('views', r.views); set('pub', r.pub); set('len', r.len);
+    vd.showModal();
+  }));
+  const cd = document.getElementById('confirm-dialog');
+  document.querySelectorAll('[data-confirm]').forEach((btn) => btn.addEventListener('click', () => {
+    const body = cd.querySelector('[data-body]');
+    body.replaceChildren(document.getElementById(`tpl-${btn.dataset.confirm}`).content.cloneNode(true));
+    if (btn.dataset.feature) {
+      body.querySelector('[data-feature-name]').textContent = btn.dataset.feature;
+      const n = selected().size;
+      body.querySelector('[data-keep]').hidden = n === 0;
+      body.querySelector('[data-keep-count]').textContent = n;
+    }
+    cd.showModal();
+  }));
+  document.querySelectorAll('dialog').forEach((d) => d.addEventListener('click', (e) => {
+    if (e.target === d || e.target.closest('[data-close]')) d.close();
+  }));
+  document.querySelectorAll('form[data-try-search]').forEach((f) => f.addEventListener('submit', (e) => e.preventDefault()));
+  render();
+})();
+</script>
+</body>
+</html>
