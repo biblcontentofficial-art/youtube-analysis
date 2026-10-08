@@ -29,6 +29,18 @@ export default async function TrendSearchPage() {
 
   const TOOLS = [
     {
+      title: "브레이크아웃",
+      desc: "주제와 상관없이 어제 올라온 영상 중 구독자 수에 비해 조회수가 잘 나온 영상을 매일 모아 봅니다.",
+      href: "/trend-search/breakout",
+      locked: false,
+      plan: null as string | null,
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" className={ICON_CLASS}>
+          <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" /><polyline points="16 7 22 7 22 13" />
+        </svg>
+      ),
+    },
+    {
       title: "영상 찾기",
       desc: "키워드로 최신 유튜브 영상을 수집해 조회수·구독자·게시일을 한눈에 확인합니다.",
       href: "/search",
