@@ -2,6 +2,8 @@ import Link from "next/link";
 import { getBreakout, getBreakoutDates, kstToday, SHORTS_MAX_SEC, type BreakoutSort, type BreakoutType } from "@/lib/breakout";
 import { SectionHeader } from "@/components/ui/section-header";
 import { CHIP } from "@/components/ui/chip";
+import { cx } from "@/components/ui/button";
+import { NUM, ROW, TABLE, TD, TH, TH_SORT, TH_SORT_ACTIVE } from "@/components/ui/table";
 
 type SP = { date?: string; sort?: string; type?: string; min?: string };
 
@@ -43,6 +45,28 @@ function dateLabel(d: string): string {
   return `${Number(m)}월 ${Number(day)}일 (${w})`;
 }
 
+/** 유튜브로 나가는 ↗ 표시(DESIGN 6.15 .ext: 평소 무채색, 링크 hover·포커스 때만 유튜브 빨강) */
+function ExtIcon() {
+  return (
+    <svg className="ext ml-1" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M5 11 11 5M6 5h5v5" />
+    </svg>
+  );
+}
+
+const watchUrl = (id: string) => `https://www.youtube.com/watch?v=${id}`;
+const channelUrl = (id: string) => `https://www.youtube.com/channel/${id}`;
+
+/** 표 머리에서 정렬을 바꿀 수 있는 열(구독자 대비 조회수 정렬은 위 정렬 칩에만 있다) */
+const SORT_COLS: { key: BreakoutSort; label: string; className: string }[] = [
+  { key: "views", label: "조회수", className: "w-[120px] pr-6" },
+  { key: "subs", label: "구독자", className: "w-[104px] pr-6" },
+  { key: "recent", label: "게시일", className: "w-[112px] pr-2" },
+];
+
+/** 정렬 기준 숫자(DESIGN 6.10): 지금 정렬 중인 조회수·구독자 열에만 */
+const SORT_NUM = "text-[18px] font-extrabold tracking-[-0.02em] text-fg";
+
 /** 목록 화면(로그인 확인 뒤). 로컬 미리보기에서도 재사용한다. */
 export async function BreakoutView({ sp }: { sp: SP }) {
   const dates = await getBreakoutDates(30);
@@ -58,22 +82,22 @@ export async function BreakoutView({ sp }: { sp: SP }) {
   };
 
   return (
-    <main className="min-h-screen bg-black text-white">
-      <div className="mx-auto max-w-screen-2xl px-4 py-10 md:px-6 md:py-14">
+    <main className="min-h-screen bg-canvas text-fg">
+      <div className="mx-auto w-full max-w-wide px-6 py-10 md:py-14 lg:px-8">
         <SectionHeader caption="유튜브 트렌드 서치" label="BREAKOUT" />
         <div className="flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-black tracking-tight md:text-4xl">브레이크아웃</h1>
-            <p className="mt-2 text-neutral-300">주제와 상관없이, 구독자 수에 비해 조회수가 잘 나온 영상입니다. 매일 아침 전날 올라온 영상을 모읍니다.</p>
+          <div className="max-w-3xl">
+            <h1 className="text-h3 md:text-h2">브레이크아웃</h1>
+            <p className="mt-2 text-ui text-fg-2 md:text-body">주제와 상관없이, 구독자 수에 비해 조회수가 잘 나온 영상입니다. 매일 아침 전날 올라온 영상을 모읍니다.</p>
           </div>
-          <p className="text-sm text-neutral-400">
-            {dates.length ? <>{dateLabel(date)} 게시 · <span className="font-semibold text-white">{videos.length.toLocaleString()}</span>개</> : "아직 수집된 날짜가 없습니다"}
+          <p className="text-body-sm text-fg-3">
+            {dates.length ? <>{dateLabel(date)} 게시 · <span className="tnum font-semibold text-fg">{videos.length.toLocaleString()}</span>개</> : "아직 수집된 날짜가 없습니다"}
           </p>
         </div>
 
         {/* 날짜 */}
         {dates.length > 0 && (
-          <nav aria-label="날짜" className="scrollbar-hide mt-8 flex gap-2 overflow-x-auto pb-1">
+          <nav aria-label="날짜" className="scrollbar-hide -mx-6 mt-8 flex gap-1.5 overflow-x-auto px-6 pb-1 lg:mx-0 lg:px-0">
             {dates.map((d) => (
               <Link key={d} href={href({ date: d })} aria-current={d === date ? "page" : undefined} className={CHIP}>{dateLabel(d)}</Link>
             ))}
@@ -81,52 +105,108 @@ export async function BreakoutView({ sp }: { sp: SP }) {
         )}
 
         {/* 정렬·길이·기준 */}
-        <div className="mt-4 flex flex-col gap-3 border-b border-neutral-800 pb-6 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex flex-wrap gap-2" aria-label="정렬">
+        <div className="mt-4 flex flex-col gap-3 border-b border-line pb-6 lg:flex-row lg:items-center lg:justify-between lg:border-b-0 lg:pb-0">
+          <div className="flex flex-wrap gap-1.5" aria-label="정렬">
             {SORTS.map((s) => <Link key={s.key} href={href({ sort: s.key })} aria-current={s.key === sort ? "page" : undefined} className={CHIP}>{s.label}순</Link>)}
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-1.5">
             {TYPES.map((t) => <Link key={t.key} href={href({ type: t.key })} aria-current={t.key === type ? "page" : undefined} className={CHIP}>{t.label}</Link>)}
-            <span aria-hidden="true" className="mx-1 hidden w-px self-stretch bg-neutral-800 sm:block" />
+            <span aria-hidden="true" className="mx-1 hidden w-px self-stretch bg-line sm:block" />
             {MINS.map((m) => <Link key={m.key} href={href({ min: m.key })} aria-current={m.key === min.key ? "page" : undefined} className={CHIP}>{m.label}</Link>)}
           </div>
         </div>
 
         {videos.length === 0 ? (
-          <p className="py-24 text-center text-neutral-400">
-            {dates.length ? "이 조건에 맞는 영상이 없습니다. 기준을 낮춰 보세요." : "첫 수집이 끝나면 여기에 영상이 나옵니다."}
-          </p>
+          <div className="mt-8 flex flex-col items-start gap-4 rounded-card border border-line bg-surface p-6 md:p-8">
+            <p className="text-ui font-semibold text-fg">
+              {dates.length ? "이 조건에 맞는 영상이 없습니다. 기준을 낮춰 보세요." : "첫 수집이 끝나면 여기에 영상이 나옵니다."}
+            </p>
+          </div>
         ) : (
-          <ul className="mt-8 grid grid-cols-1 gap-x-5 gap-y-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
-            {videos.map((v) => (
-              <li key={v.video_id}>
-                <a href={`https://www.youtube.com/watch?v=${v.video_id}`} target="_blank" rel="noopener noreferrer" className="group block">
-                  <div className="relative overflow-hidden rounded-xl border border-neutral-800 bg-neutral-900">
+          <>
+            {/* 1024 이상 표(DESIGN 6.10 앱 표 값, 체크 열 없음): 영상 · 조회수 · 구독자 · 게시일 */}
+            <table className={cx(TABLE, "mt-6 hidden lg:table")}>
+              <thead>
+                <tr>
+                  <th scope="col" className={TH}>영상</th>
+                  {SORT_COLS.map((c) => {
+                    const active = c.key === sort;
+                    return (
+                      <th key={c.key} scope="col" aria-sort={active ? "descending" : undefined} className={cx(TH, "text-right", c.className)}>
+                        <Link href={href({ sort: c.key })} className={cx(TH_SORT, active && TH_SORT_ACTIVE)}>
+                          {c.label}{active ? <span aria-hidden="true"> ↓</span> : null}
+                        </Link>
+                      </th>
+                    );
+                  })}
+                </tr>
+              </thead>
+              <tbody>
+                {videos.map((v) => (
+                  <tr key={v.video_id} className={ROW}>
+                    <td className={cx(TD, "pr-6")}>
+                      <div className="flex items-center gap-4">
+                        <a href={watchUrl(v.video_id)} target="_blank" rel="noopener noreferrer" tabIndex={-1} aria-hidden="true" className="relative w-32 shrink-0 overflow-hidden rounded-control bg-surface-2 xl:w-36">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={v.thumbnail ?? `https://i.ytimg.com/vi/${v.video_id}/mqdefault.jpg`} alt="" width={320} height={180} loading="lazy" decoding="async" className="aspect-video w-full object-cover" />
+                          <span className="tnum absolute bottom-1.5 right-1.5 rounded bg-canvas/80 px-1.5 py-0.5 text-micro font-semibold">
+                            {v.duration_sec <= SHORTS_MAX_SEC ? "쇼츠" : dur(v.duration_sec)}
+                          </span>
+                        </a>
+                        <div className="min-w-0 flex-1">
+                          <h2 className="text-ui font-medium leading-[1.5] text-fg-1">
+                            <a href={watchUrl(v.video_id)} target="_blank" rel="noopener noreferrer" className="line-clamp-2 transition-colors duration-150 hover:text-fg">
+                              {v.title}<ExtIcon /><span className="sr-only"> (새 창)</span>
+                            </a>
+                          </h2>
+                          <div className="mt-1 flex min-w-0 items-center gap-2">
+                            {v.channel_thumb && (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img src={v.channel_thumb} alt="" width={20} height={20} loading="lazy" className="size-5 shrink-0 rounded-full bg-surface-2" />
+                            )}
+                            <a href={channelUrl(v.channel_id)} target="_blank" rel="noopener noreferrer" className="truncate text-caption text-fg-3 transition-colors duration-150 hover:text-fg">{v.channel_title}</a>
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className={cx(TD, NUM, "pr-6", sort === "views" ? SORT_NUM : "text-body-sm text-fg")}>{num(v.view_count)}</td>
+                    <td className={cx(TD, NUM, "pr-6", sort === "subs" ? SORT_NUM : "text-body-sm text-fg-2")}>{num(v.subscriber_count)}</td>
+                    <td className={cx(TD, NUM, "pr-2 text-body-sm text-fg-3")}>{kstTime(v.published_at)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            {/* 1024 미만 목록: 채널 한 줄 / 조회수 · 구독자 · 게시일 */}
+            <ul className="-mx-6 mt-2 divide-y divide-line-soft lg:hidden">
+              {videos.map((v) => (
+                <li key={v.video_id} className="flex gap-3 px-6 py-4">
+                  <a href={watchUrl(v.video_id)} target="_blank" rel="noopener noreferrer" tabIndex={-1} aria-hidden="true" className="relative w-28 shrink-0 self-start overflow-hidden rounded-control bg-surface-2 md:w-44">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={v.thumbnail ?? `https://i.ytimg.com/vi/${v.video_id}/mqdefault.jpg`} alt="" width={320} height={180} loading="lazy" decoding="async" className="aspect-video w-full object-cover transition-opacity duration-150 group-hover:opacity-90" />
-                    <span className="absolute bottom-2 right-2 rounded bg-black/80 px-1.5 py-0.5 text-xs font-semibold tabular-nums">
+                    <img src={v.thumbnail ?? `https://i.ytimg.com/vi/${v.video_id}/mqdefault.jpg`} alt="" width={320} height={180} loading="lazy" decoding="async" className="aspect-video w-full object-cover" />
+                    <span className="tnum absolute bottom-1 right-1 rounded bg-canvas/80 px-1 py-0.5 text-micro font-semibold">
                       {v.duration_sec <= SHORTS_MAX_SEC ? "쇼츠" : dur(v.duration_sec)}
                     </span>
+                  </a>
+                  <div className="min-w-0 flex-1">
+                    <h2 className="text-ui font-medium leading-[1.5] text-fg-1 md:text-body">
+                      <a href={watchUrl(v.video_id)} target="_blank" rel="noopener noreferrer" className="line-clamp-2">
+                        {v.title}<ExtIcon /><span className="sr-only"> (새 창)</span>
+                      </a>
+                    </h2>
+                    <a href={channelUrl(v.channel_id)} target="_blank" rel="noopener noreferrer" className="mt-1 block truncate text-micro text-fg-3">{v.channel_title}</a>
+                    <p className="tnum mt-0.5 flex flex-wrap items-baseline gap-x-1 text-micro text-fg-3">
+                      <span className="text-body-sm font-extrabold tracking-[-0.02em] text-fg">{num(v.view_count)}회</span>
+                      <span>· 구독자 {num(v.subscriber_count)}</span>
+                      <span>· {kstTime(v.published_at)}</span>
+                    </p>
                   </div>
-                  <h2 className="mt-3 line-clamp-2 text-[15px] font-semibold leading-snug text-white group-hover:underline group-hover:underline-offset-4">{v.title}</h2>
-                </a>
-                <div className="mt-2 flex items-center gap-2">
-                  {v.channel_thumb && (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={v.channel_thumb} alt="" width={24} height={24} loading="lazy" className="size-6 shrink-0 rounded-full bg-neutral-900" />
-                  )}
-                  <a href={`https://www.youtube.com/channel/${v.channel_id}`} target="_blank" rel="noopener noreferrer" className="truncate text-sm text-neutral-300 hover:text-white">{v.channel_title}</a>
-                </div>
-                <dl className="mt-2 grid grid-cols-3 gap-2 text-sm tabular-nums">
-                  <div><dt className="text-xs text-neutral-400">조회수</dt><dd className="font-bold text-white">{num(v.view_count)}</dd></div>
-                  <div><dt className="text-xs text-neutral-400">구독자</dt><dd className="text-neutral-200">{num(v.subscriber_count)}</dd></div>
-                  <div><dt className="text-xs text-neutral-400">게시일</dt><dd className="text-neutral-200">{kstTime(v.published_at)}</dd></div>
-                </dl>
-              </li>
-            ))}
-          </ul>
+                </li>
+              ))}
+            </ul>
+          </>
         )}
-        <p className="mt-12 text-xs text-neutral-400">조회수·구독자·게시일은 YouTube API Services 로 받은 공개 값이며, 수집 시점 기준입니다.</p>
+        <p className="mt-12 text-micro text-fg-3">조회수·구독자·게시일은 YouTube API Services 로 받은 공개 값이며, 수집 시점 기준입니다.</p>
       </div>
     </main>
   );

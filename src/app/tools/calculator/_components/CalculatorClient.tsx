@@ -2,6 +2,9 @@
 
 import { useState } from "react";
 import { fetchVideoDetail, fetchChannelDetail } from "@/app/search/actions";
+import { buttonClass, cx } from "@/components/ui/button";
+import { inputClass } from "@/components/ui/field";
+import { CloseIcon, WarningIcon } from "@/components/ui/icons";
 
 /**
  * 유튜브 비율 계산기 — 사용자 자가 도구
@@ -48,6 +51,19 @@ function extractVideoId(url: string): string | null {
   }
   return null;
 }
+
+/** 앱 카드(DESIGN 6.7) */
+const CARD = "rounded-card border border-line bg-surface p-5 md:p-6";
+/** 단계 제목: 글자 숫자 01·02(실버) + 제목 */
+const STEP = "mb-3 flex items-baseline gap-2.5 text-body-sm font-semibold text-fg";
+const STEP_NUM = "tnum font-bold text-silver";
+/** 계산 버튼: 보조 버튼 한 모양(두 줄) */
+const CALC_BTN =
+  "flex min-h-11 flex-col items-start rounded-control border border-line-strong bg-surface px-4 py-3 text-left text-body-sm font-semibold text-fg transition-colors duration-150 hover:border-line-hover hover:bg-surface-2";
+const CALC_BTN_SUB = "mt-0.5 text-micro font-normal text-fg-3";
+/** 글자 버튼(초기화·모두 지우기) */
+const TEXT_BTN =
+  "-mr-2 inline-flex h-11 shrink-0 items-center gap-1 whitespace-nowrap rounded-control px-2 text-caption font-medium text-fg-3 transition-colors duration-150 hover:bg-surface-2 hover:text-fg";
 
 export default function CalculatorClient() {
   const [url, setUrl] = useState("");
@@ -113,12 +129,12 @@ export default function CalculatorClient() {
 
     if (type === "ratio_avg") {
       if (!data.channelAvgViews) {
-        list.push({ label: "❌ 계산 불가", value: "-", formula: "채널 평균 조회수가 0입니다." });
+        list.push({ label: "계산 불가", value: "-", formula: "채널 평균 조회수가 0입니다." });
       } else {
         const r = data.videoViews / data.channelAvgViews;
         const pct = ((data.videoViews - data.channelAvgViews) / data.channelAvgViews) * 100;
         list.push({
-          label: "📊 채널 평균 조회수 대비 비율",
+          label: "채널 평균 조회수 대비 비율",
           value: `${r.toFixed(2)}x  (${pct >= 0 ? "+" : ""}${pct.toFixed(1)}%)`,
           formula: `${data.videoViews.toLocaleString()} ÷ ${data.channelAvgViews.toLocaleString()}`,
         });
@@ -127,11 +143,11 @@ export default function CalculatorClient() {
 
     if (type === "ratio_sub") {
       if (!data.channelSubscribers) {
-        list.push({ label: "❌ 계산 불가", value: "-", formula: "구독자 수가 0입니다." });
+        list.push({ label: "계산 불가", value: "-", formula: "구독자 수가 0입니다." });
       } else {
         const r = data.videoViews / data.channelSubscribers;
         list.push({
-          label: "👥 구독자 대비 조회수 비율",
+          label: "구독자 대비 조회수 비율",
           value: `${r.toFixed(2)}x`,
           formula: `${data.videoViews.toLocaleString()} ÷ ${data.channelSubscribers.toLocaleString()}`,
           note: "1.0x = 구독자 수와 같은 조회수",
@@ -141,11 +157,11 @@ export default function CalculatorClient() {
 
     if (type === "engagement") {
       if (!data.videoViews) {
-        list.push({ label: "❌ 계산 불가", value: "-", formula: "조회수가 0입니다." });
+        list.push({ label: "계산 불가", value: "-", formula: "조회수가 0입니다." });
       } else {
         const r = (data.videoLikes / data.videoViews) * 100;
         list.push({
-          label: "👍 참여율 (Like / View)",
+          label: "참여율 (Like / View)",
           value: `${r.toFixed(2)}%`,
           formula: `(${data.videoLikes.toLocaleString()} ÷ ${data.videoViews.toLocaleString()}) × 100`,
           note: "업계 평균: 약 1~4%",
@@ -155,11 +171,11 @@ export default function CalculatorClient() {
 
     if (type === "like_ratio") {
       if (!data.channelSubscribers) {
-        list.push({ label: "❌ 계산 불가", value: "-", formula: "구독자 수가 0입니다." });
+        list.push({ label: "계산 불가", value: "-", formula: "구독자 수가 0입니다." });
       } else {
         const r = data.videoLikes / data.channelSubscribers;
         list.push({
-          label: "❤️ 구독자 대비 좋아요 비율",
+          label: "구독자 대비 좋아요 비율",
           value: `${(r * 100).toFixed(2)}%`,
           formula: `${data.videoLikes.toLocaleString()} ÷ ${data.channelSubscribers.toLocaleString()}`,
         });
@@ -180,76 +196,85 @@ export default function CalculatorClient() {
   return (
     <div className="space-y-6">
       {/* ─── URL 입력 + 가져오기 버튼 ─── */}
-      <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
-        <label className="block text-sm font-medium text-gray-300 mb-2">
-          1️⃣ 영상 URL 입력
+      <div className={CARD}>
+        <label htmlFor="calc-url" className={STEP}>
+          <span className={STEP_NUM}>01</span> 영상 URL 입력
         </label>
-        <div className="flex flex-col sm:flex-row gap-2">
+        {/* 640 미만: 오른쪽 48px 를 비워 입력칸·버튼이 카카오 버튼 자리(오른쪽 76px)에 들어가지 않게 한다(DESIGN 6.17) */}
+        <div className="flex flex-col gap-2 pr-12 sm:flex-row sm:pr-0">
           <input
+            id="calc-url"
             type="text"
+            inputMode="url"
+            autoComplete="off"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             placeholder="https://youtu.be/xxxxxxxxxxx 또는 https://youtube.com/watch?v=xxxxxxxxxxx"
-            className="flex-1 px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white text-sm placeholder-gray-500 focus:outline-none focus:border-teal-500 transition"
+            aria-invalid={error ? true : undefined}
+            aria-describedby={error ? "calc-url-error" : undefined}
+            className={cx(inputClass({ inset: true }), "min-w-0 sm:flex-1")}
             onKeyDown={(e) => {
               if (e.key === "Enter" && !loading) handleFetch();
             }}
           />
           <button
+            type="button"
             onClick={handleFetch}
             disabled={loading || !url.trim()}
-            className="px-6 py-3 bg-teal-500 hover:bg-teal-400 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold text-sm rounded-xl transition flex items-center justify-center gap-2 whitespace-nowrap"
+            aria-busy={loading || undefined}
+            className={cx(buttonClass({ variant: "primary", size: "md" }), "self-start sm:self-auto")}
           >
             {loading ? (
               <>
-                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                <span aria-hidden="true" className="size-4 animate-spin rounded-full border-2 border-accent-ink border-t-transparent motion-reduce:animate-none" />
                 가져오는 중...
               </>
             ) : (
-              "📥 데이터 가져오기"
+              "데이터 가져오기"
             )}
           </button>
         </div>
 
         {error && (
-          <p className="mt-3 text-sm text-red-400 bg-red-950/30 border border-red-900/50 rounded-lg px-3 py-2">
-            {error}
+          <p id="calc-url-error" role="alert" className="mt-2 flex gap-1.5 text-body-sm text-negative">
+            <WarningIcon size={16} className="mt-[3px]" />
+            <span>{error}</span>
           </p>
         )}
       </div>
 
       {/* ─── Raw 데이터 표시 (가져온 후) ─── */}
       {data && (
-        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
-          <div className="flex items-start justify-between gap-3 mb-3">
-            <div>
-              <p className="text-xs text-gray-500 mb-1">YouTube API 원본 데이터</p>
-              <p className="text-sm font-medium text-gray-300 line-clamp-1">{data.videoTitle}</p>
-              <p className="text-xs text-gray-500 mt-0.5">채널: {data.channelTitle}</p>
+        <div className={CARD}>
+          <div className="mb-3 flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="mb-1 text-caption text-fg-3">YouTube API 원본 데이터</p>
+              <p className="line-clamp-1 text-ui font-medium text-fg-1">{data.videoTitle}</p>
+              <p className="mt-0.5 text-caption text-fg-3">채널: {data.channelTitle}</p>
             </div>
-            <button onClick={resetAll} className="text-xs text-gray-500 hover:text-gray-300 whitespace-nowrap">
-              초기화 ✕
+            <button type="button" onClick={resetAll} className={TEXT_BTN}>
+              초기화 <CloseIcon size={16} />
             </button>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
-            <div className="bg-gray-800/60 rounded-lg p-3">
-              <div className="text-gray-500 mb-1">영상 조회수</div>
-              <div className="text-white font-bold">{data.videoViews.toLocaleString()}</div>
+          <dl className="grid grid-cols-2 gap-2 md:grid-cols-4">
+            <div className="rounded-control bg-surface-2 p-3">
+              <dt className="mb-1 text-caption text-fg-3">영상 조회수</dt>
+              <dd className="tnum text-ui font-bold text-fg">{data.videoViews.toLocaleString()}</dd>
             </div>
-            <div className="bg-gray-800/60 rounded-lg p-3">
-              <div className="text-gray-500 mb-1">영상 좋아요</div>
-              <div className="text-white font-bold">{data.videoLikes.toLocaleString()}</div>
+            <div className="rounded-control bg-surface-2 p-3">
+              <dt className="mb-1 text-caption text-fg-3">영상 좋아요</dt>
+              <dd className="tnum text-ui font-bold text-fg">{data.videoLikes.toLocaleString()}</dd>
             </div>
-            <div className="bg-gray-800/60 rounded-lg p-3">
-              <div className="text-gray-500 mb-1">채널 구독자</div>
-              <div className="text-white font-bold">{data.channelSubscribers.toLocaleString()}</div>
+            <div className="rounded-control bg-surface-2 p-3">
+              <dt className="mb-1 text-caption text-fg-3">채널 구독자</dt>
+              <dd className="tnum text-ui font-bold text-fg">{data.channelSubscribers.toLocaleString()}</dd>
             </div>
-            <div className="bg-gray-800/60 rounded-lg p-3">
-              <div className="text-gray-500 mb-1">채널 평균 조회수</div>
-              <div className="text-white font-bold">{data.channelAvgViews.toLocaleString()}</div>
+            <div className="rounded-control bg-surface-2 p-3">
+              <dt className="mb-1 text-caption text-fg-3">채널 평균 조회수</dt>
+              <dd className="tnum text-ui font-bold text-fg">{data.channelAvgViews.toLocaleString()}</dd>
             </div>
-          </div>
-          <p className="mt-3 text-[10px] text-gray-600">
+          </dl>
+          <p className="mt-3 text-micro text-fg-3">
             ※ 위 숫자는 YouTube API가 반환한 그대로의 값입니다. 채널 평균은 (채널 총 조회수 ÷ 총 영상 수) 단순 산술입니다.
           </p>
         </div>
@@ -257,75 +282,63 @@ export default function CalculatorClient() {
 
       {/* ─── 계산 도구 버튼 (사용자가 누를 때만 작동) ─── */}
       {data && (
-        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
-          <label className="block text-sm font-medium text-gray-300 mb-3">
-            2️⃣ 원하는 계산 버튼 클릭 (사용자가 직접 실행)
-          </label>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            <button
-              onClick={() => calc("ratio_avg")}
-              className="px-4 py-3 bg-teal-600/20 hover:bg-teal-600/30 border border-teal-700/60 hover:border-teal-500 text-teal-300 hover:text-teal-200 text-sm rounded-xl transition text-left"
-            >
-              📊 채널 평균 조회수 대비 비율
-              <span className="block text-[10px] text-gray-500 mt-0.5">영상 조회수 ÷ 채널 평균 조회수</span>
+        <fieldset className={CARD}>
+          {/* 테두리 있는 fieldset 위에 legend 가 걸리지 않게 float 로 흐름 안에 둔다 */}
+          <legend className={cx(STEP, "float-left w-full")}>
+            <span className={STEP_NUM}>02</span> 원하는 계산 버튼 클릭 (사용자가 직접 실행)
+          </legend>
+          <div className="clear-both grid grid-cols-1 gap-2 sm:grid-cols-2">
+            <button type="button" onClick={() => calc("ratio_avg")} className={CALC_BTN}>
+              채널 평균 조회수 대비 비율
+              <span className={CALC_BTN_SUB}>영상 조회수 ÷ 채널 평균 조회수</span>
             </button>
-            <button
-              onClick={() => calc("ratio_sub")}
-              className="px-4 py-3 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-700/60 hover:border-blue-500 text-blue-300 hover:text-blue-200 text-sm rounded-xl transition text-left"
-            >
-              👥 구독자 대비 조회수 비율
-              <span className="block text-[10px] text-gray-500 mt-0.5">영상 조회수 ÷ 채널 구독자</span>
+            <button type="button" onClick={() => calc("ratio_sub")} className={CALC_BTN}>
+              구독자 대비 조회수 비율
+              <span className={CALC_BTN_SUB}>영상 조회수 ÷ 채널 구독자</span>
             </button>
-            <button
-              onClick={() => calc("engagement")}
-              className="px-4 py-3 bg-pink-600/20 hover:bg-pink-600/30 border border-pink-700/60 hover:border-pink-500 text-pink-300 hover:text-pink-200 text-sm rounded-xl transition text-left"
-            >
-              👍 참여율 (Like / View)
-              <span className="block text-[10px] text-gray-500 mt-0.5">(좋아요 ÷ 조회수) × 100%</span>
+            <button type="button" onClick={() => calc("engagement")} className={CALC_BTN}>
+              참여율 (Like / View)
+              <span className={CALC_BTN_SUB}>(좋아요 ÷ 조회수) × 100%</span>
             </button>
-            <button
-              onClick={() => calc("like_ratio")}
-              className="px-4 py-3 bg-orange-600/20 hover:bg-orange-600/30 border border-orange-700/60 hover:border-orange-500 text-orange-300 hover:text-orange-200 text-sm rounded-xl transition text-left"
-            >
-              ❤️ 구독자 대비 좋아요 비율
-              <span className="block text-[10px] text-gray-500 mt-0.5">좋아요 ÷ 채널 구독자</span>
+            <button type="button" onClick={() => calc("like_ratio")} className={CALC_BTN}>
+              구독자 대비 좋아요 비율
+              <span className={CALC_BTN_SUB}>좋아요 ÷ 채널 구독자</span>
             </button>
           </div>
-        </div>
+        </fieldset>
       )}
 
-      {/* ─── 결과 표시 (사용자 클릭 후에만 나타남) ─── */}
-      {results.length > 0 && (
-        <div className="bg-gradient-to-br from-gray-900 to-gray-950 border border-gray-800 rounded-2xl p-5">
-          <div className="flex items-start justify-between gap-3 mb-4">
-            <div>
-              <h3 className="text-sm font-bold text-white">🧮 사용자 자가 계산 결과</h3>
-              <p className="text-[10px] text-gray-500 mt-0.5">
-                ※ 사용자가 직접 실행한 단순 산술 결과입니다. YouTube 공식 메트릭이 아니며, bibl lab의 평가/등급이 아닙니다.
-              </p>
-            </div>
-            <button
-              onClick={() => setResults([])}
-              className="text-xs text-gray-500 hover:text-gray-300 whitespace-nowrap"
-            >
-              모두 지우기 ✕
-            </button>
-          </div>
-
-          <div className="space-y-2">
-            {results.map((r, i) => (
-              <div key={i} className="bg-gray-800/40 border border-gray-700/60 rounded-xl p-4">
-                <div className="flex items-start justify-between gap-3 flex-wrap mb-1">
-                  <div className="text-sm font-medium text-gray-300">{r.label}</div>
-                  <div className="text-xl font-extrabold text-white">{r.value}</div>
-                </div>
-                <div className="text-[11px] text-gray-500 font-mono mt-1">계산식: {r.formula}</div>
-                {r.note && <div className="text-[10px] text-gray-600 mt-1">{r.note}</div>}
+      {/* ─── 결과 표시 (사용자 클릭 후에만 나타남). 알림 영역은 늘 두고 안쪽만 바꾼다 ─── */}
+      <div aria-live="polite">
+        {results.length > 0 && (
+          <div className="rounded-card border border-line bg-surface-2 p-5 md:p-6">
+            <div className="mb-4 flex items-start justify-between gap-3">
+              <div>
+                <h3 className="text-ui font-semibold text-fg">사용자 자가 계산 결과</h3>
+                <p className="mt-0.5 text-micro text-fg-3">
+                  ※ 사용자가 직접 실행한 단순 산술 결과입니다. YouTube 공식 메트릭이 아니며, bibl lab의 평가/등급이 아닙니다.
+                </p>
               </div>
-            ))}
+              <button type="button" onClick={() => setResults([])} className={cx(TEXT_BTN, "hover:bg-surface-3")}>
+                모두 지우기 <CloseIcon size={16} />
+              </button>
+            </div>
+
+            <ul className="divide-y divide-line border-t border-line">
+              {results.map((r, i) => (
+                <li key={i} className="py-4">
+                  <div className="mb-1 flex flex-wrap items-start justify-between gap-3">
+                    <div className="text-body-sm font-medium text-fg-2">{r.label}</div>
+                    <div className="tnum text-h4 font-extrabold text-fg">{r.value}</div>
+                  </div>
+                  <div className="tnum mt-1 text-caption text-fg-3">계산식: {r.formula}</div>
+                  {r.note && <div className="mt-1 text-micro text-fg-3">{r.note}</div>}
+                </li>
+              ))}
+            </ul>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

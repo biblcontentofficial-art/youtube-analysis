@@ -1,6 +1,15 @@
 import type { Metadata } from "next";
 import TrackVisit from "@/app/_components/TrackVisit";
 import Link from "next/link";
+import { cx } from "@/components/ui/button";
+import { SectionHeader } from "@/components/ui/section-header";
+import {
+  LIST_PANEL,
+  LIST_PANEL_HEAD,
+  LIST_PANEL_HEAD_META,
+  LIST_PANEL_LIST,
+  LIST_PANEL_TITLE,
+} from "@/components/ui/list-panel";
 
 export const metadata: Metadata = {
   title: "유튜브 트렌드 서치",
@@ -11,7 +20,19 @@ export const metadata: Metadata = {
   },
 };
 
-const ICON_CLASS = "w-7 h-7 text-white";
+/** 잠긴 도구 표시(DESIGN 6.12 Pro 태그 한 모양, 자물쇠 아이콘 없음) */
+const PLAN_TAG = "inline-flex items-center rounded border border-line-strong px-1 text-micro leading-[18px] text-fg-3";
+
+/**
+ * 항목 전체가 링크(누름 영역 44px 이상). hover 는 제목 밝기와 화살표만.
+ * 640 미만은 오른쪽 32px 를 비워 제목·설명·화살표가 카카오 버튼 자리(오른쪽 76px)에 들어가지 않게 한다(DESIGN 6.17)
+ */
+const ITEM_LINK = "group flex min-h-11 items-center justify-between gap-4 py-3.5 pr-8 transition-colors duration-150 sm:pr-0";
+
+/** 항목 설명: 모바일은 줄바꿈, 768 이상 한 줄(LIST_PANEL_DESC 와 같은 값에 줄바꿈만 다르게) */
+const ITEM_DESC = "mt-0.5 block text-caption text-fg-3 md:truncate";
+
+const ARROW = "transition-transform duration-150 group-hover:translate-x-0.5";
 
 export default async function TrendSearchPage() {
   // 네비와 동일한 방식의 플랜 확인 (실패 시 무료 취급)
@@ -29,28 +50,11 @@ export default async function TrendSearchPage() {
 
   const TOOLS = [
     {
-      title: "브레이크아웃",
-      desc: "주제와 상관없이 어제 올라온 영상 중 구독자 수에 비해 조회수가 잘 나온 영상을 매일 모아 봅니다.",
-      href: "/trend-search/breakout",
-      locked: false,
-      plan: null as string | null,
-      icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" className={ICON_CLASS}>
-          <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" /><polyline points="16 7 22 7 22 13" />
-        </svg>
-      ),
-    },
-    {
       title: "영상 찾기",
       desc: "키워드로 최신 유튜브 영상을 수집해 조회수·구독자·게시일을 한눈에 확인합니다.",
       href: "/search",
       locked: false,
       plan: null as string | null,
-      icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" className={ICON_CLASS}>
-          <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
-        </svg>
-      ),
     },
     {
       title: "채널 찾기",
@@ -58,11 +62,6 @@ export default async function TrendSearchPage() {
       href: "/channels",
       locked: !isStarterPlus,
       plan: "Starter",
-      icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" className={ICON_CLASS}>
-          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
-        </svg>
-      ),
     },
     {
       title: "채널 분석",
@@ -70,11 +69,6 @@ export default async function TrendSearchPage() {
       href: "/my-channel",
       locked: !isStarterPlus,
       plan: "Starter",
-      icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" className={ICON_CLASS}>
-          <line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" />
-        </svg>
-      ),
     },
     {
       title: "수집한 영상",
@@ -82,50 +76,63 @@ export default async function TrendSearchPage() {
       href: "/saved",
       locked: !isProPlus,
       plan: "Pro",
-      icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" className={ICON_CLASS}>
-          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" /><polyline points="17 21 17 13 7 13 7 21" /><polyline points="7 3 7 8 15 8" />
-        </svg>
-      ),
     },
   ];
 
   return (
-    <main className="min-h-screen bg-black text-white">
+    <main className="min-h-screen bg-canvas text-fg">
       <TrackVisit page="trend-search" />
-      <div className="max-w-screen-lg mx-auto px-4 py-16 md:py-24">
-        <div className="flex items-center justify-between gap-4 border-b border-neutral-800 pb-4 mb-12">
-          <span className="text-xs md:text-sm text-neutral-500">bibl lab</span>
-          <span className="text-sm md:text-base font-black tracking-[0.25em] text-white">TREND SEARCH</span>
-        </div>
+      <div className="mx-auto w-full max-w-wide px-6 py-16 md:py-24 lg:px-8">
+        <SectionHeader caption="bibl lab" label="TREND SEARCH" />
 
-        <h1 className="text-3xl md:text-5xl font-black tracking-tight mb-4">유튜브 트렌드 서치</h1>
-        <p className="text-neutral-400 text-base md:text-lg mb-12">
-          키워드·채널·데이터 분석 도구를 한곳에서 사용하세요.
-        </p>
+        <div className="max-w-3xl">
+          <h1 className="text-h2 text-silver lg:text-h1">
+            유튜브 <span className="text-accent">트렌드 서치</span>
+          </h1>
+          <p className="mt-4 text-ui text-fg-2 md:text-lead">
+            키워드·채널·데이터 분석 도구를 한곳에서 사용하세요.
+          </p>
 
-        <div className="grid sm:grid-cols-2 gap-5">
-          {TOOLS.map((t) => (
-            <Link
-              key={t.title}
-              href={t.locked ? "/pricing" : t.href}
-              className="group rounded-2xl border border-neutral-800 bg-neutral-900 p-6 md:p-8 hover:border-neutral-600 transition-colors"
-            >
-              <div className="flex items-start justify-between mb-5">
-                {t.icon}
-                {t.locked && (
-                  <span className="text-[10px] font-bold px-2 py-1 rounded-full border border-neutral-700 text-neutral-400 leading-none">
-                    {t.plan}+ 필요
-                  </span>
-                )}
-              </div>
-              <h2 className="text-lg md:text-xl font-bold text-white mb-2">{t.title}</h2>
-              <p className="text-sm md:text-base text-neutral-400 leading-relaxed">{t.desc}</p>
-              <p className="mt-5 text-sm font-semibold text-white">
-                {t.locked ? "요금제 보기 →" : "바로가기 →"}
-              </p>
+          <div className={cx(LIST_PANEL.standalone, "mt-10 md:mt-12")}>
+            <div className={LIST_PANEL_HEAD}>
+              <h2 className="text-caption font-semibold text-fg">분석 도구 4가지</h2>
+              <span className={LIST_PANEL_HEAD_META}>Free · Starter · Pro</span>
+            </div>
+            <ul className={LIST_PANEL_LIST}>
+              {TOOLS.map((t) => (
+                <li key={t.title}>
+                  <Link href={t.locked ? "/pricing" : t.href} className={ITEM_LINK}>
+                    <span className="min-w-0 flex-1">
+                      <span className={cx(LIST_PANEL_TITLE, "transition-colors duration-150 group-hover:text-fg-2", t.locked ? "text-fg-3" : "text-fg")}>
+                        {t.title}
+                        {t.locked && <span className={PLAN_TAG}>{t.plan}</span>}
+                      </span>
+                      <span className={ITEM_DESC}>{t.desc}</span>
+                    </span>
+                    <span className="flex shrink-0 items-center gap-1.5 text-body-sm font-semibold text-fg-2">
+                      {t.locked ? (
+                        <>
+                          <span className="sr-only">{t.plan}+ 필요, </span>
+                          <span className="hidden sm:inline">요금제 보기</span>
+                        </>
+                      ) : (
+                        <span className="sr-only">바로가기</span>
+                      )}
+                      <span aria-hidden="true" className={ARROW}>→</span>
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* 브레이크아웃: 잠금 없음, 로그인 뒤 목록 */}
+          <div className="mt-8 border-t border-line pt-6">
+            <Link href="/trend-search/breakout" className="group inline-flex h-11 items-center gap-1.5 text-ui font-semibold text-fg transition-colors duration-150 hover:text-fg-2">
+              브레이크아웃 <span aria-hidden="true" className={ARROW}>→</span>
             </Link>
-          ))}
+            <p className="text-body-sm text-fg-3">주제와 상관없이 어제 올라온 영상 중 구독자 수에 비해 조회수가 잘 나온 영상을 매일 모아 봅니다.</p>
+          </div>
         </div>
       </div>
     </main>
