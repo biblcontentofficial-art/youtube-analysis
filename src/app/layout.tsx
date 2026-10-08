@@ -48,9 +48,6 @@ export const metadata: Metadata = {
     description: "유튜브 키워드·채널 분석, 영상 수집. 크리에이터를 위한 무료 도구.",
     images: [OG_IMAGE.url],
   },
-  alternates: {
-    canonical: "https://bibllab.com",
-  },
   robots: {
     index: true,
     follow: true,

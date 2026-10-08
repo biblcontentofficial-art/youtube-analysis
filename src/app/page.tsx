@@ -1,304 +1,82 @@
-"use client";
-
-import React, { useState } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { createSupabaseBrowser } from "@/lib/supabase/browser";
-import { useNavigationLoading } from "@/app/_components/NavigationLoader";
-import { useConfirm } from "@/app/_components/ConfirmDialog";
-import { rememberPendingKeyword, forgetPendingKeyword } from "@/app/_components/pendingKeyword";
+/**
+ * 홈(서버 컴포넌트, 정적 렌더). 레이아웃 F = design-final/silver/home.html (DESIGN 7.1).
+ * 첫 화면 #trend(8:4 실적 열) → 결과 미리보기 → 01·02·03 → 서비스 5가지 → 채널 실적 → 대행 CTA.
+ *
+ * 상태가 필요한 것(인증 확인·방문 기록·검색 폼·예시 칩·로그인 모달)은 HomeSearch(클라이언트)에 있다.
+ * 검색 누적 로직(saveToHistory·trySearch)은 그 파일로 글자 그대로 옮겼다(scripts/ux/check-invariants.mjs).
+ * 첫 화면에는 인물 사진·비블 아바타를 두지 않는다(미리보기 썸네일·채널 아이콘은 콘텐츠라 예외).
+ */
+import type { Metadata } from "next";
+import { HomeSearchProvider, HomeSearchForm } from "@/app/_components/HomeSearch";
 import LandingStats from "@/app/_components/LandingStats";
+import HomeResultPreview from "@/app/_components/home/HomeResultPreview";
+import HomeSteps from "@/app/_components/home/HomeSteps";
+import HomeServices from "@/app/_components/home/HomeServices";
+import HomeChannels from "@/app/_components/home/HomeChannels";
+import HomeContact from "@/app/_components/home/HomeContact";
 
-const EXAMPLE_KEYWORDS = ["캠핑", "영어 공부", "주식 투자", "다이어트", "여행 브이로그", "요리 레시피"];
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+};
+
+const DOT = "⁠·⁠";
 
 export default function Home() {
-  const router = useRouter();
-  const [isSignedIn, setIsSignedIn] = useState(false);
-  const [isLoaded, setIsLoaded] = useState(false);
-  React.useEffect(() => {
-    const supabase = createSupabaseBrowser();
-    const fetchUser = async () => {
-      const { data } = await supabase.auth.getUser();
-      setIsSignedIn(!!data.user);
-      setIsLoaded(true);
-    };
-    fetchUser();
-    // bibllab.com 메인 방문 트래킹
-    fetch("/api/track", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ page: "bibllab", referrer: document.referrer || null }),
-    }).catch(() => {});
-  }, []);
-  const { showLoading } = useNavigationLoading();
-  const showConfirm = useConfirm();
-  const [keyword, setKeyword] = useState("");
-  const [showAuthModal, setShowAuthModal] = useState(false);
-  const [pendingKeyword, setPendingKeyword] = useState("");
-
-  // 로그인 모달이 열리면 입력한 키워드를 맡아 둔다. 로그인 뒤 /search 가 q 없이 열리면
-  // SearchBar 가 입력창에만 채운다(자동 검색·차감 없음). 돌아갈 주소에는 q 를 싣지 않는다.
-  React.useEffect(() => {
-    if (showAuthModal && pendingKeyword) rememberPendingKeyword(pendingKeyword);
-  }, [showAuthModal, pendingKeyword]);
-
-  // 로그인하지 않고 모달을 닫으면(닫기·배경 클릭) 맡아 둔 키워드도 버린다.
-  const closeAuthModal = () => {
-    forgetPendingKeyword();
-    setShowAuthModal(false);
-  };
-
-  interface HistoryItem { term: string; count: number; }
-
-  const saveToHistory = (term: string): number => {
-    const saved = localStorage.getItem("searchHistory");
-    let history: HistoryItem[] = [];
-    try {
-      const parsed = saved ? JSON.parse(saved) : [];
-      history = Array.isArray(parsed) && typeof parsed[0] === "string"
-        ? parsed.map((t: string) => ({ term: t, count: 1 }))
-        : parsed;
-    } catch { history = []; }
-
-    const existing = history.find((h) => h.term === term);
-    let newCount = 1;
-    if (existing) {
-      newCount = existing.count + 1;
-      history = [{ term, count: newCount }, ...history.filter((h) => h.term !== term)];
-    } else {
-      history = [{ term, count: 1 }, ...history];
-    }
-    localStorage.setItem("searchHistory", JSON.stringify(history.slice(0, 30)));
-    return newCount;
-  };
-
-  const trySearch = (term: string) => {
-    const trimmed = term.trim();
-    if (!trimmed) return;
-    if (isLoaded && !isSignedIn) {
-      setPendingKeyword(trimmed);
-      setShowAuthModal(true);
-      return;
-    }
-    const count = saveToHistory(trimmed);
-    showLoading(`"${trimmed}" 검색 중...`);
-    router.push(`/search?q=${encodeURIComponent(trimmed)}&count=${count}`);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const trimmed = keyword.trim();
-    if (!trimmed) return;
-    if (!await showConfirm(`"${trimmed}" 검색하시겠습니까?`)) return;
-    trySearch(trimmed);
-  };
-
-  const handleExample = (kw: string) => {
-    trySearch(kw);
-  };
-
   return (
-    <main className="min-h-screen bg-black text-white flex flex-col">
-      {/* 로그인 유도 모달 */}
-      {showAuthModal && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm px-4"
-          onClick={closeAuthModal}
-        >
-          <div
-            className="bg-neutral-900 border border-neutral-700 rounded-2xl p-8 w-full max-w-sm shadow-2xl text-center"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* 아이콘 */}
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-9 h-9 text-white mx-auto mb-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-            </svg>
-
-            <h2 className="text-xl font-bold text-white mb-2">로그인이 필요합니다</h2>
-            <p className="text-sm text-neutral-400 mb-1">
-              <span className="text-[#00E5A0] font-medium">&ldquo;{pendingKeyword}&rdquo;</span> 검색을 시작하려면<br />
-              로그인 또는 회원가입을 해주세요.
-            </p>
-            <p className="text-xs text-neutral-400 mb-7">가입 후 하루 2회 무료 검색 · 1분 만에 시작</p>
-
-            <div className="flex flex-col gap-3">
-              <Link
-                href="/sign-up?redirect_url=/search"
-                className="w-full py-3 bg-white hover:bg-neutral-200 text-black font-bold rounded-xl transition text-sm"
-              >
-                회원가입 후 검색하기
-              </Link>
-              <Link
-                href="/sign-in?redirect_url=/search"
-                className="w-full py-3 bg-neutral-800 hover:bg-neutral-700 text-white font-semibold rounded-xl transition text-sm border border-neutral-700"
-              >
-                로그인
-              </Link>
-            </div>
-
-            <button
-              onClick={closeAuthModal}
-              className="mt-5 text-xs text-neutral-400 hover:text-white transition"
-            >
-              닫기
-            </button>
-          </div>
-        </div>
-      )}
-      {/* Hero */}
-      <div className="flex-1 flex flex-col items-center justify-center px-4 py-20">
-        <div className="w-full max-w-3xl text-center space-y-8">
-          {/* 배지 */}
-          <div className="inline-flex items-center rounded-full border border-neutral-700 px-4 py-1.5 text-sm text-neutral-400">
-            bibl lab · 유튜브 트렌드 분석
-          </div>
-
-          {/* 타이틀 */}
-          <div className="space-y-4">
-            <h1 className="text-5xl md:text-6xl font-black tracking-tight text-white leading-tight">
-              키워드 하나로<br />
-              <span className="text-[#00E5A0]">유튜브 트렌드</span>를 파악하세요
-            </h1>
-            <p className="text-neutral-400 text-lg max-w-xl mx-auto leading-relaxed">
-              조회수·구독자·게시일을 한눈에 확인하고<br className="hidden sm:block" />
-              경쟁력 있는 콘텐츠 주제를 발견해 보세요
-            </p>
-          </div>
-
-          {/* 검색창 */}
-          <form onSubmit={handleSubmit} className="relative w-full max-w-2xl mx-auto">
-            <div className="flex items-center bg-neutral-900 border border-neutral-700 focus-within:border-neutral-400 rounded-2xl p-2 shadow-2xl transition-colors">
-              <div className="pl-3 text-neutral-500">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
+    <main id="main">
+      <section id="trend" aria-labelledby="trend-title" className="border-b border-line">
+        <div className="mx-auto max-w-wide px-6 pb-16 pt-8 sm:pt-12 lg:px-8 lg:pb-24 lg:pt-14">
+          <HomeSearchProvider>
+            <div className="grid grid-cols-1 gap-7 sm:gap-8 lg:grid-cols-12 lg:items-start lg:gap-6">
+              <div className="min-w-0 lg:col-span-8 lg:pr-6">
+                <h1 id="trend-title" className="text-h2 text-silver sm:text-[44px] lg:text-h1 xl:text-display">
+                  <span className="block">키워드 하나로</span>{" "}
+                  <span className="block">
+                    <span className="text-accent">유튜브 트렌드</span>를 파악하세요
+                  </span>
+                </h1>
+                <p className="mt-3 max-w-[34em] text-body text-fg-2 sm:mt-4 lg:mt-5 lg:text-lead">
+                  {`조회수${DOT}구독자${DOT}게시일을 한눈에 확인하고 경쟁력 있는 콘텐츠 주제를 발견해 보세요.`}
+                </p>
+                <HomeSearchForm />
               </div>
-              <input
-                type="text"
-                value={keyword}
-                onChange={(e) => setKeyword(e.target.value)}
-                placeholder="분석할 키워드를 입력하세요 (예: 캠핑, 영어 공부)"
-                className="w-full bg-transparent text-white px-4 py-3 focus:outline-none text-base placeholder-neutral-600"
-                autoFocus
-              />
-              <button
-                type="submit"
-                className="bg-white hover:bg-neutral-200 text-black px-6 py-2.5 rounded-xl font-bold transition-all text-sm shrink-0"
+
+              {/* 실적 열: 누구의 숫자인지 먼저, 숫자는 그 아래. 1024 이상에서 제목과 글자 윗선을 맞춘다. 아바타 없음 */}
+              <aside
+                aria-labelledby="trend-proof-title"
+                className="lg:col-span-4 lg:border-l lg:border-line lg:pl-8 lg:pt-[2px] xl:pt-[4px]"
               >
-                분석 시작
-              </button>
+                <div className="flex items-baseline justify-between gap-4">
+                  <p id="trend-proof-title" className="text-lead font-bold leading-[1.4]">
+                    {`비블이 운영${DOT}기획한 채널`}
+                  </p>
+                  <a
+                    href="#channels"
+                    className="-my-3 inline-flex h-11 shrink-0 items-center gap-1 text-caption font-semibold text-fg-2 transition-colors duration-150 hover:text-fg lg:hidden"
+                  >
+                    채널 보기 <span aria-hidden="true">→</span>
+                  </a>
+                </div>
+                <p className="mt-1 text-caption text-fg-3">
+                  <span className="whitespace-nowrap">{`세계유명 골프정보${DOT}영어 키위새 외`}</span>{" "}
+                  <span className="whitespace-nowrap">
+                    전체 채널 기준 · <time dateTime="2026-10">2026.10</time>
+                  </span>
+                </p>
+                <LandingStats />
+              </aside>
             </div>
-          </form>
 
-          {/* 예시 키워드 */}
-          <div className="flex flex-wrap justify-center gap-2">
-            <span className="text-xs text-neutral-600 self-center">인기 키워드:</span>
-            {EXAMPLE_KEYWORDS.map((kw) => (
-              <button
-                key={kw}
-                onClick={() => handleExample(kw)}
-                className="text-xs px-3 py-1.5 bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 hover:border-neutral-700 text-neutral-400 hover:text-white rounded-full transition"
-              >
-                {kw}
-              </button>
-            ))}
-          </div>
+            <HomeResultPreview />
+          </HomeSearchProvider>
+
+          <HomeSteps />
         </div>
-      </div>
+      </section>
 
-      {/* 소셜 프루프 — 카운트업 애니메이션 */}
-      <LandingStats />
-
-      {/* 기능 소개 */}
-      <div className="border-t border-neutral-800">
-        <div className="max-w-5xl mx-auto px-4 py-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          <FeatureCard
-            icon={
-              <svg viewBox="0 0 24 24" fill="none" className="w-7 h-7 text-white" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941" />
-              </svg>
-            }
-            title="공식 메트릭 한눈에"
-            desc="YouTube가 제공하는 조회수·구독자·게시일·좋아요 수를 깔끔하게 정리해 보여드립니다"
-          />
-          <FeatureCard
-            icon={
-              <svg viewBox="0 0 24 24" fill="none" className="w-7 h-7 text-white" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 15.803a7.5 7.5 0 0010.607 0z" />
-              </svg>
-            }
-            title="키워드 트렌드"
-            desc="검색 키워드의 최신 영상을 실시간으로 수집하여 트렌드를 빠르게 파악합니다"
-          />
-          <FeatureCard
-            icon={
-              <svg viewBox="0 0 24 24" fill="none" className="w-7 h-7 text-white" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-              </svg>
-            }
-            title="채널 찾기"
-            desc="주제·분야로 성장 중인 채널을 발견합니다. 구독자 급상승·신생 채널 필터 제공"
-          />
-          <FeatureCard
-            icon={
-              <svg viewBox="0 0 24 24" fill="none" className="w-7 h-7 text-white" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
-              </svg>
-            }
-            title="영상 수집"
-            desc="마음에 드는 영상을 수집하고 CSV로 내보내 벤치마킹·레퍼런스 관리에 활용하세요"
-          />
-        </div>
-      </div>
-
-      {/* 이용 방법 */}
-      <div className="border-t border-neutral-800 py-16 px-4">
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-2xl md:text-3xl font-black text-center text-white mb-12">3단계로 바로 시작</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
-            <StepCard step={1} title="키워드 입력" desc="분석하고 싶은 유튜브 키워드를 검색창에 입력하세요" />
-            <StepCard step={2} title="실시간 분석" desc="YouTube 최신 영상 데이터를 수집·분석합니다" />
-            <StepCard step={3} title="인사이트 확인" desc="조회수와 채널 정보를 바탕으로 내 채널에 맞는 콘텐츠를 기획해보세요" />
-          </div>
-        </div>
-      </div>
-
-      {/* 요금제 CTA */}
-      <div className="border-t border-neutral-800 py-16 px-4 text-center">
-        <h2 className="text-2xl md:text-3xl font-black text-white mb-3">더 많이 분석하고 싶으신가요?</h2>
-        <p className="text-neutral-400 mb-8 max-w-lg mx-auto">
-          무료로 시작하고, 필요할 때 업그레이드하세요.<br className="hidden sm:block" />
-          영상 검색 · 채널 찾기 · 영상 수집까지, 크리에이터에게 필요한 모든 것
-        </p>
-        <div className="flex justify-center">
-          <Link
-            href="/pricing"
-            className="px-8 py-3 bg-white hover:bg-neutral-200 text-black font-bold rounded-xl transition"
-          >
-            요금제 보기
-          </Link>
-        </div>
-      </div>
+      <HomeServices />
+      <HomeChannels />
+      <HomeContact />
     </main>
-  );
-}
-
-function FeatureCard({ icon, title, desc }: { icon: React.ReactNode; title: string; desc: string }) {
-  return (
-    <div className="group flex flex-col gap-3 p-4 rounded-2xl border border-transparent hover:border-neutral-800 hover:bg-neutral-900 transition-all duration-300 cursor-default -m-4">
-      {icon}
-      <h3 className="font-bold text-white">{title}</h3>
-      <p className="text-sm text-neutral-500 leading-relaxed transition-colors duration-300 group-hover:text-neutral-400">{desc}</p>
-    </div>
-  );
-}
-
-function StepCard({ step, title, desc }: { step: number; title: string; desc: string }) {
-  return (
-    <div className="group flex flex-col items-center text-center gap-3 p-5 rounded-2xl border border-transparent hover:border-neutral-800 hover:bg-neutral-900 transition-all duration-300 cursor-default">
-      <span className="text-3xl font-black text-neutral-600 leading-none select-none">0{step}</span>
-      <h3 className="font-bold text-white">{title}</h3>
-      <p className="text-sm text-neutral-500 leading-relaxed transition-colors duration-300 group-hover:text-neutral-400">{desc}</p>
-    </div>
   );
 }
