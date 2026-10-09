@@ -1,58 +1,41 @@
-"use client";
-
+/**
+ * 스레드 탭(내 계정 분석 · 수집함). 도구 탭 레시피: 현재 탭만 흰 글자 + 흰 2px 막대(aria-current="page").
+ * 근거: DESIGN.md 6.3 · 7.3 스레드
+ *
+ * - 바닥 선(TAB_BAR)과 가로 스크롤(nav)을 다른 요소에 둔다(tabs.ts 주석과 같은 이유). nav 의 -mb-px 로 현재 탭 막대가 선 위에 그려진다.
+ * - 아이콘 없이 글자만(도구 탭과 같은 모양).
+ */
 import Link from "next/link";
+import { TAB_BAR } from "@/components/ui/tabs";
 
 interface Props {
   current: string;
 }
 
 const TABS = [
-  { key: "analytics", label: "내 계정 분석", icon: "chart" },
-  { key: "saved", label: "수집함", icon: "folder" },
+  { key: "analytics", label: "내 계정 분석" },
+  { key: "saved", label: "수집함" },
 ] as const;
 
-function TabIcon({ type, active }: { type: string; active: boolean }) {
-  const color = active ? "currentColor" : "currentColor";
-  switch (type) {
-    case "chart":
-      return (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2">
-          <line x1="18" y1="20" x2="18" y2="10" />
-          <line x1="12" y1="20" x2="12" y2="4" />
-          <line x1="6" y1="20" x2="6" y2="14" />
-        </svg>
-      );
-    case "folder":
-      return (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2">
-          <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
-        </svg>
-      );
-    default:
-      return null;
-  }
-}
+/** 탭 하나. 높이 44px · 768 이상 48px (ToolTabs 와 같은 값) */
+const TOOL_TAB =
+  "inline-flex h-11 shrink-0 items-center gap-1.5 whitespace-nowrap border-b-2 border-transparent text-body-sm font-medium text-fg-3 transition-colors duration-150 hover:text-fg md:h-12 aria-[current=page]:border-accent aria-[current=page]:font-semibold aria-[current=page]:text-accent";
 
 export default function ThreadsTabNav({ current }: Props) {
   return (
-    <div className="flex gap-1 border-b border-gray-800">
-      {TABS.map((tab) => {
-        const active = current === tab.key;
-        return (
+    <div className={TAB_BAR}>
+      <nav aria-label="스레드 메뉴" className="scrollbar-hide -mb-px flex gap-6 overflow-x-auto">
+        {TABS.map((tab) => (
           <Link
             key={tab.key}
             href={`/threads?tab=${tab.key}`}
-            className={`flex items-center gap-2 px-5 py-3 text-sm font-medium transition border-b-2 ${
-              active
-                ? "border-teal-500 text-teal-400"
-                : "border-transparent text-gray-500 hover:text-gray-300 hover:border-gray-700"
-            }`}
+            aria-current={current === tab.key ? "page" : undefined}
+            className={TOOL_TAB}
           >
-            <TabIcon type={tab.icon} active={active} />
             {tab.label}
           </Link>
-        );
-      })}
+        ))}
+      </nav>
     </div>
   );
 }

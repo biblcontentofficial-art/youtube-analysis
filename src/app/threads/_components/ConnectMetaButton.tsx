@@ -1,31 +1,49 @@
 "use client";
 
+/**
+ * Threads 계정 연결 카드. 연결됨: 계정 한 줄 + '연결 해제'(확인창, destructive). 연결 안 됨: 안내 + 'Threads로 연결하기'.
+ * 근거: DESIGN.md 6.7 앱 카드 · 6.5 버튼 · 6.11 확인창(useConfirm)
+ *
+ * - 아이콘 상자·원 없이 맨 로고(DESIGN 1.3).
+ * - secondary: 무료 사용자 화면처럼 같은 폴드에 흰 버튼(플랜 업그레이드)이 이미 있으면 연결 버튼을 보조 버튼으로 낮춘다(흰 면은 한 폴드에 하나).
+ */
 import ThreadsLogo from "./ThreadsLogo";
+import { useConfirm } from "@/app/_components/ConfirmDialog";
+import { buttonClass } from "@/components/ui/button";
 
 interface Props {
   username?: string;
+  secondary?: boolean;
 }
 
-export default function ConnectMetaButton({ username }: Props) {
+const APP_CARD = "rounded-card border border-line bg-surface";
+
+export default function ConnectMetaButton({ username, secondary = false }: Props) {
+  const askConfirm = useConfirm();
+
   async function handleDisconnect() {
-    if (!confirm(`@${username} 연결을 해제할까요?`)) return;
+    const ok = await askConfirm({
+      message: `@${username} 연결을 해제할까요?`,
+      confirmText: "연결 해제",
+      destructive: true,
+    });
+    if (!ok) return;
     await fetch("/api/threads/disconnect", { method: "DELETE" });
     window.location.reload();
   }
 
   if (username) {
     return (
-      <div className="flex items-center gap-3 bg-gray-900 border border-gray-700 rounded-xl px-4 py-3">
-        <div className="w-8 h-8 rounded-full bg-black flex items-center justify-center shrink-0">
-          <ThreadsLogo className="w-5 h-5 text-white" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-sm text-gray-400">연결된 계정</p>
-          <p className="text-base text-white font-medium">@{username}</p>
+      <div className={`${APP_CARD} flex items-center gap-3 py-3 pl-4 pr-2 md:pl-5`}>
+        <ThreadsLogo decorative className="size-6 shrink-0 text-fg" />
+        <div className="min-w-0 flex-1">
+          <p className="text-caption text-fg-3">연결된 계정</p>
+          <p className="truncate text-ui font-semibold text-fg">@{username}</p>
         </div>
         <button
-          onClick={handleDisconnect}
-          className="text-sm text-gray-500 hover:text-red-400 transition px-3 py-1.5"
+          type="button"
+          onClick={() => void handleDisconnect()}
+          className={buttonClass({ variant: "ghost", size: "sm" }) + " pointer-coarse:h-11"}
         >
           연결 해제
         </button>
@@ -34,19 +52,18 @@ export default function ConnectMetaButton({ username }: Props) {
   }
 
   return (
-    <div className="bg-gray-900 border border-dashed border-gray-700 rounded-xl p-6 text-center">
-      <div className="w-12 h-12 rounded-full bg-black border border-gray-700 flex items-center justify-center mx-auto mb-3">
-        <ThreadsLogo className="w-7 h-7 text-white" />
+    <div className={`${APP_CARD} flex flex-col items-start gap-4 p-5 md:p-6`}>
+      <div>
+        <p className="flex items-center gap-2 text-ui font-semibold text-fg">
+          <ThreadsLogo decorative className="size-5 shrink-0" />
+          Threads 계정 연결 필요
+        </p>
+        <p className="mt-1.5 text-body-sm text-fg-3">
+          Threads 데이터를 분석하려면 본인의 Meta(Threads) 계정을 연결해야 합니다.
+        </p>
       </div>
-      <p className="text-base text-white font-semibold mb-1">Meta 계정 연결 필요</p>
-      <p className="text-sm text-gray-400 mb-5">
-        Threads 데이터를 분석하려면 본인의 Meta(Threads) 계정을 연결해야 합니다.
-      </p>
-      <a
-        href="/api/threads/auth"
-        className="inline-flex items-center gap-2 bg-white hover:bg-gray-100 text-black text-base font-medium px-5 py-2.5 rounded-lg transition"
-      >
-        <ThreadsLogo className="w-4 h-4 text-black" />
+      <a href="/api/threads/auth" className={buttonClass({ variant: secondary ? "secondary" : "primary" })}>
+        <ThreadsLogo decorative className="size-4" />
         Threads로 연결하기
       </a>
     </div>

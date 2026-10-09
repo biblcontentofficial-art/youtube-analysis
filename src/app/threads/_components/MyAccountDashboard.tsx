@@ -1,9 +1,22 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+/**
+ * 내 Threads 계정 분석 대시보드.
+ * 근거: DESIGN.md 7.3 스레드 · 6.6 세그먼트 · 6.7 앱 카드 · 6.13 상태 메시지 · 6.19 스켈레톤 · 3.1 히트맵(heat-1~5)
+ *
+ * - 기간 버튼 줄은 언제나 남긴다. 기간을 바꾸면 이전 데이터를 흐리게 둔 채(aria-busy) 새 데이터로 바꾼다. 화면 전체 스피너 없음.
+ * - 오류는 서버의 임의 문자열을 그리지 않는다. 알려진 코드(META_NOT_CONNECTED · TOKEN_EXPIRED)만 한국어 문장, 그 밖은 고정 문장.
+ *   상태 메시지(negative) + 흰 '다시 시도'(같은 기간) + 보조 '다시 연결하기'(/api/threads/auth).
+ * - 숫자는 앞쪽 지표 6칸에 한 번만 보여 준다(예전 '프로필 개요' 카드의 같은 숫자 6개는 뺐다). 그 아래 3카드 = 연속 기록 · 인기 콘텐츠 · 콘텐츠 아이디어.
+ */
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import ProfileMetricCard from "./ProfileMetricCard";
 import ProfileViewsChart from "./ProfileViewsChart";
 import PostPerformanceTable from "./PostPerformanceTable";
+import { buttonClass, cx } from "@/components/ui/button";
+import { SEGMENT, SEGMENT_ITEM } from "@/components/ui/chip";
+import { WarningIcon } from "@/components/ui/icons";
+import { formatCompactKo } from "@/lib/format";
 
 interface PostInsight {
   id: string;
@@ -20,7 +33,7 @@ interface PostInsight {
   engagement_rate: number;
 }
 
-interface InsightsData {
+export interface InsightsData {
   profile: {
     username: string;
     name?: string;
@@ -55,11 +68,29 @@ interface InsightsData {
   };
 }
 
-function fmt(n: number): string {
-  if (n >= 10_000) return `${(n / 10_000).toFixed(1)}만`;
-  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
-  return n.toLocaleString();
+/** 1만 이상은 만·억, 그 아래는 쉼표(소수 그대로) */
+function num(n: number): string {
+  return Math.abs(n) >= 10_000 ? formatCompactKo(n) : n.toLocaleString("ko-KR");
 }
+
+// ── 오류 코드 → 화면 문장 (서버 원문은 그리지 않는다) ──
+type ErrorCode = "META_NOT_CONNECTED" | "TOKEN_EXPIRED" | "UNKNOWN";
+
+const ERROR_TEXT: Record<ErrorCode, string> = {
+  META_NOT_CONNECTED: "Threads 계정을 먼저 연결해주세요.",
+  TOKEN_EXPIRED: "Threads 계정 연결이 만료됐어요. 다시 연결해주세요.",
+  UNKNOWN: "Threads 데이터를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.",
+};
+
+const PERIODS = [
+  { label: "7일", value: 7 },
+  { label: "1개월", value: 30 },
+  { label: "6개월", value: 180 },
+  { label: "1년", value: 365 },
+];
+
+const APP_CARD = "rounded-card border border-line bg-surface p-5 md:p-6";
+const CARD_TITLE = "text-ui font-semibold text-fg";
 
 // ── 응원/인정 멘트 ──
 const CHEERS_HIGH = ["프로 스레더시네요!", "발행 장인이세요!", "압도적이에요!", "독보적 꾸준함!", "대단하세요!"];
@@ -71,46 +102,101 @@ function getCheer(avg: number): string {
   return list[Math.floor(Math.random() * list.length)];
 }
 
+/** 하루 게시 수 → 히트맵 단계(양만 있고 평가 없음, 무채색 heat-1~5) */
+const HEAT_BG = ["bg-heat-1", "bg-heat-2", "bg-heat-3", "bg-heat-4", "bg-heat-5"] as const;
+function heatClass(count: number): string {
+  return HEAT_BG[Math.min(Math.max(count, 0), 4)];
+}
+
 function StreakCard({ streak, last30 }: { streak: number; last30: { date: string; count: number }[] }) {
   const totalPosts = last30.reduce((s, d) => s + d.count, 0);
   const dailyAvg = Math.round(totalPosts / 30 * 10) / 10;
-  const cheer = getCheer(dailyAvg);
+  // 다시 그릴 때마다 문구가 바뀌지 않게 평균이 바뀔 때만 고른다
+  const cheer = useMemo(() => getCheer(dailyAvg), [dailyAvg]);
+  const postedDays = last30.filter((d) => d.count > 0).length;
 
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
-      <h3 className="text-sm text-gray-500 mb-4 font-medium flex items-center gap-2">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-orange-400"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        게시 연속 기록
-      </h3>
-      <div className="flex items-baseline justify-center gap-6 mb-4">
-        <div className="text-center">
-          <span className="text-4xl font-bold text-white">{streak}</span>
-          <span className="text-base text-gray-500 ml-1">일 연속</span>
-        </div>
-        <div className="text-center">
-          <span className="text-2xl font-bold text-teal-400">{dailyAvg}</span>
-          <span className="text-sm text-gray-500 ml-1">개/일</span>
-        </div>
+    <section aria-labelledby="threads-streak" className={APP_CARD}>
+      <h2 id="threads-streak" className={CARD_TITLE}>게시 연속 기록</h2>
+      <div className="mt-4 flex flex-wrap items-baseline gap-x-6 gap-y-2">
+        <p>
+          <span className="tnum text-h3 text-fg">{streak}</span>
+          <span className="ml-1 text-body-sm text-fg-3">일 연속</span>
+        </p>
+        <p>
+          <span className="tnum text-h4 font-extrabold text-fg">{dailyAvg}</span>
+          <span className="ml-1 text-body-sm text-fg-3">개/일</span>
+        </p>
       </div>
-      <p className="text-center text-sm text-yellow-400 font-medium mb-4">{cheer}</p>
-      <div className="flex flex-wrap gap-1">
+      <p className="mt-2 text-body-sm font-medium text-fg-2">{cheer}</p>
+      <div
+        role="img"
+        aria-label={`최근 30일 중 ${postedDays}일 게시, 총 ${totalPosts}개`}
+        className="mt-4 flex flex-wrap gap-1"
+      >
         {last30.map((d) => (
           <div
             key={d.date}
             title={`${d.date}: ${d.count}개 게시`}
-            className={`w-4 h-4 rounded-sm ${
-              d.count >= 3
-                ? "bg-teal-400"
-                : d.count >= 2
-                ? "bg-teal-500"
-                : d.count >= 1
-                ? "bg-teal-700"
-                : "bg-gray-800"
-            }`}
+            className={cx("size-4 rounded-[3px]", heatClass(d.count))}
           />
         ))}
       </div>
-      <p className="text-xs text-gray-600 mt-2">최근 30일</p>
+      <p className="mt-2 text-caption text-fg-3">최근 30일</p>
+    </section>
+  );
+}
+
+function DashboardSkeleton() {
+  const bone = "rounded-control bg-surface-2 animate-pulse motion-reduce:animate-none";
+  return (
+    <div role="status" className="space-y-6">
+      <span className="sr-only">불러오는 중</span>
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:gap-3 lg:grid-cols-6">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <div key={i} className="rounded-card border border-line bg-surface p-4 md:p-5">
+            <div className={cx(bone, "h-7 w-16")} />
+            <div className={cx(bone, "mt-2 h-3 w-12")} />
+          </div>
+        ))}
+      </div>
+      <div className="grid gap-3 md:gap-4 lg:grid-cols-3">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div key={i} className={APP_CARD}>
+            <div className={cx(bone, "h-4 w-24")} />
+            <div className={cx(bone, "mt-5 h-20 w-full")} />
+          </div>
+        ))}
+      </div>
+      <div className={APP_CARD}>
+        <div className={cx(bone, "h-4 w-28")} />
+        <div className={cx(bone, "mt-4 h-64 w-full")} />
+      </div>
+    </div>
+  );
+}
+
+function ErrorState({ code, onRetry }: { code: ErrorCode; onRetry: () => void }) {
+  return (
+    <div
+      role="alert"
+      className="flex flex-col gap-4 rounded-card border border-negative/55 bg-surface p-4 md:flex-row md:items-center md:p-5"
+    >
+      <div className="flex min-w-0 flex-1 gap-3">
+        <WarningIcon className="mt-0.5 text-negative" />
+        <div className="min-w-0">
+          <p className="text-ui font-semibold text-negative">불러오기 실패</p>
+          <p className="mt-0.5 text-body-sm text-fg-3">{ERROR_TEXT[code]}</p>
+        </div>
+      </div>
+      <div className="flex flex-wrap gap-2 pl-8 max-md:pr-[76px] md:pl-0">
+        <button type="button" onClick={onRetry} className={buttonClass()}>
+          다시 시도
+        </button>
+        <a href="/api/threads/auth" className={buttonClass({ variant: "secondary" })}>
+          다시 연결하기
+        </a>
+      </div>
     </div>
   );
 }
@@ -119,22 +205,33 @@ export default function MyAccountDashboard() {
   const [period, setPeriod] = useState(7);
   const [data, setData] = useState<InsightsData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<ErrorCode | null>(null);
+  // 기간을 빠르게 바꾸면 늦게 온 앞선 응답이 뒤의 응답을 덮지 않게 마지막 요청만 반영한다
+  const reqSeq = useRef(0);
 
   const fetchData = useCallback(async (p: number) => {
+    const seq = ++reqSeq.current;
     setLoading(true);
     setError(null);
     try {
       const res = await fetch(`/api/threads/insights?period=${p}`);
       if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.message ?? err.error ?? "데이터를 불러올 수 없습니다");
+        let code: ErrorCode = "UNKNOWN";
+        try {
+          const body = await res.json();
+          if (body?.error === "META_NOT_CONNECTED" || body?.error === "TOKEN_EXPIRED") code = body.error;
+        } catch {
+          // 본문이 JSON 이 아니면 고정 문장
+        }
+        if (seq === reqSeq.current) setError(code);
+        return;
       }
-      setData(await res.json());
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "알 수 없는 오류");
+      const json = (await res.json()) as InsightsData;
+      if (seq === reqSeq.current) setData(json);
+    } catch {
+      if (seq === reqSeq.current) setError("UNKNOWN");
     } finally {
-      setLoading(false);
+      if (seq === reqSeq.current) setLoading(false);
     }
   }, []);
 
@@ -142,101 +239,67 @@ export default function MyAccountDashboard() {
     fetchData(period);
   }, [period, fetchData]);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <div className="w-7 h-7 border-2 border-teal-500 border-t-transparent rounded-full animate-spin" />
-        <span className="ml-3 text-gray-400 text-base">데이터 로딩 중...</span>
+  return (
+    <div className="space-y-6">
+      {/* ─── 기간 선택 (갱신 중에도 남긴다) ─── */}
+      <div className="flex flex-wrap items-center gap-3">
+        <div role="group" aria-label="기간" className={SEGMENT}>
+          {PERIODS.map((opt) => (
+            <button
+              key={opt.value}
+              type="button"
+              aria-pressed={period === opt.value}
+              onClick={() => setPeriod(opt.value)}
+              className={SEGMENT_ITEM}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+        {/* 라이브 영역은 늘 두고 글자만 바꾼다 */}
+        <span role="status" className="text-caption text-fg-3">
+          {loading && data ? "불러오는 중" : ""}
+        </span>
       </div>
-    );
-  }
 
-  if (error) {
-    return (
-      <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-5 text-base text-red-400">
-        {error}
-      </div>
-    );
-  }
+      {error ? (
+        <ErrorState code={error} onRetry={() => fetchData(period)} />
+      ) : !data ? (
+        <DashboardSkeleton />
+      ) : (
+        <DashboardBody data={data} busy={loading} />
+      )}
+    </div>
+  );
+}
 
-  if (!data) return null;
-
+function DashboardBody({ data, busy }: { data: InsightsData; busy: boolean }) {
   const { summary, daily_views, posts, averages, dashboard } = data;
 
   return (
-    <div className="space-y-8">
-      {/* ─── 기간 선택 ─── */}
-      <div className="flex gap-2">
-        {[
-          { label: "7일", value: 7 },
-          { label: "1개월", value: 30 },
-          { label: "6개월", value: 180 },
-          { label: "1년", value: 365 },
-        ].map((opt) => (
-          <button
-            key={opt.value}
-            onClick={() => setPeriod(opt.value)}
-            className={`px-5 py-2 text-sm rounded-lg border transition ${
-              period === opt.value
-                ? "border-teal-500 text-teal-400 bg-teal-500/10"
-                : "border-gray-700 text-gray-400 hover:border-gray-600"
-            }`}
-          >
-            {opt.label}
-          </button>
-        ))}
-      </div>
+    <div
+      aria-busy={busy}
+      className={cx("space-y-6 transition-opacity duration-150", busy && "pointer-events-none opacity-50")}
+    >
+      {/* ─── 지표 6칸 ─── */}
+      <dl className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:gap-3 lg:grid-cols-6">
+        <ProfileMetricCard label="팔로워 수" value={summary.followers_count} />
+        <ProfileMetricCard label="조회수" value={summary.views} />
+        <ProfileMetricCard label="좋아요 수" value={summary.likes} />
+        <ProfileMetricCard label="댓글 수" value={summary.replies} />
+        <ProfileMetricCard label="리포스트 수" value={summary.reposts} />
+        <ProfileMetricCard label="인용 수" value={summary.quotes} />
+      </dl>
 
-      {/* ─── 대시보드 상단 4카드 ─── */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
-        {/* 1. 프로필 개요 */}
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
-          <h3 className="text-sm text-gray-500 mb-4 font-medium flex items-center gap-2">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-teal-500"><circle cx="12" cy="7" r="4"/><path d="M5.5 21a6.5 6.5 0 0 1 13 0"/></svg>
-            프로필 개요
-          </h3>
-          <div className="space-y-3">
-            <div className="flex justify-between items-baseline">
-              <span className="text-sm text-gray-500">팔로워</span>
-              <span className="text-xl font-bold text-white">{fmt(summary.followers_count)}</span>
-            </div>
-            <div className="flex justify-between items-baseline">
-              <span className="text-sm text-gray-500">조회수</span>
-              <span className="text-xl font-bold text-white">{fmt(summary.views)}</span>
-            </div>
-            <div className="flex justify-between items-baseline">
-              <span className="text-sm text-gray-500">좋아요</span>
-              <span className="text-xl font-bold text-white">{fmt(summary.likes)}</span>
-            </div>
-            <div className="grid grid-cols-3 gap-3 mt-3 pt-3 border-t border-gray-800">
-              <div className="text-center">
-                <p className="text-base font-bold text-white">{fmt(summary.replies)}</p>
-                <p className="text-xs text-gray-600">댓글</p>
-              </div>
-              <div className="text-center">
-                <p className="text-base font-bold text-white">{fmt(summary.reposts)}</p>
-                <p className="text-xs text-gray-600">리포스트</p>
-              </div>
-              <div className="text-center">
-                <p className="text-base font-bold text-white">{fmt(summary.quotes)}</p>
-                <p className="text-xs text-gray-600">인용</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* 2. 게시 연속 기록 */}
+      {/* ─── 3카드: 연속 기록 · 인기 콘텐츠 · 콘텐츠 아이디어 ─── */}
+      <div className="grid gap-3 md:gap-4 lg:grid-cols-3">
         <StreakCard streak={dashboard.streak} last30={dashboard.last30} />
 
-        {/* 3. 인기 콘텐츠 */}
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
-          <h3 className="text-sm text-gray-500 mb-4 font-medium flex items-center gap-2">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-yellow-400"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-            인기 콘텐츠
-          </h3>
-          <div className="space-y-3">
+        <section aria-labelledby="threads-top-posts" className={APP_CARD}>
+          <h2 id="threads-top-posts" className={CARD_TITLE}>인기 콘텐츠</h2>
+          <div className="mt-3 space-y-1">
             {dashboard.topPosts.length === 0 && (
-              <p className="text-sm text-gray-600">게시물이 없습니다</p>
+              <p className="text-body-sm text-fg-3">게시물이 없습니다</p>
             )}
             {dashboard.topPosts.map((p) => (
               <a
@@ -244,94 +307,67 @@ export default function MyAccountDashboard() {
                 href={p.permalink}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="block hover:bg-gray-800/50 rounded-lg p-2.5 -mx-2 transition"
+                className="-mx-2 block rounded-control p-2 transition-colors duration-150 hover:bg-surface-2"
               >
-                <p className="text-sm text-gray-300 line-clamp-2 leading-relaxed">
+                <p className="line-clamp-2 text-body-sm text-fg-2">
                   {p.text.slice(0, 80) || "(미디어 게시물)"}
                 </p>
-                <div className="flex items-center gap-3 mt-1.5 text-xs text-gray-500">
-                  <span>조회 {fmt(p.views)}</span>
-                  <span>좋아요 {fmt(p.likes)}</span>
-                  <span>댓글 {fmt(p.replies)}</span>
-                </div>
+                <p className="tnum mt-1 flex flex-wrap gap-x-3 text-caption text-fg-3">
+                  <span>조회 {num(p.views)}</span>
+                  <span>좋아요 {num(p.likes)}</span>
+                  <span>댓글 {num(p.replies)}</span>
+                </p>
+                <span className="sr-only">(새 창)</span>
               </a>
             ))}
           </div>
-        </div>
+        </section>
 
-        {/* 4. 콘텐츠 아이디어 */}
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
-          <h3 className="text-sm text-gray-500 mb-4 font-medium flex items-center gap-2">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-purple-400"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 1 1 7.072 0l-.548.547A3.374 3.374 0 0 0 14 18.469V19a2 2 0 1 1-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
-            콘텐츠 아이디어
-          </h3>
+        <section aria-labelledby="threads-ideas" className={APP_CARD}>
+          <h2 id="threads-ideas" className={CARD_TITLE}>콘텐츠 아이디어</h2>
           {dashboard.topTopics.length === 0 ? (
-            <p className="text-sm text-gray-600">아직 데이터가 부족합니다</p>
+            <p className="mt-3 text-body-sm text-fg-3">아직 데이터가 부족합니다</p>
           ) : (
-            <div className="space-y-3">
-              <p className="text-sm text-gray-400 leading-relaxed">
+            <div className="mt-3 space-y-2">
+              <p className="text-body-sm text-fg-3">
                 반응이 좋았던 주제를 기반으로 비슷한 콘텐츠를 만들어보세요:
               </p>
               {dashboard.topTopics.map((t, i) => (
-                <div key={i} className="bg-gray-800/50 rounded-lg p-3">
-                  <p className="text-sm text-gray-300 line-clamp-2">{t.topic}...</p>
-                  <p className="text-xs text-teal-500 mt-1.5">
-                    반응 {fmt(t.engagement)} · 비슷한 주제로 작성 추천
+                <div key={i} className="rounded-control bg-surface-2 p-3">
+                  <p className="line-clamp-2 text-body-sm text-fg-2">{t.topic}...</p>
+                  <p className="tnum mt-1 text-caption text-fg-3">
+                    반응 {num(t.engagement)} · 비슷한 주제로 작성 추천
                   </p>
                 </div>
               ))}
             </div>
           )}
-        </div>
-      </div>
-
-      {/* ─── 프로필 지표 6카드 ─── */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-        <ProfileMetricCard label="팔로워 수" value={summary.followers_count} />
-        <ProfileMetricCard label="조회수" value={summary.views} />
-        <ProfileMetricCard label="좋아요 수" value={summary.likes} />
-        <ProfileMetricCard label="댓글 수" value={summary.replies} />
-        <ProfileMetricCard label="리포스트 수" value={summary.reposts} />
-        <ProfileMetricCard label="인용 수" value={summary.quotes} />
+        </section>
       </div>
 
       {/* ─── 프로필 조회 변화 차트 ─── */}
       <ProfileViewsChart data={daily_views} />
 
       {/* ─── 평균 통계 ─── */}
-      <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
-        <h3 className="text-base font-semibold text-white mb-5">평균 통계</h3>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-5">
-          <div>
-            <p className="text-3xl font-bold text-white">{averages.total_posts}</p>
-            <p className="text-sm text-gray-500 mt-1">총 게시물 수</p>
-          </div>
-          <div>
-            <p className="text-3xl font-bold text-white">{fmt(averages.avg_views)}</p>
-            <p className="text-sm text-gray-500 mt-1">평균 조회수</p>
-          </div>
-          <div>
-            <p className="text-3xl font-bold text-white">{averages.avg_likes}</p>
-            <p className="text-sm text-gray-500 mt-1">평균 좋아요</p>
-          </div>
-          <div>
-            <p className="text-3xl font-bold text-white">{averages.avg_replies}</p>
-            <p className="text-sm text-gray-500 mt-1">평균 댓글</p>
-          </div>
-          <div>
-            <p className="text-3xl font-bold text-white">{averages.avg_reposts}</p>
-            <p className="text-sm text-gray-500 mt-1">평균 리포스트</p>
-          </div>
-          <div>
-            <p className="text-3xl font-bold text-white">{averages.avg_quotes}</p>
-            <p className="text-sm text-gray-500 mt-1">평균 인용</p>
-          </div>
-          <div>
-            <p className="text-3xl font-bold text-white">{averages.avg_engagement_rate}%</p>
-            <p className="text-sm text-gray-500 mt-1">평균 참여율</p>
-          </div>
-        </div>
-      </div>
+      <section aria-labelledby="threads-averages" className={APP_CARD}>
+        <h2 id="threads-averages" className={CARD_TITLE}>평균 통계</h2>
+        <dl className="mt-4 grid grid-cols-2 gap-x-5 gap-y-4 sm:grid-cols-4">
+          {[
+            { label: "총 게시물 수", value: num(averages.total_posts) },
+            { label: "평균 조회수", value: num(averages.avg_views) },
+            { label: "평균 좋아요", value: num(averages.avg_likes) },
+            { label: "평균 댓글", value: num(averages.avg_replies) },
+            { label: "평균 리포스트", value: num(averages.avg_reposts) },
+            { label: "평균 인용", value: num(averages.avg_quotes) },
+            { label: "평균 참여율", value: `${averages.avg_engagement_rate}%` },
+          ].map((s) => (
+            <div key={s.label} className="flex flex-col-reverse gap-1">
+              <dt className="text-caption text-fg-3">{s.label}</dt>
+              <dd className="tnum text-h4 font-extrabold text-fg">{s.value}</dd>
+            </div>
+          ))}
+        </dl>
+      </section>
 
       {/* ─── 게시물 성과 테이블 ─── */}
       <PostPerformanceTable posts={posts} />

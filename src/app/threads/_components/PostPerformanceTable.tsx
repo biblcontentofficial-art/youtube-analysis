@@ -1,6 +1,16 @@
 "use client";
 
-import { useState, useMemo } from "react";
+/**
+ * 게시물 성과 표. 앱 표 부품(table.ts) · 정렬은 머리 칸 안 버튼 + aria-sort · 숫자는 lib/format.
+ * 근거: DESIGN.md 6.10 표 · 3.1 평가 값(참여율 5% 이상 positive, 2% 이상 fg-2, 그 아래 fg-3. 흰색 쓰지 않음)
+ *
+ * - 768 미만은 콘텐츠 · 조회수 · 참여율 열만 두고, 나머지 숫자는 콘텐츠 아래 한 줄로 보여 준다.
+ */
+import { useState, useMemo, useId } from "react";
+import { buttonClass, cx } from "@/components/ui/button";
+import { INPUT } from "@/components/ui/field";
+import { NUM, ROW, TABLE, TD, TH, TH_SORT, TH_SORT_ACTIVE } from "@/components/ui/table";
+import { formatCompactKo } from "@/lib/format";
 
 interface PostInsight {
   id: string;
@@ -23,16 +33,15 @@ interface Props {
   posts: PostInsight[];
 }
 
-function fmt(n: number): string {
-  if (n >= 10_000) return `${(n / 10_000).toFixed(1)}만`;
-  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
-  return String(n);
+function engagementTone(rate: number): string {
+  return rate >= 5 ? "text-positive" : rate >= 2 ? "text-fg-2" : "text-fg-3";
 }
 
 export default function PostPerformanceTable({ posts }: Props) {
   const [sortKey, setSortKey] = useState<SortKey>("timestamp");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [search, setSearch] = useState("");
+  const searchId = useId();
 
   const toggleSort = (key: SortKey) => {
     if (sortKey === key) {
@@ -57,7 +66,7 @@ export default function PostPerformanceTable({ posts }: Props) {
   }, [posts, sortKey, sortDir, search]);
 
   const handleCsvDownload = () => {
-    const BOM = "\uFEFF";
+    const BOM = "﻿";
     const header = "콘텐츠,조회수,좋아요,댓글,리포스트,인용,참여율,게시일,링크\n";
     const rows = filtered
       .map(
@@ -74,122 +83,117 @@ export default function PostPerformanceTable({ posts }: Props) {
     URL.revokeObjectURL(url);
   };
 
-  const cols: { key: SortKey; label: string; icon: string }[] = [
-    { key: "views", label: "조회수", icon: "eye" },
-    { key: "likes", label: "좋아요", icon: "heart" },
-    { key: "replies", label: "댓글", icon: "comment" },
-    { key: "reposts", label: "리포스트", icon: "repost" },
-    { key: "quotes", label: "인용", icon: "quote" },
-    { key: "engagement_rate", label: "참여율", icon: "%" },
+  /** mobile: 768 미만에도 보이는 열 */
+  const cols: { key: SortKey; label: string; mobile?: boolean; width: string }[] = [
+    { key: "views", label: "조회수", mobile: true, width: "w-20 md:w-24" },
+    { key: "likes", label: "좋아요", width: "w-20" },
+    { key: "replies", label: "댓글", width: "w-16" },
+    { key: "reposts", label: "리포스트", width: "w-20" },
+    { key: "quotes", label: "인용", width: "w-16" },
+    { key: "engagement_rate", label: "참여율", mobile: true, width: "w-16 md:w-20" },
   ];
 
+  const ariaSort = (key: SortKey) =>
+    sortKey === key ? (sortDir === "desc" ? "descending" : "ascending") : undefined;
+
+  // 컴포넌트가 아니라 함수로 그린다(렌더마다 새 컴포넌트가 되면 버튼이 다시 만들어져 포커스를 잃는다)
+  const sortButton = (k: SortKey, label: string) => (
+    <button type="button" onClick={() => toggleSort(k)} className={cx(TH_SORT, sortKey === k && TH_SORT_ACTIVE)}>
+      {label}
+      {sortKey === k && <span aria-hidden="true">{sortDir === "desc" ? "↓" : "↑"}</span>}
+    </button>
+  );
+
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
-      {/* 헤더 */}
-      <div className="p-4 border-b border-gray-800 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
-        <h3 className="text-base font-semibold text-white">게시물</h3>
-        <div className="flex gap-2 items-center">
+    <section aria-labelledby="threads-posts">
+      {/* 머리: 제목 · 검색 · CSV */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h2 id="threads-posts" className="text-ui font-semibold text-fg">
+          게시물 <span className="tnum text-caption font-normal text-fg-3">{filtered.length}개</span>
+        </h2>
+        <div className="flex items-center gap-2">
+          <label htmlFor={searchId} className="sr-only">게시물 텍스트 검색</label>
           <input
-            type="text"
+            id={searchId}
+            type="search"
             placeholder="텍스트 검색..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-teal-500 w-44"
+            className={cx(INPUT, "min-w-0 flex-1 sm:w-56 sm:flex-none")}
           />
           <button
+            type="button"
             onClick={handleCsvDownload}
-            className="flex items-center gap-1.5 bg-teal-600 hover:bg-teal-500 text-white text-sm px-4 py-2 rounded-lg transition"
+            disabled={filtered.length === 0}
+            className={buttonClass({ variant: "secondary" })}
           >
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-              <polyline points="7 10 12 15 17 10" />
-              <line x1="12" y1="15" x2="12" y2="3" />
-            </svg>
             CSV
           </button>
         </div>
       </div>
 
-      {/* 테이블 */}
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-gray-800 text-gray-500">
-              <th className="text-left px-4 py-3 font-medium min-w-[240px]">콘텐츠 / 날짜</th>
-              {cols.map((c) => (
-                <th
-                  key={c.key}
-                  className="text-right px-3 py-3 font-medium cursor-pointer hover:text-gray-300 transition whitespace-nowrap"
-                  onClick={() => toggleSort(c.key)}
-                >
-                  {c.label}
-                  {sortKey === c.key && (
-                    <span className="ml-1 text-teal-400">
-                      {sortDir === "desc" ? "v" : "^"}
-                    </span>
-                  )}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map((p) => (
-              <tr
-                key={p.id}
-                className="border-b border-gray-800/50 hover:bg-gray-800/30 transition"
+      <table className={cx(TABLE, "mt-3")}>
+        <caption className="sr-only">게시물 성과</caption>
+        <thead>
+          <tr>
+            <th scope="col" aria-sort={ariaSort("timestamp")} className={cx(TH, "pr-4")}>
+              {sortButton("timestamp", "콘텐츠 / 날짜")}
+            </th>
+            {cols.map((c) => (
+              <th
+                key={c.key}
+                scope="col"
+                aria-sort={ariaSort(c.key)}
+                className={cx(TH, c.width, "pr-3 text-right", !c.mobile && "hidden md:table-cell")}
               >
-                <td className="px-4 py-3">
-                  <div className="text-white line-clamp-2 text-sm leading-relaxed">
-                    {p.text.slice(0, 120) || "(이미지/영상)"}
-                  </div>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="text-gray-600 text-xs">
-                      {new Date(p.timestamp).toLocaleDateString("ko-KR")}
-                    </span>
-                    <a
-                      href={p.permalink}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-gray-600 hover:text-teal-400 transition"
-                    >
-                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-                        <polyline points="15 3 21 3 21 9" />
-                        <line x1="10" y1="14" x2="21" y2="3" />
-                      </svg>
-                    </a>
-                  </div>
-                </td>
-                <td className="text-right px-3 py-3 text-gray-400">{fmt(p.views)}</td>
-                <td className="text-right px-3 py-3 text-gray-400">{fmt(p.likes)}</td>
-                <td className="text-right px-3 py-3 text-gray-400">{fmt(p.replies)}</td>
-                <td className="text-right px-3 py-3 text-gray-400">{fmt(p.reposts)}</td>
-                <td className="text-right px-3 py-3 text-gray-400">{fmt(p.quotes)}</td>
-                <td className="text-right px-3 py-3">
-                  <span
-                    className={
-                      p.engagement_rate >= 5
-                        ? "text-teal-400"
-                        : p.engagement_rate >= 2
-                        ? "text-yellow-400"
-                        : "text-gray-500"
-                    }
-                  >
-                    {p.engagement_rate}%
-                  </span>
-                </td>
-              </tr>
+                {sortButton(c.key, c.label)}
+              </th>
             ))}
-            {filtered.length === 0 && (
-              <tr>
-                <td colSpan={7} className="text-center text-gray-600 py-10">
-                  게시물이 없습니다
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-    </div>
+          </tr>
+        </thead>
+        <tbody>
+          {filtered.map((p) => (
+            <tr key={p.id} className={ROW}>
+              <td className={cx(TD, "pr-4")}>
+                <a
+                  href={p.permalink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="line-clamp-2 text-body-sm text-fg-1 underline-offset-4 hover:underline"
+                >
+                  {p.text.slice(0, 120) || "(이미지/영상)"}
+                  <span className="sr-only">(새 창)</span>
+                </a>
+                <p className="tnum mt-1 text-caption text-fg-3">
+                  {new Date(p.timestamp).toLocaleDateString("ko-KR")}
+                </p>
+                {/* 768 미만: 숨긴 열의 숫자를 한 줄로 */}
+                <p className="tnum mt-0.5 flex flex-wrap gap-x-2 text-caption text-fg-3 md:hidden">
+                  <span>좋아요 {formatCompactKo(p.likes)}</span>
+                  <span>댓글 {formatCompactKo(p.replies)}</span>
+                  <span>리포스트 {formatCompactKo(p.reposts)}</span>
+                  <span>인용 {formatCompactKo(p.quotes)}</span>
+                </p>
+              </td>
+              <td className={cx(TD, NUM, "pr-3 text-body-sm font-bold text-fg")}>{formatCompactKo(p.views)}</td>
+              <td className={cx(TD, NUM, "hidden pr-3 text-body-sm text-fg-2 md:table-cell")}>{formatCompactKo(p.likes)}</td>
+              <td className={cx(TD, NUM, "hidden pr-3 text-body-sm text-fg-2 md:table-cell")}>{formatCompactKo(p.replies)}</td>
+              <td className={cx(TD, NUM, "hidden pr-3 text-body-sm text-fg-2 md:table-cell")}>{formatCompactKo(p.reposts)}</td>
+              <td className={cx(TD, NUM, "hidden pr-3 text-body-sm text-fg-2 md:table-cell")}>{formatCompactKo(p.quotes)}</td>
+              <td className={cx(TD, NUM, "pr-3 text-body-sm font-semibold", engagementTone(p.engagement_rate))}>
+                {p.engagement_rate}%
+              </td>
+            </tr>
+          ))}
+          {filtered.length === 0 && (
+            <tr>
+              <td colSpan={7} className="py-10 text-center text-body-sm text-fg-3">
+                게시물이 없습니다
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+    </section>
   );
 }
