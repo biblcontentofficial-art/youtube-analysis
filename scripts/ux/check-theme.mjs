@@ -51,8 +51,10 @@ const RULES = [
 ];
 
 /**
- * 허용 목록(DESIGN.md 9.3, C18a 잔여 집계·C18b 재선언 대상과 같은 목록). allow 규칙만 건너뛴다.
+ * 허용 목록(DESIGN.md 9.3, C18a 에서 확정. C18b 재선언 대상과 같은 목록). allow 규칙만 건너뛴다.
  * 관리자 화면·관리자 미리보기 부품은 구 테마 유지(3.3), tmklab-site 는 별도 브랜드, ux-preview 는 로컬 전용.
+ * 파일이 아닌 예외 두 가지(구글 로고 SVG fill 4색 hex, 대화상자 backdrop:bg-[rgb(0_0_0/0.8)])는 위 규칙이
+ * 잡지 않는 리터럴 값이라 여기에 경로로 넣지 않는다.
  */
 const ALLOW = [
   /^src\/app\/admin\//,

@@ -4,6 +4,7 @@
  * 순위 숫자는 기간 내 받은 좋아요 수라 '좋아요 N' 으로 적는다. 상위 3위 순위만 흰 600, 내 줄은 bg-surface.
  * 운영자 계정 표시는 결정 17 기본(C): 그대로.
  * 레벨 배지는 항상 전체 기간 점수 기준으로 계산한다.
+ * 등급은 이름 글자로만 적는다(이모지 아이콘 금지, DESIGN 1.3). 아바타 모서리 배지는 소유자 결정 대기.
  */
 import type { Metadata } from "next";
 import MemberAvatar from "../_components/MemberAvatar";
@@ -22,7 +23,6 @@ import {
 import {
   GRADE_THRESHOLDS,
   GRADE_NAMES,
-  GRADE_EMOJI,
   gradeForPoints,
   pointsToNextGrade,
   displayName,
@@ -104,7 +104,7 @@ export default async function RankingPage({ searchParams }: Props) {
             />
             <div className="min-w-0">
               <p className="text-body-sm font-bold text-fg">
-                내 활동 점수 <span className="tnum">{myPoints.toLocaleString("ko-KR")}</span>점 · {GRADE_EMOJI[myGrade]} {GRADE_NAMES[myGrade]}
+                내 활동 점수 <span className="tnum">{myPoints.toLocaleString("ko-KR")}</span>점 · {GRADE_NAMES[myGrade]}
               </p>
               {myPoints === 0 ? (
                 <p className="mt-0.5 text-caption text-fg-3">
@@ -191,7 +191,7 @@ export default async function RankingPage({ searchParams }: Props) {
                             {name}
                             {isMe && <span className="ml-1.5 text-caption font-medium text-fg-3">(나)</span>}
                           </p>
-                          <p className="text-caption text-fg-3">{GRADE_EMOJI[memberGrade]} {GRADE_NAMES[memberGrade]}</p>
+                          <p className="text-caption text-fg-3">{GRADE_NAMES[memberGrade]}</p>
                         </div>
                       </div>
                     </td>
@@ -219,7 +219,7 @@ export default async function RankingPage({ searchParams }: Props) {
               className="rounded-control border border-line bg-surface px-3 py-2 text-caption"
             >
               <span className="font-bold text-fg">
-                {GRADE_EMOJI[g]} {GRADE_NAMES[g]}
+                {GRADE_NAMES[g]}
               </span>
               <span className="text-fg-3">
                 {" "}· <span className="tnum">{GRADE_THRESHOLDS[g].toLocaleString("ko-KR")}</span>점

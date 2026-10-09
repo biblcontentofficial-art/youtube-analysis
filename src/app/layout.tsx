@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     template: "%s | 비블랩 (bibl lab)",
   },
   description:
-    "비블, 비블랩(bibl lab) — 유튜브 키워드로 트렌드를 선점하세요. 조회수·구독자·게시일을 한눈에 확인하고, 성장하는 채널을 발견합니다. 유튜버·크리에이터를 위한 무료 데이터 도구.",
+    "비블, 비블랩(bibl lab) · 유튜브 키워드로 트렌드를 선점하세요. 조회수·구독자·게시일을 한눈에 확인하고, 성장하는 채널을 발견합니다. 유튜버·크리에이터를 위한 무료 데이터 도구.",
   keywords: [
     "비블", "비블랩", "비블 랩", "bibl lab", "bibllab",
     "유튜브 키워드 검색", "유튜브 트렌드", "유튜브 채널 찾기",
@@ -40,7 +40,7 @@ export const metadata: Metadata = {
     url: "https://bibllab.com",
     title: "비블랩 (bibl lab) - 유튜브 키워드·채널 분석 도구",
     description:
-      "비블랩 — 유튜브 키워드 트렌드 분석, 채널 찾기, 영상 수집. 크리에이터를 위한 데이터 인사이트.",
+      "비블랩 · 유튜브 키워드 트렌드 분석, 채널 찾기, 영상 수집. 크리에이터를 위한 데이터 인사이트.",
   },
   twitter: {
     card: "summary_large_image",

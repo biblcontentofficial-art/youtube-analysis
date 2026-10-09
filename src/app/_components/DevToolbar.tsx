@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { CloseIcon } from "@/components/ui/icons";
 
 const PAGES = [
   { label: "홈", href: "/" },
@@ -15,53 +16,53 @@ const PAGES = [
   { label: "회원가입", href: "/sign-up" },
 ];
 
+/**
+ * 개발 모드 전용 이동 메뉴(layout.tsx 가 development 에서만 불러와 운영 번들에 없음).
+ * 모양은 DESIGN 토큰으로(블러·그림자·노란 면 없음). 카카오 상담 버튼(오른쪽 아래)을 가리지 않게 왼쪽 아래에 둔다.
+ */
 export default function DevToolbar() {
   const [open, setOpen] = useState(false);
+  const path = typeof window !== "undefined" ? window.location.pathname : "";
 
   return (
-    <div className="fixed bottom-4 right-4 z-[9999] font-mono text-xs">
+    <div className="fixed bottom-4 left-4 z-[9999]">
       {open && (
-        <div className="mb-2 rounded-xl border border-yellow-500/40 bg-gray-950/95 backdrop-blur shadow-2xl w-48 overflow-hidden">
+        <nav aria-label="개발 모드 이동" className="mb-2 w-52 overflow-hidden rounded-card border border-line-strong bg-surface-2">
           {/* 헤더 */}
-          <div className="px-3 py-2 border-b border-yellow-500/20 bg-yellow-500/10 flex items-center justify-between">
-            <span className="text-yellow-400 font-bold tracking-wide text-[10px] uppercase">Dev Nav</span>
-            <span className="text-yellow-600 text-[10px]">localhost</span>
+          <div className="flex items-center justify-between border-b border-line px-3 py-2">
+            <span lang="en" className="text-micro font-bold tracking-wide text-fg-2">DEV NAV</span>
+            <span lang="en" className="text-micro text-fg-3">localhost</span>
           </div>
           {/* 페이지 목록 */}
-          <div className="py-1">
-            {PAGES.map((p) => {
-              const isCurrent =
-                typeof window !== "undefined" &&
-                window.location.pathname === p.href;
-              return (
+          <ul className="py-1">
+            {PAGES.map((p) => (
+              <li key={p.href}>
                 <a
-                  key={p.href}
                   href={p.href}
-                  className={`flex items-center justify-between px-3 py-1.5 hover:bg-yellow-500/10 transition ${
-                    isCurrent ? "text-yellow-400 bg-yellow-500/5" : "text-gray-300"
-                  }`}
+                  aria-current={path === p.href ? "page" : undefined}
+                  className="flex items-center justify-between gap-2 px-3 py-1.5 text-caption text-fg-2 transition-colors duration-150 hover:bg-surface-3 hover:text-fg aria-[current=page]:font-semibold aria-[current=page]:text-accent"
                 >
                   <span>{p.label}</span>
-                  <span className="text-gray-600 text-[9px]">{p.href}</span>
+                  <span className="text-micro text-fg-3">{p.href}</span>
                 </a>
-              );
-            })}
-          </div>
+              </li>
+            ))}
+          </ul>
           {/* 현재 경로 */}
-          <div className="px-3 py-2 border-t border-yellow-500/20 bg-gray-900/60 text-gray-600 text-[10px] truncate">
-            {typeof window !== "undefined" ? window.location.pathname : ""}
-          </div>
-        </div>
+          <p className="truncate border-t border-line px-3 py-2 text-micro text-fg-3">{path}</p>
+        </nav>
       )}
 
       {/* 토글 버튼 */}
       <button
+        type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-yellow-500 hover:bg-yellow-400 text-black font-bold shadow-lg transition text-[11px] select-none"
+        aria-expanded={open}
         title="개발 모드 네비게이션"
+        className="inline-flex h-9 select-none items-center gap-1.5 rounded-control border border-line-strong bg-surface-2 px-3 text-micro font-bold text-fg transition-colors duration-150 hover:border-line-hover hover:bg-surface-3"
       >
-        <span>{open ? "✕" : "⚡"}</span>
-        <span>DEV</span>
+        {open && <CloseIcon size={16} />}
+        <span lang="en">DEV</span>
       </button>
     </div>
   );

@@ -118,6 +118,7 @@ export default function TossPaymentWidget({
 
       {/* 결제 버튼 */}
       <button
+        type="button"
         onClick={handlePay}
         disabled={!ready || paying}
         className="mt-4 inline-flex h-14 w-full items-center justify-center gap-2 rounded-control bg-accent px-7 text-body font-bold text-accent-ink transition-colors duration-150 hover:bg-accent-hover active:bg-accent-active disabled:opacity-40"

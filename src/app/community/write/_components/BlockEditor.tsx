@@ -370,8 +370,9 @@ export default function BlockEditor({
     );
   }
 
+  // 칸마다 링을 그리지 않고 틀 하나에 포커스를 보인다: 흰 테두리 1px + 외곽선 1px(합쳐 2px, DESIGN 8 입력 규칙)
   return (
-    <div className="rounded-card border border-line-strong bg-surface transition-colors duration-150 has-[textarea:focus-visible]:border-accent">
+    <div className="rounded-card border border-line-strong bg-surface transition-colors duration-150 has-[textarea:focus-visible]:border-accent has-[textarea:focus-visible]:outline-1 has-[textarea:focus-visible]:outline-offset-0 has-[textarea:focus-visible]:outline-solid has-[textarea:focus-visible]:outline-accent">
       {/* 넣기 도구 (늘 보임. 좁은 화면에서는 두 줄로 접혀 버튼이 모두 보인다) */}
       <div role="group" aria-label="본문에 넣기" className="flex flex-wrap items-center gap-1.5 border-b border-line p-2">
         {tools(toolbarTarget)}

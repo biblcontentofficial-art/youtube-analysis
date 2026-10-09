@@ -100,8 +100,8 @@ export default function LessonPlayer({
           sidebarOpen && "lg:grid-cols-[18rem_minmax(0,1fr)]",
         )}
       >
-        {/* 플레이어 영역 */}
-        <div className="flex min-w-0 flex-col">
+        {/* 플레이어 영역(이 화면의 main. 위 상단 바·옆 커리큘럼은 main 밖) */}
+        <main className="flex min-w-0 flex-col">
           {/* 비디오 */}
           <div className="aspect-video w-full overflow-hidden rounded-card bg-surface">
             {currentLesson.videoUrl ? (
@@ -174,7 +174,7 @@ export default function LessonPlayer({
               )}
             </div>
           </div>
-        </div>
+        </main>
 
         {/* 커리큘럼 사이드바(DESIGN 6.26). 데스크톱은 전역 네비(--nav-h) + 상단 바(3rem) 아래에 붙는다. 닫아도 렌더해 aria-controls 대상이 남는다 */}
         <aside

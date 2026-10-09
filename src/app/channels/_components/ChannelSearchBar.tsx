@@ -44,11 +44,12 @@ export default function ChannelSearchBar({ initialQuery, hint }: Props) {
 
   return (
     <div className="flex w-full flex-col gap-2">
+      {/* 포커스: 입력 칸 자체 링 대신 틀이 흰 테두리 + 외곽선 1px(합쳐 2px, DESIGN 8 입력 규칙) */}
       <form
         role="search"
         onSubmit={handleSubmit}
         aria-busy={isPending || undefined}
-        className="flex h-[50px] w-full items-center gap-2 rounded-card border border-line-strong bg-surface p-0.5 pl-4 transition-colors focus-within:border-accent sm:h-14 sm:p-1 lg:pl-5"
+        className="flex h-[50px] w-full items-center gap-2 rounded-card border border-line-strong bg-surface p-0.5 pl-4 transition-colors focus-within:border-accent has-[input:focus-visible]:outline-1 has-[input:focus-visible]:outline-offset-0 has-[input:focus-visible]:outline-solid has-[input:focus-visible]:outline-accent sm:h-14 sm:p-1 lg:pl-5"
       >
         <SearchIcon className="text-fg-3" />
         <label htmlFor="channel-q" className="sr-only">
@@ -62,7 +63,7 @@ export default function ChannelSearchBar({ initialQuery, hint }: Props) {
           value={value}
           onChange={(e) => setValue(e.target.value)}
           placeholder="분야나 주제 키워드로 검색"
-          className="h-full min-w-0 flex-1 bg-transparent text-body font-medium text-fg outline-none placeholder:text-fg-3 lg:text-[17px]"
+          className="h-full min-w-0 flex-1 bg-transparent text-body font-medium text-fg outline-0 placeholder:text-fg-3 lg:text-[17px]"
           autoComplete="off"
         />
         <button

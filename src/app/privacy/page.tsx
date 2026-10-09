@@ -75,10 +75,11 @@ export default function PrivacyPage() {
           </section>
 
           <section>
-            <h2 className={LEGAL_H2}>제4조 (개인정보의 제3자 제공 및 처리 위탁)</h2>
+            <h2 id="privacy-entrust" className={LEGAL_H2}>제4조 (개인정보의 제3자 제공 및 처리 위탁)</h2>
             <p>회사는 정보주체의 개인정보를 제1조(개인정보의 처리 목적)에서 명시한 범위 내에서만 처리하며, 정보주체의 동의, 법률의 특별한 규정 등 관련 법령에서 허용한 경우에만 제3자에게 개인정보를 제공합니다.</p>
             <p className="mt-3">회사는 원활한 서비스 제공을 위하여 다음과 같이 개인정보 처리 업무를 위탁하고 있습니다. 회사는 위탁계약 시 개인정보보호법 제26조에 따라 위탁업무 수행목적 외 개인정보 처리 금지, 기술적·관리적 보호조치, 재위탁 제한, 수탁자에 대한 관리·감독, 손해배상 등 책임에 관한 사항을 문서에 명시하고 수탁자가 개인정보를 안전하게 처리하는지를 감독하고 있습니다.</p>
-            <div className={cx(LEGAL_TABLE_WRAP, "mt-3")}>
+            {/* 좁은 화면에서 가로로 스크롤하는 상자: 키보드로도 스크롤하게 포커스를 받는다(axe scrollable-region-focusable) */}
+            <div role="region" aria-labelledby="privacy-entrust" tabIndex={0} className={cx(LEGAL_TABLE_WRAP, "mt-3")}>
               <table className={LEGAL_TABLE}>
                 <thead>
                   <tr>

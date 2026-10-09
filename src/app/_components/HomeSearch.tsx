@@ -161,10 +161,11 @@ export function HomeSearchForm() {
 
   return (
     <>
+      {/* 포커스: 입력 칸 자체 링 대신 틀이 흰 테두리 + 외곽선 1px(합쳐 2px, DESIGN 8 입력 규칙) */}
       <form
         role="search"
         onSubmit={handleSubmit}
-        className="mt-6 flex h-14 max-w-[640px] items-center gap-2 rounded-card border border-line-strong bg-surface p-1 pl-4 transition-colors duration-150 focus-within:border-accent lg:mt-8"
+        className="mt-6 flex h-14 max-w-[640px] items-center gap-2 rounded-card border border-line-strong bg-surface p-1 pl-4 transition-colors duration-150 focus-within:border-accent has-[input:focus-visible]:outline-1 has-[input:focus-visible]:outline-offset-0 has-[input:focus-visible]:outline-solid has-[input:focus-visible]:outline-accent lg:mt-8"
       >
         <svg className="size-5 shrink-0 text-fg-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" aria-hidden="true">
           <circle cx="11" cy="11" r="7" />

@@ -1,6 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useId, useRef, useState, useCallback } from "react";
+import { buttonClass, cx } from "@/components/ui/button";
+import { inputClass } from "@/components/ui/field";
+import { CloseIcon } from "@/components/ui/icons";
+import { TAB, TAB_BAR, TAB_LIST } from "@/components/ui/tabs";
 
 type Content = {
   hero: {
@@ -30,6 +34,10 @@ type Content = {
 const TABS = ["히어로", "마퀴", "차별점", "후기", "FAQ"] as const;
 type Tab = (typeof TABS)[number];
 
+/** 개발 모드 전용 편집 패널(운영 번들에 없음). 모양은 DESIGN 토큰·공용 부품으로 */
+const FIELD_LABEL = "text-micro font-semibold text-fg-3";
+const SECTION_CARD = "space-y-3 rounded-card border border-line p-4";
+
 function Field({
   label,
   value,
@@ -41,21 +49,24 @@ function Field({
   onChange: (v: string) => void;
   multiline?: boolean;
 }) {
+  const id = useId();
   return (
     <div className="flex flex-col gap-1">
-      <label className="text-[10px] font-semibold uppercase tracking-widest text-gray-400">
+      <label htmlFor={id} className={FIELD_LABEL}>
         {label}
       </label>
       {multiline ? (
         <textarea
-          className="bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white resize-none focus:outline-none focus:border-teal-500 transition"
+          id={id}
+          className={cx(inputClass({ multiline: true, inset: true }), "resize-none")}
           rows={3}
           value={value}
           onChange={(e) => onChange(e.target.value)}
         />
       ) : (
         <input
-          className="bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-teal-500 transition"
+          id={id}
+          className={inputClass({ inset: true })}
           value={value}
           onChange={(e) => onChange(e.target.value)}
         />
@@ -73,6 +84,7 @@ function ImageField({
   value: string;
   onChange: (v: string) => void;
 }) {
+  const id = useId();
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
 
@@ -91,7 +103,7 @@ function ImageField({
 
   return (
     <div className="flex flex-col gap-1">
-      <label className="text-[10px] font-semibold uppercase tracking-widest text-gray-400">
+      <label htmlFor={id} className={FIELD_LABEL}>
         {label}
       </label>
       {/* 미리보기 */}
@@ -100,26 +112,28 @@ function ImageField({
         <img
           src={value}
           alt={label}
-          className="w-full h-28 object-cover rounded-lg border border-gray-700"
+          className="h-28 w-full rounded-control border border-line object-cover"
         />
       )}
       <div className="flex gap-2">
         <input
-          className="flex-1 bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-teal-500 transition"
+          id={id}
+          className={cx(inputClass({ inset: true }), "min-w-0 flex-1")}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder="URL 또는 /경로"
         />
         <button
+          type="button"
           onClick={() => inputRef.current?.click()}
           disabled={uploading}
-          className="shrink-0 px-3 py-2 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold rounded-lg transition disabled:opacity-50"
+          className={cx(buttonClass({ variant: "secondary" }), "shrink-0")}
         >
-          {uploading ? "..." : "업로드"}
+          {uploading ? "업로드 중" : "업로드"}
         </button>
       </div>
       {isExternal && (
-        <p className="text-[10px] text-gray-500">
+        <p className="text-micro text-fg-3">
           외부 URL → 내 파일로 교체하려면 업로드 버튼 사용
         </p>
       )}
@@ -127,6 +141,7 @@ function ImageField({
         ref={inputRef}
         type="file"
         accept="image/*"
+        aria-label={`${label} 파일 선택`}
         className="hidden"
         onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])}
       />
@@ -140,6 +155,26 @@ export default function DevEditor() {
   const [content, setContent] = useState<Content | null>(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const toggleRef = useRef<HTMLButtonElement>(null);
+  const closeRef = useRef<HTMLButtonElement>(null);
+  const wasOpen = useRef(false);
+
+  // 열면 닫기 버튼으로 포커스, Esc 로 닫기, 닫으면 여는 버튼으로 포커스를 돌린다
+  useEffect(() => {
+    if (open) {
+      wasOpen.current = true;
+      closeRef.current?.focus();
+      const onKey = (e: KeyboardEvent) => {
+        if (e.key === "Escape") setOpen(false);
+      };
+      window.addEventListener("keydown", onKey);
+      return () => window.removeEventListener("keydown", onKey);
+    }
+    if (wasOpen.current) {
+      wasOpen.current = false;
+      toggleRef.current?.focus();
+    }
+  }, [open]);
 
   // 최초 열 때 JSON 로드
   useEffect(() => {
@@ -207,68 +242,82 @@ export default function DevEditor() {
     <>
       {/* 토글 버튼 */}
       <button
+        ref={toggleRef}
+        type="button"
         onClick={() => setOpen((o) => !o)}
-        className="fixed bottom-20 right-4 z-[9998] flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-black px-3 py-2 rounded-full shadow-lg shadow-indigo-900/50 transition"
+        aria-expanded={open}
+        className="fixed bottom-20 right-4 z-[9998] inline-flex h-9 items-center rounded-control border border-line-strong bg-surface-2 px-3 text-caption font-bold text-fg transition-colors duration-150 hover:border-line-hover hover:bg-surface-3"
         title="Shift+E 로도 열 수 있어요"
       >
-        ✏️ 편집
+        편집
       </button>
 
       {/* 패널 오버레이 */}
       {open && (
         <div className="fixed inset-0 z-[9999] flex justify-end">
-          {/* 반투명 배경 */}
+          {/* 단색 배경 막(블러 없음, DESIGN 6.31) */}
           <div
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            aria-hidden="true"
+            className="absolute inset-0 bg-canvas/60"
             onClick={() => setOpen(false)}
           />
 
           {/* 편집 패널 */}
-          <div className="relative w-[420px] max-w-full h-full bg-gray-950 border-l border-gray-800 flex flex-col shadow-2xl">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="채널 대행 페이지 편집"
+            className="relative flex h-full w-[420px] max-w-full flex-col border-l border-line bg-surface"
+          >
             {/* 헤더 */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-800 shrink-0">
+            <div className="flex shrink-0 items-center justify-between border-b border-line px-4 py-3">
               <div>
-                <p className="text-xs text-indigo-400 font-bold uppercase tracking-widest">Dev Editor</p>
-                <p className="text-white font-bold text-sm">채널 대행 페이지 편집</p>
+                <p lang="en" className="text-micro font-bold tracking-widest text-silver">DEV EDITOR</p>
+                <p className="text-body-sm font-bold text-fg">채널 대행 페이지 편집</p>
               </div>
-              <div className="flex gap-2 items-center">
+              <div className="flex items-center gap-2">
                 <button
+                  type="button"
                   onClick={save}
                   disabled={saving || saved}
-                  className="px-4 py-2 bg-teal-500 hover:bg-teal-400 text-white text-sm font-bold rounded-lg transition disabled:opacity-60 min-w-[80px]"
+                  className={cx(buttonClass({ size: "sm" }), "min-w-20")}
                 >
-                  {saved ? "✓ 저장됨" : saving ? "저장 중..." : "저장 & 반영"}
+                  {saved ? "저장됨" : saving ? "저장 중..." : "저장 & 반영"}
                 </button>
                 <button
+                  ref={closeRef}
+                  type="button"
                   onClick={() => setOpen(false)}
-                  className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-800 text-gray-400 transition"
+                  aria-label="닫기"
+                  className="inline-flex size-9 items-center justify-center rounded-control text-fg-3 transition-colors duration-150 hover:bg-surface-2 hover:text-fg"
                 >
-                  ✕
+                  <CloseIcon size={16} />
                 </button>
               </div>
             </div>
 
             {/* 탭 */}
-            <div className="flex border-b border-gray-800 shrink-0 overflow-x-auto">
-              {TABS.map((t) => (
-                <button
-                  key={t}
-                  onClick={() => setTab(t)}
-                  className={`px-4 py-2.5 text-xs font-bold whitespace-nowrap transition ${
-                    tab === t
-                      ? "border-b-2 border-teal-400 text-teal-400"
-                      : "text-gray-500 hover:text-gray-300"
-                  }`}
-                >
-                  {t}
-                </button>
-              ))}
+            <div className={cx(TAB_BAR, "shrink-0 px-2")}>
+              <div role="tablist" aria-label="편집 구역" className={TAB_LIST}>
+                {TABS.map((t) => (
+                  <button
+                    key={t}
+                    type="button"
+                    role="tab"
+                    aria-selected={tab === t}
+                    onClick={() => setTab(t)}
+                    className={TAB}
+                  >
+                    {t}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* 콘텐츠 영역 */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            <div role="tabpanel" aria-label={tab} className="flex-1 space-y-4 overflow-y-auto p-4">
               {!content ? (
-                <div className="flex items-center justify-center h-32 text-gray-500 text-sm">
+                <div className="flex h-32 items-center justify-center text-body-sm text-fg-3">
                   로딩 중...
                 </div>
               ) : (
@@ -293,7 +342,7 @@ export default function DevEditor() {
                         onChange={(v) => update("hero", { titleLine1: v })}
                       />
                       <Field
-                        label="제목 강조 (teal 색상)"
+                        label="제목 강조 (흰 글자)"
                         value={content.hero.titleHighlight}
                         onChange={(v) => update("hero", { titleHighlight: v })}
                       />
@@ -341,7 +390,7 @@ export default function DevEditor() {
                         onChange={(v) => update("marquee", { titleLine1: v })}
                       />
                       <Field
-                        label="제목 강조 (teal 그라디언트)"
+                        label="제목 강조 (빨간 글자)"
                         value={content.marquee.titleHighlight}
                         onChange={(v) => update("marquee", { titleHighlight: v })}
                       />
@@ -369,8 +418,8 @@ export default function DevEditor() {
                   {tab === "차별점" && (
                     <div className="space-y-6">
                       {content.features.map((f, i) => (
-                        <div key={f.num} className="border border-gray-800 rounded-xl p-4 space-y-3">
-                          <p className="text-xs font-black text-teal-400 uppercase tracking-widest">
+                        <div key={f.num} className={SECTION_CARD}>
+                          <p className="tnum text-caption font-bold text-silver">
                             {f.num}
                           </p>
                           <Field
@@ -379,7 +428,7 @@ export default function DevEditor() {
                             onChange={(v) => updateArrayItem("features", i, { title: v })}
                           />
                           <Field
-                            label="설명 (줄바꿈=\\n)"
+                            label="설명 (줄바꿈=\n)"
                             value={f.desc}
                             onChange={(v) => updateArrayItem("features", i, { desc: v })}
                             multiline
@@ -398,8 +447,8 @@ export default function DevEditor() {
                   {tab === "후기" && (
                     <div className="space-y-6">
                       {content.reviews.map((r, i) => (
-                        <div key={i} className="border border-gray-800 rounded-xl p-4 space-y-3">
-                          <p className="text-[10px] text-gray-500 font-bold uppercase">후기 {i + 1}</p>
+                        <div key={i} className={SECTION_CARD}>
+                          <p className="text-caption font-bold text-fg-3">후기 {i + 1}</p>
                           <Field
                             label="이름/직함"
                             value={r.name}
@@ -425,8 +474,8 @@ export default function DevEditor() {
                   {tab === "FAQ" && (
                     <div className="space-y-4">
                       {content.faqs.map((faq, i) => (
-                        <div key={i} className="border border-gray-800 rounded-xl p-4 space-y-3">
-                          <p className="text-[10px] text-gray-500 font-bold uppercase">Q{i + 1}</p>
+                        <div key={i} className={SECTION_CARD}>
+                          <p className="text-caption font-bold text-fg-3">Q{i + 1}</p>
                           <Field
                             label="질문"
                             value={faq.q}
@@ -447,8 +496,8 @@ export default function DevEditor() {
             </div>
 
             {/* 하단 안내 */}
-            <div className="px-4 py-3 border-t border-gray-800 shrink-0">
-              <p className="text-[10px] text-gray-600 text-center">
+            <div className="shrink-0 border-t border-line px-4 py-3">
+              <p className="text-center text-micro text-fg-3">
                 저장하면 페이지가 새로고침됩니다 · Shift+E로 토글
               </p>
             </div>

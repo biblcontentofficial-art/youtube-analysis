@@ -17,10 +17,11 @@ export default function CourseEnrollButton({ courseSlug, courseTitle, price, pri
   if (hasPurchased) {
     return (
       <button
+        type="button"
         onClick={() => router.push(`/studio/classroom/${courseSlug}`)}
         className={buttonClass({ block: true })}
       >
-        수강하기 →
+        수강하기 <span aria-hidden="true">→</span>
       </button>
     );
   }
@@ -53,6 +54,7 @@ export default function CourseEnrollButton({ courseSlug, courseTitle, price, pri
   return (
     <div className="space-y-2">
       <button
+        type="button"
         onClick={handlePurchase}
         className={buttonClass({ block: true })}
       >

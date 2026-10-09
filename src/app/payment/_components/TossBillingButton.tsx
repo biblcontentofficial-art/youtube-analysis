@@ -58,6 +58,7 @@ export default function TossBillingButton({ plan, userId }: TossBillingButtonPro
   return (
     <div className="w-full space-y-1">
       <button
+        type="button"
         onClick={handleClick}
         disabled={loading}
         className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-control bg-accent px-6 text-ui font-bold text-accent-ink transition-colors duration-150 hover:bg-accent-hover active:bg-accent-active disabled:cursor-not-allowed disabled:opacity-40"

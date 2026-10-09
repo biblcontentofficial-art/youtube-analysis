@@ -13,7 +13,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { courseId } = await params;
   const course = getCourse(courseId);
   if (!course) return {};
-  return { title: `${course.title} 수강 — TMK STUDIO` };
+  return { title: `${course.title} 수강 · TMK STUDIO` };
 }
 
 export default async function ClassroomCoursePage({ params, searchParams }: Props) {

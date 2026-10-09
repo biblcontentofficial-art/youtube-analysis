@@ -122,7 +122,7 @@ export default function MenuTrafficDashboard() {
               <div className="mt-1 flex items-center gap-2 text-xs">
                 <span
                   className={
-                    change.up === true ? "text-[#00E5A0]" : change.up === false ? "text-[#E5484D]" : "text-neutral-500"
+                    change.up === true ? "text-positive" : change.up === false ? "text-negative" : "text-neutral-500"
                   }
                 >
                   {change.text}

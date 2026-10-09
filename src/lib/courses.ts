@@ -91,7 +91,7 @@ export const COURSES: Course[] = [
     curriculum: [
       {
         id: "session-1",
-        title: "1회차 — 채널 전체 진단",
+        title: "1회차 · 채널 전체 진단",
         lessons: [
           { id: "s1-l1", title: "채널 현황 점검 및 데이터 분석", duration: "60:00", videoUrl: "", isFree: false },
           { id: "s1-l2", title: "경쟁 채널 비교 분석", duration: "30:00", videoUrl: "", isFree: false },
@@ -99,7 +99,7 @@ export const COURSES: Course[] = [
       },
       {
         id: "session-2",
-        title: "2회차 — 콘텐츠 전략 설계",
+        title: "2회차 · 콘텐츠 전략 설계",
         lessons: [
           { id: "s2-l1", title: "타겟 시청자 설정", duration: "40:00", videoUrl: "", isFree: false },
           { id: "s2-l2", title: "콘텐츠 캘린더 작성", duration: "50:00", videoUrl: "", isFree: false },
@@ -107,7 +107,7 @@ export const COURSES: Course[] = [
       },
       {
         id: "session-3",
-        title: "3회차 — 썸네일·제목 최적화",
+        title: "3회차 · 썸네일·제목 최적화",
         lessons: [
           { id: "s3-l1", title: "클릭률 높이는 썸네일 원칙", duration: "45:00", videoUrl: "", isFree: false },
           { id: "s3-l2", title: "제목 A/B 테스트 방법", duration: "35:00", videoUrl: "", isFree: false },
@@ -115,7 +115,7 @@ export const COURSES: Course[] = [
       },
       {
         id: "session-4",
-        title: "4회차 — 수익화 & 비즈니스 연계",
+        title: "4회차 · 수익화 & 비즈니스 연계",
         lessons: [
           { id: "s4-l1", title: "유튜브 수익화 로드맵", duration: "50:00", videoUrl: "", isFree: false },
           { id: "s4-l2", title: "비즈니스 전환 전략", duration: "40:00", videoUrl: "", isFree: false },
@@ -126,7 +126,7 @@ export const COURSES: Course[] = [
   {
     slug: "youtube-business-blackmap",
     title: "유튜브 비즈니스 블랙맵",
-    subtitle: "8주 완성 — 수익화까지 가는 체계적 로드맵",
+    subtitle: "8주 완성 · 수익화까지 가는 체계적 로드맵",
     description:
       "단순한 유튜브 운영 강의가 아닙니다. 브랜딩, 콘텐츠 기획, 원고 작성, 썸네일, 알고리즘, " +
       "비즈니스 전환까지 8주 안에 완성하는 실전 로드맵입니다. " +
@@ -158,7 +158,7 @@ export const COURSES: Course[] = [
     curriculum: [
       {
         id: "week-1",
-        title: "1주차 — 브랜드 정체성 기획",
+        title: "1주차 · 브랜드 정체성 기획",
         lessons: [
           { id: "w1-l1", title: "나만의 유튜브 포지셔닝 설계", duration: "38:24", videoUrl: "", isFree: true, description: "채널의 핵심 가치와 타겟 시청자를 정의합니다." },
           { id: "w1-l2", title: "경쟁 채널 분석 실습", duration: "42:10", videoUrl: "", isFree: true },
@@ -168,7 +168,7 @@ export const COURSES: Course[] = [
       },
       {
         id: "week-2",
-        title: "2주차 — 콘텐츠 기획",
+        title: "2주차 · 콘텐츠 기획",
         lessons: [
           { id: "w2-l1", title: "조회수 나오는 콘텐츠 순서의 비밀", duration: "51:17", videoUrl: "", isFree: false },
           { id: "w2-l2", title: "키워드 리서치 실전 방법", duration: "44:38", videoUrl: "", isFree: false },
@@ -178,7 +178,7 @@ export const COURSES: Course[] = [
       },
       {
         id: "week-3",
-        title: "3주차 — 원고 작성",
+        title: "3주차 · 원고 작성",
         lessons: [
           { id: "w3-l1", title: "좋은 원고의 4가지 조건 (공감·정보·재미·신뢰)", duration: "48:55", videoUrl: "", isFree: false },
           { id: "w3-l2", title: "도입부 3초 훅 작성법", duration: "39:12", videoUrl: "", isFree: false },
@@ -188,7 +188,7 @@ export const COURSES: Course[] = [
       },
       {
         id: "week-4",
-        title: "4주차 — 촬영 & 편집",
+        title: "4주차 · 촬영 & 편집",
         lessons: [
           { id: "w4-l1", title: "카메라 없이 시작하는 방법", duration: "36:44", videoUrl: "", isFree: false },
           { id: "w4-l2", title: "프리미어 프로 기초 편집", duration: "55:30", videoUrl: "", isFree: false },
@@ -198,7 +198,7 @@ export const COURSES: Course[] = [
       },
       {
         id: "week-5",
-        title: "5주차 — 썸네일 & 제목",
+        title: "5주차 · 썸네일 & 제목",
         lessons: [
           { id: "w5-l1", title: "클릭률 30% 올리는 썸네일 공식", duration: "46:33", videoUrl: "", isFree: false },
           { id: "w5-l2", title: "포토샵 없이 썸네일 만들기", duration: "38:15", videoUrl: "", isFree: false },
@@ -208,7 +208,7 @@ export const COURSES: Course[] = [
       },
       {
         id: "week-6",
-        title: "6주차 — 알고리즘 & 업로드",
+        title: "6주차 · 알고리즘 & 업로드",
         lessons: [
           { id: "w6-l1", title: "유튜브 알고리즘 작동 원리", duration: "52:11", videoUrl: "", isFree: false },
           { id: "w6-l2", title: "최적 업로드 시간 전략", duration: "22:47", videoUrl: "", isFree: false },
@@ -218,7 +218,7 @@ export const COURSES: Course[] = [
       },
       {
         id: "week-7",
-        title: "7주차 — 데이터 분석",
+        title: "7주차 · 데이터 분석",
         lessons: [
           { id: "w7-l1", title: "유튜브 스튜디오 핵심 지표 읽기", duration: "44:19", videoUrl: "", isFree: false },
           { id: "w7-l2", title: "이탈 지점 개선하기", duration: "37:54", videoUrl: "", isFree: false },
@@ -228,7 +228,7 @@ export const COURSES: Course[] = [
       },
       {
         id: "week-8",
-        title: "8주차 — 수익화 & 비즈니스",
+        title: "8주차 · 수익화 & 비즈니스",
         lessons: [
           { id: "w8-l1", title: "수익화 4가지 루트 전략", duration: "49:27", videoUrl: "", isFree: false },
           { id: "w8-l2", title: "브랜드 협찬 협상법", duration: "38:13", videoUrl: "", isFree: false },
@@ -244,7 +244,7 @@ export const COURSES: Course[] = [
     subtitle: "비블과 함께하는 10개월 유튜브 성장 여정",
     description:
       "혼자 유튜브를 운영하며 막히는 순간, 팀비블이 함께합니다. " +
-      "월 멤버십 구독 후 라이브 클래스, 피드백, 커뮤니티까지 — 비블이 직접 운영하는 실전 멤버십 프로그램입니다.",
+      "월 멤버십 구독 후 라이브 클래스, 피드백, 커뮤니티까지, 비블이 직접 운영하는 실전 멤버십 프로그램입니다.",
     thumbnail: "/studio/team-bibl/01.png",
     instructor: "비블 (김태민)",
     instructorBio: INSTRUCTOR.bio,

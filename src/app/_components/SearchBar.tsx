@@ -303,11 +303,12 @@ export default function SearchBar({ hint }: { hint?: React.ReactNode } = {}) {
 
   return (
     <div className="flex w-full flex-1 flex-col gap-2">
-      {/* 검색창 (DESIGN 6.9 앱 검색창: 모바일 50px · 640 이상 56px) */}
+      {/* 검색창 (DESIGN 6.9 앱 검색창: 모바일 50px · 640 이상 56px).
+          포커스: 입력 칸 자체 링 대신 틀이 흰 테두리 + 외곽선 1px(합쳐 2px, DESIGN 8 입력 규칙) */}
       <form
         role="search"
         onSubmit={handleSubmit}
-        className="flex h-[50px] w-full items-center gap-2 rounded-card border border-line-strong bg-surface p-0.5 pl-4 transition-colors focus-within:border-accent sm:h-14 sm:p-1 lg:pl-5"
+        className="flex h-[50px] w-full items-center gap-2 rounded-card border border-line-strong bg-surface p-0.5 pl-4 transition-colors focus-within:border-accent has-[input:focus-visible]:outline-1 has-[input:focus-visible]:outline-offset-0 has-[input:focus-visible]:outline-solid has-[input:focus-visible]:outline-accent sm:h-14 sm:p-1 lg:pl-5"
       >
         <SearchIcon className="text-fg-3" />
         <input
@@ -318,7 +319,7 @@ export default function SearchBar({ hint }: { hint?: React.ReactNode } = {}) {
           aria-label="검색할 키워드"
           enterKeyHint="search"
           autoComplete="off"
-          className="h-full min-w-0 flex-1 bg-transparent text-body font-medium text-fg outline-none placeholder:text-fg-3 lg:text-[17px]"
+          className="h-full min-w-0 flex-1 bg-transparent text-body font-medium text-fg outline-0 placeholder:text-fg-3 lg:text-[17px]"
         />
 
         {/* 국가 선택 버튼 (국기 이모지는 글자 라벨과 함께 쓰는 예외, DESIGN 6.22) */}

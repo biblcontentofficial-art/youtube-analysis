@@ -47,8 +47,9 @@ export default function CommunityGate({
   const pathname = usePathname();
   const next = encodeURIComponent(pathname || "/community");
 
+  // 비회원 화면의 main(회원 화면은 community/layout.tsx 의 main). 게이트 분기·문구는 그대로
   return (
-    <div className="mx-auto max-w-2xl">
+    <main className="mx-auto max-w-2xl">
       <section className="rounded-panel border border-line bg-surface p-6 md:p-10">
         <p lang="en" className="text-sm font-black leading-5 tracking-[0.25em] text-silver md:text-base md:leading-6">
           MEMBERS ONLY
@@ -123,6 +124,6 @@ export default function CommunityGate({
         </a>
         에서 이야기 나눠요 <span className="whitespace-nowrap">(참여코드 230000)</span>
       </p>
-    </div>
+    </main>
   );
 }

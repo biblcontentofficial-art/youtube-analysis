@@ -150,16 +150,17 @@ function calculatePerformanceRatio(viewCount: number, channelInfo: any) {
   
   const avgViews = channelVideoCount > 0 ? channelViewCount / channelVideoCount : 1;
   
-  if (avgViews === 0) return { ratio: "-", raw: 0, color: "text-gray-500" };
+  if (avgViews === 0) return { ratio: "-", raw: 0, color: "text-fg-4" };
 
   const ratio = viewCount / avgViews;
   const ratioStr = ratio.toFixed(1) + "x"; 
 
-  let color = "text-gray-500";
-  if (ratio >= 3.0) color = "text-purple-400"; 
-  else if (ratio >= 1.5) color = "text-red-400"; 
-  else if (ratio >= 0.8) color = "text-green-400"; 
-  else color = "text-gray-500"; 
+  // 표시용 색 이름만(분기·값 그대로). 화면에서는 쓰지 않는 필드(performanceColor)라 DESIGN 3.1 토큰 이름으로 둔다
+  let color = "text-fg-4";
+  if (ratio >= 3.0) color = "text-positive"; 
+  else if (ratio >= 1.5) color = "text-positive"; 
+  else if (ratio >= 0.8) color = "text-fg-2"; 
+  else color = "text-fg-4"; 
 
   return { ratio: ratioStr, raw: ratio, color };
 }

@@ -33,7 +33,12 @@ export default function FilterTabs({ query }: Props) {
   return (
     <div
       data-sort-tabs
-      className="scrollbar-hide -mx-6 min-w-0 overflow-x-auto px-6 sm:mx-0 sm:px-0"
+      // 검색 전에는 탭이 비활성이라 포커스가 들어가지 않는다. 좁은 화면에서 가려진 탭 이름을 키보드로도 스크롤해 보게 상자가 포커스를 받는다
+      // (이름 있는 영역으로 읽히게 role·aria-label 을 함께 준다. 640 미만은 상자가 화면 폭과 같아 링을 안쪽에 그린다)
+      tabIndex={query ? undefined : 0}
+      role={query ? undefined : "region"}
+      aria-label={query ? undefined : "정렬 탭"}
+      className="scrollbar-hide -mx-6 min-w-0 overflow-x-auto px-6 focus-visible:-outline-offset-2 sm:mx-0 sm:px-0 sm:focus-visible:outline-offset-2"
     >
       <div role="group" aria-label="정렬" className={cx(SEGMENT, "w-max bg-surface")}>
         {SORT_TABS.map((tab) => (
