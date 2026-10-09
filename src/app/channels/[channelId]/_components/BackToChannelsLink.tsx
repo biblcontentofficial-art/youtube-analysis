@@ -22,9 +22,9 @@ export default function BackToChannelsLink({ href }: { href: string }) {
         e.preventDefault();
         router.back();
       }}
-      className="inline-flex items-center gap-1.5 text-neutral-500 hover:text-neutral-300 text-sm transition"
+      className="inline-flex h-11 items-center gap-1.5 text-body-sm font-medium text-fg-3 transition-colors hover:text-fg"
     >
-      <span>←</span>
+      <span aria-hidden="true">←</span>
       <span>채널 찾기로 돌아가기</span>
     </Link>
   );

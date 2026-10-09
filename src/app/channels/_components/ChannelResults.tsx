@@ -5,14 +5,23 @@
  *
  * page.tsx 가 받은 검색 결과를 정렬하지 않고 넘기면, 주소의 sort·dateOrder 로 여기서 줄 세운다.
  * 탭·토글을 바꿔도 서버를 다시 부르지 않으므로 채널 검색 횟수가 다시 차감되지 않는다.
- * 마크업은 page.tsx 에서 옮긴 것이다(색만 neutral 로 바꿈, 화면 구성 변경은 R19).
+ *
+ * 화면(DESIGN 6.10 앱 표 · 3.1 기능 색):
+ * - 768 이상 표(table.ts 공용 상수), 768 미만 행 카드(1행 썸네일·이름·핸들, 2행 구독자 · 핵심 지표).
+ * - 지표 등급은 무채색 단계 + 등급 글자(grade.ts). 개설 3년 이내 채널은 positive 'NEW' 태그. 표 아래 범례 한 줄.
+ * - 정렬 중인 열 머리는 흰 600 + 화살표 + aria-sort. 정렬 바꾸기는 위 정렬 탭이 맡는다.
  */
 import { useMemo } from "react";
 import Link from "next/link";
 import type { ChannelResult } from "@/lib/youtube";
 import { channelAgeMonths, sortChannels, type SortMode } from "@/lib/channelSort";
 import { formatKstDate } from "@/lib/kst";
+import { formatCompactKo } from "@/lib/format";
+import { TABLE, TH, TD, NUM, ROW, TH_SORT_ACTIVE } from "@/components/ui/table";
+import { badgeClass } from "@/components/ui/badge";
+import { cx } from "@/components/ui/button";
 import { isPlainLeftClick, rememberDetailFromList, useChannelSort } from "./listState";
+import { GRADE_LABEL, GRADE_TONE, gradeLegend, gradeLevel, type GradeMetric } from "./grade";
 
 // ─── 유틸 ─────────────────────────────────────────────────────────────────────
 
@@ -22,40 +31,31 @@ function formatOpenDate(publishedAt: string): string {
   return formatKstDate(publishedAt);
 }
 
-function fmtNum(n: number): string {
-  if (n >= 100000000) return `${(n / 100000000).toFixed(1)}억`;
-  if (n >= 10000) return `${Math.floor(n / 10000)}만`;
-  if (n >= 1000) return `${(n / 1000).toFixed(1)}K`;
-  return n.toLocaleString("ko-KR");
-}
-
-// ─── 지표 색상 ─────────────────────────────────────────────────────────────────
-
-function metricColor(val: number, hi: number, mid: number, lo: number): string {
-  if (val >= hi) return "text-purple-400 font-bold";
-  if (val >= mid) return "text-red-400 font-semibold";
-  if (val >= lo) return "text-orange-400 font-semibold";
-  return "text-neutral-300";
-}
-
-// 컬럼 레이블
+// 컬럼 레이블 (결정 12 기본 C: 이름·계산 그대로)
 const metricLabel: Record<SortMode, string> = {
   trending: "영상당 평균 조회",
   growth: "월 구독자 증가",
   new: "영상당 평균 조회",
 };
 
-/** 상단 필터 줄의 정렬 기준 한 줄. 검색 결과가 있을 때만 page.tsx 가 그린다. */
+// 탭별 핵심 지표의 등급 기준
+const metricKind: Record<SortMode, GradeMetric> = {
+  trending: "viewPerSub",
+  growth: "monthlySubs",
+  new: "avgViews",
+};
+
+/** 상단 정렬 기준 한 줄. 검색 결과가 있을 때만 page.tsx 가 그린다. */
 export function ChannelSortCaption() {
   const { sort, dateOrder } = useChannelSort();
   return (
-    <span className="text-xs text-neutral-500 hidden md:block">
+    <p className="text-caption text-fg-3">
       {sort === "trending" && "영상당 평균 조회수 기준"}
       {sort === "growth" && "채널 나이 대비 월 평균 구독자 증가량 기준"}
       {sort === "new" && !dateOrder && "3년 이내 개설 채널 우선 · 영상당 평균 조회수 기준"}
       {sort === "new" && dateOrder === "desc" && "채널 개설일 최신순"}
       {sort === "new" && dateOrder === "asc" && "채널 개설일 오래된순"}
-    </span>
+    </p>
   );
 }
 
@@ -67,6 +67,26 @@ interface Props {
   now: number;
 }
 
+type Row = {
+  ch: ChannelResult;
+  isNew: boolean;
+  metricText: string;
+  metricValue: number;
+  href: string;
+  detailPath: string;
+};
+
+function Avatar({ ch, size }: { ch: ChannelResult; size: "sm" | "md" }) {
+  const box = size === "md" ? "size-10" : "size-9";
+  return ch.thumbnail ? (
+    <img src={ch.thumbnail} alt="" className={cx(box, "shrink-0 rounded-full bg-surface-2 object-cover")} loading="lazy" decoding="async" />
+  ) : (
+    <span aria-hidden="true" className={cx(box, "inline-flex shrink-0 items-center justify-center rounded-full bg-surface-3 text-body-sm font-semibold text-fg-2")}>
+      {ch.title.slice(0, 1)}
+    </span>
+  );
+}
+
 export default function ChannelResults({ channels: items, query, now }: Props) {
   const { sort, dateOrder } = useChannelSort();
   const channels = useMemo(
@@ -74,191 +94,200 @@ export default function ChannelResults({ channels: items, query, now }: Props) {
     [items, sort, dateOrder, now]
   );
 
+  if (channels.length === 0) return null;
+
+  const kind = metricKind[sort];
+  const from = encodeURIComponent(
+    `/channels?q=${encodeURIComponent(query)}&sort=${sort}${dateOrder ? `&dateOrder=${dateOrder}` : ""}`
+  );
+
+  const rows: Row[] = channels.map((ch) => {
+    const ageM = channelAgeMonths(ch.publishedAt, now);
+    const viralRatio = Math.round(ch.viewCount / Math.max(ch.subscriberCount, 1));
+    const spm = Math.round(ch.subscriberCount / Math.max(ageM, 1));
+    const metricValue = sort === "trending" ? viralRatio : sort === "growth" ? spm : ch.avgViewsPerVideo;
+    const metricText =
+      sort === "trending"
+        ? `${formatCompactKo(viralRatio)}배`
+        : sort === "growth"
+          ? `+${formatCompactKo(spm)}/월`
+          : `${formatCompactKo(ch.avgViewsPerVideo)}회`;
+    const detailPath = `/channels/${ch.channelId}`;
+    return { ch, isNew: ageM <= 36, metricText, metricValue, detailPath, href: `${detailPath}?from=${from}` };
+  });
+
+  const newCount = rows.filter((r) => r.isNew).length;
+  // 정렬 중인 열: 개설일 정렬이 켜져 있으면 개설일, 아니면 핵심 지표
+  const sortedByDate = sort === "new" && dateOrder !== null;
+  const dateAria = sortedByDate ? (dateOrder === "asc" ? "ascending" : "descending") : undefined;
+
+  const linkProps = (r: Row) => ({
+    href: r.href,
+    // 정렬을 바꾸면 href 가 바뀐다. 미리 가져오기를 끄면 탭 클릭이 서버 요청을 만들지 않는다.
+    prefetch: false,
+    onClick: (e: React.MouseEvent<HTMLAnchorElement>) => {
+      if (isPlainLeftClick(e)) rememberDetailFromList(r.detailPath);
+    },
+  });
+
+  const newTag = <span className={badgeClass("success")}>NEW</span>;
+
   return (
-    <>
-      {/* 신생 고성장 안내 */}
-      {sort === "new" && channels.length > 0 && (() => {
-        if (dateOrder) {
-          return (
-            <p className="text-xs mb-4 text-neutral-400">
-              {dateOrder === "desc"
-                ? "📅 채널 개설일 최신순으로 정렬됩니다"
-                : "📅 채널 개설일 오래된순으로 정렬됩니다"}
-            </p>
-          );
-        }
-        const n = channels.filter((ch) => channelAgeMonths(ch.publishedAt, now) <= 36).length;
-        return (
-          <p className={`text-xs mb-4 ${n > 0 ? "text-green-500" : "text-neutral-500"}`}>
-            {n > 0
-              ? `🌱 3년 이내 신생 채널 ${n}개가 상단에 표시됩니다`
-              : "이 키워드에서 3년 이내 신생 채널이 없어 전체를 평균 조회수 순으로 표시합니다."}
-          </p>
-        );
-      })()}
-
-      {/* ─── 결과 테이블 ─────────────────────────────────────────────────── */}
-      {channels.length > 0 && (
-        <div className="overflow-x-auto rounded-xl border border-neutral-800">
-          <table className="w-full text-sm border-collapse">
-            {/* 헤더 */}
-            <thead>
-              <tr className="bg-neutral-900/80 border-b border-neutral-800 text-neutral-500 text-xs">
-                <th className="px-5 py-3 text-left w-8 font-normal">#</th>
-                <th className="px-4 py-3 text-left font-normal">채널</th>
-                <th className="px-4 py-3 text-right font-normal whitespace-nowrap">
-                  <span className={sort === "growth" || sort === "trending" ? "text-white" : ""}>
-                    구독자 수
-                  </span>
-                </th>
-                <th className="px-4 py-3 text-right font-normal whitespace-nowrap">
-                  <span className={sort === "trending" ? "text-white flex items-center justify-end gap-1" : "flex items-center justify-end gap-1"}>
-                    {metricLabel[sort]}
-                    <svg className="w-3 h-3 text-white" viewBox="0 0 16 16" fill="currentColor">
-                      <path d="M8 12L2 5h12L8 12z"/>
-                    </svg>
-                  </span>
-                </th>
-                <th className="px-4 py-3 text-right font-normal whitespace-nowrap hidden md:table-cell">
-                  영상 수
-                </th>
-                <th className="px-4 py-3 text-right font-normal whitespace-nowrap hidden md:table-cell">
-                  채널 개설일
-                </th>
-                <th className="px-4 py-3 text-left font-normal hidden lg:table-cell">
-                  설명
-                </th>
-              </tr>
-            </thead>
-
-            {/* 바디 */}
-            <tbody>
-              {channels.map((ch, i) => {
-                const ageM = channelAgeMonths(ch.publishedAt, now);
-                const isNew = ageM <= 36;
-                const viralRatio = Math.round(ch.viewCount / Math.max(ch.subscriberCount, 1));
-                const spm = Math.round(ch.subscriberCount / Math.max(ageM, 1));
-                const detailPath = `/channels/${ch.channelId}`;
-
-                return (
-                  <tr
-                    key={ch.channelId}
-                    className={`border-b border-neutral-800/60 transition-colors group
-                      ${isNew && sort === "new"
-                        ? "bg-green-950/10 hover:bg-green-950/20"
-                        : "hover:bg-neutral-800/30"
-                      }`}
-                  >
-                    {/* 순위 */}
-                    <td className="px-5 py-4 text-neutral-500 text-xs font-mono align-middle">
-                      {i + 1}
-                    </td>
-
-                    {/* 채널 정보 */}
-                    <td className="px-4 py-4 align-middle">
-                      <Link
-                        href={`${detailPath}?from=${encodeURIComponent(`/channels?q=${encodeURIComponent(query)}&sort=${sort}${dateOrder ? `&dateOrder=${dateOrder}` : ""}`)}`}
-                        // 정렬을 바꾸면 href 가 바뀐다. 미리 가져오기를 끄면 탭 클릭이 서버 요청을 만들지 않는다.
-                        prefetch={false}
-                        onClick={(e) => {
-                          if (isPlainLeftClick(e)) rememberDetailFromList(detailPath);
-                        }}
-                        className="flex items-center gap-4 hover:opacity-80 transition-opacity"
-                      >
-                        {/* 썸네일 */}
-                        <div className="relative shrink-0">
-                          {ch.thumbnail ? (
-                            <img
-                              src={ch.thumbnail}
-                              alt={ch.title}
-                              className="w-12 h-12 rounded-full object-cover ring-2 ring-neutral-700 group-hover:ring-neutral-500 transition"
-                            />
-                          ) : (
-                            <div className="w-12 h-12 rounded-full bg-neutral-800 flex items-center justify-center text-xl ring-2 ring-neutral-700">
-                              📺
-                            </div>
-                          )}
-                          {isNew && (
-                            <span className="absolute -bottom-1 -right-1 text-[9px] font-bold bg-green-600 text-white px-1.5 py-0.5 rounded-full leading-none">
-                              NEW
-                            </span>
-                          )}
-                        </div>
-
-                        {/* 이름 + 태그 */}
-                        <div className="min-w-0">
-                          <p className="font-semibold text-white text-sm truncate max-w-[200px] group-hover:text-neutral-300 transition">
-                            {ch.title}
-                          </p>
-                          {ch.customUrl && (
-                            <p className="text-neutral-500 text-xs truncate mt-0.5">{ch.customUrl}</p>
-                          )}
-                          {/* 카테고리 태그 */}
-                          {ch.topicTags.length > 0 && (
-                            <div className="flex gap-1 mt-1.5 flex-wrap">
-                              {ch.topicTags.map((tag) => (
-                                <span
-                                  key={tag}
-                                  className="text-[10px] bg-neutral-800 text-neutral-400 border border-neutral-700 px-1.5 py-0.5 rounded-full"
-                                >
-                                  {tag}
-                                </span>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      </Link>
-                    </td>
-
-                    {/* 구독자 */}
-                    <td className="px-4 py-4 text-right align-middle whitespace-nowrap">
-                      <span className="text-neutral-200 font-semibold tabular-nums">
-                        {ch.subscriberCountFormatted}
-                      </span>
-                    </td>
-
-                    {/* 핵심 지표 */}
-                    <td className="px-4 py-4 text-right align-middle whitespace-nowrap">
-                      {sort === "trending" && (
-                        <span className={metricColor(viralRatio, 200, 80, 30) + " tabular-nums"}>
-                          {fmtNum(viralRatio)}배
-                        </span>
-                      )}
-                      {sort === "growth" && (
-                        <span className={metricColor(spm, 50000, 10000, 3000) + " tabular-nums"}>
-                          +{fmtNum(spm)}/월
-                        </span>
-                      )}
-                      {sort === "new" && (
-                        <span className={metricColor(ch.avgViewsPerVideo, 500000, 100000, 30000) + " tabular-nums"}>
-                          {fmtNum(ch.avgViewsPerVideo)}회
-                        </span>
-                      )}
-                    </td>
-
-                    {/* 영상 수 */}
-                    <td className="px-4 py-4 text-right text-neutral-400 whitespace-nowrap hidden md:table-cell align-middle tabular-nums">
-                      {ch.videoCount.toLocaleString("ko-KR")}개
-                    </td>
-
-                    {/* 채널 개설일 */}
-                    <td className="px-4 py-4 text-right whitespace-nowrap hidden md:table-cell align-middle">
-                      <span className={`text-xs tabular-nums ${isNew ? "text-green-400" : "text-neutral-500"}`}>
-                        {formatOpenDate(ch.publishedAt)}
-                      </span>
-                    </td>
-
-                    {/* 설명 */}
-                    <td className="px-4 py-4 text-neutral-500 text-xs hidden lg:table-cell align-middle max-w-xs">
-                      <p className="line-clamp-2 leading-relaxed">{ch.description}</p>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+    <section aria-label="채널 검색 결과">
+      {/* 신생 채널 탭 안내 (개설일 정렬 중에는 위 정렬 기준 줄이 같은 내용을 말한다) */}
+      {sort === "new" && !dateOrder && (
+        <p className="mb-3 text-body-sm text-fg-3">
+          {newCount > 0 ? (
+            <>
+              3년 이내 신생 채널 <span className="tnum font-semibold text-fg">{newCount}</span>개가 상단에 표시됩니다
+            </>
+          ) : (
+            "이 키워드에서 3년 이내 신생 채널이 없어 전체를 평균 조회수 순으로 표시합니다."
+          )}
+        </p>
       )}
-    </>
+
+      {/* ─── 768 이상: 표 ─────────────────────────────────────────────────── */}
+      <table className={cx(TABLE, "hidden md:table")}>
+        <thead>
+          <tr>
+            <th scope="col" className={cx(TH, "w-12 pl-1")}>
+              <span className="sr-only">순위</span>
+              <span aria-hidden="true">#</span>
+            </th>
+            <th scope="col" className={TH}>채널</th>
+            <th scope="col" className={cx(TH, "w-28 text-right")}>구독자 수</th>
+            <th
+              scope="col"
+              // 신생 탭(개설일 정렬 꺼짐)은 신생 채널이 먼저라 이 열의 내림차순과 순서가 같지 않다
+              aria-sort={sortedByDate || sort === "new" ? undefined : "descending"}
+              className={cx(TH, "w-40 text-right", !sortedByDate && TH_SORT_ACTIVE)}
+            >
+              <span className="inline-flex h-10 items-center gap-1">
+                {metricLabel[sort]}
+                {!sortedByDate && <span aria-hidden="true">↓</span>}
+              </span>
+            </th>
+            <th scope="col" className={cx(TH, "hidden w-24 text-right lg:table-cell")}>영상 수</th>
+            <th
+              scope="col"
+              aria-sort={dateAria}
+              className={cx(TH, "w-28 text-right", sortedByDate && TH_SORT_ACTIVE)}
+            >
+              <span className="inline-flex h-10 items-center gap-1">
+                채널 개설일
+                {sortedByDate && <span aria-hidden="true">{dateOrder === "asc" ? "↑" : "↓"}</span>}
+              </span>
+            </th>
+            <th scope="col" className={cx(TH, "hidden w-72 pl-6 xl:table-cell")}>설명</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r, i) => {
+            const level = gradeLevel(kind, r.metricValue);
+            return (
+              <tr key={r.ch.channelId} className={ROW}>
+                <td className={cx(TD, "pl-1 tnum text-caption text-fg-3")}>{i + 1}</td>
+                <td className={TD}>
+                  <Link {...linkProps(r)} className="group flex min-w-0 items-center gap-3 rounded-md py-1">
+                    <Avatar ch={r.ch} size="md" />
+                    <span className="min-w-0">
+                      <span className="flex min-w-0 items-center gap-1.5">
+                        <span className="truncate text-ui font-semibold text-fg-1 transition-colors group-hover:text-fg-2">
+                          {r.ch.title}
+                        </span>
+                        {r.isNew && newTag}
+                      </span>
+                      {r.ch.customUrl && (
+                        <span className="mt-0.5 block truncate text-caption text-fg-3">{r.ch.customUrl}</span>
+                      )}
+                      {r.ch.topicTags.length > 0 && (
+                        <span className="mt-1.5 flex flex-wrap gap-1">
+                          {r.ch.topicTags.map((tag) => (
+                            <span key={tag} className={badgeClass()}>{tag}</span>
+                          ))}
+                        </span>
+                      )}
+                    </span>
+                  </Link>
+                </td>
+                <td className={cx(TD, NUM, "text-body-sm font-semibold text-fg-1")}>
+                  {formatCompactKo(r.ch.subscriberCount)}
+                </td>
+                <td className={cx(TD, NUM)}>
+                  <span className={cx("block text-body-sm", GRADE_TONE[level])}>{r.metricText}</span>
+                  <span className={cx("block text-micro", GRADE_TONE[level])}>{GRADE_LABEL[level]}</span>
+                </td>
+                <td className={cx(TD, NUM, "hidden text-body-sm text-fg-2 lg:table-cell")}>
+                  {r.ch.videoCount.toLocaleString("ko-KR")}개
+                </td>
+                <td className={cx(TD, NUM, "text-body-sm text-fg-3")}>{formatOpenDate(r.ch.publishedAt)}</td>
+                <td className={cx(TD, "hidden pl-6 text-caption text-fg-3 xl:table-cell")}>
+                  <p className="line-clamp-2">{r.ch.description}</p>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+
+      {/* ─── 768 미만: 행 카드 ─────────────────────────────────────────────── */}
+      <ol className="-mx-6 divide-y divide-line-soft border-y border-line md:hidden">
+        {rows.map((r, i) => {
+          const level = gradeLevel(kind, r.metricValue);
+          return (
+            <li key={r.ch.channelId}>
+              <Link {...linkProps(r)} className="flex gap-3 px-6 py-4 transition-colors hover:bg-surface-2/55">
+                <span aria-hidden="true" className="tnum w-5 shrink-0 pt-2.5 text-caption text-fg-3">{i + 1}</span>
+                <span className="min-w-0 flex-1">
+                  <span className="flex min-w-0 items-center gap-3">
+                    <Avatar ch={r.ch} size="sm" />
+                    <span className="min-w-0">
+                      <span className="flex min-w-0 items-center gap-1.5">
+                        <span className="truncate text-ui font-semibold text-fg-1">{r.ch.title}</span>
+                        {r.isNew && newTag}
+                      </span>
+                      {r.ch.customUrl && (
+                        <span className="block truncate text-micro text-fg-3">{r.ch.customUrl}</span>
+                      )}
+                    </span>
+                  </span>
+                  <span className="tnum mt-2 flex flex-wrap items-baseline gap-x-1.5 text-micro text-fg-3">
+                    <span>
+                      구독자 <span className="text-body-sm font-semibold text-fg-1">{formatCompactKo(r.ch.subscriberCount)}</span>
+                    </span>
+                    <span aria-hidden="true" className="text-fg-4">·</span>
+                    <span>
+                      {metricLabel[sort]}{" "}
+                      <span className={cx("text-body-sm", GRADE_TONE[level])}>{r.metricText}</span>{" "}
+                      <span className={GRADE_TONE[level]}>{GRADE_LABEL[level]}</span>
+                    </span>
+                    {sortedByDate && (
+                      <>
+                        <span aria-hidden="true" className="text-fg-4">·</span>
+                        <span>개설 {formatOpenDate(r.ch.publishedAt)}</span>
+                      </>
+                    )}
+                  </span>
+                </span>
+              </Link>
+            </li>
+          );
+        })}
+      </ol>
+
+      {/* 범례 한 줄 (색만으로 말하지 않게 등급 글자를 함께 쓴다) */}
+      <p className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-caption text-fg-3">
+        <span className="font-semibold text-fg-2">{metricLabel[sort]} 등급</span>
+        {gradeLegend(kind).map((g) => (
+          <span key={g.level} className={cx("whitespace-nowrap", GRADE_TONE[g.level])}>
+            {g.text}
+          </span>
+        ))}
+        <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
+          {newTag} 개설 3년 이내
+        </span>
+      </p>
+    </section>
   );
 }

@@ -1,11 +1,14 @@
 "use client";
 
+/**
+ * 내 채널 분석 입력 폼(DESIGN 6.9 입력 · 6.5 주 버튼). 왼쪽 정렬, 분석한 채널 입력값을 유지한다.
+ */
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
-export default function ChannelSearchForm() {
+export default function ChannelSearchForm({ initialValue = "" }: { initialValue?: string }) {
   const router = useRouter();
-  const [input, setInput] = useState("");
+  const [input, setInput] = useState(initialValue);
   const [isPending, startTransition] = useTransition();
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -18,11 +21,8 @@ export default function ChannelSearchForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="w-full max-w-xl mx-auto">
-      <label
-        htmlFor="channel-input"
-        className="block text-sm font-medium text-gray-400 mb-2"
-      >
+    <form onSubmit={handleSubmit} aria-busy={isPending || undefined} className="w-full max-w-2xl">
+      <label htmlFor="channel-input" className="mb-2 block text-body-sm font-medium text-fg-2">
         YouTube 채널 URL 또는 핸들을 입력하세요
       </label>
       <div className="flex gap-2">
@@ -32,43 +32,30 @@ export default function ChannelSearchForm() {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="@channelname"
-          className="flex-1 px-4 py-3 bg-gray-900 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition"
+          aria-describedby="channel-input-help"
+          autoComplete="off"
+          className="h-11 w-full min-w-0 flex-1 rounded-control border border-line-strong bg-surface px-3.5 text-base text-fg transition-colors duration-150 placeholder:text-fg-3 hover:border-line-hover focus-visible:border-accent focus-visible:outline-1 focus-visible:outline-offset-0 focus-visible:outline-solid focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-50 md:text-ui"
           disabled={isPending}
         />
         <button
           type="submit"
           disabled={isPending || !input.trim()}
-          className="shrink-0 px-6 py-3 bg-teal-600 hover:bg-teal-500 disabled:bg-gray-700 disabled:text-gray-500 text-white font-semibold rounded-xl transition"
+          className="inline-flex h-11 shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-control bg-accent px-5 text-ui font-bold text-accent-ink transition-colors duration-150 hover:bg-accent-hover active:bg-accent-active disabled:pointer-events-none disabled:opacity-40"
         >
           {isPending ? (
-            <span className="flex items-center gap-2">
-              <svg
-                className="animate-spin h-4 w-4"
-                viewBox="0 0 24 24"
-                fill="none"
-              >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                />
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                />
+            <>
+              <svg aria-hidden="true" className="size-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
               </svg>
               분석 중...
-            </span>
+            </>
           ) : (
             "채널 분석하기"
           )}
         </button>
       </div>
-      <p className="mt-3 text-xs text-gray-600">
+      <p id="channel-input-help" className="mt-1.5 text-caption text-fg-3">
         입력 예시: @channelname, youtube.com/@handle, 채널 이름
       </p>
     </form>

@@ -3,14 +3,14 @@
 import { useState } from "react";
 import type { ChannelAnalysis } from "../actions";
 import { formatKstDate, kstWeekdayHour } from "@/lib/kst";
+import { formatCompactKo } from "@/lib/format";
+import { HEAT_LEVELS, heatLevel } from "@/lib/chartTheme";
+import { TABLE, TH_PREVIEW, TH_SORT, TH_SORT_ACTIVE, TD, NUM, ROW } from "@/components/ui/table";
+import { badgeClass } from "@/components/ui/badge";
+import { cx } from "@/components/ui/button";
 
-function formatNumber(num: number): string {
-  if (num >= 100_000_000) return `${(num / 100_000_000).toFixed(1)}억`;
-  if (num >= 10_000) return `${(num / 10_000).toFixed(1)}만`;
-  if (num >= 1_000) return `${(num / 1_000).toFixed(1)}천`;
-  // 로캘을 고정해 서버(en-US)와 브라우저가 같은 글자를 낸다(하이드레이션).
-  return num.toLocaleString("ko-KR");
-}
+// 만·억 짧은 숫자(lib/format, 로캘 고정이라 서버·브라우저가 같은 글자를 낸다)
+const formatNumber = formatCompactKo;
 
 function formatDate(dateStr: string): string {
   // 한국 시간 날짜. 서버(UTC) 렌더와 브라우저 하이드레이션이 같은 값을 낸다.
@@ -70,9 +70,8 @@ function analyzeUploadTiming(videos: ChannelAnalysis["recentVideos"]) {
   };
 }
 
-// 히트맵 칸 글자색: 에메랄드가 이 불투명도 이상이면 검정, 미만이면 흰색.
-// neutral-900 카드 위에서 양쪽 모두 대비 4.5:1 이상이 되는 경계(검정 4.62 · 흰색 4.56)다.
-const HEAT_DARK_TEXT_FROM = 0.54;
+// 히트맵: 무채색 heat-1~5 단계(lib/chartTheme). 1·2단계 흰 글자, 3단계부터 검정 글자(모두 4.5:1 이상).
+const CARD = "rounded-card border border-line bg-surface";
 
 type SortKey = "viewCount" | "likeCount" | "commentCount" | "publishedAt";
 
@@ -109,12 +108,15 @@ export default function ChannelDashboard({ data }: { data: ChannelAnalysis }) {
         ? "하락세"
         : "안정적";
 
+  // 상승 positive ▲ · 하락 negative ▼ · 안정 무채색 (색만으로 말하지 않는다)
   const trendColor =
     insights.viewTrend === "growing"
-      ? "text-green-400"
+      ? "text-positive"
       : insights.viewTrend === "declining"
-        ? "text-red-400"
-        : "text-neutral-400";
+        ? "text-negative"
+        : "text-fg-2";
+  const trendSymbol =
+    insights.viewTrend === "growing" ? "▲ " : insights.viewTrend === "declining" ? "▼ " : "";
 
   const trendArrow =
     insights.viewTrend === "growing"
@@ -133,68 +135,73 @@ export default function ChannelDashboard({ data }: { data: ChannelAnalysis }) {
     ? `${DAY_NAMES_LONG[timing.best.weekday]} ${timing.best.hour}시`
     : "-";
 
-  const sortIndicator = (key: SortKey) => {
-    if (sortKey !== key) return null;
+  // 정렬 머리: button + aria-sort (DESIGN 6.10)
+  const sortHead = (key: SortKey, label: string, extra = "") => {
+    const active = sortKey === key;
     return (
-      <span className="ml-1 text-white">
-        {sortAsc ? "\u2191" : "\u2193"}
-      </span>
+      <th
+        scope="col"
+        aria-sort={active ? (sortAsc ? "ascending" : "descending") : undefined}
+        className={cx(TH_PREVIEW, "py-0.5 text-right", extra)}
+      >
+        <button type="button" onClick={() => handleSort(key)} className={cx(TH_SORT, active && TH_SORT_ACTIVE)}>
+          {label}
+          {active && <span aria-hidden="true">{sortAsc ? "\u2191" : "\u2193"}</span>}
+        </button>
+      </th>
     );
   };
 
   return (
     <div className="space-y-8">
       {/* Channel Profile Card */}
-      <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-6">
-        <div className="flex flex-col sm:flex-row items-start gap-5">
+      <section aria-labelledby="channel-profile-title" className={cx(CARD, "p-5 md:p-6")}>
+        <div className="flex flex-col items-start gap-5 sm:flex-row">
           {channel.thumbnail && (
             <img
               src={channel.thumbnail}
-              alt={channel.title}
-              className="w-20 h-20 rounded-full border-2 border-neutral-700 shrink-0"
+              alt=""
+              className="size-20 shrink-0 rounded-full bg-surface-2 object-cover"
             />
           )}
-          <div className="flex-1 min-w-0">
-            <h2 className="text-xl font-bold text-white truncate">{channel.title}</h2>
+          <div className="min-w-0 flex-1">
+            <h2 id="channel-profile-title" className="truncate text-h4 font-extrabold text-fg">{channel.title}</h2>
             {channel.description && (
-              <p className="text-sm text-neutral-500 mt-1 line-clamp-2">{channel.description}</p>
+              <p className="mt-1 line-clamp-2 text-body-sm text-fg-3">{channel.description}</p>
             )}
-            <div className="flex flex-wrap gap-4 mt-3 text-sm">
-              <div>
-                <span className="text-neutral-500">구독자</span>{" "}
-                <span className="text-white font-semibold">{formatNumber(channel.subscriberCount)}</span>
+            <dl className="tnum mt-3 flex flex-wrap gap-x-5 gap-y-1 text-body-sm">
+              <div className="flex gap-1.5">
+                <dt className="text-fg-3">구독자</dt>
+                <dd className="font-semibold text-fg">{formatNumber(channel.subscriberCount)}</dd>
               </div>
-              <div>
-                <span className="text-neutral-500">총 조회수</span>{" "}
-                <span className="text-white font-semibold">{formatNumber(channel.viewCount)}</span>
+              <div className="flex gap-1.5">
+                <dt className="text-fg-3">총 조회수</dt>
+                <dd className="font-semibold text-fg">{formatNumber(channel.viewCount)}</dd>
               </div>
-              <div>
-                <span className="text-neutral-500">영상 수</span>{" "}
-                <span className="text-white font-semibold">{formatNumber(channel.videoCount)}</span>
+              <div className="flex gap-1.5">
+                <dt className="text-fg-3">영상 수</dt>
+                <dd className="font-semibold text-fg">{formatNumber(channel.videoCount)}</dd>
               </div>
-              <div>
-                <span className="text-neutral-500">개설일</span>{" "}
-                <span className="text-white font-semibold">{formatDate(channel.createdAt)}</span>
+              <div className="flex gap-1.5">
+                <dt className="text-fg-3">개설일</dt>
+                <dd className="font-semibold text-fg">{formatDate(channel.createdAt)}</dd>
               </div>
-            </div>
+            </dl>
             {channel.keywords.length > 0 && (
-              <div className="flex flex-wrap gap-1.5 mt-3">
+              <ul aria-label="채널 키워드" className="mt-3 flex flex-wrap gap-1.5">
                 {channel.keywords.slice(0, 10).map((kw, i) => (
-                  <span
-                    key={i}
-                    className="px-2 py-0.5 bg-neutral-800 border border-neutral-700 rounded text-xs text-neutral-400"
-                  >
+                  <li key={i} className={badgeClass()}>
                     {kw}
-                  </span>
+                  </li>
                 ))}
-              </div>
+              </ul>
             )}
           </div>
         </div>
-      </div>
+      </section>
 
       {/* Insights Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <dl className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <InsightCard
           label="평균 조회수"
           value={formatNumber(insights.avgViews)}
@@ -212,16 +219,16 @@ export default function ChannelDashboard({ data }: { data: ChannelAnalysis }) {
         />
         <InsightCard
           label="조회수 추이"
-          value={trendLabel}
+          value={`${trendSymbol}${trendLabel}`}
           valueColor={trendColor}
           sub={`최근 영상 대비 ${trendArrow}${insights.viewTrendPercent}%`}
         />
-      </div>
+      </dl>
 
       {/* Best Performing Video */}
       {insights.bestVideo.videoId && (
-        <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-5">
-          <h3 className="text-sm font-semibold text-neutral-400 mb-3">
+        <section aria-labelledby="best-video-title" className={cx(CARD, "p-5 md:p-6")}>
+          <h3 id="best-video-title" className="mb-3 text-body font-bold text-fg">
             최고 성과 영상 (최근 30개 중)
           </h3>
           <div className="flex items-start gap-4">
@@ -229,12 +236,14 @@ export default function ChannelDashboard({ data }: { data: ChannelAnalysis }) {
               href={`https://www.youtube.com/watch?v=${insights.bestVideo.videoId}`}
               target="_blank"
               rel="noopener noreferrer"
+              tabIndex={-1}
+              aria-hidden="true"
               className="shrink-0"
             >
               <img
                 src={`https://i.ytimg.com/vi/${insights.bestVideo.videoId}/mqdefault.jpg`}
-                alt={insights.bestVideo.title}
-                className="w-40 h-auto rounded-lg border border-neutral-700 hover:border-neutral-500 transition"
+                alt=""
+                className="h-auto w-32 rounded-control bg-surface-2 sm:w-40"
               />
             </a>
             <div className="min-w-0">
@@ -242,115 +251,99 @@ export default function ChannelDashboard({ data }: { data: ChannelAnalysis }) {
                 href={`https://www.youtube.com/watch?v=${insights.bestVideo.videoId}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-white font-semibold hover:text-neutral-300 transition line-clamp-2"
+                className="line-clamp-2 text-ui font-semibold text-fg underline decoration-fg-4 underline-offset-2 transition-colors hover:decoration-fg"
               >
                 {insights.bestVideo.title}
+                <span className="sr-only"> (새 창)</span>
               </a>
-              <p className="text-sm text-neutral-500 mt-1">
+              <p className="tnum mt-1 text-body-sm text-fg-3">
                 조회수 {formatNumber(insights.bestVideo.viewCount)}
               </p>
             </div>
           </div>
-        </div>
+        </section>
       )}
 
       {/* Upload Timing Heatmap */}
-      <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-5">
-        <h3 className="text-sm font-semibold text-neutral-400 mb-4">요일별 업로드 분석</h3>
-        <div className="grid grid-cols-7 gap-2">
+      <section aria-labelledby="heatmap-title" className={cx(CARD, "p-5 md:p-6")}>
+        <h3 id="heatmap-title" className="mb-4 text-body font-bold text-fg">요일별 업로드 분석</h3>
+        <div className="grid grid-cols-7 gap-1.5 sm:gap-2">
           {dayNames.map((name, i) => {
-            const intensity = maxDayAvg > 0 ? dayViewAvgs[i] / maxDayAvg : 0;
-            const bgOpacity = Math.max(0.1, intensity);
+            const level = maxDayAvg > 0 && dayUploadCounts[i] > 0 ? heatLevel(dayViewAvgs[i] / maxDayAvg) : 0;
             return (
               <div key={i} className="text-center">
-                <div className="text-xs text-neutral-500 mb-2">{name}</div>
+                <div className="mb-2 text-caption text-fg-3">{name}</div>
                 <div
-                  className="mx-auto w-10 h-10 rounded-lg flex items-center justify-center text-xs font-semibold border border-neutral-700"
-                  style={{
-                    backgroundColor: `rgba(0, 229, 160, ${bgOpacity})`,
-                    color: bgOpacity >= HEAT_DARK_TEXT_FROM ? "#000000" : "#ffffff",
-                  }}
+                  data-heat={level + 1}
+                  className={cx(
+                    "tnum mx-auto flex size-10 items-center justify-center rounded-control text-caption font-semibold",
+                    HEAT_LEVELS[level],
+                  )}
                 >
                   {dayUploadCounts[i]}
                 </div>
-                <div className="text-[10px] text-neutral-500 mt-1">
+                <div className="tnum mt-1 text-micro text-fg-3">
                   {dayViewAvgs[i] > 0 ? formatNumber(dayViewAvgs[i]) : "-"}
                 </div>
               </div>
             );
           })}
         </div>
-        <p className="text-[11px] text-neutral-500 mt-3">
-          숫자 = 업로드 횟수 / 하단 = 평균 조회수 / 색상 진할수록 조회수 높음
-        </p>
-      </div>
+        <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-micro text-fg-3">
+          <p>숫자 = 업로드 횟수 / 하단 = 평균 조회수 / 칸이 밝을수록 조회수 높음</p>
+          {/* 범례: 어두움(적음) → 밝음(많음) */}
+          <p className="flex items-center gap-1.5" aria-hidden="true">
+            <span>낮음</span>
+            {HEAT_LEVELS.map((c, i) => (
+              <span key={i} className={cx("inline-block size-3 rounded-[3px] border border-line", c)} />
+            ))}
+            <span>높음</span>
+          </p>
+        </div>
+      </section>
 
       {/* Recent Videos Table */}
       {sortedVideos.length > 0 && (
-        <div className="bg-neutral-900 border border-neutral-800 rounded-2xl overflow-hidden">
-          <div className="px-5 py-4 border-b border-neutral-800">
-            <h3 className="text-sm font-semibold text-neutral-400">
-              최근 영상 ({recentVideos.length}개)
-            </h3>
-          </div>
+        <section aria-labelledby="recent-videos-title">
+          <h3 id="recent-videos-title" className="mb-3 text-body font-bold text-fg">
+            최근 영상 <span className="tnum text-caption font-normal text-fg-3">{recentVideos.length}개</span>
+          </h3>
+          {/* 좁은 화면은 상자 안 가로 스크롤(페이지는 넘치지 않음) */}
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className={cx(TABLE, "min-w-[560px]")}>
               <thead>
-                <tr className="border-b border-neutral-800 text-neutral-500 text-xs">
-                  <th className="text-left px-5 py-3 font-medium">영상</th>
-                  <th
-                    className="text-right px-3 py-3 font-medium cursor-pointer hover:text-white transition select-none"
-                    onClick={() => handleSort("viewCount")}
-                  >
-                    조회수{sortIndicator("viewCount")}
-                  </th>
-                  <th
-                    className="text-right px-3 py-3 font-medium cursor-pointer hover:text-white transition select-none"
-                    onClick={() => handleSort("likeCount")}
-                  >
-                    좋아요{sortIndicator("likeCount")}
-                  </th>
-                  <th
-                    className="text-right px-3 py-3 font-medium cursor-pointer hover:text-white transition select-none"
-                    onClick={() => handleSort("commentCount")}
-                  >
-                    댓글{sortIndicator("commentCount")}
-                  </th>
-                  <th
-                    className="text-right px-5 py-3 font-medium cursor-pointer hover:text-white transition select-none"
-                    onClick={() => handleSort("publishedAt")}
-                  >
-                    업로드일{sortIndicator("publishedAt")}
-                  </th>
+                <tr>
+                  <th scope="col" className={cx(TH_PREVIEW, "py-0.5")}>영상</th>
+                  {sortHead("viewCount", "조회수", "w-24")}
+                  {sortHead("likeCount", "좋아요", "w-20")}
+                  {sortHead("commentCount", "댓글", "w-20")}
+                  {sortHead("publishedAt", "업로드일", "w-28")}
                 </tr>
               </thead>
               <tbody>
                 {sortedVideos.map((video) => (
-                  <tr
-                    key={video.videoId}
-                    className="border-b border-neutral-800/50 hover:bg-neutral-800/30 transition"
-                  >
-                    <td className="px-5 py-3 max-w-xs">
+                  <tr key={video.videoId} className={ROW}>
+                    <td className={cx(TD, "pr-4")}>
                       <a
                         href={`https://www.youtube.com/watch?v=${video.videoId}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-white hover:text-neutral-300 transition line-clamp-1"
+                        className="-my-2.5 line-clamp-1 py-2.5 text-body-sm font-medium text-fg-1 transition-colors hover:text-fg-2"
                         title={video.title}
                       >
                         {video.title}
                       </a>
                     </td>
-                    <td className="text-right px-3 py-3 text-neutral-300 tabular-nums">
+                    <td className={cx(TD, NUM, "text-body-sm font-semibold text-fg")}>
                       {formatNumber(video.viewCount)}
                     </td>
-                    <td className="text-right px-3 py-3 text-neutral-400 tabular-nums">
+                    <td className={cx(TD, NUM, "text-body-sm text-fg-2")}>
                       {formatNumber(video.likeCount)}
                     </td>
-                    <td className="text-right px-3 py-3 text-neutral-400 tabular-nums">
+                    <td className={cx(TD, NUM, "text-body-sm text-fg-2")}>
                       {formatNumber(video.commentCount)}
                     </td>
-                    <td className="text-right px-5 py-3 text-neutral-500 tabular-nums whitespace-nowrap">
+                    <td className={cx(TD, NUM, "whitespace-nowrap text-body-sm text-fg-3")}>
                       {formatDate(video.publishedAt)}
                     </td>
                   </tr>
@@ -358,7 +351,7 @@ export default function ChannelDashboard({ data }: { data: ChannelAnalysis }) {
               </tbody>
             </table>
           </div>
-        </div>
+        </section>
       )}
     </div>
   );
@@ -368,7 +361,7 @@ function InsightCard({
   label,
   value,
   sub,
-  valueColor = "text-white",
+  valueColor = "text-fg",
 }: {
   label: string;
   value: string;
@@ -376,10 +369,10 @@ function InsightCard({
   valueColor?: string;
 }) {
   return (
-    <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-4">
-      <p className="text-xs text-neutral-500 mb-1">{label}</p>
-      <p className={`text-xl font-bold ${valueColor}`}>{value}</p>
-      <p className="text-[11px] text-neutral-500 mt-1">{sub}</p>
+    <div className={cx(CARD, "p-4 md:p-5")}>
+      <dt className="mb-1 text-caption text-fg-3">{label}</dt>
+      <dd className={cx("tnum text-h4 font-extrabold", valueColor)}>{value}</dd>
+      <dd className="tnum mt-1 text-micro text-fg-3">{sub}</dd>
     </div>
   );
 }

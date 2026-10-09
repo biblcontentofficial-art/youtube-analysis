@@ -1,8 +1,10 @@
 "use client";
-import { useState } from "react";
+import { useId, useState } from "react";
+import { ChevronDownIcon } from "@/components/ui/icons";
 
 export default function DescriptionToggle({ text }: { text: string }) {
   const [expanded, setExpanded] = useState(false);
+  const id = useId();
   if (!text) return null;
 
   const SHORT = 120;
@@ -10,14 +12,18 @@ export default function DescriptionToggle({ text }: { text: string }) {
   const shown = expanded || !isLong ? text : text.slice(0, SHORT) + "…";
 
   return (
-    <div className="space-y-1">
-      <p className="text-gray-400 text-sm leading-relaxed whitespace-pre-wrap">{shown}</p>
+    <div>
+      <p id={id} className="whitespace-pre-wrap text-body-sm text-fg-2 wrap-anywhere md:text-ui">{shown}</p>
       {isLong && (
         <button
+          type="button"
           onClick={() => setExpanded((v) => !v)}
-          className="text-xs text-teal-400 hover:text-teal-300 transition"
+          aria-expanded={expanded}
+          aria-controls={id}
+          className="mt-1 inline-flex h-11 items-center gap-1 text-body-sm font-semibold text-fg transition-colors hover:text-fg-2"
         >
-          {expanded ? "접기 ↑" : "더 보기 ↓"}
+          {expanded ? "접기" : "더 보기"}
+          <ChevronDownIcon size={16} className={`text-fg-3 transition-transform ${expanded ? "rotate-180" : ""}`} />
         </button>
       )}
     </div>

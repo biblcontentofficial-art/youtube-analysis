@@ -33,18 +33,18 @@ export default function DateSortToggle({ query }: Props) {
 
   return (
     <button
+      type="button"
       onClick={cycle}
       disabled={!query}
       // 상태(기본·최신순·오래된순)는 바뀌는 라벨이 전한다. 세 단계라 aria-pressed 는 쓰지 않는다.
       title="클릭하여 채널 개설일 정렬 전환 (최신순 → 오래된순 → 기본)"
-      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition whitespace-nowrap
-        ${active
-          ? "border-neutral-600 text-white bg-neutral-800 hover:bg-neutral-700"
-          : "border-neutral-700 text-neutral-500 hover:text-neutral-300 hover:border-neutral-500 bg-transparent"
-        }
-        disabled:opacity-40 disabled:cursor-not-allowed`}
+      className={`inline-flex h-10 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-control border px-3 text-caption font-medium transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-40 sm:h-9 sm:px-2.5 pointer-coarse:h-11 ${
+        active
+          ? "border-line-hover bg-surface-3 text-fg"
+          : "border-line text-fg-2 hover:border-line-hover hover:text-fg"
+      }`}
     >
-      <svg className="w-3 h-3 shrink-0" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <svg aria-hidden="true" className="size-3.5 shrink-0" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8">
         <path d="M4 3v10M4 13l-2-2M4 13l2-2" strokeLinecap="round" strokeLinejoin="round"/>
         <path d="M10 13V3M10 3l-2 2M10 3l2 2" strokeLinecap="round" strokeLinejoin="round"/>
       </svg>

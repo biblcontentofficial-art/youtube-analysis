@@ -7,7 +7,7 @@ import { searchChannels, ChannelResult } from "@/lib/youtube";
 export const metadata: Metadata = {
   title: "유튜브 채널 찾기 · 성장 채널 발견",
   description:
-    "비블랩 채널 찾기 — 주제·분야 키워드로 구독자 급상승·신생 고성장 유튜브 채널을 발굴하세요. 협업 채널, 벤치마킹 채널을 빠르게 찾습니다.",
+    "비블랩 채널 찾기. 주제·분야 키워드로 구독자 급상승·신생 고성장 유튜브 채널을 발굴하세요. 협업 채널, 벤치마킹 채널을 빠르게 찾습니다.",
   keywords: [
     "비블랩 채널찾기", "유튜브 채널 분석", "유튜브 채널 찾기", "구독자 급상승 채널",
     "신생 유튜브 채널", "유튜브 채널 발굴", "성장 채널 탐색", "유튜브 협업 채널",
@@ -26,58 +26,48 @@ import ChannelSearchBar from "./_components/ChannelSearchBar";
 import FilterTabs from "./_components/FilterTabs";
 import DateSortToggle from "./_components/DateSortToggle";
 import ChannelResults, { ChannelSortCaption } from "./_components/ChannelResults";
+import ToolTabs from "../_components/ToolTabs";
+import { SectionHeader } from "@/components/ui/section-header";
+import { buttonClass } from "@/components/ui/button";
+import { WarningIcon } from "@/components/ui/icons";
 
 interface Props {
   searchParams: { q?: string; sort?: string; dateOrder?: string };
 }
 
-// ─── 빈 상태 ─────────────────────────────────────────────────────────────────
+// ─── 빈 상태 (정렬 설명 한 벌) ─────────────────────────────────────────────────
+
+const SORT_GUIDE = [
+  {
+    label: "영상 평균 조회수 순",
+    desc: "채널 전체 영상의 영상당 평균 조회수가 높은 순으로 정렬합니다. 콘텐츠 하나하나가 잘 터지는 채널을 찾아보세요.",
+  },
+  {
+    label: "월 구독자 증가량 순",
+    desc: "구독자 수 ÷ 채널 개설 월수로 계산한 월평균 구독자 증가량이 많은 순으로 정렬합니다.",
+  },
+  {
+    label: "신생 채널 · 평균 조회수 순",
+    desc: "개설 3년 이내 채널을 우선으로, 영상당 평균 조회수 높은 순으로 정렬합니다.",
+  },
+];
 
 function EmptyState() {
   return (
-    <div className="py-20 px-4 max-w-2xl mx-auto">
-      <p className="text-center text-neutral-500 text-sm mb-10">
-        분야 키워드를 검색하면 그 분야에서 성장 중인 채널을 한눈에 비교할 수 있어요
-      </p>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {[
-          {
-            icon: (
-              <svg viewBox="0 0 24 24" fill="none" className="w-7 h-7 text-orange-400" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15.362 5.214A8.252 8.252 0 0 1 12 21 8.25 8.25 0 0 1 6.038 7.047 8.287 8.287 0 0 0 9 9.601a8.983 8.983 0 0 1 3.361-6.867 8.21 8.21 0 0 0 3 2.48Z" />
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 18a3.75 3.75 0 0 0 .495-7.468 5.99 5.99 0 0 0-1.925 3.547 5.975 5.975 0 0 1-2.133-1.001A3.75 3.75 0 0 0 12 18Z" />
-              </svg>
-            ),
-            label: "영상 평균 조회수 순",
-            desc: "채널 전체 영상의 영상당 평균 조회수가 높은 순으로 정렬합니다. 콘텐츠 하나하나가 잘 터지는 채널을 찾아보세요.",
-          },
-          {
-            icon: (
-              <svg viewBox="0 0 24 24" fill="none" className="w-7 h-7 text-blue-400" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18 9 11.25l4.306 4.306a11.95 11.95 0 0 1 5.814-5.518l2.74-1.22m0 0-5.94-2.281m5.94 2.28-2.28 5.941" />
-              </svg>
-            ),
-            label: "월 구독자 증가량 순",
-            desc: "구독자 수 ÷ 채널 개설 월수로 계산한 월평균 구독자 증가량이 많은 순으로 정렬합니다.",
-          },
-          {
-            icon: (
-              <svg viewBox="0 0 24 24" fill="none" className="w-7 h-7 text-green-400" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z" />
-              </svg>
-            ),
-            label: "신생 채널 · 평균 조회수 순",
-            desc: "개설 3년 이내 채널을 우선으로, 영상당 평균 조회수 높은 순으로 정렬합니다.",
-          },
-        ].map((c) => (
-          <div key={c.label} className="bg-neutral-900 border border-neutral-800 rounded-xl p-5">
-            <div className="mb-3">{c.icon}</div>
-            <p className="text-sm font-semibold text-white mb-2">{c.label}</p>
-            <p className="text-xs text-neutral-500 leading-relaxed">{c.desc}</p>
-          </div>
-        ))}
+    <section aria-labelledby="sort-guide-title" className="rounded-panel border border-line bg-surface">
+      <div className="flex h-11 items-center border-b border-line-soft px-5 md:px-6">
+        <h2 id="sort-guide-title" className="text-body-sm font-semibold text-fg">정렬 기준</h2>
       </div>
-    </div>
+      <ol className="grid divide-y divide-line-soft md:grid-cols-3 md:divide-x md:divide-y-0">
+        {SORT_GUIDE.map((c, i) => (
+          <li key={c.label} className="px-5 py-4 md:px-6 md:py-5">
+            <p className="tnum text-body-sm font-bold text-silver">{String(i + 1).padStart(2, "0")}</p>
+            <p className="mt-1 text-ui font-semibold text-fg">{c.label}</p>
+            <p className="mt-1 text-body-sm text-fg-3">{c.desc}</p>
+          </li>
+        ))}
+      </ol>
+    </section>
   );
 }
 
@@ -129,87 +119,97 @@ export default async function ChannelsPage({ searchParams }: Props) {
   const isLow = remaining !== null && remaining <= 5;
   const isOut = remaining !== null && remaining === 0;
 
+  const usageText = isOut
+    ? usage.isDaily ? "오늘 채널 검색 한도 초과" : "이번 달 채널 검색 한도 초과"
+    : `채널 검색 ${remaining}회 남음`;
+  const usageTone = isOut ? "text-negative" : isLow ? "text-caution" : "text-fg-3";
+
+  // 상태 메시지 상자 (DESIGN 6.13)
+  const STATUS_BOX = "mb-6 flex gap-3 rounded-card border bg-surface p-4 break-keep";
+
   return (
-    <main className="min-h-screen bg-black text-white">
-      {/* 상단 검색 + 필터 */}
-      <div className="border-b border-neutral-800 px-4 py-4">
-        <div className="max-w-screen-xl mx-auto space-y-3">
-          <div className="flex items-center gap-3">
-            <ChannelSearchBar initialQuery={query} />
-            {/* 사용량 뱃지 */}
-            {usage.unlimited ? (
-              <span className="hidden sm:flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full border border-neutral-700 bg-neutral-900 text-neutral-300 shrink-0">
-                ✨ 무제한
-              </span>
-            ) : (
-              <Link
-                href="/pricing"
-                className={`hidden sm:flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full border transition shrink-0 ${
-                  isOut
-                    ? "border-red-700 bg-red-950/50 text-red-400"
-                    : isLow
-                    ? "border-amber-700 bg-amber-950/50 text-amber-400"
-                    : "border-neutral-700 bg-neutral-900 text-neutral-400"
-                }`}
-                title={usage.isDaily ? "오늘 채널 검색 가능 횟수" : "이번 달 채널 검색 가능 횟수"}
-              >
-                <span>{isOut ? "🚫" : isLow ? "⚠️" : "📺"}</span>
-                <span>{isOut ? (usage.isDaily ? "오늘 한도 초과" : "이번 달 한도 초과") : `${remaining}회 남음`}</span>
-              </Link>
-            )}
-          </div>
-          <div className="flex items-center gap-3 flex-wrap">
-            <FilterTabs query={query} />
+    <main className="min-h-screen bg-canvas text-fg">
+      {/* 앱 셸: 도구 탭 → 머리 → 검색 (DESIGN 7.2 · 7.3 채널 찾기) */}
+      <ToolTabs current="/channels" />
 
-            {/* 신생 고성장 탭 전용: 채널 개설일 정렬 토글 (다른 탭에서는 그리지 않음) */}
-            <DateSortToggle query={query} />
+      <div className="mx-auto w-full max-w-wide px-6 pb-16 pt-6 lg:px-8 lg:pt-8">
+        <SectionHeader caption="유튜브 트렌드 서치" label="CHANNELS" className="mb-6! md:mb-8!" />
+        <h1 className="text-h3 text-fg">채널 찾기</h1>
+        <p className="mt-2 text-body-sm text-fg-3 md:text-ui">
+          분야 키워드를 검색하면 그 분야에서 성장 중인 채널을 한눈에 비교할 수 있어요
+        </p>
 
-            {query && channels.length > 0 && <ChannelSortCaption />}
-          </div>
+        <section aria-label="검색" className="mt-5 lg:mt-6">
+          <ChannelSearchBar
+            initialQuery={query}
+            hint={
+              // 남은 횟수: 평소 fg-3 · 5회 이하 caution · 0회 negative (무제한이면 생략)
+              remaining === null ? null : (
+                <p className="-mt-0.5 text-caption sm:mt-0">
+                  <Link
+                    href="/pricing"
+                    title={usage.isDaily ? "오늘 채널 검색 가능 횟수" : "이번 달 채널 검색 가능 횟수"}
+                    className={`tnum inline-flex min-h-6 items-center underline-offset-2 transition-colors hover:underline ${usageTone}`}
+                  >
+                    {usageText}
+                  </Link>
+                </p>
+              )
+            }
+          />
+        </section>
+
+        {/* 정렬 탭 + 개설일 토글 + 정렬 기준 한 줄 */}
+        <div className="mt-6 flex flex-col gap-2.5 md:flex-row md:flex-wrap md:items-center md:gap-x-3">
+          <FilterTabs query={query} />
+          {/* 신생 고성장 탭 전용: 채널 개설일 정렬 토글 (다른 탭에서는 그리지 않음) */}
+          <DateSortToggle query={query} />
+          {query && channels.length > 0 && <ChannelSortCaption />}
         </div>
-      </div>
 
-      <div className="max-w-screen-xl mx-auto px-4 py-6">
-        {/* 한도 초과 */}
-        {limitError === "limit_exceeded" && (
-          <div className="mb-6 p-6 bg-neutral-900 border border-neutral-700 rounded-xl text-center space-y-3">
-            <p className="text-2xl">🚫</p>
-            <p className="text-white font-semibold">{usage.isDaily ? "오늘 채널 검색 횟수를 모두 사용했어요" : "이번 달 채널 검색 횟수를 모두 사용했어요"}</p>
-            <p className="text-neutral-400 text-sm">
-              현재 플랜: <span className="font-medium text-neutral-200">{usage.plan.charAt(0).toUpperCase() + usage.plan.slice(1)}</span>
-              &nbsp;·&nbsp; 사용: <span className="font-medium text-neutral-200">{usage.used}/{usage.limit}회</span>
-            </p>
-            {/* 일 한도 키는 UTC 날짜라(channelLimit) 한국 시간 오전 9시에 초기화된다. /search 안내(limitCopy)와 같은 표현. */}
-            <p className="text-neutral-500 text-xs">{usage.isDaily ? "매일 오전 9시(한국 시간)에 횟수가 초기화되거나, 플랜을 업그레이드하면 더 많이 사용할 수 있어요." : "다음 달 1일에 횟수가 초기화되거나, 플랜을 업그레이드하면 더 많이 사용할 수 있어요."}</p>
-            <Link
-              href="/pricing"
-              className="inline-block mt-2 bg-white hover:bg-neutral-200 text-black text-sm font-bold px-6 py-2.5 rounded-lg transition"
-            >
-              플랜 업그레이드 →
-            </Link>
-          </div>
-        )}
+        <div className="mt-6">
+          {/* 한도 초과 */}
+          {limitError === "limit_exceeded" && (
+            <div role="alert" className={`${STATUS_BOX} border-negative/55`}>
+              <WarningIcon className="mt-0.5 text-negative" />
+              <div className="min-w-0">
+                <p className="text-ui font-semibold text-negative">{usage.isDaily ? "오늘 채널 검색 횟수를 모두 사용했어요" : "이번 달 채널 검색 횟수를 모두 사용했어요"}</p>
+                <p className="mt-1 text-body-sm text-fg-3">
+                  현재 플랜: <span className="font-medium text-fg-1">{usage.plan.charAt(0).toUpperCase() + usage.plan.slice(1)}</span>
+                  {" · "}사용: <span className="tnum font-medium text-fg-1">{usage.used}/{usage.limit}회</span>
+                </p>
+                {/* 일 한도 키는 UTC 날짜라(channelLimit) 한국 시간 오전 9시에 초기화된다. /search 안내(limitCopy)와 같은 표현. */}
+                <p className="mt-1 text-body-sm text-fg-3">{usage.isDaily ? "매일 오전 9시(한국 시간)에 횟수가 초기화되거나, 플랜을 업그레이드하면 더 많이 사용할 수 있어요." : "다음 달 1일에 횟수가 초기화되거나, 플랜을 업그레이드하면 더 많이 사용할 수 있어요."}</p>
+                {/* 흰 면은 검색 버튼 하나라 보조 버튼 */}
+                <Link href="/pricing" className={`mt-3 ${buttonClass({ variant: "secondary", size: "sm" })}`}>
+                  플랜 업그레이드 <span aria-hidden="true">→</span>
+                </Link>
+              </div>
+            </div>
+          )}
 
-        {/* API 에러 */}
-        {apiError && (
-          <div className="p-5 bg-orange-950/50 border border-orange-700 rounded-xl text-center mb-6">
-            <p className="text-orange-300 font-semibold">{apiError}</p>
-          </div>
-        )}
+          {/* API 에러 */}
+          {apiError && (
+            <div role="alert" className={`${STATUS_BOX} border-negative/55`}>
+              <WarningIcon className="mt-0.5 text-negative" />
+              <p className="text-ui font-semibold text-negative">{apiError}</p>
+            </div>
+          )}
 
-        {/* 빈 상태 */}
-        {!query && <EmptyState />}
+          {/* 빈 상태 */}
+          {!query && <EmptyState />}
 
-        {/* 결과 없음 (한도 초과로 검색하지 않은 경우는 위 한도 카드만 보인다) */}
-        {query && !apiError && !limitError && channels.length === 0 && (
-          <div className="p-12 text-center border border-neutral-800 rounded-xl bg-neutral-900/50">
-            <p className="text-neutral-400">검색 결과가 없어요</p>
-            <p className="text-neutral-500 text-sm mt-1">다른 키워드로 검색해보세요</p>
-          </div>
-        )}
+          {/* 결과 없음 (한도 초과로 검색하지 않은 경우는 위 한도 안내만 보인다) */}
+          {query && !apiError && !limitError && channels.length === 0 && (
+            <div className="flex flex-col items-start gap-1 rounded-card border border-line bg-surface p-6 md:p-8">
+              <p className="text-ui font-semibold text-fg">검색 결과가 없어요</p>
+              <p className="text-body-sm text-fg-3">다른 키워드로 검색해보세요</p>
+            </div>
+          )}
 
-        {/* 신생 고성장 안내 + 결과 테이블 (정렬은 브라우저에서) */}
-        <ChannelResults channels={channels} query={query} now={now} />
+          {/* 신생 고성장 안내 + 결과 표 (정렬은 브라우저에서) */}
+          <ChannelResults channels={channels} query={query} now={now} />
+        </div>
       </div>
     </main>
   );
