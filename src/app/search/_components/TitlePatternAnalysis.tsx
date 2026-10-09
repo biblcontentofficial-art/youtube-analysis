@@ -1,12 +1,14 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useId, useState, useMemo } from "react";
 import { Video } from "@/types";
+import { badgeClass } from "@/components/ui/badge";
+import { cx } from "@/components/ui/button";
+import { ChevronDownIcon, CloseIcon, InfoIcon } from "@/components/ui/icons";
 
 interface PatternDef {
   key: string;
   label: string;
-  color: string;
   desc: string;
   example: string;
   test: (title: string) => boolean;
@@ -16,7 +18,6 @@ const PATTERN_DEFS: PatternDef[] = [
   {
     key: "number",
     label: "숫자형",
-    color: "bg-blue-500",
     desc: "숫자로 정보량을 명확히 제시해 신뢰감을 주는 제목",
     example: "골프 필수 연습법 7가지",
     test: (t) => /\d+\s*(가지|개|선|위|분|초|일|달|번|편|종류|방법)/.test(t),
@@ -24,7 +25,6 @@ const PATTERN_DEFS: PatternDef[] = [
   {
     key: "question",
     label: "질문형",
-    color: "bg-purple-500",
     desc: "시청자의 궁금증을 자극해 클릭을 유도하는 제목",
     example: "왜 골퍼들은 이 드라이버만 쓸까?",
     test: (t) =>
@@ -34,7 +34,6 @@ const PATTERN_DEFS: PatternDef[] = [
   {
     key: "howto",
     label: "하우투형",
-    color: "bg-green-500",
     desc: "방법·팁·노하우를 직접 알려주는 실용적 제목",
     example: "초보도 따라하는 골프 스윙 꿀팁",
     test: (t) =>
@@ -43,7 +42,6 @@ const PATTERN_DEFS: PatternDef[] = [
   {
     key: "provocative",
     label: "자극형",
-    color: "bg-red-500",
     desc: "강한 감정 반응을 일으켜 클릭을 유도하는 제목",
     example: "이 골퍼 실화임? 역대급 드라이버 레전드",
     test: (t) =>
@@ -52,7 +50,6 @@ const PATTERN_DEFS: PatternDef[] = [
   {
     key: "comparison",
     label: "비교형",
-    color: "bg-yellow-500",
     desc: "두 대상을 맞붙여 선택을 돕는 제목",
     example: "아이언 vs 유틸리티, 뭐가 나을까",
     test: (t) => /(vs|VS|비교|차이|대결)/.test(t),
@@ -60,7 +57,6 @@ const PATTERN_DEFS: PatternDef[] = [
   {
     key: "review",
     label: "리뷰형",
-    color: "bg-cyan-500",
     desc: "제품·장소의 솔직한 사용 경험을 담은 제목",
     example: "10만원대 골프공 한 달 사용 솔직 후기",
     test: (t) =>
@@ -71,7 +67,6 @@ const PATTERN_DEFS: PatternDef[] = [
 interface PatternStat {
   key: string;
   label: string;
-  color: string;
   count: number;
   avgViews: number;
   goodRatio: number;
@@ -84,12 +79,23 @@ function formatViews(n: number): string {
   return n.toLocaleString();
 }
 
+/** 패턴 이름 태그(DESIGN 6.12 태그). 패턴마다 다른 색을 쓰지 않는다 */
+const PATTERN_TAG = "inline-flex w-fit shrink-0 items-center rounded-md border border-line-strong px-2 py-0.5 text-micro font-medium text-fg-1";
+
 export default function TitlePatternAnalysis({
   videos,
+  open: openProp,
+  onClose,
 }: {
   videos: Video[];
+  /** 분석 도구 줄(SearchResultList)이 여닫을 때 넘긴다. 넘기지 않으면 이 컴포넌트의 머리 버튼이 직접 여닫는다 */
+  open?: boolean;
+  onClose?: () => void;
 }) {
-  const [open, setOpen] = useState(false);
+  const controlled = openProp !== undefined;
+  const titleId = useId();
+  const [selfOpen, setOpen] = useState(false);
+  const open = controlled ? openProp : selfOpen;
 
   const stats = useMemo(() => {
     const result: PatternStat[] = [];
@@ -102,7 +108,6 @@ export default function TitlePatternAnalysis({
       result.push({
         key: def.key,
         label: def.label,
-        color: def.color,
         count: matched.length,
         avgViews: matched.length > 0 ? Math.round(totalViews / matched.length) : 0,
         goodRatio: matched.length > 0 ? Math.round((goodCount / matched.length) * 100) : 0,
@@ -112,52 +117,55 @@ export default function TitlePatternAnalysis({
   }, [videos]);
 
   const bestPattern = stats.find((s) => s.count > 0) ?? null;
-  const maxAvgViews = bestPattern ? bestPattern.avgViews : 1;
+
+  if (controlled && !open) return null;
+
+  const basisTag = <span className={badgeClass()}>검색 결과 기준</span>;
 
   return (
-    <div className="rounded-xl border border-gray-800 bg-gray-900 overflow-hidden">
-      <button
-        type="button"
-        onClick={() => setOpen((prev) => !prev)}
-        className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-gray-800/50 transition-colors"
-      >
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-semibold text-gray-100">
-            제목 패턴 분석
-          </span>
-          <span className="text-[11px] text-gray-500 border border-gray-700 rounded px-1.5 py-0.5">
-            최근 30일 업로드 기준
-          </span>
+    <section aria-labelledby={titleId} className="overflow-hidden rounded-card border border-line bg-surface">
+      {controlled ? (
+        <div className="flex items-center justify-between gap-3 py-2 pl-5 pr-3">
+          <div className="flex items-center gap-2">
+            <h3 id={titleId} className="text-body font-semibold text-fg">제목 패턴 분석</h3>
+            {basisTag}
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="제목 패턴 분석 닫기"
+            className="inline-flex size-11 shrink-0 items-center justify-center rounded-control text-fg-3 transition-colors hover:bg-surface-2 hover:text-fg"
+          >
+            <CloseIcon size={16} />
+          </button>
         </div>
-        <svg
-          className={`w-4 h-4 text-gray-400 transition-transform ${
-            open ? "rotate-180" : ""
-          }`}
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth={2}
+      ) : (
+        <button
+          type="button"
+          onClick={() => setOpen((prev) => !prev)}
+          aria-expanded={open}
+          className="flex min-h-14 w-full items-center justify-between px-5 py-3 text-left transition-colors hover:bg-surface-2"
         >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M19 9l-7 7-7-7"
-          />
-        </svg>
-      </button>
+          <span className="flex items-center gap-2">
+            <span id={titleId} className="text-body font-semibold text-fg">제목 패턴 분석</span>
+            {basisTag}
+          </span>
+          <ChevronDownIcon size={16} className={cx("text-fg-3 transition-transform", open && "rotate-180")} />
+        </button>
+      )}
 
       {open && (
-        <div className="px-5 pb-5 space-y-3">
+        <div className="space-y-3 px-5 pb-5">
           {/* Header row */}
-          <div className="grid grid-cols-[1fr_auto_auto_1fr] gap-x-4 text-xs text-gray-500 border-b border-gray-800 pb-2">
+          <div className="grid grid-cols-[minmax(0,1fr)_2.5rem_3.75rem_minmax(0,1.2fr)] gap-x-2.5 md:grid-cols-[minmax(0,1fr)_3rem_4.5rem_minmax(0,1fr)] md:gap-x-4 border-b border-line pb-2 text-micro text-fg-3">
             <span>패턴</span>
             <span className="text-right">영상 수</span>
             <span className="text-right">평균 조회수</span>
             <span
-              className="cursor-help underline decoration-dotted decoration-gray-600"
+              className="inline-flex cursor-help flex-wrap items-center gap-1 underline decoration-fg-4 decoration-dotted"
               title="구독자 수 대비 조회수가 높고, 업로드 후 빠르게 조회수가 오른 영상을 Good으로 분류합니다"
             >
-              반응 Good 비율 ⓘ
+              반응 Good <span className="inline-flex items-center gap-1 whitespace-nowrap">비율 <InfoIcon size={16} /></span>
             </span>
           </div>
 
@@ -167,31 +175,25 @@ export default function TitlePatternAnalysis({
             return (
               <div
                 key={s.key}
-                className={`grid grid-cols-[1fr_auto_auto_1fr] gap-x-4 items-start transition-opacity ${s.count === 0 ? "opacity-30" : ""}`}
+                className={cx("grid items-start grid-cols-[minmax(0,1fr)_2.5rem_3.75rem_minmax(0,1.2fr)] gap-x-2.5 md:grid-cols-[minmax(0,1fr)_3rem_4.5rem_minmax(0,1fr)] md:gap-x-4 transition-opacity", s.count === 0 && "opacity-40")}
               >
                 <div className="flex flex-col gap-0.5">
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <span
-                      className={`${s.color} text-white text-xs font-medium px-2.5 py-0.5 rounded-full w-fit`}
-                    >
-                      {s.label}
-                    </span>
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <span className={PATTERN_TAG}>{s.label}</span>
                     {s.count > 0 && s.count < 3 && (
-                      <span className="text-[10px] text-amber-500 border border-amber-700/60 bg-amber-950/40 px-1.5 py-0.5 rounded">
-                        데이터 부족
-                      </span>
+                      <span className={badgeClass("warn")}>데이터 부족</span>
                     )}
                   </div>
                   {def && (
-                    <span className="text-[11px] text-gray-500 leading-snug mt-1">
+                    <span className="mt-1 text-micro leading-snug text-fg-3">
                       {def.desc}
                     </span>
                   )}
                 </div>
-                <span className="text-sm text-gray-300 text-right tabular-nums pt-0.5">
+                <span className="tnum pt-0.5 text-right text-body-sm text-fg-2">
                   {s.count}개
                 </span>
-                <span className="text-sm text-gray-300 text-right tabular-nums pt-0.5">
+                <span className="tnum pt-0.5 text-right text-body-sm text-fg-2">
                   {s.count > 0 ? formatViews(s.avgViews) : "-"}
                 </span>
                 <GoodRatioBar ratio={s.goodRatio} hasData={s.count >= 3} />
@@ -200,73 +202,68 @@ export default function TitlePatternAnalysis({
           })}
 
           {/* 기준 안내 */}
-          <p className="text-[10px] text-gray-600 pt-1">
+          <p className="pt-1 text-micro text-fg-3">
             ※ 반응 Good = 올린 직후 빠르게 퍼지고, 구독자 대비 조회수가 높은 영상 · 영상 3개 미만은 신뢰도가 낮습니다
           </p>
 
           {/* Best pattern callout */}
           {bestPattern && (
-            <div className="mt-4 pt-3 border-t border-gray-800 flex items-center gap-2">
-              <span className="text-xs text-gray-500">Best 패턴</span>
-              <span
-                className={`${bestPattern.color} text-white text-xs font-medium px-2.5 py-0.5 rounded-full`}
-              >
-                {bestPattern.label}
-              </span>
-              <span className="text-xs text-gray-400">
+            <div className="mt-4 flex items-center gap-2 border-t border-line pt-3">
+              <span className="text-caption text-fg-3">Best 패턴</span>
+              <span className={PATTERN_TAG}>{bestPattern.label}</span>
+              <span className="text-caption text-fg-2">
                 평균 {formatViews(bestPattern.avgViews)} 조회
               </span>
             </div>
           )}
         </div>
       )}
-    </div>
+    </section>
   );
 }
 
 // ─── 등급 바 컴포넌트 ─────────────────────────────────────────────────────────
 
+/** 반응 등급. 막대는 단색 chart-1, 등급 글자는 fg-2(평가에 흰 글자·여러 색을 쓰지 않는다) */
 function getGrade(ratio: number): {
   grade: string;
   label: string;
-  barColor: string;
-  badgeColor: string;
 } {
-  if (ratio >= 80) return { grade: "S", label: "최상",  barColor: "bg-teal-400",   badgeColor: "bg-teal-900/60 text-teal-300 border-teal-700" };
-  if (ratio >= 60) return { grade: "A", label: "좋음",  barColor: "bg-green-400",  badgeColor: "bg-green-900/60 text-green-300 border-green-700" };
-  if (ratio >= 40) return { grade: "B", label: "보통",  barColor: "bg-yellow-400", badgeColor: "bg-yellow-900/60 text-yellow-300 border-yellow-700" };
-  if (ratio >= 20) return { grade: "C", label: "미흡",  barColor: "bg-orange-400", badgeColor: "bg-orange-900/60 text-orange-300 border-orange-700" };
-  return              { grade: "D", label: "낮음",  barColor: "bg-gray-600",   badgeColor: "bg-gray-800 text-gray-500 border-gray-700" };
+  if (ratio >= 80) return { grade: "S", label: "최상" };
+  if (ratio >= 60) return { grade: "A", label: "좋음" };
+  if (ratio >= 40) return { grade: "B", label: "보통" };
+  if (ratio >= 20) return { grade: "C", label: "미흡" };
+  return              { grade: "D", label: "낮음" };
 }
 
 function GoodRatioBar({ ratio, hasData }: { ratio: number; hasData: boolean }) {
   if (!hasData) {
     return (
       <div className="flex items-center gap-2 pt-1">
-        <div className="flex-1 h-2 rounded-full bg-gray-800" />
-        <span className="text-xs text-gray-600 tabular-nums w-9 text-right">-</span>
+        <div className="h-1.5 flex-1 rounded-full bg-surface-3" />
+        <span className="tnum w-9 text-right text-micro text-fg-3">-</span>
       </div>
     );
   }
 
-  const { grade, label, barColor, badgeColor } = getGrade(ratio);
+  const { grade, label } = getGrade(ratio);
 
   return (
     <div className="flex flex-col gap-1 pt-1">
       <div className="flex items-center gap-2">
-        <div className="flex-1 h-2 rounded-full bg-gray-800 overflow-hidden">
+        <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-surface-3">
           <div
-            className={`h-full rounded-full ${barColor} transition-all`}
+            className="h-full rounded-full bg-chart-1 transition-all"
             style={{ width: `${ratio}%` }}
           />
         </div>
-        <span className="text-xs text-gray-400 tabular-nums w-9 text-right">{ratio}%</span>
+        <span className="tnum w-9 text-right text-micro text-fg-2">{ratio}%</span>
       </div>
       <div className="flex items-center gap-1.5">
-        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${badgeColor}`}>
+        <span className="inline-flex items-center rounded-md border border-line-strong px-1.5 text-micro font-bold leading-[18px] text-fg-2">
           {grade}
         </span>
-        <span className="text-[10px] text-gray-500">{label}</span>
+        <span className="text-micro text-fg-3">{label}</span>
       </div>
     </div>
   );

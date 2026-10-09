@@ -1,11 +1,20 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { Video } from "@/types";
+import { useConfirm } from "@/app/_components/ConfirmDialog";
+import { buttonClass, cx } from "@/components/ui/button";
+import { CloseIcon } from "@/components/ui/icons";
 
 interface Props {
   videos: Video[];
   query: string;
+  /**
+   * 분석 도구 줄(SearchResultList)이 패널을 여닫을 때 넘긴다. true 가 되면 처음 한 번 옵트인 확인창을 띄우고,
+   * 확인하면 결과를 펼친다(취소하면 onClose). 넘기지 않으면 이 컴포넌트가 직접 '경쟁도 분석 시작' 버튼을 그린다.
+   */
+  open?: boolean;
+  onClose?: () => void;
 }
 
 function formatCount(n: number): string {
@@ -50,105 +59,91 @@ function analyzeCompetition(videos: Video[]): CompetitionResult {
   return { score, level, recentUploadRatio, avgTopViewCount, bigChannelRatio };
 }
 
-const LEVEL_CONFIG: Record<Level, { color: string; bg: string; border: string; text: string; stroke: string; recommendation: string }> = {
+/**
+ * 단계 색은 competition-low/mid/high(= positive/caution/negative) 글자·막대에만 쓴다(DESIGN 3.1·6.14).
+ * 색만으로 말하지 않게 미터 칸 수(1·2·3)와 '경쟁 낮음/보통/높음' 글자를 언제나 함께 그린다.
+ */
+const LEVEL_CONFIG: Record<Level, { text: string; fill: string; steps: number; recommendation: string }> = {
   "낮음": {
-    color: "text-teal-400", bg: "bg-teal-900/40", border: "border-teal-700/50",
-    text: "text-teal-300", stroke: "stroke-teal-400",
+    text: "text-competition-low", fill: "bg-competition-low", steps: 1,
     recommendation: "경쟁이 적어 진입하기 좋은 키워드입니다",
   },
   "보통": {
-    color: "text-yellow-400", bg: "bg-yellow-900/40", border: "border-yellow-700/50",
-    text: "text-yellow-300", stroke: "stroke-yellow-400",
+    text: "text-competition-mid", fill: "bg-competition-mid", steps: 2,
     recommendation: "적당한 경쟁이 있지만 차별화된 콘텐츠로 승부할 수 있습니다",
   },
   "높음": {
-    color: "text-red-400", bg: "bg-red-900/40", border: "border-red-700/50",
-    text: "text-red-300", stroke: "stroke-red-400",
+    text: "text-competition-high", fill: "bg-competition-high", steps: 3,
     recommendation: "경쟁이 치열합니다. 니치한 세부 키워드를 노려보세요",
   },
 };
 
-function CircularProgress({ score, level }: { score: number; level: Level }) {
-  const radius = 28;
-  const circumference = 2 * Math.PI * radius;
-  const offset = circumference - (score / 100) * circumference;
+/** 3칸 막대 미터(DESIGN 6.14). 채운 칸 수 = 단계. 뜻은 옆 글자가 전하므로 스크린 리더에서는 숨긴다 */
+function CompetitionMeter({ level }: { level: Level }) {
   const config = LEVEL_CONFIG[level];
   return (
-    <div className="relative w-[72px] h-[72px] flex-shrink-0">
-      <svg className="w-full h-full -rotate-90" viewBox="0 0 64 64" aria-hidden="true">
-        <circle cx="32" cy="32" r={radius} fill="none" stroke="currentColor" strokeWidth="5" className="text-gray-800" />
-        <circle cx="32" cy="32" r={radius} fill="none" strokeWidth="5" strokeLinecap="round"
-          strokeDasharray={circumference} strokeDashoffset={offset}
-          className={config.stroke}
-          style={{ transition: "stroke-dashoffset 0.6s ease" }} />
-      </svg>
-      <div className="absolute inset-0 flex items-center justify-center">
-        <span className={`text-lg font-bold ${config.color}`}>{score}</span>
-      </div>
-    </div>
+    <span aria-hidden="true" className="inline-flex items-center gap-[3px]" data-meter-steps={config.steps}>
+      {[1, 2, 3].map((i) => (
+        <span key={i} className={cx("h-1.5 w-3.5 rounded-[1px]", i <= config.steps ? config.fill : "bg-surface-3")} />
+      ))}
+    </span>
   );
 }
 
-export default function KeywordCompetition({ videos, query }: Props) {
+const COMPETITION_CONFIRM = {
+  // 공용 확인창은 제목(message)과 설명 한 문단(subMessage)만 받는다. 질문과 ※ 고지가 한 문단에 섞이지 않게 질문을 제목에 둔다
+  message: "경쟁도 분석을 진행하시겠습니까?",
+  subMessage:
+    "※ 이 도구는 사용자가 직접 활성화하는 자가 계산 도구입니다. YouTube 공식 메트릭이 아니며, bibl lab의 평가 지표가 아닙니다. 공개된 데이터를 사용자 브라우저에서 단순 산술로 처리한 참고 값입니다.",
+};
+
+export default function KeywordCompetition({ videos, query, open, onClose }: Props) {
   const [enabled, setEnabled] = useState(false);
-  const [confirmOpen, setConfirmOpen] = useState(false);
+  const confirm = useConfirm();
+  const controlled = open !== undefined;
+  // 확인창이 떠 있는 동안 다시 묻지 않는다(개발 모드 effect 이중 실행 포함)
+  const askingRef = useRef(false);
 
   const result = useMemo(() => (enabled ? analyzeCompetition(videos) : null), [videos, enabled]);
 
+  async function requestStart() {
+    if (askingRef.current) return;
+    askingRef.current = true;
+    const ok = await confirm(COMPETITION_CONFIRM);
+    askingRef.current = false;
+    if (ok) setEnabled(true);
+    else if (controlled) onClose?.();
+  }
+
+  // 분석 도구 줄에서 처음 열면 옵트인 확인창부터
+  useEffect(() => {
+    if (controlled && open && !enabled && videos.length > 0) void requestStart();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [controlled, open, enabled, videos.length]);
+
   if (videos.length === 0) return null;
+  if (controlled && !open) return null;
 
-  // ─── 비활성 상태: 옵트인 버튼만 표시 ───
+  // ─── 비활성 상태: 옵트인 버튼만 표시 (분석 도구 줄이 없는 곳에서만) ───
   if (!result) {
+    if (controlled) return null;
     return (
-      <>
-        <div className="bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 flex items-center justify-between gap-3 flex-wrap">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-teal-950/60 border border-teal-800/60 flex items-center justify-center text-teal-400">
-              📊
-            </div>
-            <div>
-              <p className="text-sm font-medium text-white">
-                <span className="text-teal-400">{query}</span> 키워드 경쟁도 분석
-              </p>
-              <p className="text-[11px] text-gray-500">사용자 자가 계산 도구 (YouTube 공식 메트릭 아님)</p>
-            </div>
-          </div>
-          <button
-            onClick={() => setConfirmOpen(true)}
-            className="px-4 py-2 bg-teal-600/20 hover:bg-teal-600/40 border border-teal-700/60 hover:border-teal-500 text-teal-300 text-xs font-semibold rounded-lg transition"
-          >
-            ⚡ 경쟁도 분석 시작
-          </button>
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-card border border-line bg-surface px-4 py-3">
+        <div>
+          <p className="text-body-sm font-medium text-fg-2">
+            <span className="font-semibold text-fg-1">{query}</span> 키워드 경쟁도 분석
+          </p>
+          <p className="text-micro text-fg-3">사용자 자가 계산 도구 (YouTube 공식 메트릭 아님)</p>
         </div>
-
-        {/* 확인 모달 */}
-        {confirmOpen && (
-          <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-fadeIn">
-            <div className="absolute inset-0" onClick={() => setConfirmOpen(false)} />
-            <div className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl p-6 sm:p-8">
-              <h3 className="text-lg font-bold text-gray-900 text-center mb-3">키워드 경쟁도 분석</h3>
-              <p className="text-sm text-gray-600 text-center leading-relaxed mb-2">
-                경쟁도 분석을 진행하시겠습니까?
-              </p>
-              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 my-4">
-                <p className="text-[11px] text-amber-800 leading-relaxed">
-                  ※ 이 도구는 사용자가 직접 활성화하는 자가 계산 도구입니다.
-                  YouTube 공식 메트릭이 아니며, bibl lab의 평가 지표가 아닙니다.
-                  공개된 데이터를 사용자 브라우저에서 단순 산술로 처리한 참고 값입니다.
-                </p>
-              </div>
-              <div className="flex gap-2 mt-5">
-                <button onClick={() => setConfirmOpen(false)} className="flex-1 py-2.5 border border-teal-500 text-teal-600 hover:bg-teal-50 rounded-lg font-medium text-sm transition">
-                  취소
-                </button>
-                <button onClick={() => { setEnabled(true); setConfirmOpen(false); }} className="flex-1 py-2.5 bg-teal-500 hover:bg-teal-600 text-white rounded-lg font-semibold text-sm transition">
-                  확인
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-      </>
+        <button
+          type="button"
+          onClick={() => void requestStart()}
+          aria-haspopup="dialog"
+          className={cx(buttonClass({ variant: "secondary", size: "sm" }), "px-3 pointer-coarse:h-11")}
+        >
+          경쟁도 분석 시작
+        </button>
+      </div>
     );
   }
 
@@ -161,37 +156,53 @@ export default function KeywordCompetition({ videos, query }: Props) {
   ];
 
   return (
-    <div className="space-y-2">
-      <div className="bg-gray-900 border border-gray-800 rounded-xl px-4 py-3">
-        <div className="flex items-center gap-4">
-          <CircularProgress score={result.score} level={result.level} />
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-              <span className="text-sm font-medium text-gray-300">
-                <span className="text-white font-semibold">{query}</span> 키워드 경쟁도
+    <section aria-label={`${query} 키워드 경쟁도`} className="space-y-2">
+      <div className="rounded-card border border-line bg-surface p-5">
+        <div className="flex items-start gap-4">
+          <div className="flex min-w-0 flex-1 flex-col gap-3 sm:flex-row sm:items-center sm:gap-6">
+            <div className="flex shrink-0 items-center gap-3">
+              <span className={cx("tnum min-w-[2ch] text-right text-[26px] font-extrabold leading-none tracking-[-0.02em]", config.text)}>
+                {result.score}
               </span>
-              <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${config.bg} ${config.border} border ${config.text}`}>
-                {result.level}
+              <span className="flex flex-col gap-1.5">
+                <CompetitionMeter level={result.level} />
+                <span className={cx("text-body-sm font-bold leading-none", config.text)}>경쟁 {result.level}</span>
               </span>
-              <span className="text-[10px] text-gray-600 ml-1">사용자 자가 계산</span>
             </div>
-            <div className="flex flex-wrap gap-x-5 gap-y-0.5">
-              {metrics.map((m) => (
-                <div key={m.label} className="flex items-center gap-1.5 text-xs">
-                  <span className="text-gray-500">{m.label}</span>
-                  <span className="text-gray-200 font-medium">{m.value}</span>
-                </div>
-              ))}
+            <div className="min-w-0 flex-1">
+              <div className="mb-1.5 flex flex-wrap items-center gap-2">
+                <span className="text-body-sm font-medium text-fg-2">
+                  <span className="font-semibold text-fg-1">{query}</span> 키워드 경쟁도
+                </span>
+                <span className="text-micro text-fg-3">사용자 자가 계산</span>
+              </div>
+              <div className="flex flex-wrap gap-x-5 gap-y-0.5">
+                {metrics.map((m) => (
+                  <div key={m.label} className="flex items-center gap-1.5 text-caption">
+                    <span className="text-fg-3">{m.label}</span>
+                    <span className="tnum font-medium text-fg-1">{m.value}</span>
+                  </div>
+                ))}
+              </div>
+              <p className="mt-2 text-caption text-fg-2 lg:hidden">{config.recommendation}</p>
             </div>
+            <p className="hidden max-w-[260px] shrink-0 text-caption text-fg-2 lg:block">{config.recommendation}</p>
           </div>
-          <p className="text-xs text-gray-400 max-w-[240px] flex-shrink-0 hidden sm:block">
-            {config.recommendation}
-          </p>
+          {controlled && (
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="경쟁도 분석 닫기"
+              className="-m-2 inline-flex size-11 shrink-0 items-center justify-center rounded-control text-fg-3 transition-colors hover:bg-surface-2 hover:text-fg"
+            >
+              <CloseIcon size={16} />
+            </button>
+          )}
         </div>
       </div>
-      <p className="text-[10px] text-gray-600 px-1">
+      <p className="px-1 text-micro text-fg-3">
         ※ 위 점수/등급/추천은 사용자가 직접 활성화한 자가 계산 결과입니다. YouTube 공식 메트릭이 아니며, bibl lab이 제공하는 평가가 아닙니다.
       </p>
-    </div>
+    </section>
   );
 }

@@ -1,8 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 import Link from "next/link";
 import type { Video } from "@/types";
+import { buttonClass, cx } from "@/components/ui/button";
+import { CHIP } from "@/components/ui/chip";
+import { CloseIcon, WarningIcon } from "@/components/ui/icons";
 
 /**
  * 키워드 인사이트 통합 모듈
@@ -11,12 +14,22 @@ import type { Video } from "@/types";
  * - Phase 1.1: AI 키워드 진단 (사용자 옵트인, 외부 LLM 호출)
  * - Phase 1.2: 상위 영상 패턴 분석 (단순 빈도 통계, ToS 안전)
  * - Phase 1.3: 관련 키워드 자동 추천 (YouTube autocomplete, ToS 안전)
- * - Phase 3.8: 비블 컨설팅 연결 CTA
+ *
+ * 패널은 접힌 채로 시작하고, 검색 결과 위 분석 도구 줄의 버튼이 open 으로 펼친다.
+ * 컨설팅 연결 링크('유튜브 채널 대행 문의')는 분석 도구 줄 오른쪽 글자 링크로 옮겼다(SearchResultList).
  */
+
+export type InsightsTool = "patterns" | "related";
 
 interface Props {
   videos: Video[];
   query: string;
+  /**
+   * 분석 도구 줄이 펼친 도구. "patterns" 면 상위 영상 패턴을 계산해 보여 주고, "related" 면 연관 키워드를 불러온다.
+   * 넘기지 않으면 이 컴포넌트가 직접 두 도구 버튼을 그린다(분석 도구 줄이 없는 곳).
+   */
+  open?: InsightsTool | null;
+  onClose?: () => void;
 }
 
 // ─── 1.2: 상위 영상 패턴 (단순 빈도 통계) ───
@@ -79,15 +92,29 @@ function formatDuration(seconds: number): string {
   return `${m}분 ${s}초`;
 }
 
-export default function KeywordInsights({ videos, query }: Props) {
+export default function KeywordInsights({ videos, query, open, onClose }: Props) {
+  // 분석 도구 줄이 없을 때는 이 컴포넌트가 직접 도구 버튼을 그리고 열림 상태를 갖는다
+  const controlled = open !== undefined;
+  const [selfOpen, setSelfOpen] = useState<InsightsTool | null>(null);
+  const tool = controlled ? open : selfOpen;
+  const patternsTitleId = useId();
+  const relatedTitleId = useId();
+  const close = () => (controlled ? onClose?.() : setSelfOpen(null));
+
   // ─── 패턴 분석 옵트인 ───
-  const [patternsEnabled, setPatternsEnabled] = useState(false);
+  const patternsEnabled = tool === "patterns";
   const patterns = useMemo(() => (patternsEnabled ? computePatterns(videos) : null), [videos, patternsEnabled]);
 
   // ─── 관련 키워드 (YouTube autocomplete) ───
   const [relatedLoading, setRelatedLoading] = useState(false);
   const [related, setRelated] = useState<string[] | null>(null);
   const [relatedError, setRelatedError] = useState<string | null>(null);
+
+  // 연관 키워드 도구를 펼칠 때마다 새로 불러온다(전에는 버튼을 누를 때마다 불러왔다)
+  useEffect(() => {
+    if (tool === "related") void handleRelated();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tool, query]);
 
   if (videos.length === 0) return null;
 
@@ -111,200 +138,122 @@ export default function KeywordInsights({ videos, query }: Props) {
     }
   }
 
-  // ─── SVG 아이콘 컴포넌트들 ───
-  const Icon = {
-    spark: (cls = "w-5 h-5") => (
-      <svg className={cls} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-        <path d="M12 2l2.5 6.5L21 11l-6.5 2.5L12 20l-2.5-6.5L3 11l6.5-2.5L12 2z" />
-      </svg>
-    ),
-    arrow: (cls = "w-4 h-4") => (
-      <svg className={cls} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
-        <path d="M5 12h14M13 5l7 7-7 7" />
-      </svg>
-    ),
-    brain: (cls = "w-5 h-5") => (
-      <svg className={cls} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
-        <path d="M9.5 2A2.5 2.5 0 0 0 7 4.5v15A2.5 2.5 0 0 0 9.5 22h0a2.5 2.5 0 0 0 2.5-2.5v-15A2.5 2.5 0 0 0 9.5 2zM14.5 2A2.5 2.5 0 0 1 17 4.5v15a2.5 2.5 0 0 1-2.5 2.5h0a2.5 2.5 0 0 1-2.5-2.5v-15A2.5 2.5 0 0 1 14.5 2zM3 12h4M17 12h4M5 7l2 1M17 8l2-1M5 17l2-1M17 16l2 1" />
-      </svg>
-    ),
-    chart: (cls = "w-5 h-5") => (
-      <svg className={cls} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-        <path d="M3 3v18h18" />
-        <path d="M7 15l4-6 4 4 5-8" />
-      </svg>
-    ),
-    link: (cls = "w-5 h-5") => (
-      <svg className={cls} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-        <path d="M10 13a5 5 0 0 0 7.07 0l3.54-3.54a5 5 0 0 0-7.07-7.07l-1.41 1.41" />
-        <path d="M14 11a5 5 0 0 0-7.07 0L3.39 14.54a5 5 0 0 0 7.07 7.07l1.41-1.41" />
-      </svg>
-    ),
-    close: (cls = "w-4 h-4") => (
-      <svg className={cls} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
-        <path d="M18 6L6 18M6 6l12 12" />
-      </svg>
-    ),
-    warning: (cls = "w-5 h-5") => (
-      <svg className={cls} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM12 9v4M12 17h.01" />
-      </svg>
-    ),
-    external: (cls = "w-4 h-4") => (
-      <svg className={cls} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3" />
-      </svg>
-    ),
-  };
+  /** 패널 틀: 1px 선 + surface 단색(DESIGN 6.7 앱 카드). 그라데이션·블러·아이콘 상자 없음 */
+  const PANEL = "rounded-card border border-line bg-surface p-5";
+  const CLOSE_BUTTON =
+    "-m-2 inline-flex size-11 shrink-0 items-center justify-center rounded-control text-fg-3 transition-colors hover:bg-surface-2 hover:text-fg";
 
   return (
     <div className="space-y-4">
-      {/* ─── 상단 액션 바 (3가지 도구 + 컨설팅 CTA) ─── */}
-      <div className="relative overflow-hidden rounded-2xl border border-white/[0.08] bg-gradient-to-br from-slate-900 via-slate-950 to-black p-5 md:p-6">
-        {/* 배경 글로우 */}
-        <div className="pointer-events-none absolute -top-20 -right-20 w-72 h-72 rounded-full bg-cyan-500/[0.04] blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-32 -left-20 w-72 h-72 rounded-full bg-violet-500/[0.04] blur-3xl" />
-
-        <div className="relative">
-          <div className="flex items-center justify-between gap-4 flex-wrap mb-5">
-            <div className="flex items-center gap-3.5">
-              <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-cyan-500/15 to-teal-500/10 border border-cyan-400/20 flex items-center justify-center text-cyan-300">
-                {Icon.spark("w-5 h-5")}
-              </div>
-              <div>
-                <p className="text-lg font-bold text-white tracking-tight leading-tight">
-                  <span className="bg-gradient-to-r from-cyan-300 to-teal-300 bg-clip-text text-transparent">{query}</span>
-                  <span className="ml-2 text-white/90">키워드 인사이트</span>
-                </p>
-                <p className="text-[12px] text-slate-500 mt-0.5">사용자가 직접 활성화하는 분석 도구 모음</p>
-              </div>
-            </div>
-            <Link
-              href={`/studio/consulting?source=keyword&query=${encodeURIComponent(query)}`}
-              className="group inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-400 hover:to-emerald-400 text-white text-sm font-bold rounded-xl transition shadow-lg shadow-teal-900/30 whitespace-nowrap"
-              title="이 키워드로 유튜브 채널 대행 문의하기"
-            >
-              유튜브 채널 대행 문의
-              <span className="transition-transform group-hover:translate-x-0.5">{Icon.arrow("w-4 h-4")}</span>
-            </Link>
-          </div>
-
-          {/* ─ 도구 (패턴, 연관 키워드) ─ */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <button
-              onClick={() => setPatternsEnabled(true)}
-              disabled={patternsEnabled}
-              className="group flex items-center justify-center gap-2.5 px-4 py-4 bg-gradient-to-br from-sky-500/[0.08] to-blue-500/[0.05] hover:from-sky-500/20 hover:to-blue-500/15 disabled:opacity-50 disabled:cursor-not-allowed border border-sky-400/20 hover:border-sky-400/50 text-sky-200 hover:text-white text-sm font-semibold rounded-xl transition"
-            >
-              {Icon.chart("w-5 h-5")}
-              상위 영상 패턴 보기
-            </button>
-            <button
-              onClick={handleRelated}
-              disabled={relatedLoading}
-              className="group flex items-center justify-center gap-2.5 px-4 py-4 bg-gradient-to-br from-amber-500/[0.08] to-orange-500/[0.05] hover:from-amber-500/20 hover:to-orange-500/15 disabled:opacity-50 disabled:cursor-not-allowed border border-amber-400/20 hover:border-amber-400/50 text-amber-200 hover:text-white text-sm font-semibold rounded-xl transition"
-            >
-              {relatedLoading ? (
-                <>
-                  <span className="w-4 h-4 border-2 border-amber-300 border-t-transparent rounded-full animate-spin" />
-                  불러오는 중...
-                </>
-              ) : (
-                <>
-                  {Icon.link("w-5 h-5")}
-                  연관 키워드 추천
-                </>
-              )}
-            </button>
-          </div>
+      {/* ─── 도구 버튼 (분석 도구 줄이 없는 곳에서만) ─── */}
+      {!controlled && (
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setSelfOpen("patterns")}
+            aria-pressed={tool === "patterns"}
+            className={cx(buttonClass({ variant: "secondary", size: "sm" }), "px-3 pointer-coarse:h-11 aria-pressed:border-line-hover aria-pressed:bg-surface-3")}
+          >
+            상위 영상 패턴 보기
+          </button>
+          <button
+            type="button"
+            onClick={() => (tool === "related" ? void handleRelated() : setSelfOpen("related"))}
+            disabled={relatedLoading}
+            aria-pressed={tool === "related"}
+            className={cx(buttonClass({ variant: "secondary", size: "sm" }), "px-3 pointer-coarse:h-11 aria-pressed:border-line-hover aria-pressed:bg-surface-3")}
+          >
+            연관 키워드 추천
+          </button>
         </div>
-      </div>
+      )}
 
       {/* ─── 상위 영상 패턴 (Phase 1.2) ─── */}
       {patterns && (
-        <div className="relative overflow-hidden rounded-2xl border border-sky-400/15 bg-gradient-to-br from-sky-950/30 via-slate-950 to-slate-950 p-6">
-          <div className="pointer-events-none absolute -top-16 -right-16 w-56 h-56 rounded-full bg-sky-500/[0.05] blur-3xl" />
-          <div className="relative">
-            <div className="flex items-start justify-between gap-3 mb-5">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-sky-500/15 border border-sky-400/25 flex items-center justify-center text-sky-300">
-                  {Icon.chart("w-4 h-4")}
-                </div>
-                <h3 className="text-base font-bold text-sky-200">상위 {patterns.totalAnalyzed}개 영상 패턴</h3>
-              </div>
-              <button onClick={() => setPatternsEnabled(false)} className="text-slate-500 hover:text-slate-300 transition">{Icon.close()}</button>
-            </div>
-
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
-              {[
-                { label: "평균 영상 길이", value: formatDuration(patterns.avgDuration) },
-                { label: "롱폼 / 쇼츠", value: `${patterns.longCount} / ${patterns.shortsCount}개` },
-                { label: "분석 영상 수", value: `${patterns.totalAnalyzed}개` },
-                { label: "최다 게시 시간대", value: patterns.peakHour ? `${patterns.peakHour.hour}시 (${patterns.peakHour.count}개)` : "-" },
-              ].map((m) => (
-                <div key={m.label} className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-4">
-                  <div className="text-[11px] text-slate-500 mb-1.5">{m.label}</div>
-                  <div className="text-white text-base font-bold tracking-tight">{m.value}</div>
-                </div>
-              ))}
-            </div>
-
-            <div>
-              <div className="text-sm font-semibold text-slate-300 mb-3">제목에 자주 등장하는 단어 TOP 10</div>
-              <div className="flex flex-wrap gap-2">
-                {patterns.topWords.map((w) => (
-                  <span key={w.word} className="px-3 py-1.5 bg-sky-500/[0.08] border border-sky-400/20 rounded-full text-sm text-sky-100">
-                    {w.word} <span className="text-sky-400/70 ml-1 text-xs">×{w.count}</span>
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            <p className="mt-5 text-[11px] text-slate-500">
-              위 통계는 YouTube가 제공한 데이터를 사용자의 브라우저에서 단순 카운트한 것입니다. 평가/순위가 아니며 참고용입니다.
-            </p>
+        <section aria-labelledby={patternsTitleId} className={PANEL}>
+          <div className="mb-4 flex items-start justify-between gap-3">
+            <h3 id={patternsTitleId} className="text-body font-semibold text-fg">상위 {patterns.totalAnalyzed}개 영상 패턴</h3>
+            <button type="button" onClick={close} aria-label="상위 영상 패턴 닫기" className={CLOSE_BUTTON}>
+              <CloseIcon size={16} />
+            </button>
           </div>
-        </div>
+
+          <dl className="mb-5 grid grid-cols-2 gap-3 md:grid-cols-4">
+            {[
+              { label: "평균 영상 길이", value: formatDuration(patterns.avgDuration) },
+              { label: "롱폼 / 쇼츠", value: `${patterns.longCount} / ${patterns.shortsCount}개` },
+              { label: "분석 영상 수", value: `${patterns.totalAnalyzed}개` },
+              { label: "최다 게시 시간대", value: patterns.peakHour ? `${patterns.peakHour.hour}시 (${patterns.peakHour.count}개)` : "-" },
+            ].map((m) => (
+              <div key={m.label} className="flex flex-col-reverse gap-1.5 rounded-control border border-line-soft bg-surface-2 p-4">
+                <dt className="text-micro text-fg-3">{m.label}</dt>
+                <dd className="tnum text-body font-bold tracking-[-0.01em] text-fg">{m.value}</dd>
+              </div>
+            ))}
+          </dl>
+
+          <div>
+            <h4 className="mb-3 text-body-sm font-semibold text-fg-2">제목에 자주 등장하는 단어 TOP 10</h4>
+            <ul className="flex flex-wrap gap-1.5">
+              {patterns.topWords.map((w) => (
+                <li key={w.word} className="inline-flex h-9 items-center gap-1.5 rounded-control border border-line px-2.5 text-caption font-medium text-fg-2">
+                  {w.word} <span className="tnum text-micro text-fg-3">×{w.count}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <p className="mt-5 text-micro text-fg-3">
+            위 통계는 YouTube가 제공한 데이터를 사용자의 브라우저에서 단순 카운트한 것입니다. 평가/순위가 아니며 참고용입니다.
+          </p>
+        </section>
       )}
 
       {/* ─── 연관 키워드 (Phase 1.3) ─── */}
-      {related && related.length > 0 && (
-        <div className="relative overflow-hidden rounded-2xl border border-amber-400/15 bg-gradient-to-br from-amber-950/30 via-slate-950 to-slate-950 p-6">
-          <div className="pointer-events-none absolute -top-16 -right-16 w-56 h-56 rounded-full bg-amber-500/[0.05] blur-3xl" />
-          <div className="relative">
-            <div className="flex items-start justify-between gap-3 mb-3">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-amber-500/15 border border-amber-400/25 flex items-center justify-center text-amber-300">
-                  {Icon.link("w-4 h-4")}
-                </div>
-                <h3 className="text-base font-bold text-amber-200">연관 키워드</h3>
-              </div>
-              <button onClick={() => setRelated(null)} className="text-slate-500 hover:text-slate-300 transition">{Icon.close()}</button>
-            </div>
-            <p className="text-sm text-slate-400 mb-4">
-              아래 키워드를 클릭하면 새 검색이 시작됩니다.
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {related.map((kw) => (
-                <Link
-                  key={kw}
-                  href={`/search?q=${encodeURIComponent(kw)}`}
-                  className="px-3.5 py-2 bg-amber-500/[0.08] hover:bg-amber-500/[0.18] border border-amber-400/25 hover:border-amber-400/50 text-amber-100 hover:text-white text-sm font-medium rounded-full transition"
-                >
-                  {kw}
-                </Link>
-              ))}
-            </div>
-            <p className="mt-5 text-[11px] text-slate-500">
-              YouTube가 직접 제공하는 자동완성 데이터입니다.
-            </p>
+      {tool === "related" && (relatedLoading || (related && related.length > 0)) && (
+        <section aria-labelledby={relatedTitleId} className={PANEL} aria-busy={relatedLoading}>
+          <div className="mb-2 flex items-start justify-between gap-3">
+            <h3 id={relatedTitleId} className="text-body font-semibold text-fg">연관 키워드</h3>
+            <button type="button" onClick={close} aria-label="연관 키워드 닫기" className={CLOSE_BUTTON}>
+              <CloseIcon size={16} />
+            </button>
           </div>
-        </div>
+          {relatedLoading ? (
+            <p role="status" className="flex items-center gap-2 text-body-sm text-fg-3">
+              <span aria-hidden="true" className="size-4 animate-spin rounded-full border-2 border-line-strong border-t-fg-2" />
+              불러오는 중...
+            </p>
+          ) : (
+            <>
+              <p className="mb-4 text-body-sm text-fg-3">
+                아래 키워드를 클릭하면 새 검색이 시작됩니다. <span className="whitespace-nowrap">누르면 검색 1회가 차감됩니다.</span>
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {related!.map((kw) => (
+                  <Link
+                    key={kw}
+                    href={`/search?q=${encodeURIComponent(kw)}`}
+                    className={CHIP}
+                  >
+                    {kw}
+                  </Link>
+                ))}
+              </div>
+              <p className="mt-5 text-micro text-fg-3">
+                YouTube가 직접 제공하는 자동완성 데이터입니다.
+              </p>
+            </>
+          )}
+        </section>
       )}
 
-      {relatedError && (
-        <div className="bg-red-950/30 border border-red-800/50 rounded-xl p-3 text-xs text-red-300">
-          {relatedError}
+      {tool === "related" && relatedError && (
+        <div role="alert" className="flex items-start gap-3 rounded-card border border-negative/55 bg-surface p-4">
+          <WarningIcon size={20} className="text-negative" />
+          <p className="min-w-0 flex-1 text-body-sm text-fg-2">{relatedError}</p>
+          <button type="button" onClick={close} aria-label="연관 키워드 닫기" className={CLOSE_BUTTON}>
+            <CloseIcon size={16} />
+          </button>
         </div>
       )}
     </div>
