@@ -361,7 +361,8 @@
 
 /*
  * 이름을 그대로 쓰는 기존 클래스. components 레이어라 같은 요소의 유틸리티가 이긴다.
- * 정리(이름 교체·hover 이동 제거)는 R11(/studio)·R17(검색 화면)에서 한다.
+ * /studio 의 카드 들림·확대·그림자(.channel-card·.review-card·.feat-img)와 .highlight-draw 는 C09 에서 지웠다.
+ * .stat-num 은 tmklab-site(자체 스타일)가 같은 이름을 써서 남긴다. 검색 화면 정리는 R17.
  */
 @layer components {
   .animate-fadeIn {
@@ -399,59 +400,10 @@
     transform: scale(0.98);
   }
 
-  /* 텍스트 하이라이트 언더라인 */
-  .highlight-draw {
-    position: relative;
-    display: inline-block;
-  }
-  .highlight-draw::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    bottom: -4px;
-    height: 3px;
-    width: 0;
-    background: #ffffff;
-    border-radius: 2px;
-    transition: width 1s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-  .highlight-draw.in-view::after {
-    width: 100%;
-  }
-
   /* 숫자 카운터 */
   .stat-num {
     display: inline-block;
     font-variant-numeric: tabular-nums;
-  }
-
-  /* 채널 카드 호버 */
-  .channel-card {
-    transition:
-      transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
-      box-shadow 0.35s ease,
-      border-color 0.35s ease;
-  }
-  .channel-card:hover {
-    transform: translateY(-6px) scale(1.02);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.18);
-  }
-
-  /* 후기 카드 호버 */
-  .review-card {
-    transition: transform 0.3s ease, border-color 0.3s ease;
-  }
-  .review-card:hover {
-    transform: translateY(-4px);
-    border-color: rgba(255, 255, 255, 0.2);
-  }
-
-  /* Feature 이미지 줌 */
-  .feat-img {
-    transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-  .feat-img:hover {
-    transform: scale(1.04);
   }
 }
 
