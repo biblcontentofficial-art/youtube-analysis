@@ -9,6 +9,11 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useConfirm } from "@/app/_components/ConfirmDialog";
+import { buttonClass, cx } from "@/components/ui/button";
+import { WarningIcon } from "@/components/ui/icons";
+
+/** 보조 작은 버튼. 터치 기기에서는 44px */
+const ACTION = cx(buttonClass({ variant: "secondary", size: "sm" }), "pointer-coarse:h-11");
 
 interface Props {
   postId: string;
@@ -27,6 +32,7 @@ export default function PostActions({ postId, boardSlug }: Props) {
       message: "이 글을 삭제할까요?",
       subMessage: "삭제한 글은 목록에서 사라지며 되돌릴 수 없습니다.",
       confirmText: "삭제",
+      destructive: true,
     });
     if (!ok) return;
 
@@ -51,22 +57,19 @@ export default function PostActions({ postId, boardSlug }: Props) {
   return (
     <span className="inline-flex flex-col items-end gap-1">
       <span className="inline-flex items-center gap-1.5">
-        <Link
-          href={`/community/write?id=${postId}`}
-          className="text-xs text-neutral-400 hover:text-white bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 rounded-xl px-3 py-1.5 transition-colors"
-        >
+        <Link href={`/community/write?id=${postId}`} className={ACTION}>
           수정
         </Link>
-        <button
-          type="button"
-          onClick={handleDelete}
-          disabled={busy}
-          className="text-xs text-neutral-400 hover:text-white bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 rounded-xl px-3 py-1.5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
+        <button type="button" onClick={handleDelete} disabled={busy} className={ACTION}>
           {busy ? "삭제 중" : "삭제"}
         </button>
       </span>
-      {error && <span className="text-[11px] text-neutral-400">{error}</span>}
+      {error && (
+        <span role="alert" className="inline-flex items-center gap-1 text-micro text-negative">
+          <WarningIcon size={16} />
+          {error}
+        </span>
+      )}
     </span>
   );
 }

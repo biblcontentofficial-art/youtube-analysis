@@ -18,7 +18,7 @@ const VIDEO_CLASS = "mx-auto my-6 block w-auto max-w-full max-h-[70vh] rounded-p
 const URL_RE = /https?:\/\/[^\s<>"']+/g;
 const TRAIL_RE = /[.,!?;:)\]}>'"·]+$/;
 
-function linkify(text: string): ReactNode[] {
+export function linkify(text: string): ReactNode[] {
   const nodes: ReactNode[] = [];
   const re = new RegExp(URL_RE.source, "g");
   let last = 0;

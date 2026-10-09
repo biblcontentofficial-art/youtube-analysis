@@ -10,6 +10,7 @@ import {
   type Board,
   type Viewer,
 } from "@/lib/community";
+import { buttonClass, cx } from "@/components/ui/button";
 import PostForm from "./_components/PostForm";
 
 export const dynamic = "force-dynamic";
@@ -23,13 +24,10 @@ export const metadata = {
 function Notice({ title, desc, href, cta }: { title: string; desc: string; href: string; cta: string }) {
   // 컨테이너·<main>은 community/layout.tsx가 제공하므로 여기서는 카드만 렌더한다
   return (
-    <div className="rounded-2xl border border-neutral-800 bg-neutral-900 px-6 py-14 text-center">
-      <h1 className="text-xl font-bold tracking-tight text-white">{title}</h1>
-      <p className="mt-3 text-sm text-neutral-400">{desc}</p>
-      <Link
-        href={href}
-        className="mt-6 inline-block rounded-xl bg-white px-5 py-2.5 text-sm font-bold text-black transition hover:bg-neutral-200"
-      >
+    <div className="rounded-card border border-line bg-surface px-6 py-14 text-center">
+      <h1 className="text-h4 font-bold text-fg">{title}</h1>
+      <p className="mt-3 text-body-sm text-fg-3">{desc}</p>
+      <Link href={href} className={cx(buttonClass(), "mt-6")}>
         {cta}
       </Link>
     </div>
@@ -116,8 +114,8 @@ export default async function CommunityWritePage({
     );
   }
 
-  const initialBoardSlug =
-    (boardParam && writable.some((b) => b.slug === boardParam) ? boardParam : "") || writable[0].slug;
+  // ?board= 로 정해서 들어오지 않았으면 비워 둔다(폼이 '게시판을 선택하세요'를 먼저 보인다)
+  const initialBoardSlug = boardParam && writable.some((b) => b.slug === boardParam) ? boardParam : "";
 
   return (
     <PostForm

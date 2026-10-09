@@ -35,8 +35,13 @@ import PostActions from "./_components/PostActions";
 import ViewTracker from "./_components/ViewTracker";
 import MemberAvatar from "../../_components/MemberAvatar";
 import PostContent from "../../_components/PostContent";
+import { buttonClass } from "@/components/ui/button";
 
 export const dynamic = "force-dynamic";
+
+/** 뒤로가기 · 목록으로 글자 링크 (DESIGN 6.32) */
+const TEXT_LINK =
+  "inline-flex h-11 items-center gap-1.5 text-body-sm font-medium text-fg-3 transition-colors hover:text-fg";
 
 type Params = Promise<{ board: string; id: string }>;
 
@@ -107,23 +112,23 @@ export default async function CommunityPostPage({ params }: { params: Params }) 
   if (!canReadBoard(board, viewer)) {
     const next = `/community/${boardSlug}/${id}`;
     return (
-      <div className="mx-auto max-w-md bg-neutral-900 border border-neutral-800 rounded-2xl p-8 text-center">
-        <h1 className="text-white font-bold tracking-tight text-lg">
+      <div className="mx-auto max-w-md rounded-card border border-line bg-surface p-8 text-center">
+        <h1 className="text-h4 font-bold text-fg">
           회원 전용 게시판입니다
         </h1>
-        <p className="mt-3 text-sm text-neutral-400 leading-relaxed">
+        <p className="mt-3 text-body-sm text-fg-3">
           {board.name} 게시판의 글은 로그인 후 확인할 수 있습니다.
         </p>
-        <div className="mt-6 flex flex-col sm:flex-row gap-2 justify-center">
+        <div className="mt-6 flex flex-col justify-center gap-2 sm:flex-row">
           <Link
             href={`/sign-in?next=${encodeURIComponent(next)}`}
-            className="bg-white hover:bg-neutral-200 text-black font-bold rounded-xl px-5 py-2.5 text-sm transition-colors"
+            className={buttonClass()}
           >
             로그인하기
           </Link>
           <Link
             href="/community"
-            className="bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 text-white rounded-xl px-5 py-2.5 text-sm transition-colors"
+            className={buttonClass({ variant: "secondary" })}
           >
             커뮤니티 홈
           </Link>
@@ -152,56 +157,50 @@ export default async function CommunityPostPage({ params }: { params: Params }) 
     getGradeMap(peopleIds),
   ]);
 
+  const listHref = `/community/${boardSlug}`;
+
   return (
-    <div>
+    <div className="mx-auto max-w-[720px]">
       <ViewTracker postId={post.id} skip={isModerator || isAuthor} />
-      {/* 뒤로가기 */}
-      <div className="mb-6">
-        <Link
-          href={`/community/${boardSlug}`}
-          className="inline-flex items-center gap-1.5 text-sm text-neutral-400 hover:text-white transition-colors"
-        >
-          <svg viewBox="0 0 24 24" fill="none" className="w-4 h-4" aria-hidden="true">
-            <path
-              d="M15 19l-7-7 7-7"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
+      {/* 뒤로가기 (DESIGN 6.32, 댓글 아래 '목록으로'와 같은 주소) */}
+      <div className="mb-4">
+        <Link href={listHref} className={TEXT_LINK}>
+          <span aria-hidden="true">←</span>
           {board.name}
         </Link>
       </div>
 
       {/* 헤더 */}
-      <header className="pb-6 border-b border-white/[0.06]">
+      <header className="border-b border-line pb-6">
         {post.is_notice && (
-          <span className="inline-block mb-3 text-[11px] font-bold tracking-tight text-[#00E5A0] border border-[#00E5A0]/30 rounded-md px-2 py-0.5">
+          <span className="mb-3 inline-flex items-center rounded-md border border-line-strong px-1.5 py-0.5 text-micro font-semibold text-fg">
             공지
           </span>
         )}
-        <h1 className="text-white font-bold tracking-tight text-2xl md:text-3xl leading-snug break-words">
+        <h1 className="text-title font-extrabold text-fg wrap-anywhere md:text-h3">
           {post.title}
         </h1>
 
-        <div className="mt-4 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-neutral-500">
+        <div className="mt-5 flex items-center gap-3">
           <MemberAvatar
             name={post.author_name}
             avatarUrl={post.author_id ? avatarMap[post.author_id] : null}
             grade={post.author_id ? gradeMap[post.author_id] : undefined}
-            size={28}
+            size={44}
           />
-          <span className="text-neutral-400">{displayName(post.author_name)}</span>
-          <span aria-hidden="true">·</span>
-          <span>{timeAgo(post.created_at)}</span>
-          <span aria-hidden="true">·</span>
-          <span>조회 {post.view_count.toLocaleString()}</span>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-body-sm font-semibold text-fg-1">{displayName(post.author_name)}</p>
+            <p className="tnum mt-0.5 text-caption text-fg-3">
+              {timeAgo(post.created_at)}
+              <span aria-hidden="true"> · </span>
+              조회 {post.view_count.toLocaleString()}
+            </p>
+          </div>
 
           {canManage && (
-            <span className="ml-auto">
+            <div className="shrink-0 self-start">
               <PostActions postId={post.id} boardSlug={boardSlug} />
-            </span>
+            </div>
           )}
         </div>
       </header>
@@ -213,7 +212,7 @@ export default async function CommunityPostPage({ params }: { params: Params }) 
       <AttachmentList attachments={attachments} />
 
       {/* 좋아요 */}
-      <div className="py-8 flex justify-center border-t border-white/[0.06]">
+      <div className="flex justify-center border-t border-line py-8">
         <LikeButton
           postId={post.id}
           initialLiked={liked}
@@ -225,6 +224,7 @@ export default async function CommunityPostPage({ params }: { params: Params }) 
       {/* 댓글 */}
       <CommentSection
         postId={post.id}
+        postAuthorId={post.author_id}
         comments={comments}
         avatarMap={avatarMap}
         gradeMap={gradeMap}
@@ -232,6 +232,14 @@ export default async function CommunityPostPage({ params }: { params: Params }) 
         canModerate={isModerator}
         isLoggedIn={!!viewer}
       />
+
+      {/* 목록으로 (위 뒤로가기와 같은 주소) */}
+      <div className="mt-8 border-t border-line pt-2">
+        <Link href={listHref} className={TEXT_LINK}>
+          <span aria-hidden="true">←</span>
+          목록으로
+        </Link>
+      </div>
     </div>
   );
 }

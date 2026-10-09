@@ -19,6 +19,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createSupabaseBrowser } from "@/lib/supabase/browser";
+import { buttonClass, cx } from "@/components/ui/button";
+import { INPUT } from "@/components/ui/field";
+import { WarningIcon } from "@/components/ui/icons";
 import BlockEditor from "./BlockEditor";
 import {
   ALLOWED_FILE_EXT,
@@ -42,8 +45,13 @@ interface Props {
   initialIsNotice: boolean;
 }
 
-const INPUT =
-  "w-full bg-neutral-900 border border-neutral-700 rounded-xl px-4 py-3 text-sm text-white placeholder-neutral-600 focus:outline-none focus:border-neutral-400";
+/** 라벨 (DESIGN 6.9) */
+const LABEL = "block text-body-sm font-medium text-fg-2";
+/** 글자 수 */
+const COUNT = "tnum text-caption text-fg-3";
+/** 뒤로가기 글자 링크 (DESIGN 6.32) */
+const TEXT_LINK =
+  "inline-flex h-11 items-center gap-1.5 text-body-sm font-medium text-fg-3 transition-colors hover:text-fg";
 
 /** 사용자에게 안내·허용하는 확장자 (svg 는 스크립트를 품을 수 있어 제외) */
 const PICKABLE_EXT = ALLOWED_FILE_EXT.filter((e) => e !== "svg");
@@ -72,7 +80,9 @@ export default function PostForm({
   const router = useRouter();
   const isEdit = !!postId;
 
-  const [boardSlug, setBoardSlug] = useState(initialBoardSlug || boards[0]?.slug || "");
+  // 새 글은 게시판을 정해서 들어오지 않았으면 비워 두고 '게시판을 선택하세요'를 보인다.
+  // 수정은 게시판 select 가 잠겨 있으므로, 글의 게시판을 모를 때 예전처럼 첫 게시판으로 둔다.
+  const [boardSlug, setBoardSlug] = useState(initialBoardSlug || (isEdit ? (boards[0]?.slug ?? "") : ""));
   const [title, setTitle] = useState(initialTitle);
   const [content, setContent] = useState(initialContent);
   const [isNotice, setIsNotice] = useState(initialIsNotice);
@@ -306,17 +316,16 @@ export default function PostForm({
 
   return (
     <div>
-      <div className="flex items-baseline justify-between gap-4">
-        <h1 className="text-2xl font-bold tracking-tight text-white">{isEdit ? "글 수정" : "글쓰기"}</h1>
-        <Link href="/community" className="text-sm text-neutral-400 transition hover:text-white">
-          커뮤니티
-        </Link>
-      </div>
+      <Link href="/community" className={TEXT_LINK}>
+        <span aria-hidden="true">←</span>
+        커뮤니티
+      </Link>
+      <h1 className="mt-2 text-title font-extrabold text-fg">{isEdit ? "글 수정" : "글쓰기"}</h1>
 
-      <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+      <form onSubmit={handleSubmit} className="mt-8 space-y-6">
         {/* 게시판 */}
         <div>
-          <label htmlFor="board" className="block text-xs font-semibold text-neutral-400">
+          <label htmlFor="board" className={LABEL}>
             게시판
           </label>
           <select
@@ -324,12 +333,17 @@ export default function PostForm({
             value={boardSlug}
             onChange={(e) => setBoardSlug(e.target.value)}
             disabled={isEdit || locked || saving}
-            className={`${INPUT} mt-2 disabled:opacity-60`}
+            className={cx(INPUT, "mt-2")}
           >
+            {!initialBoardSlug && (
+              <option value="" disabled className="bg-surface">
+                게시판을 선택하세요
+              </option>
+            )}
             {groupBoards(boards).map(({ group, boards: groupItems }) => (
-              <optgroup key={group} label={group} className="bg-neutral-900">
+              <optgroup key={group} label={group} className="bg-surface">
                 {groupItems.map((b) => (
-                  <option key={b.id} value={b.slug} className="bg-neutral-900">
+                  <option key={b.id} value={b.slug} className="bg-surface">
                     {b.name}
                   </option>
                 ))}
@@ -337,20 +351,20 @@ export default function PostForm({
             ))}
           </select>
           {isEdit && (
-            <p className="mt-2 text-xs text-neutral-500">수정할 때는 게시판을 변경할 수 없습니다.</p>
+            <p className="mt-1.5 text-caption text-fg-3">수정할 때는 게시판을 변경할 수 없습니다.</p>
           )}
           {!isEdit && board?.description && (
-            <p className="mt-2 text-xs text-neutral-500">{board.description}</p>
+            <p className="mt-1.5 text-caption text-fg-3">{board.description}</p>
           )}
         </div>
 
         {/* 제목 */}
         <div>
           <div className="flex items-baseline justify-between">
-            <label htmlFor="title" className="block text-xs font-semibold text-neutral-400">
+            <label htmlFor="title" className={LABEL}>
               제목
             </label>
-            <span className="text-xs text-neutral-500">
+            <span className={COUNT}>
               {title.length}/{MAX_TITLE_LEN}
             </span>
           </div>
@@ -360,21 +374,21 @@ export default function PostForm({
             onChange={(e) => setTitle(e.target.value.slice(0, MAX_TITLE_LEN))}
             placeholder="제목을 입력하세요"
             disabled={saving || locked}
-            className={`${INPUT} mt-2 disabled:opacity-60`}
+            className={cx(INPUT, "mt-2")}
           />
         </div>
 
         {/* 본문 */}
         <div>
           <div className="flex items-baseline justify-between">
-            <label htmlFor="content" className="block text-xs font-semibold text-neutral-400">
+            <span id="content-label" className={LABEL}>
               본문
-            </label>
-            <span className="text-xs text-neutral-500">
+            </span>
+            <span className={COUNT}>
               {content.length.toLocaleString()}/{MAX_CONTENT_LEN.toLocaleString()}
             </span>
           </div>
-          <div className="mt-2">
+          <div className="mt-2" role="group" aria-labelledby="content-label">
             <BlockEditor
               value={content}
               onChange={(next) => setContent(next.slice(0, MAX_CONTENT_LEN))}
@@ -384,35 +398,41 @@ export default function PostForm({
         </div>
 
         {locked && (
-          <p className="text-xs text-neutral-500">
+          <p className="text-caption text-fg-3">
             글은 이미 등록됐습니다. 제목·본문을 더 고치려면 저장된 글에서 수정해 주세요.
           </p>
         )}
 
         {/* 공지 (운영진 전용) */}
         {canModerate && (
-          <label className="flex w-fit cursor-pointer items-center gap-2.5 rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 transition hover:bg-white/[0.05]">
+          <label className="flex min-h-11 w-fit cursor-pointer items-center gap-2.5 rounded-control border border-line bg-surface px-4 py-2.5 transition-colors hover:border-line-hover">
             <input
               type="checkbox"
               checked={isNotice}
               onChange={(e) => setIsNotice(e.target.checked)}
               disabled={saving || locked}
-              className="h-4 w-4 accent-[#00E5A0]"
+              className="chk"
             />
-            <span className="text-sm text-neutral-200">공지로 등록 (목록 상단 고정)</span>
+            <span className="text-body-sm text-fg-1">공지로 등록 (목록 상단 고정)</span>
           </label>
         )}
 
         {/* 첨부 */}
         {allowFiles && (
-          <div className="rounded-2xl border border-neutral-800 bg-neutral-900 p-5">
+          <div className="rounded-card border border-line bg-surface p-5">
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <p className="text-sm font-bold text-white">파일 첨부</p>
-                <p className="mt-1 text-xs text-neutral-500">
-                  파일당 최대 {formatFileSize(MAX_FILE_BYTES)} · {PICKABLE_EXT.join(", ")}
+              <div className="min-w-0">
+                <p className="text-body-sm font-bold text-fg">파일 첨부</p>
+                <p className="mt-1 text-caption text-fg-3">
+                  문서·이미지·영상·압축 파일 등, 파일당 최대 {formatFileSize(MAX_FILE_BYTES)}
                 </p>
-                <p className="mt-1 text-xs text-neutral-500">
+                <details className="mt-1 text-caption text-fg-3">
+                  <summary className="inline-flex h-9 cursor-pointer items-center underline decoration-fg-4 underline-offset-2 hover:text-fg">
+                    올릴 수 있는 형식 보기
+                  </summary>
+                  <p className="mt-1 wrap-anywhere">{PICKABLE_EXT.join(", ")}</p>
+                </details>
+                <p className="mt-1 text-caption text-fg-3">
                   사진·영상은 글 아래에 바로 보이고, 그 외 파일은 다운로드 목록으로 붙습니다.
                 </p>
               </div>
@@ -420,7 +440,7 @@ export default function PostForm({
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={saving}
-                className="rounded-xl border border-neutral-700 bg-neutral-800 px-4 py-2 text-sm text-white transition hover:bg-neutral-700 disabled:opacity-50"
+                className={buttonClass({ variant: "secondary", size: "sm" })}
               >
                 파일 선택
               </button>
@@ -435,16 +455,16 @@ export default function PostForm({
             </div>
 
             {files.length > 0 && (
-              <ul className="mt-4 divide-y divide-white/[0.06] border-t border-white/[0.06]">
+              <ul className="mt-4 divide-y divide-line-soft border-t border-line-soft">
                 {files.map((f, i) => (
-                  <li key={`${f.name}-${f.size}-${i}`} className="flex items-center gap-3 py-3">
-                    <span className="min-w-0 flex-1 truncate text-sm text-neutral-200">{f.name}</span>
-                    <span className="shrink-0 text-xs text-neutral-500">{formatFileSize(f.size)}</span>
+                  <li key={`${f.name}-${f.size}-${i}`} className="flex items-center gap-3 py-2">
+                    <span className="min-w-0 flex-1 truncate text-body-sm text-fg-1">{f.name}</span>
+                    <span className="tnum shrink-0 text-caption text-fg-3">{formatFileSize(f.size)}</span>
                     <button
                       type="button"
                       onClick={() => removeFile(i)}
                       disabled={saving}
-                      className="shrink-0 text-xs text-neutral-400 transition hover:text-white disabled:opacity-50"
+                      className="inline-flex h-9 shrink-0 items-center rounded-control px-2.5 text-caption text-fg-3 transition-colors hover:bg-surface-2 hover:text-fg disabled:opacity-50 pointer-coarse:h-11"
                     >
                       제거
                     </button>
@@ -454,7 +474,7 @@ export default function PostForm({
             )}
 
             {isEdit && (
-              <p className="mt-3 text-xs text-neutral-500">
+              <p className="mt-3 text-caption text-fg-3">
                 여기서 고른 파일은 기존 첨부에 추가됩니다.
               </p>
             )}
@@ -462,30 +482,39 @@ export default function PostForm({
         )}
 
         {/* 상태 */}
-        {progress && <p className="text-sm text-neutral-400">{progress}</p>}
+        {progress && (
+          <p role="status" className="text-body-sm text-fg-2">
+            {progress}
+          </p>
+        )}
         {error && (
-          <div className="text-sm text-red-400">
-            <p>{error}</p>
-            {savedPostUrl && (
-              <Link href={savedPostUrl} className="mt-2 inline-block text-[#00E5A0] hover:text-[#66FFCC]">
-                저장된 글 보기
-              </Link>
-            )}
+          <div role="alert" className="flex items-start gap-1.5 text-body-sm text-negative">
+            <WarningIcon size={16} className="mt-[3px]" />
+            <div className="min-w-0">
+              <p className="wrap-anywhere">{error}</p>
+              {savedPostUrl && (
+                <Link
+                  href={savedPostUrl}
+                  className="mt-2 inline-flex h-9 items-center font-semibold text-fg underline decoration-fg-4 underline-offset-2 hover:decoration-fg"
+                >
+                  저장된 글 보기
+                </Link>
+              )}
+            </div>
           </div>
         )}
 
-        {/* 액션 */}
-        <div className="flex items-center gap-3 pt-2">
-          <button
-            type="submit"
-            disabled={saving}
-            className="rounded-xl bg-white px-6 py-3 text-sm font-bold text-black transition hover:bg-neutral-200 disabled:opacity-50"
-          >
+        {/* 액션: 화면 아래에 붙는 줄. 모바일에서는 카카오 버튼이 이 줄 위로 올라간다(data-bottom-bar) */}
+        <div
+          data-bottom-bar="md"
+          className="sticky bottom-0 z-30 flex items-center gap-2 border-t border-line bg-canvas pb-[max(12px,env(safe-area-inset-bottom))] pt-3"
+        >
+          <button type="submit" disabled={saving} className={buttonClass()}>
             {submitLabel}
           </button>
           <Link
             href={isEdit && initialBoardSlug ? `/community/${initialBoardSlug}/${postId}` : "/community"}
-            className="rounded-xl border border-neutral-700 bg-neutral-800 px-6 py-3 text-sm text-white transition hover:bg-neutral-700"
+            className={buttonClass({ variant: "secondary" })}
           >
             취소
           </Link>

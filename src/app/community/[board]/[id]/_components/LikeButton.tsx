@@ -2,11 +2,13 @@
 
 /**
  * 좋아요 버튼 — 낙관적 업데이트 후 서버 응답으로 확정한다.
+ * 눌린 상태는 aria-pressed 로 표시하고, 모양은 흰 채움 아이콘 + 한 단 밝은 면·선(액센트 = 흰색)이다.
  */
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { WarningIcon } from "@/components/ui/icons";
 
 interface Props {
   postId: string;
@@ -116,11 +118,7 @@ export default function LikeButton({ postId, initialLiked, initialCount, isLogge
         disabled={busy}
         aria-pressed={liked}
         aria-label={liked ? "좋아요 취소" : "좋아요"}
-        className={`inline-flex items-center gap-2 rounded-xl border px-5 py-2.5 text-sm transition-colors disabled:opacity-60 ${
-          liked
-            ? "border-[#00E5A0]/40 bg-white/[0.02] hover:bg-white/[0.05] text-[#00E5A0]"
-            : "border-neutral-700 bg-neutral-800 hover:bg-neutral-700 text-white"
-        }`}
+        className="inline-flex h-11 items-center gap-2 rounded-control border border-line-strong bg-surface px-5 text-ui text-fg-2 transition-colors duration-150 hover:border-line-hover hover:bg-surface-2 hover:text-fg disabled:opacity-60 aria-pressed:border-line-hover aria-pressed:bg-surface-2 aria-pressed:text-accent"
       >
         {liked ? (
           <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4" aria-hidden="true">
@@ -136,23 +134,26 @@ export default function LikeButton({ postId, initialLiked, initialCount, isLogge
             />
           </svg>
         )}
-        <span className="font-bold tracking-tight">{count.toLocaleString()}</span>
+        <span className="tnum font-bold">{count.toLocaleString()}</span>
       </button>
 
       {error && (
-        <p role="status" className="text-center text-xs text-red-400">
+        <p role="alert" className="flex items-start justify-center gap-1.5 text-center text-caption text-negative">
+          <WarningIcon size={16} className="mt-px" />
+          <span>
           {error}
           {needSignIn && (
             <>
               {" "}
               <Link
                 href={`/sign-in?next=${encodeURIComponent(nextUrl)}`}
-                className="underline underline-offset-2 hover:text-red-300"
+                className="underline underline-offset-2 hover:text-fg"
               >
                 로그인하러 가기
               </Link>
             </>
           )}
+          </span>
         </p>
       )}
     </div>
