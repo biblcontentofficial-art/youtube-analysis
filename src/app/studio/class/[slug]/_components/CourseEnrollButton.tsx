@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { buttonClass } from "@/components/ui/button";
 
 interface Props {
   courseSlug: string;
@@ -17,7 +18,7 @@ export default function CourseEnrollButton({ courseSlug, courseTitle, price, pri
     return (
       <button
         onClick={() => router.push(`/studio/classroom/${courseSlug}`)}
-        className="w-full py-3 bg-white hover:bg-neutral-200 text-black rounded-xl font-bold transition text-sm"
+        className={buttonClass({ block: true })}
       >
         수강하기 →
       </button>
@@ -28,12 +29,13 @@ export default function CourseEnrollButton({ courseSlug, courseTitle, price, pri
   if (price === 0) {
     return (
       <a
-        href="http://pf.kakao.com/_beBNn/chat"
+        href="https://pf.kakao.com/_beBNn/chat"
         target="_blank"
         rel="noopener noreferrer"
-        className="block w-full py-3 bg-yellow-500 hover:bg-yellow-400 text-black rounded-xl font-semibold transition text-sm text-center"
+        className={buttonClass({ variant: "kakao", block: true })}
       >
         카카오톡으로 문의하기
+        <span className="sr-only">(새 창)</span>
       </a>
     );
   }
@@ -52,11 +54,11 @@ export default function CourseEnrollButton({ courseSlug, courseTitle, price, pri
     <div className="space-y-2">
       <button
         onClick={handlePurchase}
-        className="w-full py-3 bg-white hover:bg-neutral-200 text-black rounded-xl font-bold transition text-sm"
+        className={buttonClass({ block: true })}
       >
         {priceLabel}으로 수강 신청
       </button>
-      <p className="text-xs text-neutral-400 text-center">30일 환불 보장</p>
+      <p className="text-center text-caption text-fg-3">30일 환불 보장</p>
     </div>
   );
 }
