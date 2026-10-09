@@ -10,6 +10,7 @@
  */
 import { Fragment } from "react";
 import type { PlanKey } from "@/lib/stripe";
+import { CheckIcon } from "@/components/ui/icons";
 
 export type UpgradePlan = {
   name: string;
@@ -20,7 +21,8 @@ export type UpgradePlan = {
   perks: string[];
 };
 
-const STARTER: UpgradePlan = {
+/** /search 무료 안내 줄도 이 가격을 쓴다 */
+export const STARTER: UpgradePlan = {
   name: "Starter",
   searches: "월 50회 검색",
   price: "월 ₩19,000 (연간 결제 시 월 ₩15,000)",
@@ -50,15 +52,13 @@ export function getLimitCopy(isMonthly: boolean, plan: PlanKey) {
 export function LimitPerkList({ perks }: { perks: UpgradePlan[] }) {
   if (perks.length === 0) return null;
   return (
-    <ul className="mx-auto mb-6 max-w-md space-y-2 rounded-xl border border-neutral-700 bg-neutral-800/60 px-4 py-3 text-left">
+    <ul className="mx-auto mb-6 max-w-md space-y-2 rounded-card border border-line bg-surface px-4 py-3 text-left">
       {perks.map((p) => (
-        <li key={p.name} className="flex items-start gap-2 text-xs text-neutral-400 break-keep">
-          <svg viewBox="0 0 24 24" fill="none" className="mt-0.5 h-3.5 w-3.5 shrink-0 text-neutral-400" stroke="currentColor" strokeWidth={2.5} aria-hidden="true">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-          </svg>
+        <li key={p.name} className="flex items-start gap-2 text-caption text-fg-3 break-keep">
+          <CheckIcon size={16} className="mt-0.5 text-fg-3" />
           <span>
-            <span className="font-semibold text-white">{p.name}</span>
-            <span className="mx-1 text-neutral-500">·</span>
+            <span className="font-semibold text-fg">{p.name}</span>
+            <span aria-hidden="true" className="mx-1 text-fg-4">·</span>
             {p.perks.map((item, i) => (
               <Fragment key={item}>
                 {i > 0 && " "}

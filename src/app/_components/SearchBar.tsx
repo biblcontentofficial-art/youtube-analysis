@@ -7,6 +7,7 @@ import { useNavigationLoading } from "./NavigationLoader";
 import { useEffect as useEffectOnce } from "react";
 import { createSupabaseBrowser } from "@/lib/supabase/browser";
 import { takePendingKeyword } from "./pendingKeyword";
+import { CheckIcon, ChevronDownIcon, CloseIcon, SearchIcon } from "@/components/ui/icons";
 
 interface HistoryItem {
   term: string;
@@ -60,7 +61,8 @@ function saveLocalHistory(history: HistoryItem[], userId?: string) {
   localStorage.setItem(localHistoryKey(userId), JSON.stringify(history));
 }
 
-export default function SearchBar() {
+/** hint: 검색창 바로 아래 안내 줄(차감·초기화·남은 횟수). 서버 페이지가 사용량을 알아 넘겨 준다 */
+export default function SearchBar({ hint }: { hint?: React.ReactNode } = {}) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const showConfirm = useConfirm();
@@ -197,7 +199,7 @@ export default function SearchBar() {
 
   const removeAllHistory = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!await showConfirm("최근 검색어를 모두 삭제할까요?")) return;
+    if (!await showConfirm({ message: "최근 검색어를 모두 삭제할까요?", destructive: true })) return;
     setHistory([]);
     if (useServerHistory) {
       fetch("/api/search-history", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({}) }).catch(() => {});
@@ -207,7 +209,7 @@ export default function SearchBar() {
   };
 
   const removeHistoryItem = async (term: string) => {
-    if (!await showConfirm(`"${term}" 검색어를 삭제할까요?`)) return;
+    if (!await showConfirm({ message: `"${term}" 검색어를 삭제할까요?`, destructive: true })) return;
     const next = history.filter((h) => h.term !== term);
     setHistory(next);
     if (useServerHistory) {
@@ -263,88 +265,149 @@ export default function SearchBar() {
 
   const currentRegion = REGIONS.find((r) => r.code === region) ?? REGIONS[0];
 
+  // 국가 메뉴 키보드: 열면 선택된 항목으로, 위아래 화살표·Home·End 로 이동, Esc 는 닫고 여는 버튼으로 (DESIGN 6.22)
+  const regionButtonRef = useRef<HTMLButtonElement>(null);
+  const regionItemRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  useEffect(() => {
+    if (!showRegionMenu) return;
+    const i = REGIONS.findIndex((r) => r.code === region);
+    regionItemRefs.current[i < 0 ? 0 : i]?.focus();
+  // 메뉴를 열 때만 포커스를 옮긴다
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showRegionMenu]);
+
+  const closeRegionMenu = (returnFocus: boolean) => {
+    setShowRegionMenu(false);
+    if (returnFocus) regionButtonRef.current?.focus();
+  };
+
+  const handleRegionMenuKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    const items = regionItemRefs.current.filter((el): el is HTMLButtonElement => !!el);
+    const at = items.indexOf(document.activeElement as HTMLButtonElement);
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      e.preventDefault();
+      const step = e.key === "ArrowDown" ? 1 : -1;
+      items[(at + step + items.length) % items.length]?.focus();
+    } else if (e.key === "Home" || e.key === "End") {
+      e.preventDefault();
+      items[e.key === "Home" ? 0 : items.length - 1]?.focus();
+    } else if (e.key === "Escape") {
+      e.preventDefault();
+      closeRegionMenu(true);
+    } else if (e.key === "Tab") {
+      closeRegionMenu(false);
+    }
+  };
+
+  const historyListId = "search-history-list";
+
   return (
-    <div className="w-full flex flex-col gap-2 flex-1">
-      {/* 검색창 */}
-      <form onSubmit={handleSubmit} className="relative w-full">
+    <div className="flex w-full flex-1 flex-col gap-2">
+      {/* 검색창 (DESIGN 6.9 앱 검색창: 모바일 50px · 640 이상 56px) */}
+      <form
+        role="search"
+        onSubmit={handleSubmit}
+        className="flex h-[50px] w-full items-center gap-2 rounded-card border border-line-strong bg-surface p-0.5 pl-4 transition-colors focus-within:border-accent sm:h-14 sm:p-1 lg:pl-5"
+      >
+        <SearchIcon className="text-fg-3" />
         <input
           type="text"
           value={keyword}
           onChange={(e) => setKeyword(e.target.value)}
           placeholder="키워드를 입력하세요"
-          className="w-full pl-5 pr-28 py-3 rounded-xl bg-neutral-900 text-white border border-neutral-700 focus:border-neutral-400 focus:outline-none placeholder-neutral-600 text-sm transition-colors"
+          aria-label="검색할 키워드"
+          enterKeyHint="search"
+          autoComplete="off"
+          className="h-full min-w-0 flex-1 bg-transparent text-body font-medium text-fg outline-none placeholder:text-fg-3 lg:text-[17px]"
         />
 
-        {/* 국가 선택 버튼 */}
-        <div ref={regionMenuRef} className="absolute right-12 top-1/2 -translate-y-1/2">
+        {/* 국가 선택 버튼 (국기 이모지는 글자 라벨과 함께 쓰는 예외, DESIGN 6.22) */}
+        <div ref={regionMenuRef} className="relative h-full shrink-0">
           <button
+            ref={regionButtonRef}
             type="button"
             onClick={() => setShowRegionMenu((v) => !v)}
-            className="flex items-center gap-1 px-2 py-1 rounded-lg text-sm hover:bg-neutral-700 transition-colors text-neutral-300 hover:text-white"
-            title="검색 국가 선택"
+            onKeyDown={(e) => {
+              if ((e.key === "ArrowDown" || e.key === "ArrowUp") && !showRegionMenu) {
+                e.preventDefault();
+                setShowRegionMenu(true);
+              }
+            }}
+            aria-label={`검색 국가: ${currentRegion.label}`}
+            aria-haspopup="menu"
+            aria-expanded={showRegionMenu}
+            className="inline-flex h-full min-w-11 items-center justify-center gap-1 rounded-control px-2 text-body-sm font-medium text-fg-2 transition-colors hover:bg-surface-2 hover:text-fg sm:px-3"
           >
-            <span>{currentRegion.flag}</span>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="w-3 h-3 text-neutral-500">
-              <path fillRule="evenodd" d="M4.22 6.22a.75.75 0 0 1 1.06 0L8 8.94l2.72-2.72a.75.75 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L4.22 7.28a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" />
-            </svg>
+            <span aria-hidden="true">{currentRegion.flag}</span>
+            <span aria-hidden="true" className="hidden sm:inline">{currentRegion.label}</span>
+            <ChevronDownIcon size={16} className="text-fg-3" />
           </button>
 
           {/* 드롭다운 */}
           {showRegionMenu && (
-            <div className="absolute right-0 top-full mt-1 w-36 bg-neutral-900 border border-neutral-700 rounded-xl shadow-xl z-50 overflow-hidden">
-              {REGIONS.map((r) => (
+            <div
+              role="menu"
+              aria-label="검색 국가"
+              onKeyDown={handleRegionMenuKeyDown}
+              className="absolute right-0 top-full z-50 mt-2 w-44 rounded-card border border-line bg-surface p-1.5"
+            >
+              {REGIONS.map((r, i) => (
                 <button
                   key={r.code}
+                  ref={(el) => {
+                    regionItemRefs.current[i] = el;
+                  }}
                   type="button"
+                  role="menuitemradio"
+                  aria-checked={region === r.code}
+                  tabIndex={region === r.code ? 0 : -1}
                   onClick={() => {
                     setRegion(r.code);
-                    setShowRegionMenu(false);
+                    closeRegionMenu(true);
                   }}
-                  className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm transition-colors text-left ${
-                    region === r.code
-                      ? "bg-neutral-700 text-white"
-                      : "text-neutral-300 hover:bg-neutral-800 hover:text-white"
-                  }`}
+                  className="flex h-11 w-full items-center gap-2.5 rounded-md px-3 text-left text-body-sm text-fg-2 transition-colors hover:bg-surface-2 hover:text-fg aria-checked:font-semibold aria-checked:text-fg"
                 >
-                  <span className="text-base">{r.flag}</span>
+                  <span aria-hidden="true" className="text-base">{r.flag}</span>
                   <span>{r.label}</span>
-                  {region === r.code && <span className="ml-auto text-[#00E5A0] text-xs">✓</span>}
+                  {region === r.code && <CheckIcon size={16} className="ml-auto text-accent" />}
                 </button>
               ))}
             </div>
           )}
         </div>
 
-        {/* 검색 버튼 */}
+        {/* 검색 버튼 (흰 면은 이 화면에 이것 하나) */}
         <button
           type="submit"
-          className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-white transition-colors"
+          aria-label="검색"
+          className="inline-flex h-full min-h-11 shrink-0 items-center justify-center rounded-control bg-accent px-5 text-ui font-bold text-accent-ink transition-colors duration-150 hover:bg-accent-hover active:bg-accent-active lg:px-7"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
-            <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
-          </svg>
+          검색
         </button>
       </form>
+      {/* 검색창 바로 아래 안내 줄(DESIGN 7.2 3행). 기록은 그 아래 */}
+      {hint}
 
-      {/* 검색 기록 — Starter 이상만 표시 */}
+      {/* 검색 기록: Starter 이상만 표시 */}
       {useServerHistory && history.length > 0 && (
-        <div className="w-full bg-neutral-900/50 border border-neutral-800 rounded-xl overflow-hidden">
-          <div
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="flex items-center justify-between px-3 py-2 cursor-pointer bg-neutral-800/40 hover:bg-neutral-800/60 transition-colors select-none"
-          >
-            <div className="flex items-center gap-1.5 text-xs font-medium text-neutral-400">
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
+        <div className="w-full rounded-card border border-line bg-surface">
+          <div className="flex items-center justify-between gap-2 pr-1.5">
+            <button
+              type="button"
+              onClick={() => setIsExpanded(!isExpanded)}
+              aria-expanded={isExpanded}
+              aria-controls={historyListId}
+              className="flex h-11 min-w-0 flex-1 items-center gap-1.5 rounded-card px-3 text-left text-caption font-medium text-fg-3 transition-colors hover:text-fg"
+            >
               최근 검색어
-              {useServerHistory && <span className="text-[10px] text-[#00E5A0] border border-neutral-700 px-1 py-0.5 rounded">서버 저장</span>}
-              <span className={`transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`}>▼</span>
-            </div>
+              <span className="inline-flex items-center rounded border border-line-strong px-1 text-micro font-medium leading-[18px] text-fg-3">서버 저장</span>
+              <ChevronDownIcon size={16} className={`transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`} />
+            </button>
             {isExpanded && (
               <button
+                type="button"
                 onClick={removeAllHistory}
-                className="text-xs text-neutral-600 hover:text-red-400 transition-colors"
+                className="inline-flex h-11 shrink-0 items-center rounded-control px-2.5 text-caption text-fg-3 transition-colors hover:text-negative"
               >
                 전체 삭제
               </button>
@@ -352,31 +415,31 @@ export default function SearchBar() {
           </div>
 
           {isExpanded && (
-            <div className="px-3 py-3 border-t border-neutral-800 max-h-[120px] overflow-y-auto">
-              <div className="flex flex-wrap gap-1.5">
+            <div id={historyListId} className="max-h-[132px] overflow-y-auto border-t border-line-soft px-3 py-3">
+              <ul aria-label="최근 검색어" className="flex flex-wrap gap-1.5">
                 {history.map((item, index) => (
-                  <div
+                  <li
                     key={index}
-                    className="group flex items-center bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 hover:border-neutral-500 rounded-lg transition-all overflow-hidden"
+                    className="flex items-center overflow-hidden rounded-control border border-line transition-colors hover:border-line-hover"
                   >
-                    <div
+                    <button
+                      type="button"
                       onClick={() => navigateFromHistory(item.term)}
-                      className="flex items-center gap-1.5 px-2.5 py-1.5 cursor-pointer"
+                      className="inline-flex h-9 items-center px-2.5 text-caption font-medium text-fg-2 transition-colors hover:text-fg pointer-coarse:h-11"
                     >
-                      <span className="text-xs font-medium text-neutral-200">{item.term}</span>
-                    </div>
+                      {item.term}
+                    </button>
                     <button
                       type="button"
                       onClick={() => void removeHistoryItem(item.term)}
-                      className="pr-2 pl-0.5 py-1.5 text-neutral-600 hover:text-red-400 transition-colors self-stretch flex items-center"
+                      aria-label={`${item.term} 기록 삭제`}
+                      className="inline-flex h-9 w-8 items-center justify-center text-fg-3 transition-colors hover:text-negative pointer-coarse:h-11 pointer-coarse:w-10"
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5">
-                        <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
-                      </svg>
+                      <CloseIcon size={16} />
                     </button>
-                  </div>
+                  </li>
                 ))}
-              </div>
+              </ul>
             </div>
           )}
         </div>
