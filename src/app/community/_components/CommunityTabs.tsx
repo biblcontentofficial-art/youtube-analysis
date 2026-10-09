@@ -8,6 +8,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { TAB, TAB_BAR, TAB_LIST } from "@/components/ui/tabs";
 
 interface Tab {
   href: string;
@@ -44,8 +45,8 @@ export default function CommunityTabs({ isModerator }: { isModerator: boolean })
   ];
 
   return (
-    <nav className="border-b border-white/[0.06]">
-      <div className="-mb-px flex gap-1 overflow-x-auto">
+    <nav aria-label="커뮤니티 메뉴" className={TAB_BAR}>
+      <div className={TAB_LIST}>
         {tabs.map((tab) => {
           const active = isActiveTab(pathname, tab.href);
           return (
@@ -53,11 +54,7 @@ export default function CommunityTabs({ isModerator }: { isModerator: boolean })
               key={tab.href}
               href={tab.href}
               aria-current={active ? "page" : undefined}
-              className={`shrink-0 border-b-2 px-3 py-2.5 text-sm transition ${
-                active
-                  ? "border-[#00E5A0] font-semibold text-white"
-                  : "border-transparent text-neutral-400 hover:text-white"
-              }`}
+              className={TAB}
             >
               {tab.label}
             </Link>

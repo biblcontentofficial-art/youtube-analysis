@@ -33,7 +33,7 @@ export default function MemberAvatar({ name, avatarUrl, grade, size = 36 }: Prop
         />
       ) : (
         <div
-          className="flex items-center justify-center rounded-full bg-neutral-800 text-xs font-bold text-white"
+          className="flex items-center justify-center rounded-full bg-surface-3 text-xs font-bold text-fg-2"
           style={{ width: size, height: size }}
         >
           {initial}
@@ -41,7 +41,7 @@ export default function MemberAvatar({ name, avatarUrl, grade, size = 36 }: Prop
       )}
       {grade && (
         <span
-          className="absolute -bottom-1 -right-1 flex h-[17px] w-[17px] items-center justify-center rounded-full bg-neutral-900 text-[11px] leading-none"
+          className="absolute -bottom-1 -right-1 flex h-[17px] w-[17px] items-center justify-center rounded-full bg-surface-2 text-micro leading-none"
           title={GRADE_NAMES[grade]}
           aria-label={`등급 ${GRADE_NAMES[grade]}`}
         >

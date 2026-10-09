@@ -1,10 +1,11 @@
 /**
  * /community — Skool형 통합 피드
- * 카테고리 칩 필터 + 정렬(최신/인기) 토글 + 검색 + 공지 상단 고정 + 페이지네이션.
+ * 게시판 칩(모바일) + 피드 머리(현재 게시판·검색·최신/인기) + 공지 상단 고정 + 페이지네이션.
  * 레이아웃 게이트가 비로그인을 먼저 막지만, canReadBoard 필터로 이중 방어한다.
  */
 
 import Link from "next/link";
+import { Suspense } from "react";
 import { currentUser } from "@/lib/auth";
 import {
   getAvatarMap,
@@ -15,8 +16,11 @@ import {
   listPosts,
 } from "@/lib/communityDb";
 import { PAGE_SIZE, canReadBoard, type PostSummary } from "@/lib/community";
+import { buttonClass, cx } from "@/components/ui/button";
 import CategoryChips from "./_components/CategoryChips";
 import FeedCard from "./_components/FeedCard";
+import FeedHeader from "./_components/FeedHeader";
+import FeedSkeleton from "./_components/FeedSkeleton";
 
 export const dynamic = "force-dynamic";
 
@@ -35,8 +39,23 @@ function pageWindow(current: number, total: number): number[] {
   return out;
 }
 
+type FeedParams = Awaited<Props["searchParams"]>;
+
+/**
+ * 스켈레톤은 피드에만 건다(loading.tsx 대신). 게시판·검색·정렬·페이지가 바뀌면 key 가 바뀌어
+ * 새 목록을 받는 동안 스켈레톤을 다시 보여 준다.
+ */
 export default async function CommunityFeedPage({ searchParams }: Props) {
   const sp = await searchParams;
+  const key = [sp.cat ?? "", sp.page ?? "", sp.q ?? "", sp.sort ?? ""].join("|");
+  return (
+    <Suspense key={key} fallback={<FeedSkeleton />}>
+      <CommunityFeed sp={sp} />
+    </Suspense>
+  );
+}
+
+async function CommunityFeed({ sp }: { sp: FeedParams }) {
 
   const parsedPage = Number.parseInt(sp.page ?? "1", 10);
   const page = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1;
@@ -101,71 +120,45 @@ export default async function CommunityFeedPage({ searchParams }: Props) {
 
   const writeHref = `/community/write${activeBoard ? `?board=${activeBoard.slug}` : ""}`;
 
-  const pageBtn =
-    "rounded-xl border border-neutral-700 bg-neutral-800 px-3 py-2 text-xs text-white hover:bg-neutral-700";
+  const pageBtn = cx(buttonClass({ variant: "secondary", size: "sm" }), "tnum");
   const pageBtnOff =
-    "rounded-xl border border-white/[0.06] px-3 py-2 text-xs text-neutral-600";
+    "inline-flex h-9 items-center justify-center rounded-control border border-line-soft px-3.5 text-body-sm text-fg-4";
 
   return (
     <div className="space-y-4">
-      {/* 카테고리 칩(모바일 전용 · 데스크톱은 좌측 메뉴) + 정렬 토글 */}
-      <div className="flex items-center gap-4 lg:justify-end">
-        <div className="min-w-0 flex-1 lg:hidden">
-          <CategoryChips
-            boards={readable}
-            activeCat={activeBoard?.slug}
-            sort={sort}
-            q={q}
-            recentBoardIds={recentBoardIds}
-          />
-        </div>
-        <div className="flex shrink-0 items-center gap-3 text-xs">
-          <Link
-            href={hrefFor(1, "recent")}
-            className={
-              sort === "recent" ? "font-semibold text-white" : "text-neutral-500 hover:text-neutral-300"
-            }
-          >
-            최신
-          </Link>
-          <Link
-            href={hrefFor(1, "popular")}
-            className={
-              sort === "popular" ? "font-semibold text-white" : "text-neutral-500 hover:text-neutral-300"
-            }
-          >
-            인기
-          </Link>
-        </div>
+      {/* 게시판 칩 (모바일 전용 · 데스크톱은 좌측 메뉴) */}
+      <div className="lg:hidden">
+        <CategoryChips
+          boards={readable.map(({ id, slug, name }) => ({ id, slug, name }))}
+          activeCat={activeBoard?.slug}
+          sort={sort}
+          q={q}
+          recentBoardIds={[...recentBoardIds]}
+        />
       </div>
 
-      {/* 검색 — 서버 렌더 GET 폼 (자바스크립트 없이도 동작) */}
-      <form action="/community" method="get" className="flex items-center gap-2">
-        {cat && <input type="hidden" name="cat" value={cat} />}
-        {sort === "popular" && <input type="hidden" name="sort" value={sort} />}
-        <input
-          type="search"
-          name="q"
-          defaultValue={q}
-          placeholder="제목·내용 검색"
-          aria-label="커뮤니티 검색"
-          className="w-44 rounded-xl border border-neutral-700 bg-neutral-900 px-4 py-2 text-sm text-white placeholder-neutral-600 focus:border-neutral-400 focus:outline-none sm:w-56"
-        />
-        <button
-          type="submit"
-          className="rounded-xl border border-neutral-700 bg-neutral-800 px-4 py-2 text-sm text-white hover:bg-neutral-700"
-        >
-          검색
-        </button>
-      </form>
+      {/* 피드 머리: 현재 게시판 + 글 수 + 설명 · 검색 · 최신/인기 */}
+      <FeedHeader
+        title={activeBoard?.name ?? "전체글"}
+        total={total}
+        description={activeBoard?.description}
+        cat={cat}
+        sort={sort}
+        q={q}
+        recentHref={hrefFor(1, "recent")}
+        popularHref={hrefFor(1, "popular")}
+      />
 
       {/* 검색 상태 */}
       {q && (
-        <div className="flex items-center justify-between gap-3 text-xs text-neutral-500">
+        <div className="flex items-center justify-between gap-3 text-caption text-fg-3">
           <span>
-            ‘<span className="text-[#00E5A0]">{q}</span>’ 검색 결과 {total}건
+            ‘<span className="text-accent">{q}</span>’ 검색 결과 <span className="tnum">{total}</span>건
           </span>
-          <Link href={hrefFor(1, sort, false)} className="text-neutral-400 hover:text-white">
+          <Link
+            href={hrefFor(1, sort, false)}
+            className="inline-flex h-11 items-center text-fg-3 transition-colors hover:text-fg"
+          >
             검색 해제
           </Link>
         </div>
@@ -184,21 +177,20 @@ export default async function CommunityFeedPage({ searchParams }: Props) {
         ))}
 
         {feedPosts.length === 0 && pinned.length === 0 ? (
-          <div className="rounded-2xl border border-neutral-800 bg-neutral-900 px-6 py-16 text-center">
+          <div className="flex flex-col items-start gap-4 rounded-card border border-line bg-surface p-6 md:p-8">
             {q ? (
               <>
-                <p className="text-sm font-bold text-white">검색 결과가 없습니다</p>
-                <p className="mt-2 text-xs text-neutral-500">다른 검색어로 찾아보세요.</p>
+                <div>
+                  <p className="text-ui font-semibold text-fg">검색 결과가 없습니다</p>
+                  <p className="mt-1 text-body-sm text-fg-3">다른 검색어로 찾아보세요.</p>
+                </div>
               </>
             ) : (
               <>
-                <p className="text-sm font-bold text-white">
+                <p className="text-ui font-semibold text-fg">
                   아직 글이 없습니다. 첫 글을 남겨보세요
                 </p>
-                <Link
-                  href={writeHref}
-                  className="mt-6 inline-block rounded-xl bg-white px-5 py-3 text-sm font-bold text-black hover:bg-neutral-200"
-                >
+                <Link href={writeHref} className={buttonClass({ variant: "secondary" })}>
                   새 포스트
                 </Link>
               </>
@@ -218,7 +210,7 @@ export default async function CommunityFeedPage({ searchParams }: Props) {
 
       {/* 페이지네이션 */}
       {totalPages > 1 && (
-        <nav className="flex flex-wrap items-center justify-center gap-1.5 pt-2">
+        <nav aria-label="페이지" className="flex flex-wrap items-center justify-center gap-1.5 pt-2">
           {page > 1 ? (
             <Link href={hrefFor(page - 1)} className={pageBtn}>
               이전
@@ -231,11 +223,8 @@ export default async function CommunityFeedPage({ searchParams }: Props) {
             <Link
               key={p}
               href={hrefFor(p)}
-              className={
-                p === page
-                  ? "rounded-xl border border-neutral-700 bg-neutral-800 px-3 py-2 text-xs font-bold text-[#00E5A0] tabular-nums"
-                  : "rounded-xl border border-white/[0.06] bg-white/[0.02] px-3 py-2 text-xs text-neutral-400 tabular-nums hover:bg-white/[0.05] hover:text-white"
-              }
+              aria-current={p === page ? "page" : undefined}
+              className="tnum inline-flex h-9 min-w-9 items-center justify-center rounded-control border border-line px-3 text-body-sm text-fg-3 transition-colors duration-150 hover:border-line-hover hover:text-fg pointer-coarse:h-11 pointer-coarse:min-w-11 aria-[current=page]:border-line-hover aria-[current=page]:bg-surface-3 aria-[current=page]:font-semibold aria-[current=page]:text-accent"
             >
               {p}
             </Link>

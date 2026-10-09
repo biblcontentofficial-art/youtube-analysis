@@ -4,6 +4,7 @@
  */
 import type { Metadata } from "next";
 import Link from "next/link";
+import { buttonClass } from "@/components/ui/button";
 
 export const metadata: Metadata = {
   title: "소개 | 비블 커뮤니티",
@@ -43,10 +44,10 @@ export default function CommunityAboutPage() {
     <div className="space-y-6">
       {/* 소개 */}
       <section className="space-y-3">
-        <h2 className="text-2xl font-bold tracking-tight text-white lg:text-3xl">
+        <h1 className="text-title text-fg lg:text-h3">
           유튜브로 사업을 키우는 사람들의 공간
-        </h2>
-        <p className="max-w-2xl text-sm leading-relaxed text-neutral-200 lg:text-base">
+        </h1>
+        <p className="max-w-2xl text-body-sm text-fg-2 lg:text-body">
           총 70만+ 구독자 채널을 운영하는 비블이 만든 커뮤니티입니다. 혼자
           막히던 유튜브 운영을 함께 풀어갑니다.
         </p>
@@ -54,17 +55,17 @@ export default function CommunityAboutPage() {
 
       {/* 이곳에서 할 수 있는 것 */}
       <section className="space-y-3">
-        <h3 className="text-lg font-bold tracking-tight text-white">
+        <h2 className="text-lead font-bold text-fg">
           이곳에서 할 수 있는 것
-        </h3>
+        </h2>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {FEATURES.map((feature) => (
             <div
               key={feature.title}
-              className="rounded-xl border border-neutral-800 bg-neutral-900 p-5"
+              className="rounded-card border border-line bg-surface p-5"
             >
-              <h4 className="text-sm font-bold text-white">{feature.title}</h4>
-              <p className="mt-1.5 text-sm leading-relaxed text-neutral-400">
+              <h3 className="text-body-sm font-bold text-fg">{feature.title}</h3>
+              <p className="mt-1.5 text-body-sm text-fg-3">
                 {feature.description}
               </p>
             </div>
@@ -74,28 +75,28 @@ export default function CommunityAboutPage() {
 
       {/* 이용 규칙 */}
       <section className="space-y-3">
-        <h3 className="text-lg font-bold tracking-tight text-white">이용 규칙</h3>
-        <ul className="space-y-2 rounded-xl border border-neutral-800 bg-neutral-900 p-5">
+        <h2 className="text-lead font-bold text-fg">이용 규칙</h2>
+        <ol className="space-y-2 rounded-card border border-line bg-surface p-5">
           {RULES.map((rule, i) => (
-            <li key={i} className="flex gap-2.5 text-sm text-neutral-200">
-              <span className="shrink-0 font-bold text-[#00E5A0]">{i + 1}</span>
+            <li key={i} className="flex gap-2.5 text-body-sm text-fg-1">
+              <span aria-hidden="true" className="tnum shrink-0 font-bold text-silver">{i + 1}</span>
               <span>{rule}</span>
             </li>
           ))}
-        </ul>
+        </ol>
       </section>
 
       {/* CTA */}
       <section className="flex flex-col gap-3 sm:flex-row">
         <Link
           href="/community"
-          className="rounded-xl bg-white px-6 py-3 text-center text-sm font-bold text-black hover:bg-neutral-200"
+          className={buttonClass({ variant: "primary", size: "lg" })}
         >
           커뮤니티 시작하기
         </Link>
         <Link
           href="/studio"
-          className="rounded-xl border border-neutral-700 bg-neutral-800 px-6 py-3 text-center text-sm font-semibold text-white hover:bg-neutral-700"
+          className={buttonClass({ variant: "secondary", size: "lg" })}
         >
           유튜브 채널 대행 문의
         </Link>
