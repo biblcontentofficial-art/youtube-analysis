@@ -23,3 +23,21 @@ export function formatDateYYYYMMDotDD(iso: string): string {
   return `${yyyy}.${mm}.${dd}`;
 }
 
+
+/**
+ * 만·억 단위 짧은 숫자(소수 한 자리, .0 은 떼어 낸다). 1만 미만은 쉼표만.
+ * 예: 9,940 · 1.8만 · 74.4만 · 300만 · 1.2억. 앱 결과 표·영상 정보·채널 리포트·수집한 영상 통계가 함께 쓴다.
+ */
+export function formatCompactKo(n: number): string {
+  if (!Number.isFinite(n)) return "-";
+  const sign = n < 0 ? "-" : "";
+  const a = Math.abs(n);
+  const one = (v: number) => {
+    const s = (Math.round(v * 10) / 10).toFixed(1);
+    return s.endsWith(".0") ? s.slice(0, -2) : s;
+  };
+  // 9999.95만 이상은 반올림하면 10000만이 되므로 억으로 올린다
+  if (a >= 99_999_500) return `${sign}${one(a / 100_000_000)}억`;
+  if (a >= 10_000) return `${sign}${one(a / 10_000)}만`;
+  return `${sign}${Math.round(a).toLocaleString("ko-KR")}`;
+}

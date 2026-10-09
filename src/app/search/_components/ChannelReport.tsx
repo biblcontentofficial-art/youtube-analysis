@@ -1,7 +1,17 @@
 "use client";
-
-import { useMemo } from "react";
+/* eslint-disable @next/next/no-img-element -- YouTube 채널 아이콘 원본 URL */
+/**
+ * 채널 분석 리포트 대화상자 (Pro). 셸은 components/ui/dialog.tsx, 영상 정보와 같은 배치:
+ * 모바일은 전체 화면 시트(h-dvh), 768 이상은 가운데 상자(max-h calc(100dvh-2rem)). 머리는 고정, 표만 스크롤한다.
+ * YouTube ToS III.E.4h 준수: 파생/계산 지표 컬럼(Good 수, 최대 비율)은 넣지 않는다.
+ */
+import { useId, useMemo } from "react";
 import { Video } from "@/types";
+import { Dialog } from "@/components/ui/dialog";
+import { cx } from "@/components/ui/button";
+import { CloseIcon } from "@/components/ui/icons";
+import { formatCompactKo } from "@/lib/format";
+import { BTN_GHOST } from "./SelectionBar";
 
 interface ChannelStat {
   channelId: string;
@@ -22,14 +32,12 @@ interface Props {
   onClose: () => void;
 }
 
-function formatNum(n: number): string {
-  if (n >= 100000000) return (n / 100000000).toFixed(1) + "억";
-  if (n >= 10000) return Math.round(n / 10000) + "만";
-  if (n >= 1000) return (n / 1000).toFixed(1) + "k";
-  return n.toLocaleString();
-}
+/** 대화상자(surface-2) 안 표 머리: 스크롤 영역 위에 붙는다 */
+const RTH = "sticky top-0 z-10 border-b border-line bg-surface-2 px-4 py-2.5 text-micro font-medium text-fg-3";
+const RTD = "border-b border-line-soft px-4 py-2.5 align-middle";
 
 export default function ChannelReport({ videos, onClose }: Props) {
+  const titleId = useId();
   const channels = useMemo<ChannelStat[]>(() => {
     const map = new Map<string, ChannelStat>();
 
@@ -70,89 +78,83 @@ export default function ChannelReport({ videos, onClose }: Props) {
   }, [videos]);
 
   return (
-    <div
-      className="fixed inset-0 z-[9990] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
-      onClick={onClose}
+    <Dialog
+      open
+      onClose={onClose}
+      labelledBy={titleId}
+      className={cx(
+        "flex-col overflow-hidden open:flex max-md:p-0 md:p-0",
+        "max-md:m-0 max-md:h-dvh max-md:max-h-dvh max-md:w-full max-md:max-w-none max-md:rounded-none max-md:border-0",
+        "md:max-h-[calc(100dvh-2rem)] md:max-w-4xl",
+      )}
     >
-      <div
-        className="relative w-full max-w-4xl max-h-[85vh] bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl flex flex-col overflow-hidden"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* 헤더 */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-800 shrink-0">
-          <div>
-            <h2 className="text-white font-semibold text-base">채널 분석 리포트</h2>
-            <p className="text-gray-500 text-xs mt-0.5">
-              검색 결과 {videos.length}개 영상 · {channels.length}개 채널
-            </p>
-          </div>
-          <button
-            onClick={onClose}
-            className="text-gray-500 hover:text-white transition-colors p-1"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
-              <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
-            </svg>
-          </button>
+      {/* 머리 */}
+      <div className="flex shrink-0 items-start justify-between gap-3 border-b border-line px-5 py-4 md:px-6">
+        <div>
+          <h2 id={titleId} className="text-body font-semibold text-fg">채널 분석 리포트</h2>
+          <p className="tnum mt-0.5 text-caption text-fg-3">
+            검색 결과 {videos.length}개 영상 · {channels.length}개 채널
+          </p>
         </div>
-
-        {/* 테이블 */}
-        <div className="overflow-auto flex-1">
-          <table className="w-full text-sm border-collapse">
-            <thead className="sticky top-0 bg-gray-900 border-b border-gray-800">
-              {/* YouTube ToS III.E.4h 준수: 파생/계산 지표 컬럼(Good 수, 최대 비율) 제거 */}
-              <tr className="text-[11px] text-gray-500 font-medium">
-                <th className="text-left px-4 py-3 w-8">#</th>
-                <th className="text-left px-4 py-3">채널</th>
-                <th className="text-right px-4 py-3 whitespace-nowrap">구독자</th>
-                <th className="text-right px-4 py-3 whitespace-nowrap">영상 수</th>
-                <th className="text-right px-4 py-3 whitespace-nowrap">평균 조회수</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-800/60">
-              {channels.map((ch, idx) => (
-                <tr key={ch.channelId} className="hover:bg-gray-800/40 transition-colors">
-                  <td className="px-4 py-3 text-gray-600 text-xs">{idx + 1}</td>
-                  <td className="px-4 py-3">
-                    <a
-                      href={`https://www.youtube.com/channel/${ch.channelId}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2.5 hover:text-teal-400 transition-colors group"
-                    >
-                      {ch.channelThumbnail ? (
-                        <img
-                          src={ch.channelThumbnail}
-                          alt={ch.channelTitle}
-                          className="w-7 h-7 rounded-full object-cover shrink-0 bg-gray-800"
-                        />
-                      ) : (
-                        <div className="w-7 h-7 rounded-full bg-gray-800 shrink-0" />
-                      )}
-                      <span className="text-gray-200 group-hover:text-teal-400 font-medium text-xs leading-snug line-clamp-1">
-                        {ch.channelTitle}
-                      </span>
-                    </a>
-                  </td>
-                  <td className="px-4 py-3 text-right text-gray-400 text-xs tabular-nums">
-                    {formatNum(ch.subscriberCountRaw)}
-                  </td>
-                  <td className="px-4 py-3 text-right text-white font-semibold text-xs tabular-nums">
-                    {ch.videoCount}
-                  </td>
-                  <td className="px-4 py-3 text-right text-gray-300 text-xs tabular-nums">
-                    {formatNum(ch.avgViews)}회
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-
-          {channels.length === 0 && (
-            <div className="py-16 text-center text-gray-600 text-sm">데이터 없음</div>
-          )}
-        </div>
+        <button type="button" onClick={onClose} aria-label="닫기" className={cx(BTN_GHOST, "-mr-2 size-11 shrink-0")}>
+          <CloseIcon size={20} />
+        </button>
       </div>
-    </div>
+
+      {/* 표 */}
+      <div className="min-h-0 flex-1 overflow-auto overscroll-contain pb-[env(safe-area-inset-bottom)]">
+        <table className="w-full border-separate border-spacing-0 text-left text-body-sm">
+          <caption className="sr-only">채널별 구독자 · 영상 수 · 평균 조회수</caption>
+          <thead>
+            <tr>
+              <th scope="col" className={cx(RTH, "w-10")}>#</th>
+              <th scope="col" className={RTH}>채널</th>
+              <th scope="col" className={cx(RTH, "whitespace-nowrap text-right")}>구독자</th>
+              <th scope="col" className={cx(RTH, "whitespace-nowrap text-right")}>영상 수</th>
+              <th scope="col" className={cx(RTH, "whitespace-nowrap text-right")}>평균 조회수</th>
+            </tr>
+          </thead>
+          <tbody>
+            {channels.map((ch, idx) => (
+              <tr key={ch.channelId} className="transition-colors duration-150 hover:bg-surface-3/40">
+                <td className={cx(RTD, "tnum text-micro text-fg-3")}>{idx + 1}</td>
+                <td className={RTD}>
+                  <a
+                    href={`https://www.youtube.com/channel/${ch.channelId}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex min-h-11 items-center gap-2.5 text-fg-1 transition-colors hover:text-fg"
+                  >
+                    {ch.channelThumbnail ? (
+                      <img
+                        src={ch.channelThumbnail}
+                        alt=""
+                        width={28}
+                        height={28}
+                        loading="lazy"
+                        decoding="async"
+                        className="size-7 shrink-0 rounded-full bg-surface-3 object-cover"
+                      />
+                    ) : (
+                      <span aria-hidden="true" className="block size-7 shrink-0 rounded-full bg-surface-3" />
+                    )}
+                    <span className="line-clamp-1 font-medium">{ch.channelTitle}</span>
+                    <svg className="ext" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="M7 17 17 7M8 7h9v9" />
+                    </svg>
+                    <span className="sr-only">(새 창)</span>
+                  </a>
+                </td>
+                <td className={cx(RTD, "tnum text-right text-fg-2")}>{formatCompactKo(ch.subscriberCountRaw)}</td>
+                <td className={cx(RTD, "tnum text-right font-semibold text-fg")}>{ch.videoCount}</td>
+                <td className={cx(RTD, "tnum whitespace-nowrap text-right text-fg-2")}>{formatCompactKo(ch.avgViews)}회</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        {channels.length === 0 && <p className="py-16 text-center text-body-sm text-fg-3">데이터 없음</p>}
+      </div>
+    </Dialog>
   );
 }

@@ -1,264 +1,211 @@
 "use client";
+/* eslint-disable @next/next/no-img-element -- YouTube 썸네일·채널 아이콘 원본 URL */
 // next/image 대신 <img> 사용 — Vercel Image Optimization 비용 절감
 // YouTube 썸네일은 YouTube CDN이 이미 최적화해서 제공하므로 재최적화 불필요
 // YouTube ToS III.E.4h 준수: ScoreBadge, AlgorithmBadge, ViewTrendGraph 등 파생 지표 표시 컴포넌트 제거
-import { useState } from "react";
-import { Video } from "@/types";
+/**
+ * 검색 결과 한 행. 1024 이상 표의 행(VideoTableRow)과 1024 미만 목록의 행(VideoListItem) 두 모양 (DESIGN 6.10, 시안 app.html 413·584행)
+ *
+ * - 영상 칸은 relative 이고 제목이 <h3><button> 이라, ::after 가 썸네일까지 덮어 어디를 눌러도 영상 정보가 열린다.
+ *   썸네일은 마우스 전용(alt="", 키보드는 제목 버튼 하나).
+ * - 목록은 왼쪽 44px 띠만 선택(label), 나머지는 영상 정보 열기. 행 전체를 label 로 만들지 않는다.
+ * - 알고리즘 확률은 사용자가 옵트인한 뒤 표에서만 등급 배지로 보인다(모바일 목록에는 새로 노출하지 않는다).
+ */
+import type { Video } from "@/types";
+import { cx } from "@/components/ui/button";
+import { ROW, ROW_SELECTED, TD } from "@/components/ui/table";
+import { formatCompactKo } from "@/lib/format";
 
-interface Props {
+interface RowProps {
   video: Video;
   checked: boolean;
   onCheck: () => void;
   onClick: () => void;
-  canAlgorithm: boolean;
   probEnabled?: boolean;
-  onClickProbActivate?: () => void;
 }
+
+type Grade = "Great" | "Good" | "Normal" | "Bad" | "Worst";
 
 // ─── 확률 라벨 계산 (사용자 옵트인 후 클라이언트 사이드 단순 산술) ───
 // performanceRatioRaw = 영상 조회수 ÷ 채널 평균 조회수
 // 임계값은 사용자 가이드라인 (YouTube 공식 메트릭 아님)
-function calcProbabilityLabel(ratio: number | undefined): { label: string; color: string; emoji?: string } {
+function calcProbabilityLabel(ratio: number | undefined): { label: Grade } {
   const r = ratio ?? 0;
-  // Great: 에메랄드 + 🔥 불꽃 이모지 (최고 등급, 즉시 인지)
-  if (r >= 5) return { label: "Great", color: "text-emerald-400", emoji: "🔥" };
-  // Good: 청록색
-  if (r >= 2) return { label: "Good", color: "text-teal-400" };
-  // Normal: 회색
-  if (r >= 0.5) return { label: "Normal", color: "text-gray-400" };
-  // Bad: 주황
-  if (r >= 0.1) return { label: "Bad", color: "text-orange-400" };
-  // Worst: 빨강
-  return { label: "Worst", color: "text-red-500" };
+  if (r >= 5) return { label: "Great" };
+  if (r >= 2) return { label: "Good" };
+  if (r >= 0.5) return { label: "Normal" };
+  if (r >= 0.1) return { label: "Bad" };
+  return { label: "Worst" };
 }
 
-// ─── 업그레이드 유도 모달 ─────────────────────────────────────────────────────
-function UpgradeModal({ onClose }: { onClose: () => void }) {
+/**
+ * 등급 배지(DESIGN 6.12). 기능 색은 글자·테두리에만, 면은 Great 작은 배지 하나. 색만으로 말하지 않게 라벨을 늘 쓴다.
+ * 흰색은 '좋음'에 쓰지 않는다(선택·현재 위치 뜻).
+ */
+const GRADE_BASE =
+  "inline-flex h-[22px] items-center rounded-[5px] border border-transparent px-[7px] text-micro font-bold leading-none";
+const GRADE_TONE: Record<Grade, string> = {
+  Great: "bg-positive text-accent-ink",
+  Good: "border-positive/55 text-positive",
+  Normal: "border-line-strong text-fg-3",
+  Bad: "border-caution/55 text-caution",
+  Worst: "border-negative/55 text-negative",
+};
+
+function GradeBadge({ ratio }: { ratio: number | undefined }) {
+  const { label } = calcProbabilityLabel(ratio);
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 backdrop-blur-sm"
-      onClick={onClose}
-    >
-      <div
-        className="bg-[#161b27] border border-gray-700 rounded-2xl p-7 w-[340px] space-y-5 shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* 아이콘 */}
-        <div className="flex flex-col items-center gap-2 text-center">
-          <div className="text-4xl">🔥</div>
-          <h2 className="text-white text-base font-bold leading-snug">
-            알고리즘 탑승 확률
-          </h2>
-          <p className="text-gray-400 text-sm leading-relaxed">
-            지금 이 영상이 알고리즘을 타고<br />
-            조회수가 폭발할 확률을 분석해 드려요.
-          </p>
-        </div>
-
-        {/* 예시 뱃지 미리보기 */}
-        <div className="flex justify-center gap-4">
-          {[{ label: "🔥 78%", color: "text-orange-400" }, { label: "⚡ 55%", color: "text-yellow-400" }, { label: "32%", color: "text-teal-400" }].map((b) => (
-            <div key={b.label} className="flex flex-col items-center gap-1.5">
-              <span className={`text-xs font-bold ${b.color}`}>{b.label}</span>
-              <div className="w-10 h-1 bg-gray-700 rounded-full overflow-hidden">
-                <div
-                  className={`h-full rounded-full ${
-                    b.color.includes("orange") ? "bg-orange-500"
-                    : b.color.includes("yellow") ? "bg-yellow-500"
-                    : "bg-teal-500"
-                  }`}
-                  style={{ width: b.label.includes("78") ? "78%" : b.label.includes("55") ? "55%" : "32%" }}
-                />
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* 플랜 안내 */}
-        <div className="bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 text-xs text-gray-400 space-y-1.5">
-          <p className="flex items-center gap-2">
-            <span className="text-teal-400 font-semibold">Starter</span>
-            <span>이상부터 알고리즘 탑승 확률 확인</span>
-          </p>
-          <p className="flex items-center gap-2">
-            <span className="text-purple-400 font-semibold">Pro</span>
-            <span>+ 수집한 영상 저장 · CSV 내보내기</span>
-          </p>
-        </div>
-
-        {/* 버튼 */}
-        <div className="flex flex-col gap-2">
-          <a
-            href="/pricing"
-            className="block w-full py-2.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white text-sm font-semibold text-center transition"
-          >
-            플랜 업그레이드 →
-          </a>
-          <button
-            onClick={onClose}
-            className="w-full py-2 rounded-xl text-gray-500 hover:text-gray-300 text-sm transition"
-          >
-            닫기
-          </button>
-        </div>
-      </div>
-    </div>
+    <span title="사용자 자가 계산값 (YouTube 공식 메트릭 아님)" className={cx(GRADE_BASE, GRADE_TONE[label])}>
+      {label}
+    </span>
   );
 }
 
-// ─── VideoCard ────────────────────────────────────────────────────────────────
-
-export default function VideoCard({ video, checked, onCheck, onClick, canAlgorithm, probEnabled, onClickProbActivate }: Props) {
+/** 쇼츠(3분 이하)·롱폼 무채색 태그 12px (빨강·파랑 금지, DESIGN 6.10·6.12) */
+function LengthTag({ video }: { video: Video }) {
   const isShorts = (video.durationSeconds ?? 9999) <= 180;
-  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
-
-  // 사용자가 확률 계산기를 활성화했을 때만 라벨 산출 (클라이언트 사이드)
-  const probInfo = probEnabled ? calcProbabilityLabel(video.performanceRatioRaw) : null;
-
   return (
-    <>
-      {showUpgradeModal && <UpgradeModal onClose={() => setShowUpgradeModal(false)} />}
+    <span className="inline-flex shrink-0 items-center rounded-md border border-line-strong px-1.5 text-micro leading-[18px] text-fg-2">
+      {isShorts ? "쇼츠" : "롱폼"}
+    </span>
+  );
+}
 
-      {/* ───── 데스크탑 레이아웃 ───── */}
-      <div
-        className={`hidden md:grid items-center gap-2 px-3 py-4 transition-colors group ${
-          checked ? "bg-teal-950/20" : "hover:bg-gray-900/60"
-        }`}
-        style={{ gridTemplateColumns: "32px 40px 160px 1fr 100px 160px 110px 100px" }}
-      >
-        {/* 체크박스 */}
-        <div className="flex justify-center" onClick={(e) => e.stopPropagation()}>
-          <input type="checkbox" checked={checked} onChange={onCheck} className="w-3.5 h-3.5 accent-teal-500 cursor-pointer" />
-        </div>
+/** 게시일 2026-09-20 → 2026.09.20 */
+function dateLabel(publishedAt: string) {
+  return publishedAt ? publishedAt.replace(/-/g, ".") : "-";
+}
 
-        {/* CC */}
-        <div className="flex justify-center">
-          {isShorts ? (
-            <span className="text-[11px] font-bold text-red-400 bg-red-950/50 border border-red-900 px-1.5 py-0.5 rounded">S</span>
-          ) : (
-            <span className="text-[11px] font-bold text-blue-400 bg-blue-950/50 border border-blue-900 px-1.5 py-0.5 rounded">L</span>
-          )}
-        </div>
+/** 영상 정보 열기 버튼: ::after 가 영상 칸 전체(썸네일 포함)를 덮고, 포커스 링도 그 둘레에 그린다 */
+const OPEN_BUTTON =
+  "line-clamp-2 cursor-pointer text-left after:absolute after:inset-0 after:rounded-control focus-visible:outline-hidden focus-visible:after:outline-2 focus-visible:after:-outline-offset-2 focus-visible:after:outline-solid focus-visible:after:outline-accent";
 
-        {/* 썸네일 */}
-        <div className="relative aspect-video rounded-md overflow-hidden cursor-pointer border border-gray-800 group-hover:border-gray-600 transition-colors shrink-0" onClick={onClick}>
-          <img src={video.thumbnail} alt={video.title} className="w-full h-full object-cover" />
-          {video.duration && (
-            <div className="absolute bottom-1 right-1 bg-black/80 text-white text-[10px] font-mono px-1 py-0.5 rounded">
-              {video.duration}
-            </div>
-          )}
-        </div>
+function Thumb({ video, className }: { video: Video; className: string }) {
+  return (
+    <span className={cx("relative block shrink-0 self-start overflow-hidden rounded-control bg-surface-2", className)}>
+      {video.thumbnail && (
+        <img
+          src={video.thumbnail}
+          alt=""
+          width={320}
+          height={180}
+          loading="lazy"
+          decoding="async"
+          className="aspect-video w-full object-cover"
+        />
+      )}
+      {!video.thumbnail && <span className="block aspect-video w-full" />}
+      {video.duration && (
+        <span className="tnum absolute bottom-1.5 right-1.5 rounded bg-canvas/80 px-1.5 py-0.5 text-micro font-semibold leading-none text-fg">
+          {video.duration}
+        </span>
+      )}
+    </span>
+  );
+}
 
-        {/* 제목 */}
-        <div className="min-w-0 flex flex-col justify-center pl-1">
-          <h3 className="text-base text-gray-200 line-clamp-2 leading-snug group-hover:text-teal-400 transition-colors cursor-pointer" onClick={onClick}>
-            {video.title}
-          </h3>
-        </div>
+function Avatar({ src, px, className }: { src?: string; px: number; className: string }) {
+  if (!src) return <span aria-hidden="true" className={cx("block shrink-0 rounded-full bg-surface-3", className)} />;
+  return (
+    <img
+      src={src}
+      alt=""
+      width={px}
+      height={px}
+      loading="lazy"
+      decoding="async"
+      className={cx("shrink-0 rounded-full bg-surface-2 object-cover", className)}
+    />
+  );
+}
 
-        {/* 조회수 */}
-        <div className="text-center">
-          <div className="text-base font-bold text-white">{video.viewCountFormatted}</div>
-        </div>
-
-        {/* 채널 */}
-        <div className="flex flex-col items-center justify-center text-center gap-1">
-          {video.channelThumbnail && (
-            <img src={video.channelThumbnail} alt="" className="w-8 h-8 rounded-full border border-gray-700" />
-          )}
-          <span className="text-xs text-gray-300 truncate max-w-[130px] leading-none">{video.channelTitle}</span>
-          <span className="text-[11px] text-gray-500">{video.subscriberCount}명</span>
-        </div>
-
-        {/* 게시일 */}
-        <div className="text-center">
-          <div className="text-xs text-gray-500 bg-gray-900 px-2 py-1 rounded-md border border-gray-800 whitespace-nowrap">
-            {video.publishedAt}
-          </div>
-        </div>
-
-        {/* 알고리즘 확률 — 사용자 옵트인 후에만 라벨 표시, 그 전엔 클릭 가능한 버튼 */}
-        <div className="text-center" onClick={(e) => e.stopPropagation()}>
-          {probInfo ? (
-            <div
-              className="flex flex-col items-center gap-0.5"
-              title="사용자 자가 계산값 (YouTube 공식 메트릭 아님)"
-            >
-              <span className="text-[8px] text-gray-500">···</span>
-              <span className={`text-sm font-bold flex items-center gap-1 ${probInfo.color}`}>
-                {probInfo.emoji && <span>{probInfo.emoji}</span>}
-                {probInfo.label}
+// ─── 1024 이상: 표의 행 ───────────────────────────────────────────────────────
+export function VideoTableRow({ video, checked, onCheck, onClick, probEnabled }: RowProps) {
+  const views = formatCompactKo(video.viewCount ?? 0);
+  return (
+    <tr className={cx(checked ? ROW_SELECTED : ROW, "content-auto")}>
+      <td className={TD}>
+        <label className="flex size-11 cursor-pointer items-center justify-center">
+          <input type="checkbox" className="chk" checked={checked} onChange={onCheck} aria-label={`${video.title} 선택`} />
+        </label>
+      </td>
+      <td className={cx(TD, "relative pr-6")}>
+        <div className="flex items-center gap-4">
+          <Thumb video={video} className="w-32 xl:w-36" />
+          <div className="min-w-0 flex-1">
+            <h3 className="text-ui font-medium leading-[1.5] text-fg-1">
+              <button type="button" aria-haspopup="dialog" onClick={onClick} className={cx(OPEN_BUTTON, "hover:underline hover:underline-offset-4")}>
+                {video.title}
+              </button>
+            </h3>
+            <p className="mt-1 flex min-w-0 items-center gap-2 text-caption text-fg-3">
+              <LengthTag video={video} />
+              <span className="flex min-w-0 items-center gap-2 xl:hidden">
+                <Avatar src={video.channelThumbnail} px={20} className="size-5" />
+                <span className="truncate">{video.channelTitle}</span>
               </span>
-            </div>
-          ) : (
-            <button
-              onClick={onClickProbActivate}
-              className="px-2 py-1 border border-teal-700/60 hover:border-teal-500 hover:bg-teal-950/40 text-teal-400 hover:text-teal-300 text-[10px] font-medium rounded-md transition flex items-center gap-1 mx-auto"
-              title="알고리즘 확률 분석 활성화"
-            >
-              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-              분석
+            </p>
+          </div>
+        </div>
+      </td>
+      <td className={cx(TD, "hidden pr-4 xl:table-cell")}>
+        <span className="flex min-w-0 items-center gap-2.5">
+          <Avatar src={video.channelThumbnail} px={32} className="size-8" />
+          <span className="truncate text-body-sm text-fg-2">{video.channelTitle}</span>
+        </span>
+      </td>
+      <td className={cx(TD, "tnum pr-4 text-right")}>
+        <span className="text-[18px] font-extrabold tracking-[-0.02em] text-fg" title={video.viewCountFormatted}>
+          {views}
+        </span>
+      </td>
+      <td className={cx(TD, "tnum pr-4 text-right text-body-sm text-fg-2")}>
+        {formatCompactKo(video.subscriberCountRaw ?? 0)}
+      </td>
+      <td className={cx(TD, "tnum whitespace-nowrap pr-4 text-right text-body-sm text-fg-3")}>{dateLabel(video.publishedAt)}</td>
+      {/* 알고리즘 확률(옵트인): 활성 전에는 비워 둔다. 카카오 버튼(오른쪽 아래)에 가리지 않게 왼쪽 정렬 */}
+      <td className={cx(TD, "pl-2")}>{probEnabled && <GradeBadge ratio={video.performanceRatioRaw} />}</td>
+    </tr>
+  );
+}
+
+// ─── 1024 미만: 목록의 행 ─────────────────────────────────────────────────────
+export function VideoListItem({ video, checked, onCheck, onClick }: RowProps) {
+  return (
+    <li
+      className={cx(
+        "content-auto -mx-6 flex pl-[11px] pr-6 transition-colors duration-150",
+        checked ? "bg-surface-2 shadow-[inset_2px_0_0_var(--color-accent)]" : "hover:bg-surface-2/55",
+      )}
+    >
+      <label className="flex w-11 shrink-0 cursor-pointer justify-center pt-[19px]">
+        <input type="checkbox" className="chk" checked={checked} onChange={onCheck} aria-label={`${video.title} 선택`} />
+      </label>
+      <div className="relative flex min-w-0 flex-1 gap-3 py-4">
+        <Thumb video={video} className="w-28 md:w-44" />
+        <div className="min-w-0 flex-1">
+          <h3 className="text-ui font-medium leading-[1.45] text-fg-1 md:text-body">
+            <button type="button" aria-haspopup="dialog" onClick={onClick} className={OPEN_BUTTON}>
+              {video.title}
             </button>
-          )}
-        </div>
-      </div>
-
-      {/* ───── 모바일 카드 레이아웃 ───── */}
-      <div
-        className={`flex md:hidden gap-3 px-3 py-3 transition-colors ${
-          checked ? "bg-teal-950/20" : "hover:bg-gray-900/60"
-        }`}
-      >
-        {/* 체크박스 */}
-        <div className="flex items-start pt-1 shrink-0" onClick={(e) => e.stopPropagation()}>
-          <input type="checkbox" checked={checked} onChange={onCheck} className="w-3.5 h-3.5 accent-teal-500 cursor-pointer" />
-        </div>
-
-        {/* 썸네일 */}
-        <div className="relative w-28 aspect-video rounded-lg overflow-hidden cursor-pointer shrink-0 border border-gray-800" onClick={onClick}>
-          <img src={video.thumbnail} alt={video.title} className="w-full h-full object-cover" />
-          {video.duration && (
-            <div className="absolute bottom-1 right-1 bg-black/80 text-white text-[9px] font-mono px-1 py-0.5 rounded">
-              {video.duration}
-            </div>
-          )}
-          <div className="absolute top-1 left-1">
-            {isShorts ? (
-              <span className="text-[8px] font-bold text-red-400 bg-black/70 px-1 py-0.5 rounded">S</span>
-            ) : (
-              <span className="text-[8px] font-bold text-blue-400 bg-black/70 px-1 py-0.5 rounded">L</span>
-            )}
-          </div>
-        </div>
-
-        {/* 콘텐츠 */}
-        <div className="flex-1 min-w-0 flex flex-col gap-1.5">
-          {/* 제목 */}
-          <h3 className="text-sm text-gray-200 line-clamp-2 leading-snug cursor-pointer hover:text-teal-400" onClick={onClick}>
-            {video.title}
           </h3>
-
-          {/* 채널 */}
-          <div className="flex items-center gap-1.5">
-            {video.channelThumbnail && (
-              <img src={video.channelThumbnail} alt="" className="w-4 h-4 rounded-full" />
-            )}
-            <span className="text-[11px] text-gray-500 truncate">{video.channelTitle}</span>
-          </div>
-
-          {/* 지표 (YouTube 공식 메트릭만) — III.E.4h 준수로 파생 지표 제거 */}
-          <div className="flex items-center flex-wrap gap-2 mt-0.5">
-            <span className="text-xs font-bold text-white">{video.viewCountFormatted}</span>
-            <span className="text-[11px] text-gray-500">{video.subscriberCount}명</span>
-          </div>
-
-          {/* 게시일 */}
-          <span className="text-[10px] text-gray-600">{video.publishedAt}</span>
+          <p className="mt-1 flex min-w-0 items-center gap-1.5 text-micro text-fg-3">
+            <LengthTag video={video} />
+            <span className="truncate">{video.channelTitle}</span>
+          </p>
+          <p className="tnum mt-0.5 flex flex-wrap items-baseline gap-x-1 text-micro text-fg-3">
+            {/* 구분점은 앞 항목 끝에 붙인다: 줄이 넘어가도 새 줄 첫머리에 '·'가 홀로 남지 않게 */}
+            <span className="whitespace-nowrap">
+              <span className="text-body-sm font-extrabold leading-[1.4] tracking-[-0.02em] text-fg">
+                {formatCompactKo(video.viewCount ?? 0)}회
+              </span>{" "}
+              ·
+            </span>
+            <span className="whitespace-nowrap">구독자 {formatCompactKo(video.subscriberCountRaw ?? 0)} ·</span>
+            <span className="whitespace-nowrap">{dateLabel(video.publishedAt)}</span>
+          </p>
         </div>
       </div>
-    </>
+    </li>
   );
 }

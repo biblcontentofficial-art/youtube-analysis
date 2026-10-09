@@ -29,16 +29,9 @@ import LimitModal from "./_components/LimitModal";
 import LimitNotice from "./_components/LimitNotice";
 import { getLimitCopy, STARTER } from "./_components/limitCopy";
 import KakaoChannelBanner from "./_components/KakaoChannelBanner";
-import { ActionButton } from "./_components/SearchActionButtons";
 import { PLANS, PlanKey } from "@/lib/stripe";
-import FilterTab from "./_components/FilterTab";
 import PageLoadedSignal from "./_components/PageLoadedSignal";
-import ViewStatsInline from "./_components/ViewStatsInline";
-import ShareButton from "./_components/ShareButton";
-import TodaySearchCount from "./_components/TodaySearchCount";
 import ToolTabs from "../_components/ToolTabs";
-import { buttonClass, cx } from "@/components/ui/button";
-import { SEGMENT } from "@/components/ui/chip";
 import { CheckIcon, WarningIcon } from "@/components/ui/icons";
 
 interface Props {
@@ -215,9 +208,6 @@ export default async function SearchPage({ searchParams }: Props) {
 
   // 상태 메시지 상자 (DESIGN 6.13): 1px 기능 색 테두리 + 기호·제목만 기능 색
   const STATUS_BOX = "mb-6 flex gap-3 rounded-card border bg-surface p-4 break-keep";
-  // 잠긴 동작(요금제 필요): 보조 버튼 + 라벨 fg-3 + Pro 태그 (DESIGN 6.29, 자물쇠 아이콘 없음)
-  const LOCKED_ACTION = cx(buttonClass({ variant: "secondary", size: "sm" }), "text-fg-3 pointer-coarse:h-11");
-  const PRO_TAG = "inline-flex items-center rounded border border-line-strong px-1 text-micro font-medium leading-[18px] text-fg-3";
 
   return (
     <main className="min-h-screen bg-canvas text-fg">
@@ -225,7 +215,8 @@ export default async function SearchPage({ searchParams }: Props) {
       <PageLoadedSignal key={`signal-${query}-${filter}-${searchVersion}`} />
       <LimitModal show={limitExceeded} limit={limit} isMonthly={isMonthly} plan={plan} />
       <KakaoChannelBanner />
-      <h1 className="sr-only">유튜브 영상 찾기</h1>
+      {/* 결과가 그려지면 결과 머리 '‘키워드’ 결과 N개'(SearchResultList)가 이 화면의 h1 이다 */}
+      {!(query && !limitExceeded && !apiError) && <h1 className="sr-only">유튜브 영상 찾기</h1>}
 
       {/* 앱 셸: 도구 탭 → 검색창 (DESIGN 7.2) */}
       <ToolTabs current="/search" />
@@ -297,48 +288,6 @@ export default async function SearchPage({ searchParams }: Props) {
         {/* 한도 초과 안내 (모달과 같은 문구 상수) */}
         {limitExceeded && <LimitNotice limit={limit} isMonthly={isMonthly} plan={plan} />}
 
-        {/* 필터 + 액션 툴바 (결과 머리 한 줄 배치는 C14 에서 SearchResultList 로 옮긴다) */}
-        {query && !limitExceeded && !apiError && (
-          <div className="mb-4 flex flex-wrap items-center gap-x-4 gap-y-2.5">
-            {/* 길이 필터: 세그먼트, 모바일 전체 폭 */}
-            <nav aria-label="영상 길이" className={cx(SEGMENT, "w-full bg-surface md:w-auto")}>
-              <FilterTab href={`/search?${filterBase}`} active={filter === "all"} label="전체" />
-              <FilterTab href={`/search?${filterBase}&filter=long`} active={filter === "long"} label="쇼츠 제외" />
-              <FilterTab href={`/search?${filterBase}&filter=shorts`} active={filter === "shorts"} label="쇼츠만" />
-            </nav>
-
-            {/* 조회수 합계 (Starter 이상) · 오늘 검색 수: 노출 조건 그대로 */}
-            <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1">
-              {isPaid && <ViewStatsInline />}
-              <TodaySearchCount />
-            </div>
-
-            {/* 액션 버튼: 좁은 화면에서는 줄을 바꾼다 */}
-            <div className="flex flex-wrap items-center gap-1.5 md:ml-auto">
-              {/* 채널 리포트: Pro/Business 전용 */}
-              {canChannelReport ? (
-                <ActionButton label="채널 리포트" shortLabel="리포트" event="TRIGGER_CHANNEL_REPORT" />
-              ) : (
-                <Link href="/pricing" title="Pro 플랜부터 사용 가능" className={LOCKED_ACTION}>
-                  채널 리포트
-                  <span className={PRO_TAG}>Pro</span>
-                </Link>
-              )}
-              {/* 영상 수집: Pro/Business 전용 */}
-              {canCollect ? (
-                <ActionButton label="영상 수집" shortLabel="수집" event="TRIGGER_COLLECT" />
-              ) : (
-                <Link href="/pricing" title="Pro 플랜부터 사용 가능" className={LOCKED_ACTION}>
-                  영상 수집
-                  <span className={PRO_TAG}>Pro</span>
-                </Link>
-              )}
-              <ActionButton label="채널 제거" event="TRIGGER_REMOVE_CHANNELS" />
-              <ShareButton query={query} />
-            </div>
-          </div>
-        )}
-
         {/* 검색어 없이 열었을 때: 결과 목록 대신 시작 안내 ("검색 결과가 없어요"는 실제 0건일 때만). 차감·남은 횟수는 검색창 아래 줄 */}
         {!query && (
           <section
@@ -383,6 +332,8 @@ export default async function SearchPage({ searchParams }: Props) {
                 nextPageToken={nextPageToken}
                 nextPageTokenLong={nextPageTokenLong}
                 nextPageTokenShorts={nextPageTokenShorts}
+                filterBase={filterBase}
+                isPaid={isPaid}
               />
             </Suspense>
           </>

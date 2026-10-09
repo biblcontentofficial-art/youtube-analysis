@@ -463,6 +463,16 @@ body:has([data-bottom-bar="nav"]) [data-kakao-fab] {
   }
 }
 
+/*
+ * 앱 결과의 선택 바(SelectionBar, data-selection-bar)가 보이는 768px 미만: 카카오 상담 버튼을 숨긴다(DESIGN 6.17·6.25).
+ * 선택 동작이 화면 아래를 차지하는 동안만이고, 선택을 풀면 돌아온다. 위의 하단 CTA 바(버튼을 88px 올림)와는 다른 규칙이다.
+ */
+body:has([data-selection-bar]:not([hidden])) [data-kakao-fab] {
+  @variant max-md {
+    display: none;
+  }
+}
+
 /* hover 가 없는 터치 기기: 누른 순간을 보이게 한다 */
 @media (hover: none) {
   :is(a, button:not(:disabled), [role="button"], summary):active {

@@ -1,12 +1,12 @@
 "use client";
 
+/**
+ * 결과 머리 캡션의 '조회수 합계 N'(Starter 이상, 노출 조건·문구 그대로). 숫자만 tnum font-semibold fg-1 (DESIGN 7.2 4행).
+ * 합계는 SearchResultList 가 UPDATE_VIEW_STATS 이벤트로 보낸다. 1억 이상이면 '시장성 좋음' 태그(무채색 테두리 + 흰 글자).
+ */
 import { useState, useEffect } from "react";
-
-function fmt(n: number) {
-  if (n >= 1_0000_0000) return `${(n / 1_0000_0000).toFixed(1)}억`;
-  if (n >= 1_0000) return `${(n / 1_0000).toFixed(1)}만`;
-  return n.toLocaleString();
-}
+import { badgeClass } from "@/components/ui/badge";
+import { formatCompactKo } from "@/lib/format";
 
 export default function ViewStatsInline() {
   const [total, setTotal] = useState<number | null>(null);
@@ -23,16 +23,11 @@ export default function ViewStatsInline() {
   if (total === null || total === 0) return null;
 
   return (
-    <div className="flex items-center gap-1.5 ml-1">
-      <span className="text-gray-700">|</span>
-      {total >= 1_0000_0000 && (
-        <span className="text-[10px] px-1.5 py-0.5 rounded bg-teal-900/60 border border-teal-700 text-teal-300 font-semibold">
-          시장성 좋음
-        </span>
-      )}
-      <span className="text-xs text-gray-400">
-        조회수 합계 <span className="text-white font-medium">{fmt(total)}</span>
+    <span className="inline-flex items-center gap-1.5">
+      {total >= 1_0000_0000 && <span className={badgeClass("accent")}>시장성 좋음</span>}
+      <span>
+        조회수 합계 <span className="tnum font-semibold text-fg-1">{formatCompactKo(total)}</span>
       </span>
-    </div>
+    </span>
   );
 }

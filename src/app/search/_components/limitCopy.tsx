@@ -29,7 +29,8 @@ export const STARTER: UpgradePlan = {
   perks: ["월 50회", "채널 찾기", "검색 기록 30일 저장"],
 };
 
-const PRO: UpgradePlan = {
+/** 검색 결과 아래 Pro 안내 카드(ResultFootCards)도 이 가격·한도를 쓴다 */
+export const PRO: UpgradePlan = {
   name: "Pro",
   searches: "월 500회 검색",
   price: "월 ₩45,000 (연간 결제 시 월 ₩39,000)",
