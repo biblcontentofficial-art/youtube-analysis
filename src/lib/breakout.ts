@@ -25,6 +25,26 @@ export interface BreakoutVideo {
   channel_avg_views: number | null;
   /** 아웃라이어 배수 = 조회수 ÷ 채널 평균 조회수 */
   outlier: number | null;
+  /** 걸러 낼 수 있는 채널 종류(news·shopping·issue). 일반 채널은 null */
+  kind: BreakoutKind | null;
+}
+
+export type BreakoutKind = "news" | "shopping" | "issue";
+
+/**
+ * 뉴스·정치 / 홈쇼핑 / 이슈 채널 판정. 화면의 '뉴스·홈쇼핑·정치·이슈 제외'(기본 켜짐)가 이 값으로 거른다.
+ * - news: 유튜브 카테고리 25(뉴스·정치) 또는 채널 이름에 언론·시사 단어
+ * - shopping: 채널 이름에 홈쇼핑·쇼핑·커머스
+ * - issue: 채널 이름에 이슈·논란·사건·렉카
+ */
+const NEWS_CH = /뉴스|news|ytn|연합|일보|신문|시사|정치|국회|속보|tv조선|채널a|mbn|jtbc|브리핑|헤럴드|경제tv|더팩트|오마이|노컷|뉴시스|한겨레|매일경제|한국경제|머니투데이|비디오머그|스브스|엠빅|세계는지금|시사기획|PD수첩|그것이 알고싶다/i;
+const SHOP_CH = /홈쇼핑|쇼핑|shopping|커머스|commerce|라이브쇼/i;
+const ISSUE_CH = /이슈|논란|사건|렉카/i;
+export function classifyChannel(categoryId: string | undefined, channelTitle: string): BreakoutKind | null {
+  if (SHOP_CH.test(channelTitle)) return "shopping";
+  if (categoryId === "25" || NEWS_CH.test(channelTitle)) return "news";
+  if (ISSUE_CH.test(channelTitle)) return "issue";
+  return null;
 }
 
 const API = "https://www.googleapis.com/youtube/v3";
@@ -157,6 +177,8 @@ export async function collectBreakout(date: string, opts: { dryRun?: boolean } =
       ratio: views / ch.subs,
       channel_avg_views: ch.avg > 0 ? ch.avg : null,
       outlier: ch.avg > 0 ? views / ch.avg : null,
+      category_id: v.snippet.categoryId ?? null,
+      kind: classifyChannel(v.snippet.categoryId, v.snippet.channelTitle ?? ""),
       collected_at: new Date().toISOString(),
     }];
   });
@@ -183,22 +205,28 @@ export const SHORTS_MAX_SEC = 180;
 
 export async function getBreakout(opts: {
   date: string; sort: BreakoutSort; type: BreakoutType; minRatio: number; limit?: number;
+  /** 뉴스·홈쇼핑·정치·이슈 채널 제외 */
+  excludeKinds?: boolean;
 }): Promise<BreakoutVideo[]> {
   const db = getSupabase();
   if (!db) return [];
   const BASE_COLS = "video_id,title,channel_id,channel_title,channel_thumb,thumbnail,published_at,duration_sec,view_count,subscriber_count,ratio";
   const col = { ratio: "ratio", outlier: "outlier", views: "view_count", subs: "subscriber_count", recent: "published_at" }[opts.sort];
-  const run = (cols: string, orderCol: string) => {
+  const run = (cols: string, orderCol: string, withKind: boolean) => {
     let q = db.from("breakout_videos").select(cols).eq("snapshot_date", opts.date).gte("ratio", opts.minRatio);
+    if (withKind && opts.excludeKinds) q = q.is("kind", null);
     if (opts.type === "shorts") q = q.lte("duration_sec", SHORTS_MAX_SEC);
     if (opts.type === "long") q = q.gt("duration_sec", SHORTS_MAX_SEC);
     return q.order(orderCol, { ascending: false, nullsFirst: false }).limit(opts.limit ?? 600);
   };
-  let { data, error } = await run(`${BASE_COLS},channel_avg_views,outlier`, col);
-  // outlier 칼럼을 아직 만들지 않은 DB(마이그레이션 전)에서도 목록은 보이게 한다
-  if (error) ({ data } = await run(BASE_COLS, col === "outlier" ? "ratio" : col));
+  let { data, error } = await run(`${BASE_COLS},channel_avg_views,outlier,kind`, col, true);
+  // kind·outlier 칼럼을 아직 만들지 않은 DB(마이그레이션 전)에서도 목록은 보이게 한다
+  if (error) ({ data, error } = await run(`${BASE_COLS},channel_avg_views,outlier`, col, false));
+  if (error) ({ data } = await run(BASE_COLS, col === "outlier" ? "ratio" : col, false));
   return ((data ?? []) as unknown as BreakoutVideo[])
-    .map((v) => ({ ...v, channel_avg_views: v.channel_avg_views ?? null, outlier: v.outlier ?? null }))
+    .map((v) => ({ ...v, channel_avg_views: v.channel_avg_views ?? null, outlier: v.outlier ?? null, kind: v.kind ?? null }))
+    // 칼럼이 없을 때도 이름 판정으로 거른다
+    .filter((v) => !opts.excludeKinds || (v.kind ?? classifyChannel(undefined, v.channel_title)) === null)
     .filter((v) => !isBlocked(v.title));
 }
 

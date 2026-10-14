@@ -6,7 +6,7 @@ import { cx } from "@/components/ui/button";
 import { outlierLabel } from "@/lib/format";
 import { NUM, ROW, TABLE, TD, TH, TH_SORT, TH_SORT_ACTIVE } from "@/components/ui/table";
 
-type SP = { date?: string; sort?: string; type?: string; min?: string };
+type SP = { date?: string; sort?: string; type?: string; min?: string; ex?: string };
 
 const SORTS: { key: BreakoutSort; label: string }[] = [
   { key: "ratio", label: "구독자 대비 조회수" },
@@ -76,10 +76,11 @@ export async function BreakoutView({ sp }: { sp: SP }) {
   const sort = (SORTS.find((s) => s.key === sp.sort)?.key ?? "ratio") as BreakoutSort;
   const type = (TYPES.find((t) => t.key === sp.type)?.key ?? "long") as BreakoutType; // 기본은 롱폼, 쇼츠는 따로
   const min = MINS.find((m) => m.key === sp.min) ?? MINS[0];
-  const videos = dates.length ? await getBreakout({ date, sort, type, minRatio: min.value }) : [];
+  const ex = sp.ex === "0" ? "0" : "1"; // 뉴스·홈쇼핑·정치·이슈 제외(기본 켜짐)
+  const videos = dates.length ? await getBreakout({ date, sort, type, minRatio: min.value, excludeKinds: ex === "1" }) : [];
 
   const href = (patch: Record<string, string>) => {
-    const q = new URLSearchParams({ date, sort, type, min: min.key, ...patch });
+    const q = new URLSearchParams({ date, sort, type, min: min.key, ex, ...patch });
     return `/trend-search/breakout?${q.toString()}`;
   };
 
@@ -115,6 +116,10 @@ export async function BreakoutView({ sp }: { sp: SP }) {
             {TYPES.map((t) => <Link key={t.key} href={href({ type: t.key })} aria-current={t.key === type ? "page" : undefined} className={CHIP}>{t.label}</Link>)}
             <span aria-hidden="true" className="mx-1 hidden w-px self-stretch bg-line sm:block" />
             {MINS.map((m) => <Link key={m.key} href={href({ min: m.key })} aria-current={m.key === min.key ? "page" : undefined} className={CHIP}>{m.label}</Link>)}
+            <span aria-hidden="true" className="mx-1 hidden w-px self-stretch bg-line sm:block" />
+            <Link href={href({ ex: ex === "1" ? "0" : "1" })} aria-pressed={ex === "1"} aria-current={ex === "1" ? "true" : undefined} className={CHIP}>
+              뉴스·홈쇼핑·정치·이슈 제외
+            </Link>
           </div>
         </div>
 
