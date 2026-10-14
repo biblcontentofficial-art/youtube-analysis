@@ -83,10 +83,6 @@ export default function SearchResultList({
   const [checkedIds, setCheckedIds] = useState<Set<string>>(new Set());
   const [showChannelReport, setShowChannelReport] = useState(false);
 
-  // ─── 알고리즘 확률 (사용자 옵트인) ───
-  // 기본: 비활성. 표 머리 버튼 클릭 → 확인창(useConfirm) → 확인 시에만 활성화
-  // ToS III.E.4h 회피: 우리가 자동으로 표시하지 않음. 사용자 명시 동의 후만 사용자 본인 브라우저에서 계산.
-  const [probEnabled, setProbEnabled] = useState(false);
 
   // 더보기 상태
   const [pageToken, setPageToken] = useState<string | undefined>(initPageToken);
@@ -349,16 +345,6 @@ export default function SearchResultList({
     return () => clearTimeout(t);
   }, [videos]);
 
-  // ─── 알고리즘 확률 옵트인: 공용 확인창(문구 그대로) ───
-  const requestProb = async () => {
-    const ok = await askConfirm({
-      message: "알고리즘 확률 분석을 진행하시겠습니까?",
-      subMessage:
-        "※ 이 도구는 사용자가 직접 활성화하는 자가 계산 도구입니다. YouTube의 공식 메트릭이 아니며, bibl lab이 제공하는 평가 지표가 아닙니다. 공개된 메타데이터를 사용자 브라우저에서 단순 산술로 처리한 참고 값입니다.",
-    });
-    if (ok) setProbEnabled(true);
-  };
-
   const toggleTool = (t: NonNullable<typeof tool>) => setTool((cur) => (cur === t ? null : t));
   const closeTool = () => setTool(null);
 
@@ -369,7 +355,7 @@ export default function SearchResultList({
     viewCount: "조회수",
     subscriberCountRaw: "구독자",
     publishedAtRaw: "게시일",
-    performanceRatioRaw: "알고리즘 확률",
+    performanceRatioRaw: "채널 평균 대비",
     scoreValue: "점수",
     algorithmScore: "알고리즘 점수",
   };
@@ -617,23 +603,9 @@ export default function SearchResultList({
                   </th>
                   <th scope="col" className={cx(TH, "hidden w-[200px] xl:table-cell")}>채널</th>
                   {renderSortHead("viewCount", "조회수", "w-24 pr-4 text-right")}
+                  {renderSortHead("performanceRatioRaw", "평균 대비", "w-[96px] pr-4 text-right")}
                   {renderSortHead("subscriberCountRaw", "구독자", "w-[92px] pr-4 text-right")}
                   {renderSortHead("publishedAtRaw", "게시일", "w-[104px] pr-4 text-right")}
-                  {/* 알고리즘 확률 — 옵트인 컬럼 (사용자가 명시 동의해야만 활성) */}
-                  {probEnabled ? (
-                    renderSortHead("performanceRatioRaw", "알고리즘 확률", "w-28 pl-2")
-                  ) : (
-                    <th scope="col" className={cx(TH, "w-28 pl-2")}>
-                      <button
-                        type="button"
-                        onClick={() => void requestProb()}
-                        aria-haspopup="dialog"
-                        className="inline-flex h-7 items-center rounded-md border border-line-strong px-2 text-micro font-semibold text-fg-2 transition-colors duration-150 hover:border-line-hover hover:text-fg pointer-coarse:h-11"
-                      >
-                        알고리즘 확률
-                      </button>
-                    </th>
-                  )}
                 </tr>
               </thead>
               <tbody>
@@ -644,7 +616,6 @@ export default function SearchResultList({
                     checked={checkedIds.has(video.videoId)}
                     onCheck={() => toggleCheck(video.videoId)}
                     onClick={() => setSelectedVideo(video)}
-                    probEnabled={probEnabled}
                   />
                 ))}
               </tbody>
@@ -663,15 +634,6 @@ export default function SearchResultList({
               />
             ))}
           </ul>
-
-          {/* 알고리즘 확률 활성 시 디스클레이머 (표에서만 보인다) */}
-          {probEnabled && (
-            <p className="mt-3 hidden rounded-card border border-line bg-surface p-3 text-micro text-fg-3 lg:block">
-              ※ <strong className="font-semibold text-fg-2">알고리즘 확률은 사용자가 직접 활성화한 자가 계산 도구</strong>입니다.
-              표시되는 등급은 YouTube가 제공하는 공식 메트릭이 아니며, bibl lab의 평가/예측이 아닙니다.
-              공개된 메타데이터(조회수, 채널 평균 조회수, 게시일)를 사용자의 브라우저에서 단순 산술로 처리한 참고 값입니다.
-            </p>
-          )}
 
           {/* ─── 더보기 + 캡션 (숫자는 지금 결과 수와 플랜 결과 한도) ─── */}
           {hasMore && (

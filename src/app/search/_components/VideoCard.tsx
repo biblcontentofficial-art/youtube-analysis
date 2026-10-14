@@ -9,7 +9,7 @@
  * - 영상 칸은 relative 이고 제목이 <h3><button> 이라, ::after 가 썸네일까지 덮어 어디를 눌러도 영상 정보가 열린다.
  *   썸네일은 마우스 전용(alt="", 키보드는 제목 버튼 하나).
  * - 목록은 왼쪽 44px 띠만 선택(label), 나머지는 영상 정보 열기. 행 전체를 label 로 만들지 않는다.
- * - 알고리즘 확률은 사용자가 옵트인한 뒤 표에서만 등급 배지로 보인다(모바일 목록에는 새로 노출하지 않는다).
+ * - 조회수 옆에 '채널 평균 조회수의 몇 배'(아웃라이어 배수)를 보여 준다. 2배 이상만 흰 글자로 강조.
  */
 import type { Video } from "@/types";
 import { cx } from "@/components/ui/button";
@@ -21,42 +21,24 @@ interface RowProps {
   checked: boolean;
   onCheck: () => void;
   onClick: () => void;
-  probEnabled?: boolean;
-}
-
-type Grade = "Great" | "Good" | "Normal" | "Bad" | "Worst";
-
-// ─── 확률 라벨 계산 (사용자 옵트인 후 클라이언트 사이드 단순 산술) ───
-// performanceRatioRaw = 영상 조회수 ÷ 채널 평균 조회수
-// 임계값은 사용자 가이드라인 (YouTube 공식 메트릭 아님)
-function calcProbabilityLabel(ratio: number | undefined): { label: Grade } {
-  const r = ratio ?? 0;
-  if (r >= 5) return { label: "Great" };
-  if (r >= 2) return { label: "Good" };
-  if (r >= 0.5) return { label: "Normal" };
-  if (r >= 0.1) return { label: "Bad" };
-  return { label: "Worst" };
 }
 
 /**
- * 등급 배지(DESIGN 6.12). 기능 색은 글자·테두리에만, 면은 Great 작은 배지 하나. 색만으로 말하지 않게 라벨을 늘 쓴다.
- * 흰색은 '좋음'에 쓰지 않는다(선택·현재 위치 뜻).
+ * 아웃라이어 배수 = 영상 조회수 ÷ 채널 평균 조회수(채널 누적 조회수 ÷ 영상 수, performanceRatioRaw).
+ * 10배 미만은 소수 한 자리, 이상은 정수. 계산할 수 없으면 '-'.
  */
-const GRADE_BASE =
-  "inline-flex h-[22px] items-center rounded-[5px] border border-transparent px-[7px] text-micro font-bold leading-none";
-const GRADE_TONE: Record<Grade, string> = {
-  Great: "bg-positive text-accent-ink",
-  Good: "border-positive/55 text-positive",
-  Normal: "border-line-strong text-fg-3",
-  Bad: "border-caution/55 text-caution",
-  Worst: "border-negative/55 text-negative",
-};
+export function outlierLabel(ratio: number | undefined): string {
+  const r = ratio ?? 0;
+  if (!r || !Number.isFinite(r)) return "-";
+  if (r >= 10) return `${Math.round(r).toLocaleString("ko-KR")}배`;
+  return `${r.toFixed(1).replace(/\.0$/, "")}배`;
+}
 
-function GradeBadge({ ratio }: { ratio: number | undefined }) {
-  const { label } = calcProbabilityLabel(ratio);
+function Outlier({ ratio, className }: { ratio: number | undefined; className?: string }) {
+  const strong = (ratio ?? 0) >= 2;
   return (
-    <span title="사용자 자가 계산값 (YouTube 공식 메트릭 아님)" className={cx(GRADE_BASE, GRADE_TONE[label])}>
-      {label}
+    <span title="채널 평균 조회수 대비" className={cx("tnum", strong ? "font-bold text-fg" : "text-fg-3", className)}>
+      {outlierLabel(ratio)}
     </span>
   );
 }
@@ -120,7 +102,7 @@ function Avatar({ src, px, className }: { src?: string; px: number; className: s
 }
 
 // ─── 1024 이상: 표의 행 ───────────────────────────────────────────────────────
-export function VideoTableRow({ video, checked, onCheck, onClick, probEnabled }: RowProps) {
+export function VideoTableRow({ video, checked, onCheck, onClick }: RowProps) {
   const views = formatCompactKo(video.viewCount ?? 0);
   return (
     <tr className={cx(checked ? ROW_SELECTED : ROW, "content-auto")}>
@@ -159,12 +141,13 @@ export function VideoTableRow({ video, checked, onCheck, onClick, probEnabled }:
           {views}
         </span>
       </td>
+      <td className={cx(TD, "pr-4 text-right text-body-sm")}>
+        <Outlier ratio={video.performanceRatioRaw} />
+      </td>
       <td className={cx(TD, "tnum pr-4 text-right text-body-sm text-fg-2")}>
         {formatCompactKo(video.subscriberCountRaw ?? 0)}
       </td>
       <td className={cx(TD, "tnum whitespace-nowrap pr-4 text-right text-body-sm text-fg-3")}>{dateLabel(video.publishedAt)}</td>
-      {/* 알고리즘 확률(옵트인): 활성 전에는 비워 둔다. 카카오 버튼(오른쪽 아래)에 가리지 않게 왼쪽 정렬 */}
-      <td className={cx(TD, "pl-2")}>{probEnabled && <GradeBadge ratio={video.performanceRatioRaw} />}</td>
     </tr>
   );
 }
@@ -200,6 +183,9 @@ export function VideoListItem({ video, checked, onCheck, onClick }: RowProps) {
                 {formatCompactKo(video.viewCount ?? 0)}회
               </span>{" "}
               ·
+            </span>
+            <span className="whitespace-nowrap">
+              평균의 <Outlier ratio={video.performanceRatioRaw} /> ·
             </span>
             <span className="whitespace-nowrap">구독자 {formatCompactKo(video.subscriberCountRaw ?? 0)} ·</span>
             <span className="whitespace-nowrap">{dateLabel(video.publishedAt)}</span>
