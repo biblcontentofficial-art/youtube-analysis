@@ -14,24 +14,13 @@
 import type { Video } from "@/types";
 import { cx } from "@/components/ui/button";
 import { ROW, ROW_SELECTED, TD } from "@/components/ui/table";
-import { formatCompactKo } from "@/lib/format";
+import { formatCompactKo, outlierLabel } from "@/lib/format";
 
 interface RowProps {
   video: Video;
   checked: boolean;
   onCheck: () => void;
   onClick: () => void;
-}
-
-/**
- * 아웃라이어 배수 = 영상 조회수 ÷ 채널 평균 조회수(채널 누적 조회수 ÷ 영상 수, performanceRatioRaw).
- * 10배 미만은 소수 한 자리, 이상은 정수. 계산할 수 없으면 '-'.
- */
-export function outlierLabel(ratio: number | undefined): string {
-  const r = ratio ?? 0;
-  if (!r || !Number.isFinite(r)) return "-";
-  if (r >= 10) return `${Math.round(r).toLocaleString("ko-KR")}배`;
-  return `${r.toFixed(1).replace(/\.0$/, "")}배`;
 }
 
 function Outlier({ ratio, className }: { ratio: number | undefined; className?: string }) {

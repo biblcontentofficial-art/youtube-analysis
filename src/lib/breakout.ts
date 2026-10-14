@@ -21,6 +21,10 @@ export interface BreakoutVideo {
   view_count: number;
   subscriber_count: number;
   ratio: number;
+  /** 채널 평균 조회수(누적 조회수 ÷ 영상 수). 칼럼 추가 전 수집분은 null */
+  channel_avg_views: number | null;
+  /** 아웃라이어 배수 = 조회수 ÷ 채널 평균 조회수 */
+  outlier: number | null;
 }
 
 const API = "https://www.googleapis.com/youtube/v3";
@@ -125,10 +129,11 @@ export async function collectBreakout(date: string, opts: { dryRun?: boolean } =
   const channelIds = [...new Set(videos.map((v: any) => v.snippet.channelId as string))];
   const channelPages = await Promise.all(chunk(channelIds, 50).map((g) =>
     yt("channels", { part: "snippet,statistics", id: g.join(","), maxResults: "50" })));
-  const channels = new Map<string, { subs: number; thumb: string | null }>();
+  const channels = new Map<string, { subs: number; thumb: string | null; avg: number }>();
   for (const c of channelPages.flatMap((d) => d?.items ?? [])) {
     if (c.statistics?.hiddenSubscriberCount) continue;
-    channels.set(c.id, { subs: Number(c.statistics?.subscriberCount ?? 0), thumb: c.snippet?.thumbnails?.default?.url ?? null });
+    const total = Number(c.statistics?.viewCount ?? 0), count = Number(c.statistics?.videoCount ?? 0);
+    channels.set(c.id, { subs: Number(c.statistics?.subscriberCount ?? 0), thumb: c.snippet?.thumbnails?.default?.url ?? null, avg: count > 0 ? total / count : 0 });
   }
 
   const rows = videos.flatMap((v: any) => {
@@ -150,6 +155,8 @@ export async function collectBreakout(date: string, opts: { dryRun?: boolean } =
       view_count: views,
       subscriber_count: ch.subs,
       ratio: views / ch.subs,
+      channel_avg_views: ch.avg > 0 ? ch.avg : null,
+      outlier: ch.avg > 0 ? views / ch.avg : null,
       collected_at: new Date().toISOString(),
     }];
   });
@@ -168,7 +175,7 @@ export async function collectBreakout(date: string, opts: { dryRun?: boolean } =
   return { date, candidates: ids.length, saved: rows.length };
 }
 
-export type BreakoutSort = "ratio" | "views" | "subs" | "recent";
+export type BreakoutSort = "ratio" | "outlier" | "views" | "subs" | "recent";
 export type BreakoutType = "all" | "long" | "shorts";
 
 /** 쇼츠 기준: 3분 이하(유튜브 쇼츠 최대 길이) */
@@ -179,15 +186,20 @@ export async function getBreakout(opts: {
 }): Promise<BreakoutVideo[]> {
   const db = getSupabase();
   if (!db) return [];
-  let q = db.from("breakout_videos")
-    .select("video_id,title,channel_id,channel_title,channel_thumb,thumbnail,published_at,duration_sec,view_count,subscriber_count,ratio")
-    .eq("snapshot_date", opts.date)
-    .gte("ratio", opts.minRatio);
-  if (opts.type === "shorts") q = q.lte("duration_sec", SHORTS_MAX_SEC);
-  if (opts.type === "long") q = q.gt("duration_sec", SHORTS_MAX_SEC);
-  const col = { ratio: "ratio", views: "view_count", subs: "subscriber_count", recent: "published_at" }[opts.sort];
-  const { data } = await q.order(col, { ascending: false }).limit(opts.limit ?? 600);
-  return ((data ?? []) as BreakoutVideo[]).filter((v) => !isBlocked(v.title));
+  const BASE_COLS = "video_id,title,channel_id,channel_title,channel_thumb,thumbnail,published_at,duration_sec,view_count,subscriber_count,ratio";
+  const col = { ratio: "ratio", outlier: "outlier", views: "view_count", subs: "subscriber_count", recent: "published_at" }[opts.sort];
+  const run = (cols: string, orderCol: string) => {
+    let q = db.from("breakout_videos").select(cols).eq("snapshot_date", opts.date).gte("ratio", opts.minRatio);
+    if (opts.type === "shorts") q = q.lte("duration_sec", SHORTS_MAX_SEC);
+    if (opts.type === "long") q = q.gt("duration_sec", SHORTS_MAX_SEC);
+    return q.order(orderCol, { ascending: false, nullsFirst: false }).limit(opts.limit ?? 600);
+  };
+  let { data, error } = await run(`${BASE_COLS},channel_avg_views,outlier`, col);
+  // outlier 칼럼을 아직 만들지 않은 DB(마이그레이션 전)에서도 목록은 보이게 한다
+  if (error) ({ data } = await run(BASE_COLS, col === "outlier" ? "ratio" : col));
+  return ((data ?? []) as unknown as BreakoutVideo[])
+    .map((v) => ({ ...v, channel_avg_views: v.channel_avg_views ?? null, outlier: v.outlier ?? null }))
+    .filter((v) => !isBlocked(v.title));
 }
 
 /** 수집된 날짜 목록(최근 순) */

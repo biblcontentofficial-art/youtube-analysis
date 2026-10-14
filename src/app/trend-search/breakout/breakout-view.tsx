@@ -3,12 +3,14 @@ import { getBreakout, getBreakoutDates, kstToday, SHORTS_MAX_SEC, type BreakoutS
 import { SectionHeader } from "@/components/ui/section-header";
 import { CHIP } from "@/components/ui/chip";
 import { cx } from "@/components/ui/button";
+import { outlierLabel } from "@/lib/format";
 import { NUM, ROW, TABLE, TD, TH, TH_SORT, TH_SORT_ACTIVE } from "@/components/ui/table";
 
 type SP = { date?: string; sort?: string; type?: string; min?: string };
 
 const SORTS: { key: BreakoutSort; label: string }[] = [
   { key: "ratio", label: "구독자 대비 조회수" },
+  { key: "outlier", label: "채널 평균 대비" },
   { key: "views", label: "조회수" },
   { key: "subs", label: "구독자" },
   { key: "recent", label: "게시일" },
@@ -60,11 +62,12 @@ const channelUrl = (id: string) => `https://www.youtube.com/channel/${id}`;
 /** 표 머리에서 정렬을 바꿀 수 있는 열(구독자 대비 조회수 정렬은 위 정렬 칩에만 있다) */
 const SORT_COLS: { key: BreakoutSort; label: string; className: string }[] = [
   { key: "views", label: "조회수", className: "w-[120px] pr-6" },
+  { key: "outlier", label: "평균 대비", className: "w-[104px] pr-6" },
   { key: "subs", label: "구독자", className: "w-[104px] pr-6" },
   { key: "recent", label: "게시일", className: "w-[112px] pr-2" },
 ];
 
-/** 정렬 기준 숫자(DESIGN 6.10): 지금 정렬 중인 조회수·구독자 열에만 */
+/** 정렬 기준 숫자(DESIGN 6.10): 지금 정렬 중인 조회수·평균 대비·구독자 열에만 */
 const SORT_NUM = "text-[18px] font-extrabold tracking-[-0.02em] text-fg";
 
 /** 목록 화면(로그인 확인 뒤). 로컬 미리보기에서도 재사용한다. */
@@ -124,7 +127,7 @@ export async function BreakoutView({ sp }: { sp: SP }) {
           </div>
         ) : (
           <>
-            {/* 1024 이상 표(DESIGN 6.10 앱 표 값, 체크 열 없음): 영상 · 조회수 · 구독자 · 게시일 */}
+            {/* 1024 이상 표(DESIGN 6.10 앱 표 값, 체크 열 없음): 영상 · 조회수 · 평균 대비 · 구독자 · 게시일 */}
             <table className={cx(TABLE, "mt-6 hidden lg:table")}>
               <thead>
                 <tr>
@@ -170,6 +173,7 @@ export async function BreakoutView({ sp }: { sp: SP }) {
                       </div>
                     </td>
                     <td className={cx(TD, NUM, "pr-6", sort === "views" ? SORT_NUM : "text-body-sm text-fg")}>{num(v.view_count)}</td>
+                    <td className={cx(TD, NUM, "pr-6", sort === "outlier" ? SORT_NUM : (v.outlier ?? 0) >= 2 ? "text-body-sm font-bold text-fg" : "text-body-sm text-fg-3")} title="채널 평균 조회수 대비">{outlierLabel(v.outlier)}</td>
                     <td className={cx(TD, NUM, "pr-6", sort === "subs" ? SORT_NUM : "text-body-sm text-fg-2")}>{num(v.subscriber_count)}</td>
                     <td className={cx(TD, NUM, "pr-2 text-body-sm text-fg-3")}>{kstTime(v.published_at)}</td>
                   </tr>
@@ -197,6 +201,7 @@ export async function BreakoutView({ sp }: { sp: SP }) {
                     <a href={channelUrl(v.channel_id)} target="_blank" rel="noopener noreferrer" className="mt-1 block truncate text-micro text-fg-3">{v.channel_title}</a>
                     <p className="tnum mt-0.5 flex flex-wrap items-baseline gap-x-1 text-micro text-fg-3">
                       <span className="text-body-sm font-extrabold tracking-[-0.02em] text-fg">{num(v.view_count)}회</span>
+                      <span>· 평균의 <span className={(v.outlier ?? 0) >= 2 ? "font-bold text-fg" : undefined}>{outlierLabel(v.outlier)}</span></span>
                       <span>· 구독자 {num(v.subscriber_count)}</span>
                       <span>· {kstTime(v.published_at)}</span>
                     </p>
