@@ -16,7 +16,6 @@ const SORTS: { key: BreakoutSort; label: string }[] = [
   { key: "recent", label: "게시일" },
 ];
 const TYPES: { key: BreakoutType; label: string }[] = [
-  { key: "all", label: "전체" },
   { key: "long", label: "롱폼" },
   { key: "shorts", label: "쇼츠" },
 ];
@@ -75,7 +74,7 @@ export async function BreakoutView({ sp }: { sp: SP }) {
   const dates = await getBreakoutDates(30);
   const date = sp.date && dates.includes(sp.date) ? sp.date : dates[0] ?? kstToday(-1);
   const sort = (SORTS.find((s) => s.key === sp.sort)?.key ?? "ratio") as BreakoutSort;
-  const type = (TYPES.find((t) => t.key === sp.type)?.key ?? "all") as BreakoutType;
+  const type = (TYPES.find((t) => t.key === sp.type)?.key ?? "long") as BreakoutType; // 기본은 롱폼, 쇼츠는 따로
   const min = MINS.find((m) => m.key === sp.min) ?? MINS[0];
   const videos = dates.length ? await getBreakout({ date, sort, type, minRatio: min.value }) : [];
 
