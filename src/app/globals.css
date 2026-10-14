@@ -3,14 +3,17 @@
 /*
  * 디자인 토큰 (Tailwind v4 @theme)
  * 값의 근거: DESIGN.md 2.2 (모노크롬 실버 M, docs/ux-renewal/design-final/silver/_work/theme-final.css)
- * 그래파이트 면·선·글자 토큰은 neutral 과 같은 단계 값이다. 기본 팔레트(neutral 등)는 전환 기간에 그대로 둔다(DESIGN 9장).
+ * 그래파이트 면·선·글자 토큰은 neutral 과 같은 단계 값이다.
+ * Tailwind 기본 팔레트는 비웠다(DESIGN 9.3 단계 3b, C18b). 쓸 수 있는 색은 이 블록의 토큰과
+ * 아래 '허용 목록 재선언' 블록뿐이고, 둘 다에 없는 색 클래스는 빌드 오류 없이 CSS 에서 빠진다.
  */
 @theme {
   /* 글꼴: Pretendard Variable 자체 호스팅(public/fonts/pretendard, layout.tsx <head> 의 link) */
   --font-sans: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
-  /* --color-*: initial;  ← DESIGN 9장 단계 3b(C18b, 잔여 0 확인 뒤)에만 켠다 */
+  /* 기본 팔레트 비우기: red·neutral 같은 기본 색과 white·black 까지 모두 지운다. 이 줄은 색 선언보다 앞에 둔다 */
+  --color-*: initial;
 
   /* 바탕·면 */
   --color-canvas: #000000;
@@ -152,12 +155,23 @@
  */
 
 /*
- * 임시 안전망: 아직 변환하지 않은 화면(로그인 뒤 앱 화면·관리자 화면)의 gray·slate·zinc 를
- * neutral 과 같은 무채색 값으로 바꿔 청색기만 없앤다. 명도 단계는 그대로다.
- * 화면 변환이 끝나도 관리자 화면(insights/admin)이 남으므로 R22 이후에도 지우지 않는다.
- * teal 은 바꾸지 않는다(틸 채움 버튼이 에메랄드 채움 버튼이 되어 "색 배경 버튼 금지"에 걸린다).
+ * 허용 목록 재선언 (DESIGN 9.3 단계 3b, C18b).
+ * 위에서 기본 팔레트를 비웠으므로, 구 테마를 그대로 쓰는 허용 목록 화면(관리자 화면 src/app/admin·insights/admin·
+ * community/admin, 관리자 미리보기 insights/_components/PostRenderer.tsx)이 실제로 쓰는 색만 값 그대로 다시 선언한다.
+ * 빠지면 오류 없이 깨진다(색 없는 border 가 흰 테두리, 글자색 소실). 2026-10-10 DESIGN 9.3 명령으로 뽑은 쓰는 단계 74개 + ② 안전망 gray·slate·zinc 50~950 전 단계 + white·black
+ * (블록 전체 팔레트 선언 90단계 + white·black 2개).
+ * 사용자 화면은 이 색을 쓰지 않는다(check-theme default-palette ERROR). 허용 목록 화면에서 새 단계를 쓰면 여기에 더한다.
+ *
+ * ② 쿨그레이 안전망: gray·slate·zinc 를 neutral 과 같은 무채색 값으로 그려 청색기만 없앤다. 명도 단계는 그대로다.
+ *    teal 은 바꾸지 않는다(틸 채움 버튼이 에메랄드 채움 버튼이 되어 "색 배경 버튼 금지"에 걸린다).
+ * ③ neutral·④ 채도 색은 Tailwind v4.1 기본값 그대로다.
  */
 @theme {
+  /* ① 흰색·검정 (기본 팔레트를 비우면 함께 지워진다) */
+  --color-white: #fff;
+  --color-black: #000;
+
+  /* ② 쿨그레이 안전망 */
   --color-gray-50: oklch(98.5% 0 0);
   --color-gray-100: oklch(97% 0 0);
   --color-gray-200: oklch(92.2% 0 0);
@@ -193,6 +207,78 @@
   --color-zinc-800: oklch(26.9% 0 0);
   --color-zinc-900: oklch(20.5% 0 0);
   --color-zinc-950: oklch(14.5% 0 0);
+
+  /* ③ neutral (허용 목록 화면이 쓰는 단계) */
+  --color-neutral-200: oklch(92.2% 0 0);
+  --color-neutral-300: oklch(87% 0 0);
+  --color-neutral-400: oklch(70.8% 0 0);
+  --color-neutral-500: oklch(55.6% 0 0);
+  --color-neutral-600: oklch(43.9% 0 0);
+  --color-neutral-700: oklch(37.1% 0 0);
+  --color-neutral-800: oklch(26.9% 0 0);
+  --color-neutral-900: oklch(20.5% 0 0);
+
+  /* ④ 채도 색 (관리자 화면 범주색·상태색. 허용 목록 화면이 쓰는 단계만) */
+  --color-teal-200: oklch(91% 0.096 180.426);
+  --color-teal-300: oklch(85.5% 0.138 181.071);
+  --color-teal-400: oklch(77.7% 0.152 181.912);
+  --color-teal-500: oklch(70.4% 0.14 182.503);
+  --color-teal-600: oklch(60% 0.118 184.704);
+  --color-teal-800: oklch(43.7% 0.078 188.216);
+  --color-teal-900: oklch(38.6% 0.063 188.416);
+  --color-teal-950: oklch(27.7% 0.046 192.524);
+
+  --color-red-200: oklch(88.5% 0.062 18.334);
+  --color-red-300: oklch(80.8% 0.114 19.571);
+  --color-red-400: oklch(70.4% 0.191 22.216);
+  --color-red-500: oklch(63.7% 0.237 25.331);
+  --color-red-600: oklch(57.7% 0.245 27.325);
+  --color-red-700: oklch(50.5% 0.213 27.518);
+  --color-red-800: oklch(44.4% 0.177 26.899);
+  --color-red-900: oklch(39.6% 0.141 25.723);
+  --color-red-950: oklch(25.8% 0.092 26.042);
+
+  --color-green-400: oklch(79.2% 0.209 151.711);
+  --color-green-500: oklch(72.3% 0.219 149.579);
+  --color-green-700: oklch(52.7% 0.154 150.069);
+  --color-green-900: oklch(39.3% 0.095 152.535);
+
+  --color-blue-300: oklch(80.9% 0.105 251.813);
+  --color-blue-400: oklch(70.7% 0.165 254.624);
+  --color-blue-500: oklch(62.3% 0.214 259.815);
+  --color-blue-600: oklch(54.6% 0.245 262.881);
+  --color-blue-700: oklch(48.8% 0.243 264.376);
+  --color-blue-900: oklch(37.9% 0.146 265.522);
+  --color-blue-950: oklch(28.2% 0.091 267.935);
+
+  --color-yellow-400: oklch(85.2% 0.199 91.936);
+  --color-yellow-500: oklch(79.5% 0.184 86.047);
+
+  --color-orange-300: oklch(83.7% 0.128 66.29);
+  --color-orange-400: oklch(75% 0.183 55.934);
+  --color-orange-700: oklch(55.3% 0.195 38.402);
+  --color-orange-800: oklch(47% 0.157 37.304);
+  --color-orange-900: oklch(40.8% 0.123 38.172);
+
+  --color-amber-300: oklch(87.9% 0.169 91.605);
+  --color-amber-400: oklch(82.8% 0.189 84.429);
+  --color-amber-500: oklch(76.9% 0.188 70.08);
+
+  --color-purple-300: oklch(82.7% 0.119 306.383);
+  --color-purple-400: oklch(71.4% 0.203 305.504);
+  --color-purple-500: oklch(62.7% 0.265 303.9);
+  --color-purple-900: oklch(38.1% 0.176 304.987);
+  --color-purple-950: oklch(29.1% 0.149 302.717);
+
+  --color-violet-200: oklch(89.4% 0.057 293.283);
+  --color-violet-400: oklch(70.2% 0.183 293.541);
+  --color-violet-500: oklch(60.6% 0.25 292.717);
+
+  --color-pink-500: oklch(65.6% 0.241 354.308);
+
+  --color-sky-400: oklch(74.6% 0.16 232.661);
+
+  --color-emerald-400: oklch(76.5% 0.177 163.223);
 }
 
 /*

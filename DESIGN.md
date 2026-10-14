@@ -169,15 +169,15 @@
 | `youtube` | `#ff0000` | 유튜브 로고, 유튜브로 나가는 ↗ 의 hover·포커스 때만 (검정 위 5.25) |
 | `kakao` / `kakao-hover` / `kakao-ink` / `kakao-icon` | `#fee500` / `#fdd835` / `#191919` / `#3a1d1d` | 카카오 버튼만 (글자 13.75, 말풍선 11.96) |
 
-### 2.2 `@theme` 블록 (전환 기간용)
+### 2.2 `@theme` 블록
 
-`theme-final.css` 의 블록을 그대로 쓰되, **전환 기간에는 `--color-*: initial;` 줄을 넣지 않는다**(9장). 지금 `globals.css` 에 있는 `--font-mono`, `--text-label-en`, 쿨그레이 안전망 블록은 남긴다. `--color-surface-raised`(`#1f1f1f`)는 부품을 옮긴 뒤 지운다.
+C18b(2026-10-10)부터 `--color-*: initial;` 을 켠 상태다(9.3·9.4). `globals.css` 의 첫 `@theme` 는 이 줄 뒤에 `theme-final.css` 의 아래 토큰과 `--font-mono`·`--text-label-en` 을 두고, 기본 팔레트 중 허용 목록 화면이 쓰는 색은 바로 다음 `@theme`(허용 목록 재선언, 쿨그레이 안전망 포함)에 값 그대로 다시 선언한다(9.4). `--color-surface-raised`(`#1f1f1f`)는 부품을 옮긴 뒤 지운다.
 
 ```css
 @theme {
   --font-sans: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
 
-  /* --color-*: initial;  ← 9장 단계 3b(C18b, 잔여 0 확인 뒤)에만 켠다 */
+  --color-*: initial;  /* 9장 단계 3b(C18b)에서 켰다. 색 선언보다 앞에 둔다 */
 
   --color-canvas: #000000;
   --color-surface: #0a0a0a;
@@ -374,7 +374,7 @@
 
 ### 3.3 관리자 화면 예외
 
-- 관리자 화면(`src/app/admin/**`, `src/app/insights/admin/**`, `src/app/community/admin/**`, 그리고 관리자 미리보기 전용 부품 `src/app/insights/_components/PostRenderer.tsx`)은 **구 테마 그대로** 둔다. 범주 구분용 색(플랜·유입 소스별 색 + 범례)뿐 아니라 그 화면의 흰·검정·neutral·채도 색 클래스 전부가 예외다(ux-rules 832행 "관리자 화면만 예외"). 다만 9.3 단계 3b 에서 이 화면이 쓰는 색을 `initial` 뒤에 다시 선언해야 깨지지 않는다.
+- 관리자 화면(`src/app/admin/**`, `src/app/insights/admin/**`, `src/app/community/admin/**`, 그리고 관리자 미리보기 전용 부품 `src/app/insights/_components/PostRenderer.tsx`)은 **구 테마 그대로** 둔다. 범주 구분용 색(플랜·유입 소스별 색 + 범례)뿐 아니라 그 화면의 흰·검정·neutral·채도 색 클래스 전부가 예외다(ux-rules 832행 "관리자 화면만 예외"). 기본 팔레트를 비운 뒤에도 깨지지 않도록 C18b 에서 이 화면이 쓰는 색을 `initial` 뒤에 값 그대로 다시 선언했다(9.4). 이 화면에서 새 색 단계를 쓰면 9.4 블록에 더한다.
 - 관리자 로고(`admin/page.tsx` 의 'teal lab')는 **바꾸지 않는다**(관리자 구 테마 유지 원칙). 6.1 의 `Logo` 교체 대상은 사용자 화면 4곳뿐이다.
 - `src/app/tmklab-site/`(tmklab.com 별도 브랜드, middleware rewrite)는 **이 디자인 시스템 범위 밖**이다. Tailwind 색 클래스가 아니라 자체 `<style>`(`--teal` 등 자체 CSS 변수)으로 그려서 기본 팔레트를 비워도 영향이 없다(2026-10-08 확인: 색 클래스 0). 허용 목록에 넣고, 9.3 단계 3b 캡처 비교에만 포함한다. 정리 여부는 결정 14.
 - 쿨그레이 안전망(`globals.css` 의 gray·slate·zinc → 무채색 재정의)은 관리자 화면 때문에 전환 뒤에도 남긴다(9장).
@@ -1014,7 +1014,7 @@ R04 에서 만든 틀(`not-found.tsx`·`error.tsx`·`maintenance/page.tsx`, 같�
 ```sh
 grep -rhoE 'neutral-[0-9]{2,3}' src --include='*.ts' --include='*.tsx' --include='*.css' | wc -l
 grep -rhoE '(gray|slate|zinc|stone|teal|cyan|emerald|green|red|amber|yellow|orange|sky|blue|indigo|purple|violet|pink|rose|fuchsia|lime)-[0-9]{2,3}' src --include='*.ts' --include='*.tsx' --include='*.css' | wc -l
-grep -rhoE '\b(text|bg|border|ring|fill|stroke|from|to|via|divide|outline|decoration|placeholder|accent|caret|shadow)-(white|black)\b' src --include='*.ts' --include='*.tsx' --include='*.css' | wc -l
+grep -rhoE '\b(text|bg|border(-[trblxyse])?|ring(-offset)?|inset-ring|fill|stroke|from|to|via|divide(-[xy])?|outline|decoration|placeholder|accent|caret|shadow|inset-shadow|text-shadow)-(white|black)\b' src --include='*.ts' --include='*.tsx' --include='*.css' | wc -l
 ```
 
 ### 9.2 왜 지금 비우면 안 되나
@@ -1032,20 +1032,20 @@ grep -rhoE '\b(text|bg|border|ring|fill|stroke|from|to|via|divide|outline|decora
 | **0. 토큰 추가** | 2.2 블록으로 `@theme` 갱신(C01): 새 토큰 추가, `accent` 흰색, `accent-hover`, 제목 굵기 800, `text-title`·`text-ui`, `--container-wide`, `owner-red`·`owner-yellow`. `::selection` 실버. **기본 팔레트는 그대로 둔다.** Pretendard 연결(4.1) | `npx tsc --noEmit`·빌드 통과, 1440·390 캡처에서 에메랄드 자리만 흰색·실버로 바뀌고 나머지 동일 |
 | **1. 공용 부품** | `src/components/ui/*`(새 `table.ts`·`list-panel.ts` 포함), `globals.css` 의 `.chk`·`.ext`·`content-auto`, 사용자 화면 로고 4곳, 전역 네비·푸터(`layout.tsx`)를 6장 레시피와 토큰 이름으로 | 부품 파일에서 기본 팔레트 클래스 0 |
 | **2. 화면별 이전** | 각 화면 항목에서 2.3 기계 매핑 → 2.4·2.5 판단 매핑 → 6장 레시피. 바꾼 파일은 기본 팔레트 클래스 0 이 완료 기준 | `check-theme.mjs` 를 확장한 규칙(아래)이 바꾼 파일에서 0 |
-| **3a. 잔여 0 (C18a)** | `check-theme.mjs --all` 로 src 전체 잔여를 뽑아(착수 시 파일 목록 고정) 사용자 화면을 0 으로. `InsightsList.tsx` 삭제(2.4) | 허용 목록 밖 default-palette·emerald·blur 0 |
-| **3b. 비움 (C18b)** | ① 허용 목록 화면이 **실제로 쓰는 색 전부**를 grep 으로 뽑는다(아래 명령). ② `--color-*: initial;` 켜기 ③ 그 바로 뒤에 ①의 색을 **값 그대로 명시 선언**한다: `--color-white`·`--color-black`, 쿨그레이 안전망(gray·slate·zinc → 무채색 값), neutral 단계, 그리고 채도 색 단계(teal·red·green·blue·yellow·orange·amber·purple·violet·pink·sky·emerald 중 쓰는 단계만). `owner-*` 는 토큰이라 영향 없음 ④ 빌드 ⑤ 캡처 전후 비교 + 계산된 색 전수 조사(`_work/colors_audit.py` 방식) | 사용자 화면: 캡처 차이 0, 토큰 밖 계산 색 0. **허용 목록 화면 `/admin`·`/admin/traffic`·`/insights/admin`·`/insights/admin/traffic`·`/community/admin`·`/tmklab-site` 의 initial 전후 캡처 차이 0**(흰 테두리·글자색 소실 0) |
-| **4. 잠그기** | 기본 팔레트 클래스 규칙을 WARN → ERROR 로, 에메랄드 리터럴 ERROR | 이후 새 코드가 토큰 밖 색을 못 씀 |
+| **3a. 잔여 0 (C18a)** 완료 | `check-theme.mjs --all` 로 src 전체 잔여를 뽑아(착수 시 파일 목록 고정) 사용자 화면을 0 으로. `InsightsList.tsx` 삭제(2.4) | 허용 목록 밖 default-palette·emerald·blur 0 |
+| **3b. 비움 (C18b)** 완료 2026-10-10, 실제 목록은 9.4 | ① 허용 목록 화면이 **실제로 쓰는 색 전부**를 grep 으로 뽑는다(아래 명령). ② `--color-*: initial;` 켜기 ③ 그 바로 뒤에 ①의 색을 **값 그대로 명시 선언**한다: `--color-white`·`--color-black`, 쿨그레이 안전망(gray·slate·zinc → 무채색 값), neutral 단계, 그리고 채도 색 단계(teal·red·green·blue·yellow·orange·amber·purple·violet·pink·sky·emerald 중 쓰는 단계만). `owner-*` 는 토큰이라 영향 없음 ④ 빌드 ⑤ 캡처 전후 비교 + 계산된 색 전수 조사(`_work/colors_audit.py` 방식) | 사용자 화면: 캡처 차이 0, 토큰 밖 계산 색 0. **허용 목록 화면 `/admin`·`/admin/traffic`·`/insights/admin`·`/insights/admin/traffic`·`/community/admin`·`/tmklab-site` 의 initial 전후 캡처 차이 0**(흰 테두리·글자색 소실 0) |
+| **4. 잠그기 (C18b)** 완료 2026-10-10 | 기본 팔레트 클래스 규칙을 WARN → ERROR 로, 에메랄드 리터럴 ERROR | 이후 새 코드가 토큰 밖 색을 못 씀 |
 
-`check-theme.mjs` 에 더할 규칙(단계 1 = C01 에서 추가, 단계 4 = C18b 에서 ERROR):
+`check-theme.mjs` 규칙(단계 1 = C01 에서 WARN 으로 추가, 단계 4 = C18b 에서 ERROR 로 잠금. 아래는 잠근 뒤 값). globals.css 가 허용 목록 화면 때문에 `--color-white`·`--color-black` 을 전역으로 다시 선언하므로, 사용자 화면의 white/black 클래스를 막는 것은 이 규칙뿐이다. 그래서 `border-t-white`·`divide-x-white`·`ring-offset-black` 같은 변이형 접두어까지 잡는다(C18b 1차 수정):
 
 ```js
-{ level: "WARN", id: "default-palette", re: /\b(?:neutral|gray|slate|zinc|stone|teal|cyan|emerald|green|red|amber|yellow|orange|sky|blue|indigo|purple|violet|pink|rose|fuchsia|lime)-(?:50|[1-9]00|950)\b|\b(?:text|bg|border|ring|divide|fill|stroke|outline|decoration|placeholder|accent|caret|from|via|to|shadow)-(?:white|black)\b/g, msg: "기본 팔레트 (DESIGN.md 2.3 대응표로 토큰에)" },
+{ level: "ERROR", id: "default-palette", allow: true, re: /\b(?:neutral|gray|slate|zinc|stone|teal|cyan|emerald|green|red|amber|yellow|orange|sky|blue|indigo|purple|violet|pink|rose|fuchsia|lime)-(?:50|[1-9]00|950)\b|\b(?:text|bg|border(?:-[trblxyse])?|ring(?:-offset)?|inset-ring|divide(?:-[xy])?|fill|stroke|outline|decoration|placeholder|accent|caret|from|via|to|shadow|inset-shadow|text-shadow)-(?:white|black)\b/g, msg: "기본 팔레트 (DESIGN.md 2.3 대응표로 토큰에)" },
 ```
 
 같은 단계에서 더할 규칙(블러). `check-theme` 는 문자열 리터럴만 보므로 `style={{ filter: "blur(6px)" }}` 의 키(`filter`·`backdropFilter`)는 못 보지만 값 문자열 `"blur(6px)"` 은 본다. 그래서 값으로 잡는다:
 
 ```js
-{ level: "WARN", id: "blur", re: /\b(?:backdrop-)?blur(?:-(?:none|xs|sm|md|lg|xl|2xl|3xl|\[[^\]]+\]))?(?![\w-])|\bblur\(/g, msg: "블러 (클래스·인라인 filter 값, DESIGN 1.3)" },
+{ level: "ERROR", id: "blur", allow: true, re: /\b(?:backdrop-)?blur(?:-(?:none|xs|sm|md|lg|xl|2xl|3xl|\[[^\]]+\]))?(?![\w-])|\bblur\(/g, msg: "블러 (클래스·인라인 filter 값, DESIGN 1.3)" },
 ```
 
 **허용 목록**(단계 3 잔여 집계·C01 check-theme 허용 목록·C18b 재선언 대상에 **같은 목록**을 쓴다):
@@ -1067,6 +1067,32 @@ grep -rhoE '\b[a-z]+-(white|black)\b' $A | sort -u                              
 `initial` 은 `--color-white`·`--color-black` 도 지운다. 위 단계 중 하나라도 빠지면 9.2 처럼 오류 없이 깨진다(흰 테두리, 글자색 소실).
 
 **근거 요약**: 지금 비우면 약 4,400곳이 오류 없이 깨지고(흰 테두리·위계 붕괴), 비우지 않아도 그래파이트 토큰이 neutral 과 같은 값이라 전환 중 화면 차이가 없다. 그래서 '토큰 추가 → 부품 → 화면별 이전 → QA 에서 잔여 0 확인 후 비움 → 잠금' 순서가 위험이 가장 작다.
+
+### 9.4 구현 확정값 (C18b, 2026-10-10)
+
+**`globals.css` 구조**
+1. 첫 `@theme`: 글꼴 다음, 색 선언보다 앞에 `--color-*: initial;` 한 줄. 그 뒤가 2.2 토큰(`canvas`~`owner-yellow`)이다.
+2. 다음 `@theme` '허용 목록 재선언': 9.3 명령으로 뽑은 허용 목록 화면(3.3)의 색만 값 그대로 다시 선언한다.
+   - ① `--color-white: #fff` · `--color-black: #000`
+   - ② 쿨그레이 안전망 gray·slate·zinc 50~950 (전과 같은 무채색 oklch 값, 33개)
+   - ③ neutral 200·300·400·500·600·700·800·900
+   - ④ 채도 색(Tailwind v4.1.18 기본 oklch 값): teal 200·300·400·500·600·800·900·950 · red 200~950(9단계) · green 400·500·700·900 · blue 300·400·500·600·700·900·950 · yellow 400·500 · orange 300·400·700·800·900 · amber 300·400·500 · purple 300·400·500·900·950 · violet 200·400·500 · pink 500 · sky 400 · emerald 400
+
+2026-10-10 집계(9.3 명령): 74단계 = gray 256 · slate 127 · neutral 104 · teal 90 · red 68 · purple 17 · green 17 · blue 17 · yellow 13 · orange 9 · amber 7 · violet 6 · pink 3 · sky 2 · emerald 1 곳. white·black 은 `text-white` 116 · `bg-white` 76 · `border-white` 69 · `bg-black` 13 · `text-black` 12 · `shadow-black` 4 · `from/via/to-black` 4 · `divide-white` 2 · `border-black` 2. 관리자 화면은 클래스를 문자열 조합으로 만들지 않고(`${}-500` 0건), `var(--color-…)` 직접 참조도 0건이라 이 grep 이 전부다.
+
+**검증 결과**
+- 컴파일 CSS 비교(켜기 전후, 같은 Tailwind 로 저장소 전체 스캔): 값이 바뀐 규칙 0. 사라진 규칙은 문서(`docs/`·`DESIGN.md`)에만 적힌 5개(`bg-green-600` `bg-neutral-100` `bg-neutral-950` `text-neutral-100` `text-neutral-100/200`)뿐이고 `src` 에서 쓰는 곳 0.
+- 계산 스타일 비교: 공개 경로 38개 + 로그인 화면 고정 화면 24개를 1440·390 에서 모든 요소의 색·테두리·외곽선·fill·stroke·그림자를 비교해 124쌍 모두 같음. `/studio`(표시용 쿠키)도 같음.
+- 허용 목록 화면: 관리자 부품을 고정 응답으로 그린 로컬 화면(대시보드 5탭·트래픽·인사이트 트래픽·게시판·등급·글 편집기·미리보기) 11상태 1440 계산 스타일 같음, 픽셀 같음(글자 경계 흐림 1건 제외). `/tmklab-site` 1440·390 픽셀 같음. 실제 관리자 화면은 로그인이 필요해 '소유자 확인 대기'(10.1).
+- 사용자 화면 토큰 밖 계산 색 0(고정 화면 r04-ui 의 견본 틀 글자만 neutral, 로컬 전용). 색을 정하지 않아 currentColor 로 그려진 테두리 0. 흰 테두리 34곳은 모두 의도된 accent(현재 탭 밑줄·체크박스 선택).
+
+**잠금**: `check-theme.mjs` 의 default-palette·blur 를 ERROR 로 올렸다(emerald 는 이미 ERROR). 허용 목록 파일은 cool-gray/teal·gradient 까지 건너뛴다(구 테마 전체 예외, 3.3). `npm run check:theme` = `--all` 이고 ERROR 0 이어야 한다. white/black 은 globals.css 가 전역으로 다시 선언해 CSS 에서 빠지지 않으므로, 규칙 접두어를 `border-t`·`border-x` 등 변이형, `divide-x/y`, `ring-offset`, `inset-ring`, `inset-shadow`, `text-shadow` 까지 넓혔다(9.3 규칙 블록, C18b 1차 수정). 임의 hex 클래스(`bg-[#…]`)는 아직 검사하지 않는다(사용자 화면 0건, 필요하면 WARN 규칙으로 더한다).
+
+**다시 확인하는 법**(전후 비교 산출물은 커밋하지 않는다. 필요할 때 다시 만든다)
+- 컴파일 CSS 비교: `git show <C18b 직전 커밋>:src/app/globals.css` 를 `src/app/` 아래 임시 파일로 두고(같은 폴더라야 `@source`·`@import` 경로가 같다), 그 파일과 지금 `globals.css` 를 저장소 안의 node 스크립트에서 `postcss([require("@tailwindcss/postcss")()])` 로 각각 컴파일해 규칙(선택자 + 선언)을 비교한다. 끝나면 임시 파일을 지운다. 2026-10-14 재실행 결과: 규칙 1993 → 1988, 사라진 규칙은 위 문서 전용 5개, 추가 0, 값이 바뀐 규칙은 `:root` 테마 변수 묶음 하나(빠진 `green-600`·`neutral-100`·`neutral-950` 변수)뿐.
+- 화면: 로드된 CSS 에 규칙이 없는 색 유틸리티 클래스와, 테두리 색을 정하지 않아 `currentColor` 로 그려진 테두리를 Playwright 로 세는 검사를 공개 경로·`/studio`·고정 화면(10.1)에 돌린다. 둘 다 0 이어야 한다. 대조로 `text-rose-500` 같은 빠진 클래스를 일부러 넣어 검출되는지 먼저 본다.
+
+**새 색이 필요할 때**: 사용자 화면은 2.1·2.2 에 토큰을 더한다(기본 팔레트 클래스는 CSS 에서 빠지고 검사도 막는다). 허용 목록 화면에서 새 단계를 쓰면 9.3 명령으로 다시 뽑아 재선언 블록에 Tailwind 기본값 그대로 더한다. 되돌릴 때는 C18b 커밋 하나만 되돌리면 비우기 이전으로 돌아간다.
 
 ---
 

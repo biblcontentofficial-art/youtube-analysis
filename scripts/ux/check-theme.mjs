@@ -12,9 +12,11 @@
  *
  * ERROR 가 있으면 exit 1. WARN 은 보고만 한다(항목 완료 기준에 따라 판단).
  *
- * 과도기 안내(C01 이후): emerald 가 ERROR 라서 인자 없는 기본 실행은 아직 안 옮긴 화면 때문에
- * THEME_ERRORS 로 끝난다. 리뉴얼 항목(C02~C17)의 완료 판정은 --files <그 항목 범위 파일> 로 한다.
- * push 조건(사용자 화면 에메랄드 0)은 로드맵 risks 대로 따로 지킨다.
+ * 잠금(C18b, DESIGN 9.3 단계 4): globals.css 에서 Tailwind 기본 팔레트를 비웠으므로 기본 팔레트·white/black
+ * 클래스(default-palette)·블러·에메랄드는 ERROR 다. 토큰 밖 색 클래스는 빌드 오류 없이 CSS 에서 빠지기 때문에
+ * 이 검사가 유일한 경보다. 허용 목록(ALLOW) 파일만 구 테마 색을 쓸 수 있고, 거기서 새 색 단계를 쓰면
+ * globals.css 의 '허용 목록 재선언' 블록에도 더해야 한다.
+ *   npm run check:theme   = --all (사용자 화면 전체 + 허용 목록 예외). ERROR 0 이어야 한다.
  */
 import { readFileSync, existsSync } from "node:fs";
 import { execSync } from "node:child_process";
@@ -31,8 +33,8 @@ const base = opt("--base") ?? "ux-baseline";
 
 const RULES = [
   // ERROR: 소유자 금지 패턴
-  { level: "ERROR", id: "cool-gray/teal", re: /\b(?:gray|slate|zinc|teal)-(?:50|[1-9]00|950)\b/g, msg: "쿨그레이·틸 (neutral 로)" },
-  { level: "ERROR", id: "gradient", re: /\b(?:bg-gradient-to-[a-z]+|bg-linear-to-[a-z]+|bg-(?:linear|radial|conic)-|(?:from|via|to)-(?:[a-z]+-\d{2,3}|transparent|black|white|current|\[))/g, msg: "그라데이션" },
+  { level: "ERROR", id: "cool-gray/teal", allow: true, re: /\b(?:gray|slate|zinc|teal)-(?:50|[1-9]00|950)\b/g, msg: "쿨그레이·틸 (neutral 로)" },
+  { level: "ERROR", id: "gradient", allow: true, re: /\b(?:bg-gradient-to-[a-z]+|bg-linear-to-[a-z]+|bg-(?:linear|radial|conic)-|(?:from|via|to)-(?:[a-z]+-\d{2,3}|transparent|black|white|current|\[))/g, msg: "그라데이션" },
   { level: "ERROR", id: "glow", re: /shadow-\[0_0/g, msg: "글로우 섀도" },
   { level: "ERROR", id: "ping", re: /\banimate-ping\b/g, msg: "펄스 도트(animate-ping)" },
   { level: "ERROR", id: "outline-hidden+focus", re: /\boutline-(?:hidden|none)\b[^"'`]*\bfocus-visible:outline-(?:1|2)\b|\bfocus-visible:outline-(?:1|2)\b[^"'`]*\boutline-(?:hidden|none)\b/g, msg: "outline-hidden/none 과 focus-visible:outline 을 같이 쓰면 링이 그려지지 않는다" },
@@ -41,17 +43,18 @@ const RULES = [
   { level: "WARN", id: "low-contrast-text", re: /\btext-neutral-(?:600|700|800)\b/g, msg: "검정 위 정보 글자 대비 부족 (장식·aria-hidden 만 허용)" },
   { level: "WARN", id: "tiny-text", re: /\btext-\[(?:[5-9]|10|11)(?:\.\d+)?px\]/g, msg: "12px 미만 글자 (영문 라벨 예외)" },
   { level: "WARN", id: "outline-none", re: /\b(?:focus:)?outline-none\b/g, msg: "outline-none (전역 포커스 링을 지운다)" },
-  // 모노크롬 실버 전환(DESIGN.md 9.3). allow: true 인 규칙은 허용 목록(ALLOW) 파일에서 건너뛴다.
+  // 모노크롬 실버 전환(DESIGN.md 9.3). allow: true 인 규칙은 허용 목록(ALLOW) 파일에서 건너뛴다(위 쿨그레이·틸·그라데이션 포함).
   // 에메랄드는 폐기된 색이라 ERROR(옛 accent-literal WARN 을 올린 것). emerald-* 클래스·#00E5A0·#66FFCC·rgba(0,229,160)
   { level: "ERROR", id: "emerald", allow: true, re: /\bemerald-(?:50|[1-9]00|950)\b|#(?:00E5A0|66FFCC)\b|\b0,\s*229,\s*160\b/gi, msg: "에메랄드 (폐기, DESIGN 2.4 대응표로)" },
-  // 기본 팔레트(채도 색 포함)·white/black 클래스. C18b 에서 ERROR
-  { level: "WARN", id: "default-palette", allow: true, re: /\b(?:neutral|gray|slate|zinc|stone|teal|cyan|emerald|green|red|amber|yellow|orange|sky|blue|indigo|purple|violet|pink|rose|fuchsia|lime)-(?:50|[1-9]00|950)\b|\b(?:text|bg|border|ring|divide|fill|stroke|outline|decoration|placeholder|accent|caret|from|via|to|shadow)-(?:white|black)\b/g, msg: "기본 팔레트 (DESIGN.md 2.3 대응표로 토큰에)" },
-  // 블러: 클래스와 인라인 filter 값 문자열('blur(6px)'). 키(filter·backdropFilter)는 문자열이 아니라 못 본다. C18b 에서 ERROR
-  { level: "WARN", id: "blur", allow: true, re: /\b(?:backdrop-)?blur(?:-(?:none|xs|sm|md|lg|xl|2xl|3xl|\[[^\]]+\]))?(?![\w-])|\bblur\(/g, msg: "블러 (클래스·인라인 filter 값, DESIGN 1.3)" },
+  // 기본 팔레트(채도 색 포함)·white/black 클래스. C18b 에서 ERROR 로 잠금(globals.css 가 기본 팔레트를 비웠다)
+  { level: "ERROR", id: "default-palette", allow: true, re: /\b(?:neutral|gray|slate|zinc|stone|teal|cyan|emerald|green|red|amber|yellow|orange|sky|blue|indigo|purple|violet|pink|rose|fuchsia|lime)-(?:50|[1-9]00|950)\b|\b(?:text|bg|border(?:-[trblxyse])?|ring(?:-offset)?|inset-ring|divide(?:-[xy])?|fill|stroke|outline|decoration|placeholder|accent|caret|from|via|to|shadow|inset-shadow|text-shadow)-(?:white|black)\b/g, msg: "기본 팔레트 (DESIGN.md 2.3 대응표로 토큰에)" },
+  // 블러: 클래스와 인라인 filter 값 문자열('blur(6px)'). 키(filter·backdropFilter)는 문자열이 아니라 못 본다. C18b 에서 ERROR 로 잠금
+  { level: "ERROR", id: "blur", allow: true, re: /\b(?:backdrop-)?blur(?:-(?:none|xs|sm|md|lg|xl|2xl|3xl|\[[^\]]+\]))?(?![\w-])|\bblur\(/g, msg: "블러 (클래스·인라인 filter 값, DESIGN 1.3)" },
 ];
 
 /**
  * 허용 목록(DESIGN.md 9.3, C18a 에서 확정. C18b 재선언 대상과 같은 목록). allow 규칙만 건너뛴다.
+ * 여기 파일이 쓰는 기본 팔레트 단계는 globals.css '허용 목록 재선언' 블록에 있어야 그려진다.
  * 관리자 화면·관리자 미리보기 부품은 구 테마 유지(3.3), tmklab-site 는 별도 브랜드, ux-preview 는 로컬 전용.
  * 파일이 아닌 예외 두 가지(구글 로고 SVG fill 4색 hex, 대화상자 backdrop:bg-[rgb(0_0_0/0.8)])는 위 규칙이
  * 잡지 않는 리터럴 값이라 여기에 경로로 넣지 않는다.

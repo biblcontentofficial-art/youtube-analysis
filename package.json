@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "check:theme": "node scripts/ux/check-theme.mjs --all"
   },
   "dependencies": {
     "@portone/browser-sdk": "^0.1.3",
