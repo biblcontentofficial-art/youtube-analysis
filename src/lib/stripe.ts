@@ -28,6 +28,10 @@ export type PlanConfig = {
   historyDays: number;
   // 스레드 검색 (threadsLimit.ts에서 별도 관리, 여기서는 UI 표시용)
   canThreadsViralScore: boolean;             // 바이럴 점수 열람 가능 여부
+  // 트렌드 서치 AI·관심 목록 (aiLimit.ts·관심 목록 API 가 읽는다. 근거 docs/trend-dev/spec.md 5.1, 소유자 확정 2026-10-15)
+  dailyAiLimit: number;                      // AI 기능별 하루 횟수(영상 기획 초안·썸네일 공통점 각각). 0 = 버튼은 보이되 요금제 안내. 바꿀 때는 이 숫자만 고친다
+  watchLimit: number;                        // 관심 목록 등록 수(키워드+채널 합계). 바꿀 때는 이 숫자만 고친다
+  canTrendFit: boolean;                      // '내 채널에 맞는 주제'(C8) 사용 가능 여부
 };
 
 export type PlanKey = "free" | "starter" | "pro" | "business" | "admin" | "team";
@@ -51,6 +55,9 @@ export const PLANS: Record<PlanKey, PlanConfig> = {
     canServerHistory: false,
     historyDays: 0,
     canThreadsViralScore: false,
+    dailyAiLimit: 0,          // 소유자 결정: Free 0(버튼만 보이고 누르면 요금제 안내, 차감 없음)
+    watchLimit: 3,
+    canTrendFit: false,
   },
   starter: {
     name: "Starter",
@@ -70,6 +77,9 @@ export const PLANS: Record<PlanKey, PlanConfig> = {
     canServerHistory: true,
     historyDays: 30,
     canThreadsViralScore: true,
+    dailyAiLimit: 5,
+    watchLimit: 10,
+    canTrendFit: true,
   },
   pro: {
     name: "Pro",
@@ -89,6 +99,9 @@ export const PLANS: Record<PlanKey, PlanConfig> = {
     canServerHistory: true,
     historyDays: 9999,
     canThreadsViralScore: true,
+    dailyAiLimit: 20,
+    watchLimit: 30,
+    canTrendFit: true,
   },
   business: {
     name: "Team bibl",
@@ -108,6 +121,9 @@ export const PLANS: Record<PlanKey, PlanConfig> = {
     canServerHistory: true,
     historyDays: 9999,
     canThreadsViralScore: true,
+    dailyAiLimit: 50,
+    watchLimit: 100,
+    canTrendFit: true,
   },
   // 팀비블 — admin 페이지에서만 지정 가능, 결제 없음, Starter 동일 기능/한도
   team: {
@@ -128,6 +144,9 @@ export const PLANS: Record<PlanKey, PlanConfig> = {
     canServerHistory: true,
     historyDays: 30,
     canThreadsViralScore: true,
+    dailyAiLimit: 5,
+    watchLimit: 10,
+    canTrendFit: true,
   },
   // 관리자 전용 플랜 — 결제 없음, pricing 페이지 미노출, 매출 집계 제외
   admin: {
@@ -148,5 +167,8 @@ export const PLANS: Record<PlanKey, PlanConfig> = {
     canServerHistory: true,
     historyDays: 9999,
     canThreadsViralScore: true,
+    dailyAiLimit: 200,        // 무제한(null) 대신 넉넉한 숫자. 전체 하루 예산(AI_GLOBAL_DAILY_CALLS)과 함께 비용 상한
+    watchLimit: 100,
+    canTrendFit: true,
   },
 };
