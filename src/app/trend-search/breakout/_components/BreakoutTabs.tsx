@@ -27,7 +27,7 @@ export const TREND_TABS: { key: BreakoutTabKey; href: string; label: string; sho
   { key: "keywords", href: "/trend-search/breakout/keywords", label: "급상승 키워드", short: "키워드", ready: true },
   { key: "channels", href: "/trend-search/breakout/channels", label: "지금 크는 채널", short: "크는 채널", ready: true },
   { key: "growth", href: "/trend-search/breakout/growth", label: "성장 추적", short: "성장", ready: true },
-  { key: "watch", href: "/trend-search/breakout/watch", label: "관심 목록", short: "관심", ready: false },
+  { key: "watch", href: "/trend-search/breakout/watch", label: "관심 목록", short: "관심", ready: true },
 ];
 
 /**
@@ -66,7 +66,7 @@ export function BreakoutTabsView({ tabs, current, badge }: { tabs: TabItem[]; cu
               </>
             )}
             {t.key === "watch" && badge != null && badge > 0 && (
-              <span className="tnum text-caption text-fg-3"><span className="sr-only">안 읽은 영상 </span>{badge}</span>
+              <span className="tnum text-caption text-fg-3"><span className="sr-only">안 읽은 알림 </span>{badge}</span>
             )}
           </Link>
         ))}

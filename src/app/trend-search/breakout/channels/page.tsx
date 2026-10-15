@@ -4,13 +4,16 @@
  * 데이터는 breakout_videos 를 RPC trend_recurring_channels 로 채널별 집계한다(src/lib/trend/channels.ts, API 비용 0).
  * 화면은 channels-view.tsx(props 만 받음). 로컬 미리보기 /ux-preview/trend-channels?state=… 가 같은 화면을 고정 데이터로 그린다.
  * 쿼리: days=14|30 · format=all|long|shorts · subs=100000|10000 (그 밖 값은 기본값 14 · all · 100000).
- * 관심 등록(동작 자리)과 관심 목록 탭 숫자는 T9(C7)에서 붙인다.
+ * 동작 자리는 관심 등록(C7, WatchChannelButton: 1024 이상 고스트 · 미만 글자 버튼), 탭 줄 '관심 목록' 숫자는 안 읽은 알림 수
+ * (notification_unread_count 1회). 로그인 뒤 데이터·관심 채널·안 읽은 수를 함께 읽는다.
  */
 import type { Metadata } from "next";
 import { currentUser } from "@/lib/auth";
 import { getRecurringChannels, parseChannelQuery } from "@/lib/trend/channels";
+import { getUnreadCount, getWatchedChannelIds } from "@/lib/trend/watch";
 import { SectionHeader } from "@/components/ui/section-header";
 import { LoginGate } from "../_components/LoginGate";
+import { WatchChannelButton } from "../_components/WatchChannelButton";
 import { ChannelsView } from "./channels-view";
 
 export const dynamic = "force-dynamic";
@@ -41,6 +44,24 @@ export default async function ChannelsPage({ searchParams }: { searchParams: SP 
     );
   }
 
-  const data = await getRecurringChannels(parseChannelQuery(sp));
-  return <ChannelsView data={data} />;
+  const [data, watchedIds, unread] = await Promise.all([
+    getRecurringChannels(parseChannelQuery(sp)),
+    getWatchedChannelIds(user.id),
+    getUnreadCount(user.id),
+  ]);
+  const watched = new Set(watchedIds);
+  return (
+    <ChannelsView
+      data={data}
+      badge={unread}
+      actionSlot={(c, place) => (
+        <WatchChannelButton
+          channel={{ channelId: c.channelId, title: c.channelTitle, thumb: c.channelThumb }}
+          watched={watched.has(c.channelId)}
+          variant={place === "table" ? "ghost" : "text"}
+          className={place === "table" ? "-mr-3" : "-ml-2"}
+        />
+      )}
+    />
+  );
 }

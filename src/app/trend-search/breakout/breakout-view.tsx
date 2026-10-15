@@ -11,6 +11,7 @@ import { getBriefing } from "@/lib/trend/briefing";
 import { RemixProvider } from "@/app/_components/remix/RemixProvider";
 import { RemixButton } from "@/app/_components/remix/RemixButton";
 import type { RemixVideo } from "@/lib/trend/remix-schema";
+import { WatchChannelButton } from "./_components/WatchChannelButton";
 
 type SP = { date?: string; sort?: string; type?: string; min?: string; ex?: string };
 
@@ -91,8 +92,20 @@ const SORT_COLS: { key: BreakoutSort; label: string; className: string }[] = [
 /** 정렬 기준 숫자(DESIGN 6.10): 지금 정렬 중인 조회수·평균 대비·구독자 열에만 */
 const SORT_NUM = "text-[18px] font-extrabold tracking-[-0.02em] text-fg";
 
-/** 목록 화면(로그인 확인 뒤). 로컬 미리보기에서도 재사용한다. */
-export async function BreakoutView({ sp }: { sp: SP }) {
+/**
+ * 목록 화면(로그인 확인 뒤). 로컬 미리보기에서도 재사용한다.
+ * badge: 탭 줄 '관심 목록' 뒤 안 읽은 알림 수. watchedIds: 관심 채널 id(있으면 행마다 관심 등록 버튼, C7).
+ * 둘 다 약속으로 받아 영상 목록 읽기와 겹쳐 기다린다. 미리보기처럼 넘기지 않으면 숫자·버튼을 그리지 않는다.
+ */
+export async function BreakoutView({
+  sp,
+  badge,
+  watchedIds,
+}: {
+  sp: SP;
+  badge?: number | Promise<number>;
+  watchedIds?: string[] | Promise<string[]>;
+}) {
   const dates = await getBreakoutDates(30);
   const date = sp.date && dates.includes(sp.date) ? sp.date : dates[0] ?? kstToday(-1);
   const sort = (SORTS.find((s) => s.key === sp.sort)?.key ?? "ratio") as BreakoutSort;
@@ -101,6 +114,9 @@ export async function BreakoutView({ sp }: { sp: SP }) {
   const ex = sp.ex === "0" ? "0" : "1"; // 뉴스·홈쇼핑·정치·이슈 제외(기본 켜짐)
   const briefing = dates.length ? getBriefing(date) : null; // B4 브리핑(영상 목록과 함께 읽는다, 예외 없음)
   const videos = dates.length ? await getBreakout({ date, sort, type, minRatio: min.value, excludeKinds: ex === "1" }) : [];
+  const [unread, watchedList] = await Promise.all([badge, watchedIds]);
+  const watched = watchedList ? new Set(watchedList) : null;
+  const watchChannel = (v: BreakoutVideo) => ({ channelId: v.channel_id, title: v.channel_title, thumb: v.channel_thumb ?? null });
 
   const href = (patch: Record<string, string>) => {
     const q = new URLSearchParams({ date, sort, type, min: min.key, ex, ...patch });
@@ -112,7 +128,7 @@ export async function BreakoutView({ sp }: { sp: SP }) {
       <RemixProvider>
       <div className="mx-auto w-full max-w-wide px-6 py-10 md:py-14 lg:px-8">
         <SectionHeader caption="유튜브 트렌드 서치" label="BREAKOUT" />
-        <BreakoutTabs current="videos" />
+        <BreakoutTabs current="videos" badge={unread} />
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div className="max-w-3xl">
             <h1 className="text-h3 md:text-h2">브레이크아웃</h1>
@@ -201,6 +217,7 @@ export async function BreakoutView({ sp }: { sp: SP }) {
                               <img src={v.channel_thumb} alt="" width={20} height={20} loading="lazy" className="size-5 shrink-0 rounded-full bg-surface-2" />
                             )}
                             <a href={channelUrl(v.channel_id)} target="_blank" rel="noopener noreferrer" className="truncate text-caption text-fg-3 transition-colors duration-150 hover:text-fg">{v.channel_title}</a>
+                            {watched && <WatchChannelButton channel={watchChannel(v)} watched={watched.has(v.channel_id)} variant="ghost" className="-my-1" />}
                             <RemixButton video={remixVideo(v)} variant="ghost" label="기획 초안" ariaLabel={`기획 초안, ${v.title}`} className={cx(REMIX_ROW_BTN, "-my-1 ml-auto xl:hidden")} />
                           </div>
                         </div>
@@ -242,7 +259,11 @@ export async function BreakoutView({ sp }: { sp: SP }) {
                       <span>· 구독자 {num(v.subscriber_count)}</span>
                       <span>· {kstTime(v.published_at)}</span>
                     </p>
-                    <RemixButton video={remixVideo(v)} variant="ghost" label="기획 초안" ariaLabel={`기획 초안, ${v.title}`} className="-mb-2 -ml-2 mt-0.5 h-11 px-2 text-caption" />
+                    {/* 행 동작: 기획 초안 · 관심 등록(왼쪽 정렬, 오른쪽 76px 는 카카오 버튼 자리) */}
+                    <div className="-mb-2 -ml-2 mt-0.5 flex items-center gap-1">
+                      <RemixButton video={remixVideo(v)} variant="ghost" label="기획 초안" ariaLabel={`기획 초안, ${v.title}`} className="h-11 px-2 text-caption" />
+                      {watched && <WatchChannelButton channel={watchChannel(v)} watched={watched.has(v.channel_id)} variant="text" />}
+                    </div>
                   </div>
                 </li>
               ))}

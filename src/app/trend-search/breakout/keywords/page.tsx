@@ -3,11 +3,12 @@
  * 브레이크아웃 영상 제목에서 최근 7일 동안 서로 다른 채널이 많이 새로 쓴 주제어를 보여 준다.
  * 데이터는 cron terms 단계가 날짜별로 모아 둔 breakout_terms 를 RPC 로 합산한다(src/lib/trend/rising.ts).
  * 화면은 keywords-view.tsx(props 만 받음). 로컬 미리보기 /ux-preview/trend-keywords?state=… 가 같은 화면을 고정 데이터로 그린다.
- * 관심 목록 탭 숫자(notification_unread_count)는 T9 에서 붙인다.
+ * 탭 줄 '관심 목록' 숫자: 안 읽은 알림 수(getUnreadCount → RPC notification_unread_count 1회, T9).
  */
 import type { Metadata } from "next";
 import { currentUser } from "@/lib/auth";
 import { getRisingTerms, type RisingFormat } from "@/lib/trend/rising";
+import { getUnreadCount } from "@/lib/trend/watch";
 import { SectionHeader } from "@/components/ui/section-header";
 import { LoginGate } from "../_components/LoginGate";
 import { KeywordsView } from "./keywords-view";
@@ -41,6 +42,6 @@ export default async function KeywordsPage({ searchParams }: { searchParams: SP 
   }
 
   const format: RisingFormat = sp.format === "shorts" ? "shorts" : "long";
-  const data = await getRisingTerms({ format });
-  return <KeywordsView data={data} />;
+  const [data, unread] = await Promise.all([getRisingTerms({ format }), getUnreadCount(user.id)]);
+  return <KeywordsView data={data} badge={unread} />;
 }

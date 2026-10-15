@@ -4,11 +4,11 @@
  *
  *   <ChannelsView data={result} />                          탭 페이지(섹션 머리 + 탭 줄 + 본문)
  *   <ChannelsSection data={result} heading="h2" />          본문만(정보 구조를 안 B·C 로 바꿀 때 다른 페이지에 넣는다)
- *   <ChannelsView data={result} actionSlot={(c) => <WatchButton channel={c} />} />   C7 이 동작 자리를 채운다
+ *   <ChannelsView data={result} actionSlot={(c, place) => <WatchChannelButton … variant={place === "table" ? "ghost" : "text"} />} />   C7 관심 등록
  *
  * - 1024 이상 표(채널 · 등장 일수 · 영상 수 · 구독자 · 최근 등장 · 동작), 미만 목록('3일 · 5편 · 구독자 6.2만 · 최근 10/14').
- * - 동작 자리(actionSlot)는 표의 마지막 열과 목록 메타 줄 아래 왼쪽 두 곳에 그린다(모바일에서도 관심 등록). 없으면 열·줄을 그리지 않는다.
- *   모바일은 카카오 플로팅 버튼 자리(오른쪽 76px, DESIGN 6.17)를 피해 왼쪽 정렬한다.
+ * - 동작 자리(actionSlot(c, place))는 표의 마지막 열(place 'table')과 목록 메타 줄 아래 왼쪽(place 'list') 두 곳에 그린다
+ *   (모바일에서도 관심 등록). 없으면 열·줄을 그리지 않는다. 모바일은 카카오 플로팅 버튼 자리(오른쪽 76px, DESIGN 6.17)를 피해 왼쪽 정렬한다.
  * - 모바일 목록의 채널명·최근 영상 링크는 각각 높이 24px 이상(DESIGN 8 터치 최소)이다.
  * - 흰색은 정렬 기준 열(등장 일수)에만. 채널명·최근 영상은 유튜브로 나가는 링크(.ext, 새 창).
  * - 빈 상태(empty)는 6.20 상자, 불러오기 실패(error)는 6.13 오류 상자(빈 상태 문구로 떨어지지 않음).
@@ -176,7 +176,8 @@ function RangeLine({ data }: { data: RecurringResult }) {
   );
 }
 
-type ActionSlot = (c: RecurringChannel) => ReactNode;
+/** 행 동작. place: 'table'(1024 이상 표 마지막 열) · 'list'(1024 미만 목록 메타 아래) */
+export type ActionSlot = (c: RecurringChannel, place: "table" | "list") => ReactNode;
 
 /**
  * 표(1024 이상) + 목록(1024 미만) + 캡션·파생값 안내.
@@ -212,7 +213,7 @@ function ChannelList({ data, actionSlot }: { data: RecurringResult; actionSlot?:
               <td className={cx(TD, NUM, "text-body-sm text-fg-2")}>{c.videos}편</td>
               <td className={cx(TD, NUM, "text-body-sm text-fg-2")}>{num(c.subscriberCount)}</td>
               <td className={cx(TD, NUM, "text-body-sm text-fg-3", !hasAction && "pr-14")}>{md(c.lastDate)}</td>
-              {hasAction ? <td className={cx(TD, "pl-6 pr-14 text-right")}>{actionSlot!(c)}</td> : null}
+              {hasAction ? <td className={cx(TD, "pl-6 pr-14 text-right")}>{actionSlot!(c, "table")}</td> : null}
             </tr>
           ))}
         </tbody>
@@ -231,7 +232,7 @@ function ChannelList({ data, actionSlot }: { data: RecurringResult; actionSlot?:
                 <span className="whitespace-nowrap">최근 {md(c.lastDate)}</span>
               </p>
               {/* 동작은 메타 아래 왼쪽(오른쪽 76px 는 카카오 버튼 자리, DESIGN 6.17) */}
-              {hasAction ? <div className="mt-1 flex">{actionSlot!(c)}</div> : null}
+              {hasAction ? <div className="flex">{actionSlot!(c, "list")}</div> : null}
             </div>
           </li>
         ))}
