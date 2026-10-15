@@ -19,7 +19,7 @@ import { buttonClass } from "@/components/ui/button";
 import { badgeClass } from "@/components/ui/badge";
 import { BottomCTABar } from "@/components/ui/bottom-cta-bar";
 import { SectionHeader } from "@/components/ui/section-header";
-import HomeChannels, { PROOF_CHANNELS } from "@/app/_components/home/HomeChannels";
+import HomeChannels from "@/app/_components/home/HomeChannels";
 import PostContent, { firstBodyImage, splitLeadImage } from "../community/_components/PostContent";
 import TrackVisit from "@/app/_components/TrackVisit";
 
@@ -75,7 +75,6 @@ const ROLES = [
 ];
 
 /** 영어 교육 카테고리 실적(채널 실적 부품에 이 채널 한 줄만 넘긴다) */
-const EDU_CHANNELS = PROOF_CHANNELS.filter((c) => c.name === "영어 키위새");
 
 /** 768 미만 본문 사진: 4:3 으로 잘라 세로 사진이 화면을 다 차지하지 않게. 768 이상은 기본(비율 유지 + 70vh 상한) */
 const BODY_IMAGE_CLASS =
@@ -207,7 +206,7 @@ export default async function IncubatingPage() {
       </section>
 
       {/* 채널 실적(홈과 같은 부품) */}
-      <HomeChannels channels={EDU_CHANNELS} showRevenue={false} />
+      <HomeChannels only={["영어 키위새"]} showRevenue={false} />
 
       {/* 지원 */}
       <section id="apply" aria-labelledby="apply-title">

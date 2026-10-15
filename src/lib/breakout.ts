@@ -47,6 +47,8 @@ export function classifyChannel(categoryId: string | undefined, channelTitle: st
   return null;
 }
 
+const yt = (path: string, params: Record<string, string>) => youtubeGet(path, params);
+
 const API = "https://www.googleapis.com/youtube/v3";
 
 function apiKeys(): string[] {
@@ -57,9 +59,9 @@ function apiKeys(): string[] {
   return keys;
 }
 
-/** 키를 돌려 가며 호출한다. 쿼터 소진(403 quota)만 다음 키로 넘긴다. */
+/** 키를 돌려 가며 호출한다. 쿼터 소진(403 quota·429)만 다음 키로 넘긴다. 홈 채널 실적(proofChannels)도 같이 쓴다. */
 let keyIndex = 0;
-async function yt(path: string, params: Record<string, string>): Promise<any | null> {
+export async function youtubeGet(path: string, params: Record<string, string>): Promise<any | null> {
   const keys = apiKeys();
   for (let tries = 0; tries < keys.length; tries++) {
     const key = keys[(keyIndex + tries) % keys.length];
@@ -68,7 +70,7 @@ async function yt(path: string, params: Record<string, string>): Promise<any | n
     if (res.ok) { keyIndex = (keyIndex + tries) % keys.length; return res.json(); }
     const body = await res.json().catch(() => ({}));
     const reason = String(body?.error?.errors?.[0]?.reason ?? "").toLowerCase();
-    if (res.status === 403 && reason.includes("quota") || reason === "dailylimitexceeded") continue;
+    if (res.status === 429 || (res.status === 403 && reason.includes("quota")) || reason === "dailylimitexceeded") continue;
     return null; // 그 밖의 오류는 이 호출만 건너뛴다
   }
   return null;

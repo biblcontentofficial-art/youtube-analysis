@@ -4,75 +4,26 @@
  * - 640 이상: 채널마다 왼쪽 4칸(아이콘 44px · 채널명(외부 링크 표시) · 분야 · 구독자) + 오른쪽 8칸 대표 영상 3장(1024 미만 2장)
  * - 640 미만: 4곳 2열 격자(28px 숫자) + 대표 영상 8장 가로 스냅 목록(aria-label '대표 영상')
  * - 이어서 실버 플레이 버튼 사진(5칸) + 큰 지표 7억+(7칸). showRevenue={false} 로 뺄 수 있다
- * 숫자는 확인된 사실만(6.14, layout-F/rationale.md 10장): 구독자 수는 공개 값 2026.10 기준.
+ * 숫자는 YouTube 공개 값을 실시간으로 받는다(src/lib/proofChannels.ts, 6시간 캐시): 구독자 수, 채널별 조회수 높은 영상 3개와 조회수.
+ * 비블 bibl 은 소유자가 고른 영상 3개. 실패하면 고정값.
  * 채널 아이콘은 콘텐츠라 '첫 화면 인물 사진 없음' 규칙 밖이다.
  */
 import type { ReactNode } from "react";
 import { SectionHeader } from "@/components/ui/section-header";
 import ChannelAvatar from "./ChannelAvatar";
 
-type Video = { id: string; title: string };
-export type ProofChannel = {
-  name: string;
-  url: string;
-  icon: string;
-  field: string;
-  subscribers: string;
-  videos: [Video, Video, Video];
-};
+import { getProofChannels, PROOF_CHANNELS_FALLBACK, type ProofChannel, type ProofVideo } from "@/lib/proofChannels";
+import { formatCompactKo } from "@/lib/format";
+
+export type { ProofChannel };
+type Video = ProofVideo;
 
 const DOT = "⁠·⁠";
 
-export const PROOF_CHANNELS: ProofChannel[] = [
-  {
-    name: "세계유명 골프정보",
-    url: "https://www.youtube.com/@세계유명골프정보",
-    icon: "https://yt3.googleusercontent.com/c1FBPCbt8LgbSD35amjUZOfgyqf-GjqpJ-XIx1rX37qyulT5Jscqumkqlk7SCCKWoj4xtdwaeQ4=s240-c-k-c0x00ffffff-no-rj",
-    field: "골프",
-    subscribers: "25.8만",
-    videos: [
-      { id: "9hndIlWLWaM", title: "드라이버 이게 전부입니다, 가장 쉽게 잘 치는 법" },
-      { id: "XaT3VzlTnoI", title: "멀리 치고 싶다면 백스윙 회전 하지 마세요" },
-      { id: "cBlr5P0_KcM", title: "아이언 툭 쳐서 가볍게 150m 보내는 방법" },
-    ],
-  },
-  {
-    name: "영어 키위새",
-    url: "https://www.youtube.com/@eng_kiwi",
-    icon: "https://yt3.googleusercontent.com/s0W_yZEOUs466pSMRDegQDGeEJF5Q-TaCGgj4_gQ_eSSpROj0fnvVFXzU3QwmXgyP7-xxyRe=s240-c-k-c0x00ffffff-no-rj",
-    field: "영어 교육",
-    subscribers: "24.5만",
-    videos: [
-      { id: "-jWdORm55Kc", title: "외우지 말고 그냥 보세요, 영어말하기 코어동사 5개" },
-      { id: "JHeJYy_A0aw", title: "퇴직후 영어공부 3년, 60대 엄마 말하기 진단" },
-      { id: "4F2kGFDUo5M", title: "이거였구나, 영어 전치사 제대로 쓰는 방법" },
-    ],
-  },
-  {
-    name: "스윔클래스",
-    url: "https://www.youtube.com/@swim_class",
-    icon: "https://yt3.googleusercontent.com/DxGEnYcDFNMqQ4rqQ7sYFZFlPksnfh7BJOPOtYM_gDWlTrumru1ohHXga8Pko_xkPsUsrfSq_Hw=s240-c-k-c0x00ffffff-no-rj",
-    field: "수영",
-    subscribers: "8.57만",
-    videos: [
-      { id: "_5ELU7Bx_J4", title: "발차기가 이런거였어? 편안한 발차기 꿀팁" },
-      { id: "ouwAdBTIJwA", title: "내가 이걸 몰라서 수영할 때 숨이 찼구나" },
-      { id: "yaw140V8dcM", title: "자유형 잘하고 싶다면 이대로만 해보세요" },
-    ],
-  },
-  {
-    name: "비블 bibl",
-    url: "https://www.youtube.com/@bibl_youtube",
-    icon: "https://yt3.googleusercontent.com/1wD45zOpnfNTAG4Kq8qs2T27tNyxqXTKC5a23qB6N8zl5SNlU8ugdUCx2yywcrFnBqywfz2z9w=s240-c-k-c0x00ffffff-no-rj",
-    field: `사업${DOT}마케팅`,
-    subscribers: "4.2만",
-    videos: [
-      { id: "N_816X7TFRU", title: "유튜브 5년동안 했더니 달라진 놀라운 변화" },
-      { id: "Bnp0HyZXOAk", title: "돈 내고 쓰지 마세요, 쇼츠제작과 업로드 자동화" },
-      { id: "0pyLmSNThh4", title: "에어비앤비 vs 단기임대, 이 순서대로만 따라하세요" },
-    ],
-  },
-];
+/** 다른 페이지가 이름으로 골라 쓰는 고정값(실시간 값은 HomeChannels 가 직접 받는다) */
+export const PROOF_CHANNELS = PROOF_CHANNELS_FALLBACK;
+
+const viewsLabel = (v: Video) => (v.views == null ? null : `조회수 ${formatCompactKo(v.views)}회`);
 
 const ytThumb = (id: string, size: "mq" | "sd" | "maxres") =>
   `https://i.ytimg.com/vi/${id}/${size === "mq" ? "mqdefault" : size === "sd" ? "sddefault" : "maxresdefault"}.jpg`;
@@ -103,13 +54,14 @@ function ExtIcon() {
 
 const watchUrl = (id: string) => `https://www.youtube.com/watch?v=${id}`;
 
-export default function HomeChannels({
+export default async function HomeChannels({
   id = "channels",
   caption = `비블이 운영${DOT}기획한 채널`,
   label = "CHANNELS",
   lead = "말이 아닌,",
   title = "결과로 증명합니다",
-  channels = PROOF_CHANNELS,
+  channels: channelsProp,
+  only,
   showRevenue = true,
 }: {
   id?: string;
@@ -118,9 +70,17 @@ export default function HomeChannels({
   lead?: ReactNode;
   title?: ReactNode;
   channels?: ProofChannel[];
+  /** 실시간 데이터에서 이 이름의 채널만 보여 준다 */
+  only?: string[];
   showRevenue?: boolean;
 }) {
   const headingId = `${id}-title`;
+  const live = channelsProp ? null : await getProofChannels().catch(() => null);
+  const all = channelsProp ?? live?.channels ?? PROOF_CHANNELS_FALLBACK;
+  const channels = only ? all.filter((c) => only.includes(c.name)) : all;
+  const asOf = new Date(live?.fetchedAt ?? Date.now());
+  const asOfKst = new Date(asOf.getTime() + 9 * 3600_000);
+  const ym = `${asOfKst.getUTCFullYear()}.${String(asOfKst.getUTCMonth() + 1).padStart(2, "0")}`;
   const mobileVideos = channels.flatMap((c) => c.videos.slice(0, 2).map((v) => ({ ...v, channel: c.name })));
 
   return (
@@ -133,8 +93,8 @@ export default function HomeChannels({
         </h2>
 
         <p className="mt-10 text-caption text-fg-3 md:mt-12">
-          {`대표 채널 ${channels.length}곳 · 공개 구독자 수 · `}
-          <time dateTime="2026-10">2026.10</time>
+          {`대표 채널 ${channels.length}곳 · YouTube 공개 구독자 수·조회수 · `}
+          <time dateTime={ym.replace(".", "-")}>{ym}</time>
         </p>
 
         {/* 640 미만: 2열 격자 + 대표 영상 가로 스냅 목록 */}
@@ -172,7 +132,10 @@ export default function HomeChannels({
                   <VideoThumb video={v} sizes="64vw" />
                 </span>
                 <span className="sr-only"> (새 창)</span>
-                <span className="mt-2 block truncate text-caption text-fg-3">{v.channel}</span>
+                <span className="mt-2 block truncate text-caption text-fg-3">
+                  {v.channel}
+                  {viewsLabel(v) && <span className="tnum"> · {viewsLabel(v)}</span>}
+                </span>
               </a>
             ))}
           </div>
@@ -207,9 +170,12 @@ export default function HomeChannels({
                     href={watchUrl(v.id)}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className={i === 2 ? "relative hidden overflow-hidden rounded-lg bg-surface-2 lg:block" : "relative block overflow-hidden rounded-lg bg-surface-2"}
+                    className={i === 2 ? "group hidden lg:block" : "group block"}
                   >
-                    <VideoThumb video={v} sizes="(min-width: 1024px) 257px, 45vw" />
+                    <span className="block overflow-hidden rounded-lg bg-surface-2">
+                      <VideoThumb video={v} sizes="(min-width: 1024px) 257px, 45vw" className="transition-opacity duration-150 group-hover:opacity-90" />
+                    </span>
+                    {viewsLabel(v) && <span className="tnum mt-2 block text-caption text-fg-3">{viewsLabel(v)}</span>}
                     <span className="sr-only"> (새 창)</span>
                   </a>
                 ))}

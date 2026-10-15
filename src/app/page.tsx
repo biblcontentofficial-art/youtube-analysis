@@ -15,6 +15,9 @@ import HomeServices from "@/app/_components/home/HomeServices";
 import HomeChannels from "@/app/_components/home/HomeChannels";
 import HomeContact from "@/app/_components/home/HomeContact";
 
+// 채널 실적(실시간 구독자·조회수)을 6시간마다 새로 그린다. 정적 렌더는 유지(ISR)
+export const revalidate = 21600;
+
 export const metadata: Metadata = {
   alternates: { canonical: "/" },
 };
