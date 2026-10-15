@@ -1,11 +1,14 @@
 import Link from "next/link";
-import { getBreakout, getBreakoutDates, kstToday, SHORTS_MAX_SEC, type BreakoutSort, type BreakoutType } from "@/lib/breakout";
+import { getBreakout, getBreakoutDates, kstToday, SHORTS_MAX_SEC, type BreakoutSort, type BreakoutType, type BreakoutVideo } from "@/lib/breakout";
 import { SectionHeader } from "@/components/ui/section-header";
 import { CHIP } from "@/components/ui/chip";
 import { cx } from "@/components/ui/button";
 import { outlierLabel } from "@/lib/format";
 import { NUM, ROW, TABLE, TD, TH, TH_SORT, TH_SORT_ACTIVE } from "@/components/ui/table";
 import { BreakoutTabs } from "./_components/BreakoutTabs";
+import { RemixProvider } from "@/app/_components/remix/RemixProvider";
+import { RemixButton } from "@/app/_components/remix/RemixButton";
+import type { RemixVideo } from "@/lib/trend/remix-schema";
 
 type SP = { date?: string; sort?: string; type?: string; min?: string; ex?: string };
 
@@ -56,6 +59,22 @@ function ExtIcon() {
   );
 }
 
+/** 표 행 → 기획 초안(B5) 입력. 대화상자는 페이지에 하나(RemixProvider), 행 버튼은 video 만 넘긴다 */
+function remixVideo(v: BreakoutVideo): RemixVideo {
+  return {
+    videoId: v.video_id,
+    title: v.title,
+    channelTitle: v.channel_title,
+    viewCount: v.view_count,
+    subscriberCount: v.subscriber_count,
+    durationSec: v.duration_sec,
+    publishedAt: v.published_at,
+    thumbnail: v.thumbnail ?? `https://i.ytimg.com/vi/${v.video_id}/mqdefault.jpg`,
+  };
+}
+/** 행 끝 '기획 초안' 고스트 버튼(36px, 터치 기기 44px) */
+const REMIX_ROW_BTN = "h-9 px-3 text-body-sm pointer-coarse:h-11";
+
 const watchUrl = (id: string) => `https://www.youtube.com/watch?v=${id}`;
 const channelUrl = (id: string) => `https://www.youtube.com/channel/${id}`;
 
@@ -87,6 +106,7 @@ export async function BreakoutView({ sp }: { sp: SP }) {
 
   return (
     <main className="min-h-screen bg-canvas text-fg">
+      <RemixProvider>
       <div className="mx-auto w-full max-w-wide px-6 py-10 md:py-14 lg:px-8">
         <SectionHeader caption="유튜브 트렌드 서치" label="BREAKOUT" />
         <BreakoutTabs current="videos" />
@@ -133,7 +153,8 @@ export async function BreakoutView({ sp }: { sp: SP }) {
           </div>
         ) : (
           <>
-            {/* 1024 이상 표(DESIGN 6.10 앱 표 값, 체크 열 없음): 영상 · 조회수 · 평균 대비 · 구독자 · 게시일 */}
+            {/* 1024 이상 표(DESIGN 6.10 앱 표 값, 체크 열 없음): 영상 · 조회수 · 평균 대비 · 구독자 · 게시일 · 기획(1280 이상).
+                1024~1279 는 제목 칸이 좁아지지 않게 '기획 초안' 버튼을 제목 아래 채널 줄 끝에 둔다 */}
             <table className={cx(TABLE, "mt-6 hidden lg:table")}>
               <thead>
                 <tr>
@@ -148,6 +169,7 @@ export async function BreakoutView({ sp }: { sp: SP }) {
                       </th>
                     );
                   })}
+                  <th scope="col" className={cx(TH, "hidden w-[88px] pl-2 text-right xl:table-cell")}>기획</th>
                 </tr>
               </thead>
               <tbody>
@@ -174,6 +196,7 @@ export async function BreakoutView({ sp }: { sp: SP }) {
                               <img src={v.channel_thumb} alt="" width={20} height={20} loading="lazy" className="size-5 shrink-0 rounded-full bg-surface-2" />
                             )}
                             <a href={channelUrl(v.channel_id)} target="_blank" rel="noopener noreferrer" className="truncate text-caption text-fg-3 transition-colors duration-150 hover:text-fg">{v.channel_title}</a>
+                            <RemixButton video={remixVideo(v)} variant="ghost" label="기획 초안" ariaLabel={`기획 초안, ${v.title}`} className={cx(REMIX_ROW_BTN, "-my-1 ml-auto xl:hidden")} />
                           </div>
                         </div>
                       </div>
@@ -182,6 +205,9 @@ export async function BreakoutView({ sp }: { sp: SP }) {
                     <td className={cx(TD, NUM, "pr-6", sort === "outlier" ? SORT_NUM : (v.outlier ?? 0) >= 2 ? "text-body-sm font-bold text-fg" : "text-body-sm text-fg-3")} title="채널 평균 조회수 대비">{outlierLabel(v.outlier)}</td>
                     <td className={cx(TD, NUM, "pr-6", sort === "subs" ? SORT_NUM : "text-body-sm text-fg-2")}>{num(v.subscriber_count)}</td>
                     <td className={cx(TD, NUM, "pr-2 text-body-sm text-fg-3")}>{kstTime(v.published_at)}</td>
+                    <td className={cx(TD, "hidden pl-2 text-right xl:table-cell")}>
+                      <RemixButton video={remixVideo(v)} variant="ghost" label="기획 초안" ariaLabel={`기획 초안, ${v.title}`} className={cx(REMIX_ROW_BTN, "-mr-3")} />
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -211,6 +237,7 @@ export async function BreakoutView({ sp }: { sp: SP }) {
                       <span>· 구독자 {num(v.subscriber_count)}</span>
                       <span>· {kstTime(v.published_at)}</span>
                     </p>
+                    <RemixButton video={remixVideo(v)} variant="ghost" label="기획 초안" ariaLabel={`기획 초안, ${v.title}`} className="-mb-2 -ml-2 mt-0.5 h-11 px-2 text-caption" />
                   </div>
                 </li>
               ))}
@@ -219,6 +246,7 @@ export async function BreakoutView({ sp }: { sp: SP }) {
         )}
         <p className="mt-12 text-micro text-fg-3">조회수·구독자·게시일은 YouTube API Services 로 받은 공개 값이며, 수집 시점 기준입니다. 평균 대비(조회수 ÷ 채널 평균 조회수)와 구독자 대비 정렬은 이 공개 값을 단순 계산한 참고값으로, YouTube 공식 지표나 bibl lab 의 평가가 아닙니다.</p>
       </div>
+      </RemixProvider>
     </main>
   );
 }

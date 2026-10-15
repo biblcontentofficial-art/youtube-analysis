@@ -8,8 +8,10 @@
  * - 'YouTube에서 보기'는 대화상자 안 흰 면 하나(빨간 표시 없음, 새 창은 sr-only 로 알린다). 나머지는 보조 버튼.
  * - 불러오기가 끝났는데 영상·채널 정보가 없으면 '불러오지 못했습니다 · 다시 시도'(같은 fetchData 를 다시 부른다).
  * - 사용자 도구(자가 계산·AI 분석)는 사용자가 누를 때만 동작한다(YouTube ToS III.E.4h). 문구·조건 그대로, 모양만.
+ * - '이 영상처럼 기획하기'(B5, roadmap T7)는 새 대화상자를 겹치지 않고 이 대화상자 안 내용을 기획 초안 화면으로 바꾼다.
+ *   '← 영상 정보로' 를 누르면 돌아오고, 그 버튼에 포커스를 돌려준다.
  */
-import { useEffect, useId, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { Video } from "@/types";
 import { fetchVideoDetail, fetchVideoComments, fetchChannelDetail } from "../actions";
@@ -18,6 +20,10 @@ import { cx } from "@/components/ui/button";
 import { ChevronDownIcon, CloseIcon, WarningIcon } from "@/components/ui/icons";
 import { formatCompactKo } from "@/lib/format";
 import { BTN_BASE, BTN_GHOST, BTN_SECONDARY } from "./SelectionBar";
+import { RemixContext, type RemixHost } from "@/app/_components/remix/RemixProvider";
+import { RemixButton } from "@/app/_components/remix/RemixButton";
+import { RemixPanel, type RemixPreview } from "@/app/_components/remix/RemixDialog";
+import type { RemixVideo } from "@/lib/trend/remix-schema";
 
 type VideoDetail = Awaited<ReturnType<typeof fetchVideoDetail>>;
 type ChannelDetail = Awaited<ReturnType<typeof fetchChannelDetail>>;
@@ -53,6 +59,22 @@ interface Props {
   video: Video;
   onClose: () => void;
   load?: VideoInfoLoader;
+  /** 로컬 고정 화면(ux-preview)에서 기획 초안 화면을 네트워크 없이 그릴 때 */
+  remixPreview?: RemixPreview;
+}
+
+/** 검색 결과 영상 → 기획 초안 입력 */
+function toRemixVideo(video: Video): RemixVideo {
+  return {
+    videoId: video.videoId,
+    title: video.title,
+    channelTitle: video.channelTitle,
+    viewCount: video.viewCount ?? 0,
+    subscriberCount: video.subscriberCountRaw ?? 0,
+    durationSec: video.durationSeconds ?? 0,
+    publishedAt: video.publishedAt,
+    thumbnail: video.thumbnail,
+  };
 }
 
 // XSS 방지: HTML 태그 제거 후 텍스트만 반환 (줄바꿈 보존)
@@ -130,8 +152,25 @@ function CommentItem({ comment }: { comment: Comment }) {
   );
 }
 
-export default function VideoModal({ video, onClose, load = defaultLoader }: Props) {
+export default function VideoModal({ video, onClose, load = defaultLoader, remixPreview }: Props) {
   const titleId = useId();
+  // 같은 대화상자 안에서 영상 정보 ↔ 기획 초안(B5)을 바꾼다
+  const [mode, setMode] = useState<"info" | "remix">("info");
+  const returnFocus = useRef(false);
+  const bodyRef = useRef<HTMLDivElement>(null);
+  const remixHost = useMemo<RemixHost>(() => ({ open: () => setMode("remix"), inline: true }), []);
+  // 고정 함수로 넘긴다(렌더마다 새 함수면 기획 초안 화면이 다시 포커스를 옮길 여지가 생긴다)
+  const backToInfo = useCallback(() => {
+    returnFocus.current = true;
+    setMode("info");
+  }, []);
+  useEffect(() => {
+    if (mode !== "info" || !returnFocus.current) return;
+    returnFocus.current = false;
+    const btn = bodyRef.current?.querySelector<HTMLElement>("[data-remix-button]");
+    btn?.scrollIntoView({ block: "center" });
+    btn?.focus({ preventScroll: true });
+  }, [mode]);
   const [detail, setDetail] = useState<VideoDetail>(null);
   const [channelInfo, setChannelInfo] = useState<ChannelDetail>(null);
   const [comments, setComments] = useState<Comment[]>([]);
@@ -264,6 +303,17 @@ export default function VideoModal({ video, onClose, load = defaultLoader }: Pro
         "md:max-h-[calc(100dvh-2rem)] md:max-w-xl",
       )}
     >
+      {mode === "remix" ? (
+        <RemixPanel
+          video={toRemixVideo(video)}
+          titleId={titleId}
+          onClose={onClose}
+          onBack={backToInfo}
+          preview={remixPreview}
+        />
+      ) : (
+      <RemixContext.Provider value={remixHost}>
+      <div ref={bodyRef}>
       <div className="flex items-center justify-between gap-3">
         <p className="text-caption text-fg-3">영상 정보</p>
         <button type="button" onClick={onClose} aria-label="닫기" className={cx(BTN_GHOST, "-mr-2 size-11 shrink-0")}>
@@ -445,6 +495,7 @@ export default function VideoModal({ video, onClose, load = defaultLoader }: Pro
                 "AI에게 이 영상이 잘 된 이유 묻기"
               )}
             </button>
+            <RemixButton video={toRemixVideo(video)} variant="secondary" className="h-11 px-4 text-body-sm sm:col-span-2" />
           </div>
 
           {/* 자가 계산 결과 표시 (사용자 클릭 후에만 나타남) */}
@@ -523,6 +574,9 @@ export default function VideoModal({ video, onClose, load = defaultLoader }: Pro
             </div>
           )}
         </section>
+      )}
+      </div>
+      </RemixContext.Provider>
       )}
     </Dialog>
   );

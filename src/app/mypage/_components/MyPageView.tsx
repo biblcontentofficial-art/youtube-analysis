@@ -3,7 +3,7 @@
  * 로컬 미리보기(/ux-preview/r01-mypage)가 고정 데이터로 같은 화면을 그린다.
  * 근거: DESIGN.md 7.3 마이페이지 · 6.4 섹션 헤더 · 6.7 앱 카드 · 6.12 배지 · 6.13 상태 메시지 · 6.23 사용량 막대
  *
- * 섹션: PLAN(플랜·남은 횟수·결제) · USAGE(영상·채널 검색 사용량, 최근 검색) · INVITE(친구 초대) · ACCOUNT(계정·로그아웃·구독 취소)
+ * 섹션: PLAN(플랜·남은 횟수·결제) · USAGE(영상·채널 검색·영상 기획 초안 사용량, 최근 검색) · INVITE(친구 초대) · ACCOUNT(계정·로그아웃·구독 취소)
  * 계정 삭제는 ACCOUNT 카드 아래에 따로 negative 글자 버튼으로 둔다.
  * 제목 단계: h1 마이페이지 → 섹션 캡션(role=heading level 2, SectionHeader 가 span 으로 감싸므로) → 카드 제목 h3.
  */
@@ -35,6 +35,8 @@ function planLabel(key: string) {
 
 type SearchUsage = { used: number; limit: number; isMonthly: boolean; unlimited: boolean };
 type ChannelUsage = { used: number; limit: number; unlimited: boolean; isDaily: boolean };
+/** 트렌드 서치 AI 하루 사용량(aiLimit.getAiUsage). 영상 기획 초안(B5) 한 줄 */
+type AiUsage = { used: number; limit: number };
 
 /** 사용량 막대(DESIGN 6.23): 트랙 surface-3, 채움 chart-1, 5회 이하 남음 caution, 소진 negative */
 function UsageMeter({
@@ -85,6 +87,7 @@ export default function MyPageView({
   plan,
   usage,
   chUsage,
+  aiUsage,
   payments,
   subscription,
   referral,
@@ -98,6 +101,8 @@ export default function MyPageView({
   plan: string;
   usage: SearchUsage;
   chUsage: ChannelUsage;
+  /** 영상 기획 초안 하루 사용량. 없으면(조회 실패) 줄을 그리지 않는다 */
+  aiUsage?: AiUsage | null;
   payments: Payment[];
   subscription: Subscription | null;
   /** 친구 초대 카드 */
@@ -265,6 +270,28 @@ export default function MyPageView({
               unlimited={chUsage.unlimited}
               reset={chUsage.unlimited ? "무제한" : chUsage.isDaily ? "매일 오전 9시(한국 시간) 리셋" : "매월 1일 리셋"}
             />
+            {aiUsage && aiUsage.limit <= 0 && (
+              // Free(한도 0): 숫자·막대 대신 기획 초안 대화상자와 같은 요금제 안내
+              <div className={APP_CARD}>
+                <h3 className="text-body-sm font-semibold text-fg-2">영상 기획 초안</h3>
+                <p className="mt-3 text-caption text-fg-3">영상 기획 초안은 Starter 이상 요금제에서 쓸 수 있어요.</p>
+                <Link
+                  href="/pricing"
+                  className="-mb-2 inline-flex h-11 items-center gap-1.5 text-ui font-semibold text-fg transition-colors hover:text-fg-2"
+                >
+                  요금제 보기 <span aria-hidden="true">→</span>
+                </Link>
+              </div>
+            )}
+            {aiUsage && aiUsage.limit > 0 && (
+              <UsageMeter
+                title="영상 기획 초안"
+                used={aiUsage.used}
+                limit={aiUsage.limit}
+                unlimited={false}
+                reset="매일 오전 9시(한국 시간) 리셋"
+              />
+            )}
           </div>
           <div className="mt-3 md:mt-4">{recentSearches}</div>
           <Link
