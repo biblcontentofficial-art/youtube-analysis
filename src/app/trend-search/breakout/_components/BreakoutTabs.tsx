@@ -24,7 +24,7 @@ export type BreakoutTabKey = "videos" | "keywords" | "channels" | "growth" | "wa
 export const TREND_TABS: { key: BreakoutTabKey; href: string; label: string; short: string; ready: boolean }[] = [
   { key: "videos", href: "/trend-search/breakout", label: "영상", short: "영상", ready: true },
   { key: "keywords", href: "/trend-search/breakout/keywords", label: "급상승 키워드", short: "키워드", ready: true },
-  { key: "channels", href: "/trend-search/breakout/channels", label: "지금 크는 채널", short: "크는 채널", ready: false },
+  { key: "channels", href: "/trend-search/breakout/channels", label: "지금 크는 채널", short: "크는 채널", ready: true },
   { key: "growth", href: "/trend-search/breakout/growth", label: "성장 추적", short: "성장", ready: false },
   { key: "watch", href: "/trend-search/breakout/watch", label: "관심 목록", short: "관심", ready: false },
 ];
