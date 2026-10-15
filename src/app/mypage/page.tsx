@@ -33,14 +33,15 @@ export default async function MyPage({
     chUsage = { used: cu.used, limit: cu.limit, unlimited: cu.unlimited, isDaily: cu.isDaily };
   } catch {}
 
-  // 영상 기획 초안(B5) 하루 사용량은 결제 조회와 함께 읽는다. 표시용 조회라 실패하면 줄을 숨긴다(차단은 /api/ai/remix 의 reserveAi)
-  const [payments, subscription, aiUsage] = await Promise.all([
+  // 영상 기획 초안(B5)·썸네일 공통점 정리(B6) 하루 사용량은 결제 조회와 함께 읽는다.
+  // 표시용 조회라 실패하면 줄을 숨긴다(차단은 /api/ai/remix·/api/ai/thumbs 의 reserveAi)
+  const [payments, subscription, ai] = await Promise.all([
     getPayments(userId).catch(() => []),
     getSubscription(userId).catch(() => null),
-    getAiUsage(userId, plan, ["remix"])
-      .then((u) => u.remix ?? null)
-      .catch(() => null),
+    getAiUsage(userId, plan, ["remix", "thumbs"]).catch(() => null),
   ]);
+  const aiUsage = ai?.remix ?? null;
+  const thumbsUsage = ai?.thumbs ?? null;
 
   return (
     <MyPageView
@@ -50,6 +51,7 @@ export default async function MyPage({
       usage={usage}
       chUsage={chUsage}
       aiUsage={aiUsage}
+      thumbsUsage={thumbsUsage}
       payments={payments}
       subscription={subscription}
       referral={<ReferralSection />}

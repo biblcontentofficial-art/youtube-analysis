@@ -20,6 +20,7 @@ import ChannelReport from "./ChannelReport";
 import KeywordCompetition from "./KeywordCompetition";
 import KeywordInsights from "./KeywordInsights";
 import TitlePatternAnalysis from "./TitlePatternAnalysis";
+import ThumbnailBoard from "./ThumbnailBoard";
 import FilterTab from "./FilterTab";
 import ViewStatsInline from "./ViewStatsInline";
 import TodaySearchCount from "./TodaySearchCount";
@@ -222,7 +223,7 @@ export default function SearchResultList({
   const router = useRouter();
   const titleId = useId();
   /** 분석 도구 줄에서 펼친 도구 하나. 누른 도구만 줄 아래에 펼친다 */
-  const [tool, setTool] = useState<"patterns" | "related" | "competition" | "title" | null>(null);
+  const [tool, setTool] = useState<"patterns" | "related" | "competition" | "title" | "thumbs" | null>(null);
   const [collecting, setCollecting] = useState(false);
   const [toast, setToast] = useState<ToastData | null>(null);
   const toastSeq = useRef(0);
@@ -499,6 +500,10 @@ export default function SearchResultList({
                     키워드 경쟁도 · 제목 패턴 분석<span className={PLAN_TAG}>Starter</span>
                   </Link>
                 )}
+                {/* 썸네일 비교: 격자는 모든 플랜에서 잠기지 않는다(유료는 제목 패턴 분석 뒤, Free 는 잠금 버튼 뒤) */}
+                <button type="button" aria-expanded={tool === "thumbs"} onClick={() => toggleTool("thumbs")} className={TOOL_BUTTON}>
+                  썸네일 비교
+                </button>
                 <span className="contents lg:hidden">
                   {SEP}
                   {renderReportButton()}
@@ -532,6 +537,7 @@ export default function SearchResultList({
                   <TitlePatternAnalysis videos={videos} open={tool === "title"} onClose={closeTool} />
                 </>
               )}
+              <ThumbnailBoard query={query} videos={videos} open={tool === "thumbs"} onClose={closeTool} />
             </div>
 
             {/* ─── 1024 미만: 전체 선택 + 정렬 선택 상자 ─── */}
