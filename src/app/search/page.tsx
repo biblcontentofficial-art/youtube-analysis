@@ -46,8 +46,9 @@ interface Props {
 }
 
 // 한 번의 검색에서 초기 로드할 결과 수 (더보기로 추가 가능)
-const INITIAL_RESULT_COUNT = 50;
-const MAX_INITIAL_PAGES = 1; // 1페이지만 로드 → nextPageToken 보존 → 더보기 항상 가능
+const INITIAL_RESULT_COUNT = 100; // 첫 화면 목표(플랜 resultLimit 이 상한). '전체'는 롱폼·쇼츠 첫 페이지(각 최대 50)를 버리지 않고 다 보여 준다
+const MAX_INITIAL_PAGES = 1; // '전체'(롱폼+쇼츠 병렬)는 각 1페이지 → nextPageToken 보존 → 더보기 항상 가능
+const MAX_INITIAL_PAGES_SINGLE = 2; // 롱폼·쇼츠 한 가지 필터는 최대 2페이지(약 100개)까지
 
 export default async function SearchPage({ searchParams }: Props) {
   const query = searchParams.q || "";
@@ -166,7 +167,7 @@ export default async function SearchPage({ searchParams }: Props) {
 
           const initialTarget = Math.min(INITIAL_RESULT_COUNT, resultLimit);
           let pagesLoaded = 1;
-          while (videos.length < initialTarget && nextPageToken && pagesLoaded < MAX_INITIAL_PAGES) {
+          while (videos.length < initialTarget && nextPageToken && pagesLoaded < MAX_INITIAL_PAGES_SINGLE) {
             const more = await searchVideos(query, filter, nextPageToken, isPaid, "relevance", region);
             if (more.error) break;
             const existingIds = new Set(videos.map((v: any) => v.videoId));

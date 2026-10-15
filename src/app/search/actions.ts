@@ -12,9 +12,9 @@ import {
 } from "@/lib/cache";
 
 // 1. 더보기 기능 (pageToken 없으면 새 order로 첫 페이지부터)
-// 필터링 후 결과가 MIN_RESULTS 미만이면 다음 페이지를 자동으로 이어서 호출 (최대 MAX_RETRIES회)
-const MIN_RESULTS = 5;
-const MAX_RETRIES = 3;
+// 더보기 한 번에 MIN_RESULTS 개가 모일 때까지 다음 페이지를 이어서 호출 (최대 MAX_RETRIES 페이지, 페이지당 최대 50)
+const MIN_RESULTS = 60;
+const MAX_RETRIES = 2;
 
 export async function getMoreVideos(query: string, filter: string | undefined, pageToken: string | undefined, order?: string, regionCode?: string) {
   const plan = await getUserPlan();

@@ -102,7 +102,7 @@ export function VideoTableRow({ video, checked, onCheck, onClick }: RowProps) {
       </td>
       <td className={cx(TD, "relative pr-6")}>
         <div className="flex items-center gap-4">
-          <Thumb video={video} className="w-32 xl:w-36" />
+          <Thumb video={video} className="w-44 xl:w-52" />
           <div className="min-w-0 flex-1">
             <h3 className="text-ui font-medium leading-[1.5] text-fg-1">
               <button type="button" aria-haspopup="dialog" onClick={onClick} className={cx(OPEN_BUTTON, "hover:underline hover:underline-offset-4")}>

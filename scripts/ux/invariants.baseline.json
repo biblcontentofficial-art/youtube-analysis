@@ -40,7 +40,7 @@
     "count": 1
   },
   "search/page.if(query)": {
-    "hash": "cdc644bb5a15d95d",
+    "hash": "28811bce7f020174",
     "file": "src/app/search/page.tsx",
     "count": 1
   },
@@ -66,12 +66,12 @@
   },
   "home.saveToHistory": {
     "hash": "9b07069f9b601db2",
-    "file": "src/app/page.tsx",
+    "file": "src/app/_components/HomeSearch.tsx",
     "count": 1
   },
   "home.trySearch": {
     "hash": "0449e2c9a0e806ee",
-    "file": "src/app/page.tsx",
+    "file": "src/app/_components/HomeSearch.tsx",
     "count": 1
   },
   "RecentSearches.fromHistory": {
