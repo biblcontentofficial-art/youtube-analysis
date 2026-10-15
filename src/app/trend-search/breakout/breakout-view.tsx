@@ -215,7 +215,7 @@ export async function BreakoutView({ sp }: { sp: SP }) {
             </ul>
           </>
         )}
-        <p className="mt-12 text-micro text-fg-3">조회수·구독자·게시일은 YouTube API Services 로 받은 공개 값이며, 수집 시점 기준입니다.</p>
+        <p className="mt-12 text-micro text-fg-3">조회수·구독자·게시일은 YouTube API Services 로 받은 공개 값이며, 수집 시점 기준입니다. 평균 대비(조회수 ÷ 채널 평균 조회수)와 구독자 대비 정렬은 이 공개 값을 단순 계산한 참고값으로, YouTube 공식 지표나 bibl lab 의 평가가 아닙니다.</p>
       </div>
     </main>
   );

@@ -635,6 +635,11 @@ export default function SearchResultList({
             ))}
           </ul>
 
+          {/* 파생 값 안내(YouTube 정책): 평균 대비는 공개 데이터를 단순 계산한 참고값 */}
+          <p className="mt-3 text-micro text-fg-3">
+            평균 대비 = 조회수 ÷ 채널 평균 조회수(채널 누적 조회수 ÷ 영상 수). YouTube 공개 데이터를 단순 계산한 참고값이며 YouTube 공식 지표나 bibl lab 의 평가가 아닙니다.
+          </p>
+
           {/* ─── 더보기 + 캡션 (숫자는 지금 결과 수와 플랜 결과 한도) ─── */}
           {hasMore && (
             <div className="mt-8 flex flex-col items-center gap-2">
