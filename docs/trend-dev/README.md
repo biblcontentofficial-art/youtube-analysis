@@ -18,6 +18,13 @@
 - [x] T9 C7 관심 목록·알림 (T1.5 선택 후)
 - [x] T10 C8 내 채널 vs 트렌드 (T1.5 선택 후)
 
+## 백필 기록(2026-10-15)
+
+- breakout_terms 10-07~10-14 백필 완료(로컬에서 /api/cron/trend?step=terms&date=…, 8일 모두 ok).
+- breakout_views d1: 10-13(279)·10-14(226) 복사. 10-07~10-12 는 늦게 수집돼 late_collection 으로 건너뜀(규칙대로).
+- track 10-15 실행: 10-12 게시분 3일 뒤, 10-08 게시분 7일 뒤 재측정.
+- 실제 데이터 화면 캡처: docs/trend-dev/real-shots/(영상·급상승 키워드·지금 크는 채널·성장 추적, 1440).
+
 ## 배포 전 확인
 
 - T3(급상승 키워드 탭)이 사용자에게 보이기 전에 breakout_terms 백필을 끝낸다(소유자 승인 후): `/api/cron/trend?step=terms&date=2026-10-07` … `2026-10-14` 를 날짜마다 한 번씩, 10-14 도 다시(src/lib/trend/terms.ts 머리 주석). 2026-10-15 기준 운영 breakout_terms 는 10-14 하루치뿐이라, 백필 전에는 탭 기준 줄(breakout_videos 기준 '수집된 날 7일')과 단어 수(하루치)가 어긋난다. 백필 경로(T1·T2)는 2026-10-15 기준 아직 push 전이라, 같은 push 직후 바로 돌리거나 push 전에 BreakoutTabs 의 keywords 를 ready:false 로 두고 백필 뒤에 켠다.

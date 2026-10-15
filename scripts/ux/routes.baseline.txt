@@ -13,6 +13,10 @@
 ƒ /api/admin/users/[id]/refund
 ƒ /api/admin/users/[id]/reset-usage
 ƒ /api/ai-analyze
+ƒ /api/ai/remix
+ƒ /api/ai/remix/latest
+ƒ /api/ai/thumbs
+ƒ /api/ai/usage
 ƒ /api/cancel-subscription
 ƒ /api/channel-usage
 ƒ /api/checkout
@@ -33,11 +37,17 @@
 ƒ /api/community/view
 ƒ /api/community/visit
 ƒ /api/cron/billing
+ƒ /api/cron/breakout
+ƒ /api/cron/trend
 ƒ /api/delete-account
 ƒ /api/dev/content
 ƒ /api/dev/upload
 ƒ /api/keyword-insight
 ƒ /api/keyword-suggest
+ƒ /api/my-channel/register
+ƒ /api/notifications
+ƒ /api/notifications/read
+ƒ /api/notifications/unread-count
 ƒ /api/payple/auth
 ƒ /api/payple/confirm
 ƒ /api/portone/billing/confirm
@@ -72,7 +82,9 @@
 ƒ /api/toss/confirm
 ƒ /api/toss/widget/confirm
 ƒ /api/track
+ƒ /api/trend/fit
 ƒ /api/usage
+ƒ /api/watch
 ƒ /api/webhooks/clerk
 ƒ /api/youtube/channels/suggest
 ƒ /api/youtube/search
@@ -101,7 +113,6 @@
 ○ /manifest.webmanifest
 ƒ /my-channel
 ƒ /mypage
-○ /opengraph-image
 ƒ /payment
 ƒ /payment/toss
 ○ /payment/toss/fail
@@ -130,3 +141,8 @@
 ƒ /tmkstudio
 ○ /tools/calculator
 ƒ /trend-search
+ƒ /trend-search/breakout
+ƒ /trend-search/breakout/channels
+ƒ /trend-search/breakout/growth
+ƒ /trend-search/breakout/keywords
+ƒ /trend-search/breakout/watch
