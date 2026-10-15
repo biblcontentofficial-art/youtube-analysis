@@ -6,6 +6,7 @@
  * GET /api/cron/trend?step=all     전부
  * GET /api/cron/trend?step=terms&date=YYYY-MM-DD   단계 하나, 따라잡기 대신 그 날짜만(손으로 다시 돌릴 때)
  * &dry=1  trend_jobs·다른 테이블에 쓰지 않고 결과만 돌려준다(로컬 .env.local 은 운영 DB 를 가리키므로 로컬은 항상 dry=1)
+ *         예외: T2 수용 시험으로 2026-10-14 terms 를 로컬에서 기록했다. 백필 때 그 날짜도 다시 돌린다(src/lib/trend/terms.ts 머리 주석).
  *
  * Vercel Cron 이 Authorization: Bearer <CRON_SECRET> 로 호출한다.
  * 응답 { ok, results: [{ step, date, status, ms, detail }] }. 등록 안 된 단계는 skipped(not_registered).
@@ -13,9 +14,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyBearerToken } from "@/lib/authUtils";
 import { jobs, STEP_NAMES, kstDate, type StepName } from "@/lib/trend/jobs";
+import { termsStep } from "@/lib/trend/terms";
+
+// 단계 등록(T2 terms). 뒤 항목(views_d1·track·notify·brief)도 여기서 jobs.registerStep 으로 더한다.
+jobs.registerStep("terms", termsStep);
 
 export const maxDuration = 60;
 export const dynamic = "force-dynamic";
+/**
+ * Next 14 는 force-dynamic 경로에서도 supabase-js 의 fetch(GET·POST rpc 모두)를 데이터 캐시에 넣는다(로컬 .next/cache/fetch-cache 에서 확인,
+ * revalidate 31536000). 그러면 trend_jobs·breakout_videos 읽기가 옛 응답을 돌려주고 replace_breakout_terms 가 실행되지 않는다.
+ */
+export const fetchCache = "force-no-store";
+export const revalidate = 0;
 
 /** 함수 시작 + 55초를 마감으로 각 단계에 넘긴다(maxDuration 60 보다 5초 일찍) */
 const BUDGET_MS = 55_000;
