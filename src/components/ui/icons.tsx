@@ -139,3 +139,17 @@ export function InfoIcon(props: IconProps) {
     </IconBase>
   );
 }
+
+/**
+ * 카카오톡 말풍선 표시(흑백). 선 아이콘 가족과 달리 면으로 칠한 브랜드 표시라 IconBase 를 쓰지 않는다.
+ * 말풍선은 currentColor, 안의 TALK 글자는 바탕색(canvas)으로 비워 흑백 화면에 맞춘다.
+ */
+export function KakaoTalkIcon({ size = 20, label, className, ...rest }: IconProps) {
+  const a11y = label ? { role: "img", "aria-label": label } : { "aria-hidden": true as const };
+  return (
+    <svg {...rest} {...a11y} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width={size} height={size} className={cx("shrink-0", className)}>
+      <path d="M12 3C6.477 3 2 6.477 2 10.5c0 2.568 1.524 4.832 3.848 6.24L4.5 21l4.38-2.318A11.3 11.3 0 0 0 12 19c5.523 0 10-3.477 10-7.5S17.523 3 12 3z" fill="currentColor" />
+      <text x="12" y="12.9" textAnchor="middle" fontSize="5.6" fontWeight="900" letterSpacing="0.1" fill="var(--color-canvas)" fontFamily="Arial, sans-serif">TALK</text>
+    </svg>
+  );
+}

@@ -9,6 +9,7 @@
  * 모바일은 사이드바(오픈채팅 참여코드)가 없으므로 머리 아래에 오픈채팅 보조 버튼을 둔다.
  */
 
+import { KakaoTalkIcon } from "@/components/ui/icons";
 import { usePathname } from "next/navigation";
 import { buttonClass } from "@/components/ui/button";
 import NewPostButton from "./NewPostButton";
@@ -35,7 +36,8 @@ export default function CommunityChrome() {
         rel="noopener noreferrer"
         className={buttonClass({ variant: "secondary", block: true }) + " mt-4 lg:hidden"}
       >
-        <span>비블 오픈채팅방</span>
+        <KakaoTalkIcon size={20} />
+        <span>비블 오픈채팅방 참여</span>
         <span className="text-caption font-medium text-fg-3">참여코드 230000</span>
         <span className="sr-only">(새 창)</span>
       </a>

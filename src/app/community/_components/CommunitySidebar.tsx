@@ -10,6 +10,7 @@
  * 메뉴 카드는 데스크톱에서 네비 아래에 붙어(sticky) 길어도 안에서 스크롤된다.
  */
 
+import { KakaoTalkIcon } from "@/components/ui/icons";
 import { BOARD_LINK_OVERRIDES, groupBoards, type Board } from "@/lib/community";
 import { buttonClass } from "@/components/ui/button";
 import NewPostButton from "./NewPostButton";
@@ -59,8 +60,9 @@ export default function CommunitySidebar({ boards, stats, counts, recentBoardIds
             rel="noopener noreferrer"
             className="flex flex-col items-center justify-center rounded-control border border-line-strong bg-surface px-4 py-2.5 text-center transition-colors duration-150 hover:border-line-hover hover:bg-surface-2"
           >
-            <span className="block text-body-sm font-semibold text-fg">
-              비블 오픈채팅방<span className="sr-only"> (새 창)</span>
+            <span className="flex items-center gap-1.5 text-body-sm font-semibold text-fg">
+              <KakaoTalkIcon size={20} />
+              비블 오픈채팅방 참여<span className="sr-only"> (새 창)</span>
             </span>
             <span className="mt-0.5 block text-caption text-fg-3">참여코드 230000</span>
           </a>
