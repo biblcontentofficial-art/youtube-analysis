@@ -93,10 +93,10 @@ export default async function CommunityLayout({ children }: { children: ReactNod
       <div className="mx-auto max-w-wide px-6 pt-4 lg:px-8">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="/community-images/community-banner.png"
-          alt="Business Black"
-          width={1080}
-          height={340}
+          src="/community-images/community-banner-bibl.png"
+          alt="bibl"
+          width={2000}
+          height={629}
           className="h-auto w-full rounded-panel border border-line"
         />
       </div>
