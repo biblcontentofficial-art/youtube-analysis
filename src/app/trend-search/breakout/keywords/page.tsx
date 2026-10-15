@@ -4,14 +4,18 @@
  * 데이터는 cron terms 단계가 날짜별로 모아 둔 breakout_terms 를 RPC 로 합산한다(src/lib/trend/rising.ts).
  * 화면은 keywords-view.tsx(props 만 받음). 로컬 미리보기 /ux-preview/trend-keywords?state=… 가 같은 화면을 고정 데이터로 그린다.
  * 탭 줄 '관심 목록' 숫자: 안 읽은 알림 수(getUnreadCount → RPC notification_unread_count 1회, T9).
+ * C8 '내 채널에 맞는 주제'(T10): 서버는 plan(currentUser 가 이미 읽은 값)과 user_channels 행 유무만 읽어 카드 자리를 정한다
+ * (Starter 미만 잠금 줄 / 카드 잎). Claude 호출과 주제 고르기는 카드 잎이 GET /api/trend/fit 으로 따로 부른다(표 TTFB 와 무관).
  */
 import type { Metadata } from "next";
 import { currentUser } from "@/lib/auth";
 import { getRisingTerms, type RisingFormat } from "@/lib/trend/rising";
 import { getUnreadCount } from "@/lib/trend/watch";
+import { hasUserChannel } from "@/lib/trend/my-channel";
+import { PLANS, type PlanKey } from "@/lib/stripe";
 import { SectionHeader } from "@/components/ui/section-header";
 import { LoginGate } from "../_components/LoginGate";
-import { KeywordsView } from "./keywords-view";
+import { KeywordsView, type KeywordsFit } from "./keywords-view";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -42,6 +46,13 @@ export default async function KeywordsPage({ searchParams }: { searchParams: SP 
   }
 
   const format: RisingFormat = sp.format === "shorts" ? "shorts" : "long";
-  const [data, unread] = await Promise.all([getRisingTerms({ format }), getUnreadCount(user.id)]);
-  return <KeywordsView data={data} badge={unread} />;
+  const canFit = Object.prototype.hasOwnProperty.call(PLANS, user.plan) && PLANS[user.plan as PlanKey].canTrendFit;
+  // 카드는 롱폼 칩에서만 보이므로 쇼츠면 user_channels 를 읽지 않는다
+  const [data, unread, registered] = await Promise.all([
+    getRisingTerms({ format }),
+    getUnreadCount(user.id),
+    canFit && format === "long" ? hasUserChannel(user.id) : Promise.resolve(false),
+  ]);
+  const fit: KeywordsFit = canFit ? { kind: "card", registered } : { kind: "locked" };
+  return <KeywordsView data={data} badge={unread} fit={fit} />;
 }
