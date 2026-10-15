@@ -26,8 +26,27 @@ export const RISING_LIMIT = 50;
 export const TOP_MAX_DAY_RATIO = 0.6;
 /** A1 top: 최근 30일 수집 일수가 이 값 이상일 때만 상시어 거르기를 한다 */
 export const TOP_MIN_HIST_DAYS = 6;
-/** A3 d1 복사: 게시일 다음 날 한국 시각 이 시 전에 수집된 행만 day 1 로 복사한다 */
+/** A3 d1 복사: 게시일 D1_CUTOFF_DAYS 일 뒤 한국 시각 이 시 전에 수집된 행만 day 1 로 복사한다 */
 export const D1_CUTOFF_KST_HOUR = 18;
+/**
+ * A3 d1 복사 기한(게시 날짜에서 며칠 뒤까지). 소유자 결정 2026-10-15: 느슨한 조건(2일 이내) = 2.
+ * 1 이면 엄격(다음 날 한국 18시 전, 정기 수집 값만). 2026-10-15 데이터로 1 은 10-14 226행, 2 는 10-13 279행이 더해진다.
+ */
+export const D1_CUTOFF_DAYS = 2;
+/** A3 track: 한 번 실행에서 videos.list(statistics) 호출 상한(호출 1회 = 1 unit, 50개 묶음). 넘으면 앞 1,000개만 잰다 */
+export const TRACK_MAX_CALLS = 20;
+/** A3 track: videos.list 한 번에 넣는 영상 수(YouTube 상한) */
+export const TRACK_BATCH = 50;
+/** A3 흐름 '꾸준히 성장': 7일 조회수가 다음 날의 이 배수 이상 */
+export const FLOW_STEADY_X = 3;
+/** A3 흐름 '꾸준히 성장': 3일 값이 있으면 7일 조회수가 3일의 이 배수 이상이어야 한다 */
+export const FLOW_STEADY_V3_X = 1.3;
+/** A3 흐름 '초반 집중': 7일 조회수가 다음 날의 이 배수 미만 */
+export const FLOW_EARLY_X = 1.5;
+/** A3: 7일 증가 배수(▲)는 이 값 이상일 때만 보인다 */
+export const GROWTH_SHOW_MULTIPLIER = 2;
+/** A3: 정렬 기준 상위 몇 개를 그리는가 */
+export const GROWTH_LIMIT = 50;
 
 function set(words: string): Set<string> {
   return new Set(words.split(/\s+/).filter(Boolean));
@@ -83,4 +102,55 @@ export function isCountedRow(row: CountedRowLike): boolean {
 /** 분류 칼럼이 생기기 전 수집 행(집계 제외, detail.excluded_legacy 로 센다) */
 export function isLegacyRow(row: CountedRowLike): boolean {
   return row.kind == null && row.category_id == null && row.outlier == null;
+}
+
+/* ───────── A3 성장 추적(T5) 순수 함수 ─────────
+ * v1·v3·v7 = 게시 다음 날·3일 뒤·7일 뒤 조회수, m1·m3·m7 = 잰 시각(RPC trend_growth 그대로).
+ * m 이 null 이면 그 시점은 아직 안 잼(측정 전), m 은 있는데 v 가 null 이면 응답에서 빠진 영상(비공개·삭제).
+ */
+
+export type FlowInput = {
+  v1: number | null;
+  v3: number | null;
+  v7: number | null;
+  m1: string | null;
+  m3: string | null;
+  m7: string | null;
+};
+/** steady = 꾸준히 성장, early = 초반 집중, pending = 7일 측정 전, gone = 7일에 비공개·삭제. null = 표시 없음 */
+export type Flow = "steady" | "early" | "pending" | "gone";
+export type CellState = "pending" | "gone" | "value";
+
+/**
+ * 흐름 구분. 판정 순서: 7일 측정 전 → 7일 비공개·삭제 → 다음 날 값 없음(판단 불가, null)
+ * → 꾸준히 성장(v7 ≥ 3×v1 이고, 3일 값이 있으면 v7 ≥ 1.3×v3) → 초반 집중(v7 < 1.5×v1) → 그 밖 null.
+ */
+export function classifyFlow({ v1, v3, v7, m7 }: FlowInput): Flow | null {
+  if (m7 == null) return "pending";
+  if (v7 == null) return "gone";
+  if (v1 == null) return null;
+  if (v7 >= FLOW_STEADY_X * v1 && (v3 == null || v7 >= FLOW_STEADY_V3_X * v3)) return "steady";
+  if (v7 < FLOW_EARLY_X * v1) return "early";
+  return null;
+}
+
+/** 칸 하나의 상태: 값이 있으면 value, 잰 시각도 없으면 측정 전, 잰 시각만 있으면 비공개·삭제 */
+export function cellState(v: number | null, m: string | null): CellState {
+  if (v != null) return "value";
+  return m == null ? "pending" : "gone";
+}
+
+/** 7일 증가 배수(v7 ÷ v1). 둘 다 있고 v1 > 0 일 때만 숫자 */
+export function growthMultiplier(v1: number | null, v7: number | null): number | null {
+  if (v1 == null || v7 == null || v1 <= 0) return null;
+  return v7 / v1;
+}
+
+/**
+ * d1 복사 기한(UTC ISO). 게시 날짜(YYYY-MM-DD, 한국) + D1_CUTOFF_DAYS 일의 한국 D1_CUTOFF_KST_HOUR 시.
+ * 이 시각 전에 수집된 breakout_videos 행만 day 1 로 복사한다(재수집으로 부푼 값·늦게 잰 값 제외).
+ */
+export function d1Cutoff(date: string, days = D1_CUTOFF_DAYS, hour = D1_CUTOFF_KST_HOUR): string {
+  const start = Date.parse(`${date}T00:00:00+09:00`);
+  return new Date(start + days * 86400_000 + hour * 3600_000).toISOString();
 }

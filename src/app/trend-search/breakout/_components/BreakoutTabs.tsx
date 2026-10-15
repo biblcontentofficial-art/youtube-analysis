@@ -14,9 +14,10 @@
  * - 섹션 머리(SectionHeader mb-10·md:mb-12) 바로 아래에 두는 줄이라 위 간격을 24px 로 줄인다(-mt-4·md:-mt-6).
  * - 클라이언트 잎인 이유는 하나: 좁은 화면에서 현재 탭이 가로 스크롤 밖에 있으면 마운트 때 보이게 옮긴다.
  *   로그인·플랜·데이터를 읽지 않는다.
+ * - ScrollToCurrentNav: 같은 이유로 칩 줄(성장 추적의 게시 날짜 등)을 감싸는 nav. 서버 컴포넌트가 칩(Link)을 children 으로 넘긴다.
  */
 import Link from "next/link";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { TAB_BAR } from "@/components/ui/tabs";
 
 export type BreakoutTabKey = "videos" | "keywords" | "channels" | "growth" | "watch";
@@ -25,7 +26,7 @@ export const TREND_TABS: { key: BreakoutTabKey; href: string; label: string; sho
   { key: "videos", href: "/trend-search/breakout", label: "영상", short: "영상", ready: true },
   { key: "keywords", href: "/trend-search/breakout/keywords", label: "급상승 키워드", short: "키워드", ready: true },
   { key: "channels", href: "/trend-search/breakout/channels", label: "지금 크는 채널", short: "크는 채널", ready: true },
-  { key: "growth", href: "/trend-search/breakout/growth", label: "성장 추적", short: "성장", ready: false },
+  { key: "growth", href: "/trend-search/breakout/growth", label: "성장 추적", short: "성장", ready: true },
   { key: "watch", href: "/trend-search/breakout/watch", label: "관심 목록", short: "관심", ready: false },
 ];
 
@@ -71,5 +72,31 @@ export function BreakoutTabsView({ tabs, current, badge }: { tabs: TabItem[]; cu
         ))}
       </nav>
     </div>
+  );
+}
+
+/**
+ * 가로 스크롤 칩 줄. 현재 칩(aria-current="page")이 보이는 범위 밖이면 마운트 때와 current 가 바뀔 때 가로로만 옮긴다.
+ * scrollIntoView 는 칩 줄이 첫 화면 아래에 있을 때 페이지를 세로로 끌어내리므로 nav 의 scrollLeft 만 바꾼다.
+ * edge: 옮긴 뒤 현재 칩과 nav 끝 사이에 남길 여백(nav 의 px-6 과 같은 24px).
+ */
+export function ScrollToCurrentNav({ current, label, className, children }: { current: string | null; label: string; className?: string; children: ReactNode }) {
+  const navRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const nav = navRef.current;
+    const el = nav?.querySelector<HTMLElement>('[aria-current="page"]');
+    if (!nav || !el) return;
+    const edge = 24;
+    const box = nav.getBoundingClientRect();
+    const r = el.getBoundingClientRect();
+    if (r.right > box.right - edge) nav.scrollLeft += r.right - box.right + edge;
+    else if (r.left < box.left + edge) nav.scrollLeft -= box.left + edge - r.left;
+  }, [current]);
+
+  return (
+    <nav ref={navRef} aria-label={label} className={className}>
+      {children}
+    </nav>
   );
 }

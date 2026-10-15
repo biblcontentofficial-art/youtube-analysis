@@ -5,6 +5,8 @@
  * GET /api/cron/trend?step=brief   brief 따라잡기(최근 3일 중 브리핑 없는 가장 최근 날짜 하나, 23:05 UTC)
  * GET /api/cron/trend?step=all     전부
  * GET /api/cron/trend?step=terms&date=YYYY-MM-DD   단계 하나, 따라잡기 대신 그 날짜만(손으로 다시 돌릴 때)
+ * GET /api/cron/trend?step=views_d1&date=YYYY-MM-DD  그 게시 날짜의 다음 날 조회수를 breakout_views 로 복사(T5)
+ * GET /api/cron/trend?step=track&date=YYYY-MM-DD     그날을 '실행한 날'로 보고 3일 전·7일 전 게시 영상을 다시 잰다(T5, videos.list)
  * &dry=1  trend_jobs·다른 테이블에 쓰지 않고 결과만 돌려준다(로컬 .env.local 은 운영 DB 를 가리키므로 로컬은 항상 dry=1)
  *         예외: T2 수용 시험으로 2026-10-14 terms 를 로컬에서 기록했다. 백필 때 그 날짜도 다시 돌린다(src/lib/trend/terms.ts 머리 주석).
  *
@@ -15,9 +17,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyBearerToken } from "@/lib/authUtils";
 import { jobs, STEP_NAMES, kstDate, type StepName } from "@/lib/trend/jobs";
 import { termsStep } from "@/lib/trend/terms";
+import { trackStep, viewsD1Step } from "@/lib/trend/track";
 
-// 단계 등록(T2 terms). 뒤 항목(views_d1·track·notify·brief)도 여기서 jobs.registerStep 으로 더한다.
+// 단계 등록(T2 terms · T5 views_d1·track). 뒤 항목(notify·brief)도 여기서 jobs.registerStep 으로 더한다.
 jobs.registerStep("terms", termsStep);
+jobs.registerStep("views_d1", viewsD1Step);
+jobs.registerStep("track", trackStep);
 
 export const maxDuration = 60;
 export const dynamic = "force-dynamic";
