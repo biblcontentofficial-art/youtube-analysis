@@ -76,7 +76,7 @@ function PhotoCard({
 }) {
   return (
     <article className={cx(CARD, className)}>
-      <div className="aspect-[16/10] overflow-hidden bg-surface-2 lg:aspect-auto lg:h-[340px]">
+      <div className="aspect-video overflow-hidden bg-surface-2">
         <img
           src={img.src}
           width={img.width}
@@ -177,13 +177,13 @@ export default function HomeServices() {
           <GroupHead title="비블과 함께" desc="비블이 직접 가르치고, 맡아서 운영하고, 함께 만듭니다" />
           <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-12 lg:gap-6">
             <PhotoCard
-              className="lg:col-span-5"
+              className="lg:col-span-6"
               img={{
-                src: "/home/svc-consulting.jpg",
-                width: 1360,
-                height: 850,
-                alt: "책장 앞에서 이야기하는 비블. 뒤 책장에 유튜브 실버 플레이 버튼이 놓여 있다",
-                position: "object-[95%_50%]",
+                src: "/home/svc-consulting-thumb.webp",
+                width: 1280,
+                height: 720,
+                alt: "1:1 유튜브 컨설팅 팀비블 썸네일. 칠판 앞에서 마주 앉아 이야기하는 비블과 수강생",
+                position: "object-center",
               }}
               title="팀비블 1:1 유튜브 컨설팅"
               href="/studio/class/consulting"
@@ -193,7 +193,7 @@ export default function HomeServices() {
               more="1:1 팀비블 신청하기"
             />
             <PhotoCard
-              className="lg:col-span-7"
+              className="lg:col-span-6"
               img={{
                 src: "/home/svc-studio-neutral.jpg",
                 width: 1160,
