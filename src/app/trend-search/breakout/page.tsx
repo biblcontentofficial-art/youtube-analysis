@@ -5,12 +5,10 @@
  * 화면에는 YouTube 가 주는 원본 값(조회수·구독자·게시일)만 보여 주고, 조회수÷구독자는 정렬·필터에만 쓴다.
  */
 import type { Metadata } from "next";
-import Link from "next/link";
 import { currentUser } from "@/lib/auth";
-import { buttonClass } from "@/components/ui/button";
-import { InfoIcon } from "@/components/ui/icons";
 import { SectionHeader } from "@/components/ui/section-header";
 import { BreakoutView } from "./breakout-view";
+import { LoginGate } from "./_components/LoginGate";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -31,14 +29,10 @@ export default async function BreakoutPage({ searchParams }: { searchParams: SP 
         <div className="mx-auto w-full max-w-wide px-6 py-10 md:py-14 lg:px-8">
           <SectionHeader caption="유튜브 트렌드 서치" label="BREAKOUT" />
           <h1 className="text-h3 md:text-h2">브레이크아웃</h1>
-          {/* 상태 메시지(DESIGN 6.13 안내): 기호는 fg-2, 면은 칠하지 않는다 */}
-          <div className="mt-8 flex max-w-reading gap-3 rounded-card border border-line bg-surface p-4 md:p-5">
-            <InfoIcon className="mt-0.5 text-fg-2" />
-            <div className="min-w-0">
-              <p className="text-body-sm text-fg-2 md:text-ui">오늘 유튜브에서 구독자 대비 조회수가 잘 나온 영상을 매일 모아 보여 드립니다. <span className="font-semibold text-fg">로그인하면 바로 볼 수 있어요.</span></p>
-              <Link href="/sign-in?next=/trend-search/breakout" className={`${buttonClass({ variant: "primary", size: "md" })} mt-4`}>로그인하고 보기</Link>
-            </div>
-          </div>
+          <LoginGate
+            next="/trend-search/breakout"
+            desc="오늘 유튜브에서 구독자 대비 조회수가 잘 나온 영상을 매일 모아 보여 드립니다."
+          />
         </div>
       </main>
     );

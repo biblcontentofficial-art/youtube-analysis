@@ -5,6 +5,7 @@ import { CHIP } from "@/components/ui/chip";
 import { cx } from "@/components/ui/button";
 import { outlierLabel } from "@/lib/format";
 import { NUM, ROW, TABLE, TD, TH, TH_SORT, TH_SORT_ACTIVE } from "@/components/ui/table";
+import { BreakoutTabs } from "./_components/BreakoutTabs";
 
 type SP = { date?: string; sort?: string; type?: string; min?: string; ex?: string };
 
@@ -88,6 +89,7 @@ export async function BreakoutView({ sp }: { sp: SP }) {
     <main className="min-h-screen bg-canvas text-fg">
       <div className="mx-auto w-full max-w-wide px-6 py-10 md:py-14 lg:px-8">
         <SectionHeader caption="유튜브 트렌드 서치" label="BREAKOUT" />
+        <BreakoutTabs current="videos" />
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div className="max-w-3xl">
             <h1 className="text-h3 md:text-h2">브레이크아웃</h1>

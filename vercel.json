@@ -20,6 +20,14 @@
     {
       "path": "/api/cron/breakout",
       "schedule": "0 21 * * *"
+    },
+    {
+      "path": "/api/cron/trend?step=data",
+      "schedule": "5 22 * * *"
+    },
+    {
+      "path": "/api/cron/trend?step=brief",
+      "schedule": "5 23 * * *"
     }
   ]
 }
