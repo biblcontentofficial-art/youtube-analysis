@@ -7,6 +7,7 @@
  * GET /api/cron/trend?step=terms&date=YYYY-MM-DD   단계 하나, 따라잡기 대신 그 날짜만(손으로 다시 돌릴 때)
  * GET /api/cron/trend?step=views_d1&date=YYYY-MM-DD  그 게시 날짜의 다음 날 조회수를 breakout_views 로 복사(T5)
  * GET /api/cron/trend?step=track&date=YYYY-MM-DD     그날을 '실행한 날'로 보고 3일 전·7일 전 게시 영상을 다시 잰다(T5, videos.list)
+ * GET /api/cron/trend?step=brief&date=YYYY-MM-DD     그날 브리핑을 만든다(T6, Claude). AI 를 부를 수 없으면 skipped(no_api_key|ai_disabled)
  * &dry=1  trend_jobs·다른 테이블에 쓰지 않고 결과만 돌려준다(로컬 .env.local 은 운영 DB 를 가리키므로 로컬은 항상 dry=1)
  *         예외: T2 수용 시험으로 2026-10-14 terms 를 로컬에서 기록했다. 백필 때 그 날짜도 다시 돌린다(src/lib/trend/terms.ts 머리 주석).
  *
@@ -18,11 +19,13 @@ import { verifyBearerToken } from "@/lib/authUtils";
 import { jobs, STEP_NAMES, kstDate, type StepName } from "@/lib/trend/jobs";
 import { termsStep } from "@/lib/trend/terms";
 import { trackStep, viewsD1Step } from "@/lib/trend/track";
+import { briefStep } from "@/lib/trend/briefing";
 
-// 단계 등록(T2 terms · T5 views_d1·track). 뒤 항목(notify·brief)도 여기서 jobs.registerStep 으로 더한다.
+// 단계 등록(T2 terms · T5 views_d1·track · T6 brief). 뒤 항목(notify)도 여기서 jobs.registerStep 으로 더한다.
 jobs.registerStep("terms", termsStep);
 jobs.registerStep("views_d1", viewsD1Step);
 jobs.registerStep("track", trackStep);
+jobs.registerStep("brief", briefStep);
 
 export const maxDuration = 60;
 export const dynamic = "force-dynamic";

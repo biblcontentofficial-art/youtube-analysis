@@ -6,6 +6,8 @@ import { cx } from "@/components/ui/button";
 import { outlierLabel } from "@/lib/format";
 import { NUM, ROW, TABLE, TD, TH, TH_SORT, TH_SORT_ACTIVE } from "@/components/ui/table";
 import { BreakoutTabs } from "./_components/BreakoutTabs";
+import { BriefingCard } from "./_components/BriefingCard";
+import { getBriefing } from "@/lib/trend/briefing";
 import { RemixProvider } from "@/app/_components/remix/RemixProvider";
 import { RemixButton } from "@/app/_components/remix/RemixButton";
 import type { RemixVideo } from "@/lib/trend/remix-schema";
@@ -97,6 +99,7 @@ export async function BreakoutView({ sp }: { sp: SP }) {
   const type = (TYPES.find((t) => t.key === sp.type)?.key ?? "long") as BreakoutType; // 기본은 롱폼, 쇼츠는 따로
   const min = MINS.find((m) => m.key === sp.min) ?? MINS[0];
   const ex = sp.ex === "0" ? "0" : "1"; // 뉴스·홈쇼핑·정치·이슈 제외(기본 켜짐)
+  const briefing = dates.length ? getBriefing(date) : null; // B4 브리핑(영상 목록과 함께 읽는다, 예외 없음)
   const videos = dates.length ? await getBreakout({ date, sort, type, minRatio: min.value, excludeKinds: ex === "1" }) : [];
 
   const href = (patch: Record<string, string>) => {
@@ -119,6 +122,8 @@ export async function BreakoutView({ sp }: { sp: SP }) {
             {dates.length ? <>{dateLabel(date)} 게시 · <span className="tnum font-semibold text-fg">{videos.length.toLocaleString()}</span>개</> : "아직 수집된 날짜가 없습니다"}
           </p>
         </div>
+
+        {briefing && <BriefingCard date={date} isLatest={date === dates[0]} {...await briefing} />}
 
         {/* 날짜 */}
         {dates.length > 0 && (
