@@ -66,8 +66,16 @@ export type CallClaudeJsonArgs<T> = {
   capMs: number;
 };
 
+/**
+ * 새 AI 기능(B4 브리핑·B5·B6·C8)의 켜기 스위치. 소유자 결정(2026-10-15): 처음에는 '준비 중'으로 둔다.
+ * 키가 있어도 AI_FEATURES_ENABLED=1 이 아니면 꺼짐 → 화면은 'AI 기능 준비 중'(AiLockedButton), cron 브리핑은 건너뜀.
+ */
+export function aiFeaturesEnabled(): boolean {
+  return process.env.AI_FEATURES_ENABLED === "1";
+}
+
 export function claudeAvailable(): boolean {
-  return !!process.env.ANTHROPIC_API_KEY;
+  return aiFeaturesEnabled() && !!process.env.ANTHROPIC_API_KEY;
 }
 
 /**
@@ -153,7 +161,7 @@ export function parseClaudeResponse<T>(json: unknown, validate: (value: unknown)
 
 export async function callClaudeJson<T>(args: CallClaudeJsonArgs<T>): Promise<ClaudeResult<T>> {
   const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) return { status: "unavailable" };
+  if (!apiKey || !aiFeaturesEnabled()) return { status: "unavailable" };
 
   const timeoutMs = planTimeoutMs(args.deadline, args.capMs);
   if (timeoutMs === null) return { status: "error", phase: "before_output", message: "not_enough_time" };

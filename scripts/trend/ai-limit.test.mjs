@@ -196,13 +196,13 @@ test("시간 예산: deadline 20초·cap 40초 → 15초 이하, 8초 남으면 
   const origFetch = globalThis.fetch;
   let called = 0;
   globalThis.fetch = async () => { called++; throw new Error("x"); };
-  process.env.ANTHROPIC_API_KEY = "test-key-not-real";
+  process.env.ANTHROPIC_API_KEY = "test-key-not-real"; process.env.AI_FEATURES_ENABLED = "1";
   try {
     const r = await claude.callClaudeJson(baseArgs({ deadline: Date.now() + 8_000, capMs: 15_000 }));
     assert.equal(r.status, "error");
     assert.equal(r.phase, "before_output");
     assert.equal(called, 0);
-  } finally { globalThis.fetch = origFetch; delete process.env.ANTHROPIC_API_KEY; }
+  } finally { globalThis.fetch = origFetch; delete process.env.ANTHROPIC_API_KEY; delete process.env.AI_FEATURES_ENABLED; }
 });
 
 test("요청 모양: Sonnet 5.5 에만 between_tools·effort·fallbacks, Haiku 에는 없음", () => {
@@ -246,7 +246,7 @@ test("검증 함수가 예외를 던지면 reject 하지 않고 after_output(val
     assert.deepEqual(r, { status: "error", phase: "after_output", message: "validation", usage });
     // callClaudeJson 경로에서도 reject 하지 않는다
     const origFetch = globalThis.fetch;
-    process.env.ANTHROPIC_API_KEY = "test-key-not-real";
+    process.env.ANTHROPIC_API_KEY = "test-key-not-real"; process.env.AI_FEATURES_ENABLED = "1";
     globalThis.fetch = async () => new Response(JSON.stringify({ stop_reason: "end_turn", usage, content: [{ type: "text", text: '{"title":"가"}' }] }), { status: 200, headers: { "content-type": "application/json" } });
     try {
       const res = await claude.callClaudeJson(baseArgs({ validate: throwing }));
@@ -256,6 +256,7 @@ test("검증 함수가 예외를 던지면 reject 하지 않고 after_output(val
     } finally {
       globalThis.fetch = origFetch;
       delete process.env.ANTHROPIC_API_KEY;
+      delete process.env.AI_FEATURES_ENABLED;
     }
   } finally { console.error = origErr; }
 });
@@ -263,7 +264,7 @@ test("검증 함수가 예외를 던지면 reject 하지 않고 after_output(val
 test("HTTP 오류는 재시도 없이 한 번: 429·529 → before_output, 응답 거절 → refused", async () => {
   const origFetch = globalThis.fetch;
   const origErr = console.error; console.error = () => {};
-  process.env.ANTHROPIC_API_KEY = "test-key-not-real";
+  process.env.ANTHROPIC_API_KEY = "test-key-not-real"; process.env.AI_FEATURES_ENABLED = "1";
   let calls = 0;
   let lastSignal = null;
   try {
@@ -287,6 +288,7 @@ test("HTTP 오류는 재시도 없이 한 번: 429·529 → before_output, 응�
     globalThis.fetch = origFetch;
     console.error = origErr;
     delete process.env.ANTHROPIC_API_KEY;
+    delete process.env.AI_FEATURES_ENABLED;
   }
 });
 
@@ -309,4 +311,18 @@ test("withTopic: 은/는", () => {
   assert.equal(withTopic("채널 수 변화"), "채널 수 변화는");
   assert.equal(withTopic("등장 일수"), "등장 일수는");
   assert.equal(withTopic("3"), "3은");
+});
+
+test("AI 스위치: 키가 있어도 AI_FEATURES_ENABLED 가 1 이 아니면 unavailable(네트워크 호출 없음)", async () => {
+  const { callClaudeJson, claudeAvailable } = await import("../../src/lib/claude.ts");
+  process.env.ANTHROPIC_API_KEY = "test-key-not-real";
+  delete process.env.AI_FEATURES_ENABLED;
+  const origFetch = globalThis.fetch; let calls = 0;
+  globalThis.fetch = async () => { calls++; throw new Error("should not fetch"); };
+  try {
+    assert.equal(claudeAvailable(), false);
+    const r = await callClaudeJson({ model: "x", system: "s", user: "u", schema: { type: "object" }, validate: (v) => v, deadline: Date.now() + 50000, capMs: 30000 });
+    assert.equal(r.status, "unavailable");
+    assert.equal(calls, 0);
+  } finally { globalThis.fetch = origFetch; delete process.env.ANTHROPIC_API_KEY; }
 });
