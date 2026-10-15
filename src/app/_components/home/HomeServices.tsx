@@ -195,11 +195,11 @@ export default function HomeServices() {
             <PhotoCard
               className="lg:col-span-6"
               img={{
-                src: "/home/svc-studio-neutral.jpg",
-                width: 1160,
-                height: 725,
-                alt: "촬영 스튜디오에서 마이크 앞에 앉아 이야기하는 비블",
-                position: "object-[60%_53%]",
+                src: "/home/svc-studio-thumb.webp",
+                width: 1280,
+                height: 720,
+                alt: "유튜브 채널대행(제작 및 운영) 썸네일. 실버 플레이 버튼 옆에서 이야기하는 비블",
+                position: "object-center",
               }}
               title="유튜브 채널 대행"
               href="/studio/consulting"
