@@ -28,8 +28,8 @@ import ChannelAvatar from "@/app/_components/home/ChannelAvatar";
 import rawContent from "./studio-content.json";
 
 export const dynamic = "force-static";
-// 포트폴리오 채널 실적(구독자·조회수)을 한 달에 한 번 새로 그린다
-export const revalidate = 2592000;
+// 하루에 한 번 다시 그린다. 포트폴리오 채널 실적 데이터는 30일 캐시(proofChannels)
+export const revalidate = 86400;
 
 // dev 환경에서만 DevEditor 로드
 let DevEditor: React.ComponentType | null = null;

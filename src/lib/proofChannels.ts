@@ -8,7 +8,7 @@
  * - 30일 캐시(unstable_cache, 소유자 지정: 한 달에 한 번). 실패하면 채널마다 아래 고정값으로 돌아간다.
  */
 import { unstable_cache } from "next/cache";
-import { youtubeGet } from "@/lib/breakout";
+import { youtubeGet as ytGet } from "@/lib/breakout";
 import { formatCompactKo } from "@/lib/format";
 
 export type ProofVideo = { id: string; title: string; views: number | null };
@@ -32,6 +32,11 @@ type ChannelConfig = Omit<ProofChannel, "subscribers" | "videos"> & {
 const DOT = "⁠·⁠";
 const SHORTS_MAX_SEC = 180;
 const MAX_UPLOAD_PAGES = 20; // 최대 1,000개 영상까지 훑는다
+const REVALIDATE = 2592000; // 30일(소유자 지정: 한 달에 한 번)
+
+/** 정적 페이지(ISR) 안에서 부르므로 no-store 대신 30일 재검증 fetch 를 쓴다 */
+const youtubeGet = (path: string, params: Record<string, string>) =>
+  ytGet(path, params, { next: { revalidate: REVALIDATE, tags: ["proof-channels"] } });
 
 const CHANNELS: ChannelConfig[] = [
   {
@@ -178,9 +183,14 @@ async function fetchProofChannels(): Promise<ProofChannel[]> {
 
 /** 한 달(30일)에 한 번 새로 받는다(소유자 지정). 날짜(YYYY.MM)는 받은 시점 기준 */
 export const getProofChannels = unstable_cache(
-  async () => ({ channels: await fetchProofChannels(), fetchedAt: new Date().toISOString() }),
+  async () => {
+    const channels = await fetchProofChannels();
+    // 하나라도 실시간 값을 못 받았으면 저장하지 않는다(던지면 캐시에 남지 않고, 화면은 이번만 고정값)
+    if (channels.some((c) => c.videos.some((v) => v.views == null))) throw new Error("proof channels incomplete");
+    return { channels, fetchedAt: new Date().toISOString() };
+  },
   ["proof-channels-v1"],
-  { revalidate: 2592000, tags: ["proof-channels"] },
+  { revalidate: REVALIDATE, tags: ["proof-channels"] },
 );
 
 /** API 를 부르지 않는 고정값(미리보기·실패 대비) */

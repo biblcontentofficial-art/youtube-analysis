@@ -61,12 +61,17 @@ function apiKeys(): string[] {
 
 /** 키를 돌려 가며 호출한다. 쿼터 소진(403 quota·429)만 다음 키로 넘긴다. 홈 채널 실적(proofChannels)도 같이 쓴다. */
 let keyIndex = 0;
-export async function youtubeGet(path: string, params: Record<string, string>): Promise<any | null> {
+export async function youtubeGet(
+  path: string,
+  params: Record<string, string>,
+  /** 기본은 매번 새로 받기. 정적 페이지(ISR)에서 쓸 때는 { next: { revalidate } } 를 넘긴다(no-store 는 정적 생성을 막는다) */
+  init: RequestInit & { next?: { revalidate?: number; tags?: string[] } } = { cache: "no-store" },
+): Promise<any | null> {
   const keys = apiKeys();
   for (let tries = 0; tries < keys.length; tries++) {
     const key = keys[(keyIndex + tries) % keys.length];
     const qs = new URLSearchParams({ ...params, key }).toString();
-    const res = await fetch(`${API}/${path}?${qs}`, { cache: "no-store" });
+    const res = await fetch(`${API}/${path}?${qs}`, init);
     if (res.ok) { keyIndex = (keyIndex + tries) % keys.length; return res.json(); }
     const body = await res.json().catch(() => ({}));
     const reason = String(body?.error?.errors?.[0]?.reason ?? "").toLowerCase();

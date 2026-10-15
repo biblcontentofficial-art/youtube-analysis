@@ -15,8 +15,9 @@ import HomeServices from "@/app/_components/home/HomeServices";
 import HomeChannels from "@/app/_components/home/HomeChannels";
 import HomeContact from "@/app/_components/home/HomeContact";
 
-// 채널 실적(구독자·조회수)을 한 달에 한 번 새로 그린다. 정적 렌더는 유지(ISR)
-export const revalidate = 2592000;
+// 정적 렌더 유지(ISR). 페이지는 하루에 한 번 다시 그리고, 채널 실적 데이터는 30일 캐시(proofChannels)를 그대로 쓴다.
+// 실시간 값 받기에 실패한 날은 고정값으로 그렸다가 다음 날 다시 시도한다
+export const revalidate = 86400;
 
 export const metadata: Metadata = {
   alternates: { canonical: "/" },
