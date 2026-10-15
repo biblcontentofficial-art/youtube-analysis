@@ -7,6 +7,7 @@
  * - free: 일별 (search:d:{userId}:{YYYY-MM-DD})
  * - starter: 월별 + 일별 (search:m:{userId}:{YYYY-MM} + search:d:{userId}:{YYYY-MM-DD})
  * - pro: 월별 (search:m:{userId}:{YYYY-MM})
+ * - team(팀비블): 하루 한도만(일별 키로 제한, 월별 키는 관리자 통계용으로 세기만 함)
  * - business/admin: 월별 (무제한, 통계용)
  */
 
@@ -197,6 +198,12 @@ export async function getSearchUsage(): Promise<UsageResult> {
     return { used, limit: planData.dailySearchLimit! + bonus, plan, isMonthly: false, unlimited: false };
   }
 
+  // 팀비블: 하루 한도만(월 한도 없음)
+  if (planData.monthlySearchLimit === null && planData.dailySearchLimit !== null) {
+    const used = await getCount(dailyKey(userId), r);
+    return { used, limit: planData.dailySearchLimit, plan, isMonthly: false, unlimited: false };
+  }
+
   // Business/Admin: 무제한 (통계용 월별 카운트)
   if (planData.monthlySearchLimit === null && planData.dailySearchLimit === null) {
     const key = monthlyKey(userId);
@@ -256,6 +263,23 @@ async function _incrementSearchCountCore(): Promise<{ ok: boolean; used: number;
     const used = current + 1;
     memoryStore.set(key, used);
     return { ok: true, used, limit };
+  }
+
+  // ── 팀비블: 하루 한도만(월 한도 없음). 월별 키는 관리자 통계용으로 세기만 한다 ──
+  if (planData.monthlySearchLimit === null && planData.dailySearchLimit !== null) {
+    const key = dailyKey(userId);
+    const limit = planData.dailySearchLimit;
+    let result: { ok: boolean; used: number } | null = null;
+    if (r) {
+      try { result = await atomicIncrIfUnder(key, limit, secondsUntilMidnight(), r); } catch { /* 폴백 */ }
+    }
+    if (!result) {
+      const current = await getCount(key, r);
+      if (current >= limit) result = { ok: false, used: current };
+      else result = { ok: true, used: await incrWithTtl(key, secondsUntilMidnight(), r) };
+    }
+    if (result.ok) await incrWithTtl(monthlyKey(userId), secondsUntilNextMonth(), r);
+    return { ok: result.ok, used: result.used, limit };
   }
 
   // ── Business/Admin: 무제한 (카운트만 기록) ───────────────────────────────

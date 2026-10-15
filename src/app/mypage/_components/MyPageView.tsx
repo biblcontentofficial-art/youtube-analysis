@@ -128,6 +128,8 @@ export default function MyPageView({
       ? "월 500회 검색 · 결과 500건"
       : plan === "business"
       ? "무제한 검색 · 결과 무제한"
+      : plan === "team"
+      ? "하루 100회 검색 · 결과 200건"
       : null;
 
   // 구독 상태를 그대로 보여 준다: active 는 자동 갱신, cancelled 는 해지됨(결제 기간 끝까지 이용).

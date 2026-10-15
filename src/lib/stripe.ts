@@ -12,7 +12,7 @@ export function getStripe(): Stripe {
 export type PlanConfig = {
   name: string;
   priceId: string | null | undefined;
-  dailySearchLimit: number | null;           // null = 일 한도 없음
+  dailySearchLimit: number | null;           // null = 일 한도 없음 (월 한도 null + 일 한도 숫자 = 하루 한도만, 예: 팀비블)
   monthlySearchLimit: number | null;         // null = 무제한
   dailyChannelSearchLimit: number | null;    // null = 일 한도 없음 (채널 검색 일별 한도)
   channelSearchMonthlyLimit: number | null;  // null = 무제한 (채널 검색 월별 한도)
@@ -129,8 +129,8 @@ export const PLANS: Record<PlanKey, PlanConfig> = {
   team: {
     name: "팀비블",
     priceId: null,
-    dailySearchLimit: null,
-    monthlySearchLimit: 50,
+    dailySearchLimit: 100,                   // 소유자 결정(2026-10-15): 월 한도 없이 하루 100회
+    monthlySearchLimit: null,
     dailyChannelSearchLimit: null,
     channelSearchMonthlyLimit: 30,
     resultLimit: 200,

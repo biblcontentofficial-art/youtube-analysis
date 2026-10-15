@@ -5,6 +5,7 @@
  * - 유료 플랜: 월별 키 (search:m:{userId}:{YYYY-MM})
  */
 
+import { PLANS, type PlanKey } from "@/lib/stripe";
 import { currentUser } from "@/lib/auth";
 import { NextResponse } from "next/server";
 
@@ -66,6 +67,12 @@ export async function POST(
         const key = monthlyKey(userId);
         await redis.set(key, 0);
         await redis.expire(key, monthlyTtl);
+        // 하루 한도 플랜(팀비블)은 일별 키도 초기화
+        if (PLANS[plan as PlanKey]?.dailySearchLimit != null) {
+          const dKey = dailyKey(userId);
+          await redis.set(dKey, 0);
+          await redis.expire(dKey, dailyTtl);
+        }
       } else {
         // Free: 일별 키 초기화
         const key = dailyKey(userId);
