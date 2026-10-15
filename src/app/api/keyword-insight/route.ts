@@ -7,22 +7,35 @@
  * - 모든 응답에 "외부 AI 생성" disclaimer 표시
  *
  * 사용자가 OpenAI(ChatGPT) / Anthropic(Claude) / Google(Gemini) / xAI(Grok) 중 선택
+ *
+ * 보호(T0b, spec 5.3): 하루 횟수 reserveAi('insight') · 입력 상한(query 50자·제목 10개×100자) · 사용자 입력은 태그 안에만.
+ * 횟수 초과 429 { error:'limit', used, limit, message } / 저장소·전체 예산 503 { error:'ai_unavailable' }.
+ * Anthropic 모델은 CLAUDE_MODELS.light(env CLAUDE_MODEL_LIGHT), 키는 기존 ANTHROPIC_API_KEY.
  */
 
-import { auth } from "@/lib/auth";
+import { auth, getUserPlan } from "@/lib/auth";
+import { reserveAi } from "@/lib/aiLimit";
+import { settleAi } from "@/lib/aiOutcome";
+import { CLAUDE_MODELS } from "@/lib/claude";
+import {
+  buildInsightPrompt,
+  callAnthropic,
+  callGemini,
+  callOpenAiCompatible,
+  cleanInsightInput,
+  limitFailure,
+  toClaudeResult,
+  type InsightProvider,
+  type ProviderResult,
+} from "@/lib/legacyAi";
 import { NextRequest, NextResponse } from "next/server";
 
-type Provider = "openai" | "anthropic" | "gemini" | "grok";
-
-interface Body {
-  query: string;
-  totalResults: number;
-  topVideoTitles?: string[];
-  topAvgViews?: number;
-  recentRatio?: number;
-  bigChannelRatio?: number;
-  provider?: Provider;
-}
+const PROVIDERS: Record<InsightProvider, { label: string; envKey: string; missing: string }> = {
+  openai: { label: "ChatGPT", envKey: "OPENAI_API_KEY", missing: "ChatGPT (OpenAI)" },
+  anthropic: { label: "Claude", envKey: "ANTHROPIC_API_KEY", missing: "Claude (Anthropic)" },
+  gemini: { label: "Gemini", envKey: "GEMINI_API_KEY", missing: "Gemini (Google)" },
+  grok: { label: "Grok", envKey: "GROK_API_KEY", missing: "Grok (xAI)" },
+};
 
 export async function POST(req: NextRequest) {
   const { userId } = await auth();
@@ -30,123 +43,53 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ message: "로그인이 필요합니다." }, { status: 401 });
   }
 
-  const body: Body = await req.json().catch(() => ({} as Body));
-  if (!body?.query) {
+  const raw = await req.json().catch(() => null);
+  const input = cleanInsightInput(raw);
+  if (!input.query) {
     return NextResponse.json({ message: "키워드가 비어있습니다." }, { status: 400 });
   }
-
-  const provider: Provider = body.provider || "openai";
-  const topTitles = (body.topVideoTitles || []).slice(0, 10);
-
-  const prompt =
-    `유튜브 키워드 진단:\n\n` +
-    `[키워드] ${body.query}\n` +
-    `[검색 결과 수] 약 ${body.totalResults}개\n` +
-    (body.topAvgViews ? `[상위 10개 평균 조회수] ${body.topAvgViews.toLocaleString()}회\n` : "") +
-    (body.recentRatio !== undefined ? `[최근 30일 업로드 비율] ${Math.round(body.recentRatio * 100)}%\n` : "") +
-    (body.bigChannelRatio !== undefined ? `[10만 구독자 이상 채널 비율] ${Math.round(body.bigChannelRatio * 100)}%\n` : "") +
-    (topTitles.length > 0 ? `\n[상위 영상 제목 샘플]\n${topTitles.map((t, i) => `${i + 1}. ${t}`).join("\n")}\n` : "") +
-    `\n위 정보를 바탕으로 다음을 한국어로 짧고 명확하게 답변해줘 (10줄 이내):\n` +
-    `1) 이 키워드 시장의 현재 상태 (포화/성장/니치) — 1-2줄\n` +
-    `2) 신규 진입자가 차별화할 수 있는 구체적 앵글 3가지 — 각 1줄\n` +
-    `3) 추천 영상 길이/형식 (쇼츠 vs 롱폼) — 1줄\n` +
-    `4) 피해야 할 흔한 실수 — 1줄`;
-
-  const systemPrompt =
-    "당신은 유튜브 콘텐츠 기획 전문 컨설턴트입니다. 짧고 실용적인 한국어 답변을 줍니다. 절대 'YouTube 공식 메트릭'처럼 들리는 표현을 쓰지 않습니다.";
-
-  try {
-    if (provider === "openai") {
-      const key = process.env.OPENAI_API_KEY;
-      if (!key) return missingKey("ChatGPT (OpenAI)");
-      const res = await fetch("https://api.openai.com/v1/chat/completions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
-        body: JSON.stringify({
-          model: "gpt-4o-mini",
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: prompt },
-          ],
-          max_tokens: 800,
-          temperature: 0.7,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) return NextResponse.json({ message: "ChatGPT 진단 실패: " + (data.error?.message || "오류") }, { status: 500 });
-      const text = data?.choices?.[0]?.message?.content;
-      if (!text) return NextResponse.json({ message: "AI 응답이 비어있습니다." }, { status: 500 });
-      return NextResponse.json({ text, provider: "openai", providerLabel: "ChatGPT" });
-    }
-
-    if (provider === "anthropic") {
-      const key = process.env.ANTHROPIC_API_KEY;
-      if (!key) return missingKey("Claude (Anthropic)");
-      const res = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01" },
-        body: JSON.stringify({
-          model: "claude-3-5-haiku-20241022",
-          max_tokens: 800,
-          system: systemPrompt,
-          messages: [{ role: "user", content: prompt }],
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) return NextResponse.json({ message: "Claude 진단 실패: " + (data.error?.message || "오류") }, { status: 500 });
-      const text = data?.content?.[0]?.text;
-      if (!text) return NextResponse.json({ message: "AI 응답이 비어있습니다." }, { status: 500 });
-      return NextResponse.json({ text, provider: "anthropic", providerLabel: "Claude" });
-    }
-
-    if (provider === "gemini") {
-      const key = process.env.GEMINI_API_KEY;
-      if (!key) return missingKey("Gemini (Google)");
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`;
-      const res = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          systemInstruction: { role: "system", parts: [{ text: systemPrompt }] },
-          contents: [{ role: "user", parts: [{ text: prompt }] }],
-          generationConfig: { maxOutputTokens: 800, temperature: 0.7 },
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) return NextResponse.json({ message: "Gemini 진단 실패: " + (data.error?.message || "오류") }, { status: 500 });
-      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-      if (!text) return NextResponse.json({ message: "AI 응답이 비어있습니다." }, { status: 500 });
-      return NextResponse.json({ text, provider: "gemini", providerLabel: "Gemini" });
-    }
-
-    if (provider === "grok") {
-      const key = process.env.GROK_API_KEY;
-      if (!key) return missingKey("Grok (xAI)");
-      const res = await fetch("https://api.x.ai/v1/chat/completions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
-        body: JSON.stringify({
-          model: "grok-2-latest",
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: prompt },
-          ],
-          max_tokens: 800,
-          temperature: 0.7,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) return NextResponse.json({ message: "Grok 진단 실패: " + (data.error?.message || "오류") }, { status: 500 });
-      const text = data?.choices?.[0]?.message?.content;
-      if (!text) return NextResponse.json({ message: "AI 응답이 비어있습니다." }, { status: 500 });
-      return NextResponse.json({ text, provider: "grok", providerLabel: "Grok" });
-    }
-
+  const provider = input.provider;
+  if (!provider) {
     return NextResponse.json({ message: "지원하지 않는 provider 입니다." }, { status: 400 });
-  } catch (e) {
-    console.error(`[keyword-insight] ${provider} error:`, e);
+  }
+
+  const cfg = PROVIDERS[provider];
+  const key = process.env[cfg.envKey];
+  if (!key) return missingKey(cfg.missing); // 키가 없으면 횟수를 건드리지 않는다
+
+  const { system, user } = buildInsightPrompt(input);
+
+  const plan = await getUserPlan(userId);
+  const reservation = await reserveAi("insight", userId, plan);
+  if (!reservation.ok) {
+    const f = limitFailure(reservation);
+    return NextResponse.json(f.body, { status: f.status });
+  }
+
+  let result: ProviderResult;
+  if (provider === "openai") {
+    result = await callOpenAiCompatible({ url: "https://api.openai.com/v1/chat/completions", key, model: "gpt-4o-mini", system, user, maxTokens: 800 });
+  } else if (provider === "anthropic") {
+    result = await callAnthropic({ key, model: CLAUDE_MODELS.light, system, user, maxTokens: 800 });
+  } else if (provider === "gemini") {
+    result = await callGemini({ key, model: "gemini-1.5-flash", system, user, maxTokens: 800 });
+  } else {
+    result = await callOpenAiCompatible({ url: "https://api.x.ai/v1/chat/completions", key, model: "grok-2-latest", system, user, maxTokens: 800 });
+  }
+
+  await settleAi(reservation, toClaudeResult(result));
+
+  if (result.ok) {
+    return NextResponse.json({ text: result.text, provider, providerLabel: cfg.label });
+  }
+  if (result.kind === "http") {
+    return NextResponse.json({ message: `${cfg.label} 진단 실패: ` + (result.detail || "오류") }, { status: 500 });
+  }
+  if (result.kind === "connection") {
+    console.error(`[keyword-insight] ${provider} error:`, result.detail);
     return NextResponse.json({ message: "AI 진단 중 오류가 발생했습니다." }, { status: 500 });
   }
+  return NextResponse.json({ message: "AI 응답이 비어있습니다." }, { status: 500 });
 }
 
 function missingKey(label: string) {

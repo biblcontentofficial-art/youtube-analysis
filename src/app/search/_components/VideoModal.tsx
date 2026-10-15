@@ -10,6 +10,7 @@
  * - 사용자 도구(자가 계산·AI 분석)는 사용자가 누를 때만 동작한다(YouTube ToS III.E.4h). 문구·조건 그대로, 모양만.
  */
 import { useEffect, useId, useState } from "react";
+import Link from "next/link";
 import { Video } from "@/types";
 import { fetchVideoDetail, fetchVideoComments, fetchChannelDetail } from "../actions";
 import { Dialog } from "@/components/ui/dialog";
@@ -145,6 +146,7 @@ export default function VideoModal({ video, onClose, load = defaultLoader }: Pro
   const [aiLoading, setAiLoading] = useState(false);
   const [aiResult, setAiResult] = useState<string | null>(null);
   const [aiError, setAiError] = useState<string | null>(null);
+  const [aiNeedsPlan, setAiNeedsPlan] = useState(false); // 429 한도 0(Free): 오류 칸에 '요금제 보기 →'
 
   async function fetchData() {
     setLoading(true);
@@ -194,6 +196,7 @@ export default function VideoModal({ video, onClose, load = defaultLoader }: Pro
     if (!detail || !channelInfo) return;
     setAiLoading(true);
     setAiError(null);
+    setAiNeedsPlan(false);
     setAiResult(null);
     try {
       const res = await fetch("/api/ai-analyze", {
@@ -210,6 +213,13 @@ export default function VideoModal({ video, onClose, load = defaultLoader }: Pro
         }),
       });
       const data = await res.json();
+      if (res.status === 429) {
+        // 하루 횟수 초과(T0b). 문구는 서버 message(LEGACY_MESSAGES) 하나를 쓰고, 없을 때만 같은 문구로 대신한다
+        const needsPlan = data.limit === 0;
+        setAiNeedsPlan(needsPlan);
+        setAiError(data.message || (needsPlan ? "AI 분석은 유료 요금제에서 쓸 수 있어요." : "오늘 AI 분석 횟수를 다 썼어요."));
+        return;
+      }
       if (!res.ok) {
         setAiError(data.message || "AI 분석에 실패했습니다.");
         return;
@@ -497,6 +507,16 @@ export default function VideoModal({ video, onClose, load = defaultLoader }: Pro
                 <button type="button" onClick={() => setAiError(null)} className={SMALL_CLOSE}>닫기</button>
               </div>
               <p className="mb-3 text-body-sm text-fg-3">{aiError}</p>
+              {aiNeedsPlan && (
+                <div className="-mt-2 mb-2">
+                  <Link
+                    href="/pricing"
+                    className="inline-flex h-11 items-center gap-1.5 text-ui font-semibold text-fg transition-colors hover:text-fg-2"
+                  >
+                    요금제 보기 <span aria-hidden="true">→</span>
+                  </Link>
+                </div>
+              )}
               <button type="button" onClick={handleOpenChatGPT} className={cx(BTN_SECONDARY, "h-11 px-4 text-body-sm")}>
                 ChatGPT에서 분석 요청 (새 탭)
               </button>
