@@ -5,7 +5,7 @@
  * - 대표 영상: 채널 업로드 목록 전체(playlistItems, 50개당 1 unit)를 받아 조회수 높은 순 3개. 쇼츠(3분 이하)는 뺀다
  *   (세로 썸네일이 16:9 칸에서 잘리기 때문). search.list(order=viewCount, 100 unit)보다 싸고 순서가 정확하다.
  * - pinned 가 있는 채널(비블 bibl)은 소유자가 고른 영상을 그 순서대로 쓰고 조회수만 붙인다.
- * - 6시간 캐시(unstable_cache). 실패하면 채널마다 아래 고정값으로 돌아간다.
+ * - 30일 캐시(unstable_cache, 소유자 지정: 한 달에 한 번). 실패하면 채널마다 아래 고정값으로 돌아간다.
  */
 import { unstable_cache } from "next/cache";
 import { youtubeGet } from "@/lib/breakout";
@@ -176,11 +176,11 @@ async function fetchProofChannels(): Promise<ProofChannel[]> {
   }));
 }
 
-/** 6시간마다 새로 받는다. 날짜(YYYY.MM)는 받은 시점 기준 */
+/** 한 달(30일)에 한 번 새로 받는다(소유자 지정). 날짜(YYYY.MM)는 받은 시점 기준 */
 export const getProofChannels = unstable_cache(
   async () => ({ channels: await fetchProofChannels(), fetchedAt: new Date().toISOString() }),
   ["proof-channels-v1"],
-  { revalidate: 21600, tags: ["proof-channels"] },
+  { revalidate: 2592000, tags: ["proof-channels"] },
 );
 
 /** API 를 부르지 않는 고정값(미리보기·실패 대비) */
