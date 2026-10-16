@@ -214,11 +214,11 @@ export default function HomeServices() {
             <article className={cx(CARD, "@container lg:col-span-12 lg:grid lg:grid-cols-2")}>
               <div className="aspect-video overflow-hidden bg-surface-2 lg:aspect-auto lg:h-[calc((100cqw-26px)/2*0.5625+302px)]">
                 <img
-                  src="/home/svc-incubating.webp"
-                  width={1236}
-                  height={666}
-                  alt="회의 테이블에 둘러앉아 이야기하는 사람들(흑백 사진)"
-                  className="size-full object-cover"
+                  src="/home/svc-incubating-2.webp"
+                  width={736}
+                  height={981}
+                  alt="높은 창가의 회의 테이블에 둘러앉아 이야기하는 사람들(흑백 사진)"
+                  className="size-full object-cover object-[50%_78%]"
                   loading="lazy"
                   decoding="async"
                 />
