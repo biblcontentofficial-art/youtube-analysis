@@ -27,7 +27,28 @@ export interface BreakoutVideo {
   outlier: number | null;
   /** 걸러 낼 수 있는 채널 종류(news·shopping·issue). 일반 채널은 null */
   kind: BreakoutKind | null;
+  /** long(가로 롱폼) | shorts(3분 이하) | vertical(3분 넘는 세로) | live(라이브·다시보기). 칼럼 추가 전 수집분은 null */
+  video_format?: VideoFormat | null;
 }
+
+export type VideoFormat = "long" | "shorts" | "vertical" | "live";
+
+/**
+ * 영상 형태 판정(브레이크아웃 영상 탭은 long 만 보인다. 소유자 결정 2026-10-16: 숏폼·세로·라이브 제외).
+ * live: liveStreamingDetails 가 있거나 지금 라이브·예정 / vertical: 플레이어 비율이 세로(embedHeight > embedWidth) /
+ * shorts: 3분 이하 / 그 밖 long. videos.list 는 part=player 와 maxWidth 를 줘야 embedWidth·embedHeight 가 온다.
+ */
+export function videoFormatOf(v: any, durationSec: number): VideoFormat {
+  const lbc = v?.snippet?.liveBroadcastContent;
+  if (v?.liveStreamingDetails || lbc === "live" || lbc === "upcoming") return "live";
+  const w = Number(v?.player?.embedWidth ?? 0), h = Number(v?.player?.embedHeight ?? 0);
+  if (w > 0 && h > w) return "vertical";
+  if (durationSec <= SHORTS_MAX_SEC) return "shorts";
+  return "long";
+}
+
+/** videos.list 형태 판정용 파라미터(part 에 player·liveStreamingDetails, maxWidth 필수) */
+const FORMAT_PARTS = { part: "snippet,statistics,contentDetails,player,liveStreamingDetails", maxWidth: "1280" };
 
 export type BreakoutKind = "news" | "shopping" | "issue";
 
@@ -154,7 +175,7 @@ export async function collectBreakout(date: string, opts: { dryRun?: boolean } =
 
   // 2) 영상 상세
   const videoPages = await Promise.all(chunk(ids, 50).map((g) =>
-    yt("videos", { part: "snippet,statistics,contentDetails", id: g.join(","), maxResults: "50" })));
+    yt("videos", { ...FORMAT_PARTS, id: g.join(","), maxResults: "50" })));
   const videos = videoPages.flatMap((d) => d?.items ?? [])
     .filter((v: any) => { const t = Date.parse(v.snippet?.publishedAt); return t >= afterMs && t < beforeMs && v.statistics?.viewCount; });
 
@@ -185,6 +206,7 @@ export async function collectBreakout(date: string, opts: { dryRun?: boolean } =
       thumbnail: (th.medium ?? th.high ?? th.default)?.url ?? `https://i.ytimg.com/vi/${v.id}/mqdefault.jpg`,
       published_at: v.snippet.publishedAt,
       duration_sec: parseDuration(v.contentDetails?.duration),
+      video_format: videoFormatOf(v, parseDuration(v.contentDetails?.duration)),
       view_count: views,
       subscriber_count: ch.subs,
       ratio: views / ch.subs,
@@ -225,22 +247,52 @@ export async function getBreakout(opts: {
   if (!db) return [];
   const BASE_COLS = "video_id,title,channel_id,channel_title,channel_thumb,thumbnail,published_at,duration_sec,view_count,subscriber_count,ratio";
   const col = { ratio: "ratio", outlier: "outlier", views: "view_count", subs: "subscriber_count", recent: "published_at" }[opts.sort];
-  const run = (cols: string, orderCol: string, withKind: boolean) => {
+  const limit = opts.limit ?? 600;
+  // 뒤에서 이름 판정·차단어로 몇 개가 빠지므로 조금 넉넉히 읽고 limit 개로 자른다
+  const fetchN = limit + 40;
+  const run = (cols: string, orderCol: string, withKind: boolean, withFormat: boolean) => {
     let q = db.from("breakout_videos").select(cols).eq("snapshot_date", opts.date).gte("ratio", opts.minRatio);
     if (withKind && opts.excludeKinds) q = q.is("kind", null);
     if (opts.type === "shorts") q = q.lte("duration_sec", SHORTS_MAX_SEC);
-    if (opts.type === "long") q = q.gt("duration_sec", SHORTS_MAX_SEC);
-    return q.order(orderCol, { ascending: false, nullsFirst: false }).limit(opts.limit ?? 600);
+    // 롱폼 = 가로·3분 초과·라이브 아님(video_format 'long'). 칼럼이 없으면 길이로만 거른다
+    if (opts.type === "long") q = withFormat ? q.eq("video_format", "long") : q.gt("duration_sec", SHORTS_MAX_SEC);
+    return q.order(orderCol, { ascending: false, nullsFirst: false }).limit(fetchN);
   };
-  let { data, error } = await run(`${BASE_COLS},channel_avg_views,outlier,kind`, col, true);
-  // kind·outlier 칼럼을 아직 만들지 않은 DB(마이그레이션 전)에서도 목록은 보이게 한다
-  if (error) ({ data, error } = await run(`${BASE_COLS},channel_avg_views,outlier`, col, false));
-  if (error) ({ data } = await run(BASE_COLS, col === "outlier" ? "ratio" : col, false));
+  let { data, error } = await run(`${BASE_COLS},channel_avg_views,outlier,kind,video_format`, col, true, true);
+  // video_format·kind·outlier 칼럼을 아직 만들지 않은 DB(마이그레이션 전)에서도 목록은 보이게 한다
+  if (error) ({ data, error } = await run(`${BASE_COLS},channel_avg_views,outlier,kind`, col, true, false));
+  if (error) ({ data, error } = await run(`${BASE_COLS},channel_avg_views,outlier`, col, false, false));
+  if (error) ({ data } = await run(BASE_COLS, col === "outlier" ? "ratio" : col, false, false));
   return ((data ?? []) as unknown as BreakoutVideo[])
     .map((v) => ({ ...v, channel_avg_views: v.channel_avg_views ?? null, outlier: v.outlier ?? null, kind: v.kind ?? null }))
     // 칼럼이 없을 때도 이름 판정으로 거른다
     .filter((v) => !opts.excludeKinds || (v.kind ?? classifyChannel(undefined, v.channel_title)) === null)
-    .filter((v) => !isBlocked(v.title));
+    .filter((v) => !isBlocked(v.title))
+    .slice(0, limit);
+}
+
+/**
+ * 한 날짜에서 video_format 이 비어 있는 행(칼럼 추가 전 수집분)을 판정해 채운다. videos.list 만 쓴다(50개당 1 unit).
+ * 응답에서 빠진 영상(비공개·삭제)은 비워 둔다. 반환: 형태별 개수.
+ */
+export async function backfillVideoFormats(date: string): Promise<Record<string, number>> {
+  const db = getSupabase();
+  if (!db) throw new Error("DB not configured");
+  const { data, error } = await db.from("breakout_videos").select("video_id,duration_sec").eq("snapshot_date", date).is("video_format", null).limit(2000);
+  if (error) throw new Error(error.message);
+  const dur = new Map((data ?? []).map((r: any) => [r.video_id as string, r.duration_sec as number]));
+  const byFormat: Record<VideoFormat, string[]> = { long: [], shorts: [], vertical: [], live: [] };
+  const pages = await Promise.all(chunk([...dur.keys()], 50).map((g) => yt("videos", { ...FORMAT_PARTS, id: g.join(","), maxResults: "50" })));
+  for (const v of pages.flatMap((d) => d?.items ?? [])) byFormat[videoFormatOf(v, dur.get(v.id) ?? 0)].push(v.id);
+  const out: Record<string, number> = { checked: dur.size };
+  for (const [fmt, ids] of Object.entries(byFormat)) {
+    out[fmt] = ids.length;
+    for (const g of chunk(ids, 200)) {
+      const { error: e } = await db.from("breakout_videos").update({ video_format: fmt }).eq("snapshot_date", date).in("video_id", g);
+      if (e) throw new Error(e.message);
+    }
+  }
+  return out;
 }
 
 /** 수집된 날짜 목록(최근 순) */

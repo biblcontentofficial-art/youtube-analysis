@@ -21,7 +21,7 @@ const TABS: { href: ToolTabHref; label: string; plan?: string }[] = [
   { href: "/search", label: "영상 찾기" },
   { href: "/channels", label: "채널 찾기" },
   { href: "/saved", label: "수집한 영상", plan: "Pro" },
-  { href: "/trend-search/breakout", label: "브레이크아웃" },
+  { href: "/trend-search/breakout", label: "브레이크아웃", plan: "Pro" },
 ];
 
 /** 탭 하나. 높이 44px · 768 이상 48px */

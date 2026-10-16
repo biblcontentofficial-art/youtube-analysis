@@ -1,6 +1,6 @@
 /**
  * /trend-search/breakout 화면 스켈레톤(DESIGN 6.19). 서버가 로그인 확인·날짜·목록을 읽는 동안
- * 섹션 머리 → 탭 줄 → 제목 → 날짜 칩 → 표 행 6줄을 실제와 같은 폭·여백·높이로 그린다. 인증·데이터 호출 없음.
+ * 섹션 머리 → 탭 줄 → 제목 → 정렬 칩 → 표 행 6줄을 실제와 같은 폭·여백·높이로 그린다. 인증·데이터 호출 없음.
  * - 1024 이상: 앱 표 행(썸네일 w-32 · 제목 두 줄 · 채널 · 숫자 네 칸), 행 높이는 실제 행과 같은 약 96px
  * - 1024 미만: 목록 행(썸네일 w-28 md:w-44 · 제목 두 줄 · 채널 · 메타)
  * 새 탭(keywords·channels·growth·watch)은 각 항목이 자기 폴더에 loading.tsx 를 둔다.
@@ -29,15 +29,8 @@ export default function BreakoutLoading() {
             <div className={`${BAR} h-4 w-full max-w-xl`} />
           </div>
 
-          {/* 날짜 칩 줄 */}
-          <div className="mt-8 flex gap-1.5 overflow-hidden pb-1">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="h-10 w-28 shrink-0 rounded-control border border-line sm:h-9 pointer-coarse:h-11" />
-            ))}
-          </div>
-
-          {/* 정렬·길이·기준 칩 줄 */}
-          <div className="mt-4 flex flex-wrap gap-1.5 border-b border-line pb-6 lg:border-b-0 lg:pb-0">
+          {/* 정렬·기준 칩 줄 */}
+          <div className="mt-8 flex flex-wrap gap-1.5 border-b border-line pb-6 lg:border-b-0 lg:pb-0">
             {Array.from({ length: 4 }).map((_, i) => (
               <div key={i} className="h-10 w-24 rounded-control border border-line sm:h-9 pointer-coarse:h-11" />
             ))}

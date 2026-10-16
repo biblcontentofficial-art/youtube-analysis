@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getBreakout, getBreakoutDates, kstToday, SHORTS_MAX_SEC, type BreakoutSort, type BreakoutType, type BreakoutVideo } from "@/lib/breakout";
+import { getBreakout, getBreakoutDates, kstToday, SHORTS_MAX_SEC, type BreakoutSort, type BreakoutVideo } from "@/lib/breakout";
 import { SectionHeader } from "@/components/ui/section-header";
 import { CHIP } from "@/components/ui/chip";
 import { cx } from "@/components/ui/button";
@@ -13,7 +13,10 @@ import { RemixButton } from "@/app/_components/remix/RemixButton";
 import type { RemixVideo } from "@/lib/trend/remix-schema";
 import { WatchChannelButton } from "./_components/WatchChannelButton";
 
-type SP = { date?: string; sort?: string; type?: string; min?: string; ex?: string };
+type SP = { sort?: string; min?: string; ex?: string };
+
+/** 한 번에 보이는 영상 수(소유자 결정 2026-10-16) */
+const LIST_LIMIT = 200;
 
 const SORTS: { key: BreakoutSort; label: string }[] = [
   { key: "ratio", label: "구독자 대비 조회수" },
@@ -21,10 +24,6 @@ const SORTS: { key: BreakoutSort; label: string }[] = [
   { key: "views", label: "조회수" },
   { key: "subs", label: "구독자" },
   { key: "recent", label: "게시일" },
-];
-const TYPES: { key: BreakoutType; label: string }[] = [
-  { key: "long", label: "롱폼" },
-  { key: "shorts", label: "쇼츠" },
 ];
 const MINS: { key: string; value: number; label: string }[] = [
   { key: "1", value: 1, label: "조회수 ≥ 구독자" },
@@ -106,20 +105,20 @@ export async function BreakoutView({
   badge?: number | Promise<number>;
   watchedIds?: string[] | Promise<string[]>;
 }) {
-  const dates = await getBreakoutDates(30);
-  const date = sp.date && dates.includes(sp.date) ? sp.date : dates[0] ?? kstToday(-1);
+  // 날짜는 고르지 않는다: 가장 최근 수집일(매일 아침 1번 갱신) 하나만 보인다(소유자 결정 2026-10-16)
+  const dates = await getBreakoutDates(1);
+  const date = dates[0] ?? kstToday(-1);
   const sort = (SORTS.find((s) => s.key === sp.sort)?.key ?? "ratio") as BreakoutSort;
-  const type = (TYPES.find((t) => t.key === sp.type)?.key ?? "long") as BreakoutType; // 기본은 롱폼, 쇼츠는 따로
   const min = MINS.find((m) => m.key === sp.min) ?? MINS[0];
   const ex = sp.ex === "0" ? "0" : "1"; // 뉴스·홈쇼핑·정치·이슈 제외(기본 켜짐)
   const briefing = dates.length ? getBriefing(date) : null; // B4 브리핑(영상 목록과 함께 읽는다, 예외 없음)
-  const videos = dates.length ? await getBreakout({ date, sort, type, minRatio: min.value, excludeKinds: ex === "1" }) : [];
+  const videos = dates.length ? await getBreakout({ date, sort, type: "long", minRatio: min.value, excludeKinds: ex === "1", limit: LIST_LIMIT }) : [];
   const [unread, watchedList] = await Promise.all([badge, watchedIds]);
   const watched = watchedList ? new Set(watchedList) : null;
   const watchChannel = (v: BreakoutVideo) => ({ channelId: v.channel_id, title: v.channel_title, thumb: v.channel_thumb ?? null });
 
   const href = (patch: Record<string, string>) => {
-    const q = new URLSearchParams({ date, sort, type, min: min.key, ex, ...patch });
+    const q = new URLSearchParams({ sort, min: min.key, ex, ...patch });
     return `/trend-search/breakout?${q.toString()}`;
   };
 
@@ -132,32 +131,21 @@ export async function BreakoutView({
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div className="max-w-3xl">
             <h1 className="text-h3 md:text-h2">브레이크아웃</h1>
-            <p className="mt-2 text-ui text-fg-2 md:text-body">주제와 상관없이, 구독자 수에 비해 조회수가 잘 나온 영상입니다. 매일 아침 전날 올라온 영상을 모읍니다.</p>
+            <p className="mt-2 text-ui text-fg-2 md:text-body">주제와 상관없이, 구독자 수에 비해 조회수가 잘 나온 가로 롱폼 영상입니다. 매일 아침 1번, 전날 올라온 영상으로 바뀝니다. 쇼츠·세로 영상·라이브는 뺍니다.</p>
           </div>
           <p className="text-body-sm text-fg-3">
             {dates.length ? <>{dateLabel(date)} 게시 · <span className="tnum font-semibold text-fg">{videos.length.toLocaleString()}</span>개</> : "아직 수집된 날짜가 없습니다"}
           </p>
         </div>
 
-        {briefing && <BriefingCard date={date} isLatest={date === dates[0]} {...await briefing} />}
+        {briefing && <BriefingCard date={date} isLatest {...await briefing} />}
 
-        {/* 날짜 */}
-        {dates.length > 0 && (
-          <nav aria-label="날짜" className="scrollbar-hide -mx-6 mt-8 flex gap-1.5 overflow-x-auto px-6 pb-1 lg:mx-0 lg:px-0">
-            {dates.map((d) => (
-              <Link key={d} href={href({ date: d })} aria-current={d === date ? "page" : undefined} className={CHIP}>{dateLabel(d)}</Link>
-            ))}
-          </nav>
-        )}
-
-        {/* 정렬·길이·기준 */}
-        <div className="mt-4 flex flex-col gap-3 border-b border-line pb-6 lg:flex-row lg:items-center lg:justify-between lg:border-b-0 lg:pb-0">
+        {/* 정렬·기준 */}
+        <div className="mt-8 flex flex-col gap-3 border-b border-line pb-6 lg:flex-row lg:items-center lg:justify-between lg:border-b-0 lg:pb-0">
           <div className="flex flex-wrap gap-1.5" aria-label="정렬">
             {SORTS.map((s) => <Link key={s.key} href={href({ sort: s.key })} aria-current={s.key === sort ? "page" : undefined} className={CHIP}>{s.label}순</Link>)}
           </div>
           <div className="flex flex-wrap gap-1.5">
-            {TYPES.map((t) => <Link key={t.key} href={href({ type: t.key })} aria-current={t.key === type ? "page" : undefined} className={CHIP}>{t.label}</Link>)}
-            <span aria-hidden="true" className="mx-1 hidden w-px self-stretch bg-line sm:block" />
             {MINS.map((m) => <Link key={m.key} href={href({ min: m.key })} aria-current={m.key === min.key ? "page" : undefined} className={CHIP}>{m.label}</Link>)}
             <span aria-hidden="true" className="mx-1 hidden w-px self-stretch bg-line sm:block" />
             <Link href={href({ ex: ex === "1" ? "0" : "1" })} aria-pressed={ex === "1"} aria-current={ex === "1" ? "true" : undefined} className={CHIP}>

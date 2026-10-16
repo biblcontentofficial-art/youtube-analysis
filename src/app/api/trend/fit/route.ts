@@ -13,6 +13,7 @@
  */
 import { NextResponse } from "next/server";
 import { auth, getUserPlan } from "@/lib/auth";
+import { canBreakout } from "@/lib/stripe";
 import { PLANS, type PlanKey } from "@/lib/stripe";
 import { getBreakoutDates, kstToday } from "@/lib/breakout";
 import { getTrendFit } from "@/lib/trend/trendfit";
@@ -31,7 +32,7 @@ export async function GET() {
   if (!userId) return NextResponse.json({ error: "unauthorized" }, { status: 401, headers: NO_STORE });
 
   const plan = await getUserPlan(userId);
-  if (!canTrendFit(plan)) return NextResponse.json({ state: "locked" }, { headers: NO_STORE });
+  if (!canTrendFit(plan) || !canBreakout(plan)) return NextResponse.json({ state: "locked" }, { headers: NO_STORE });
 
   try {
     const end = (await getBreakoutDates(1))[0] ?? kstToday(-1);

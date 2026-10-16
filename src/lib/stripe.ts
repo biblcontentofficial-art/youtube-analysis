@@ -32,6 +32,7 @@ export type PlanConfig = {
   dailyAiLimit: number;                      // AI 기능별 하루 횟수(영상 기획 초안·썸네일 공통점 각각). 0 = 버튼은 보이되 요금제 안내. 바꿀 때는 이 숫자만 고친다
   watchLimit: number;                        // 관심 목록 등록 수(키워드+채널 합계). 바꿀 때는 이 숫자만 고친다
   canTrendFit: boolean;                      // '내 채널에 맞는 주제'(C8) 사용 가능 여부
+  canBreakout: boolean;                      // 브레이크아웃 구역(영상·급상승 키워드·크는 채널·성장 추적·관심 목록) 열람. 소유자 결정 2026-10-16: Pro·팀비블 등급부터
 };
 
 export type PlanKey = "free" | "starter" | "pro" | "business" | "admin" | "team";
@@ -57,6 +58,7 @@ export const PLANS: Record<PlanKey, PlanConfig> = {
     canThreadsViralScore: false,
     dailyAiLimit: 0,          // 소유자 결정: Free 0(버튼만 보이고 누르면 요금제 안내, 차감 없음)
     watchLimit: 3,
+    canBreakout: false,
     canTrendFit: false,
   },
   starter: {
@@ -79,6 +81,7 @@ export const PLANS: Record<PlanKey, PlanConfig> = {
     canThreadsViralScore: true,
     dailyAiLimit: 5,
     watchLimit: 10,
+    canBreakout: false,
     canTrendFit: true,
   },
   pro: {
@@ -101,6 +104,7 @@ export const PLANS: Record<PlanKey, PlanConfig> = {
     canThreadsViralScore: true,
     dailyAiLimit: 20,
     watchLimit: 30,
+    canBreakout: true,
     canTrendFit: true,
   },
   business: {
@@ -123,6 +127,7 @@ export const PLANS: Record<PlanKey, PlanConfig> = {
     canThreadsViralScore: true,
     dailyAiLimit: 50,
     watchLimit: 100,
+    canBreakout: true,
     canTrendFit: true,
   },
   // 팀비블 — admin 페이지에서만 지정 가능, 결제 없음, Starter 동일 기능/한도
@@ -146,6 +151,7 @@ export const PLANS: Record<PlanKey, PlanConfig> = {
     canThreadsViralScore: true,
     dailyAiLimit: 5,
     watchLimit: 10,
+    canBreakout: true,
     canTrendFit: true,
   },
   // 관리자 전용 플랜 — 결제 없음, pricing 페이지 미노출, 매출 집계 제외
@@ -169,6 +175,12 @@ export const PLANS: Record<PlanKey, PlanConfig> = {
     canThreadsViralScore: true,
     dailyAiLimit: 200,        // 무제한(null) 대신 넉넉한 숫자. 전체 하루 예산(AI_GLOBAL_DAILY_CALLS)과 함께 비용 상한
     watchLimit: 100,
+    canBreakout: true,
     canTrendFit: true,
   },
 };
+
+/** 브레이크아웃 열람 가능 여부(모르는 플랜 키는 false) */
+export function canBreakout(plan: string | null | undefined): boolean {
+  return !!plan && Object.prototype.hasOwnProperty.call(PLANS, plan) && PLANS[plan as PlanKey].canBreakout;
+}

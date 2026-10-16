@@ -126,12 +126,14 @@ export default async function TrendSearchPage() {
             </ul>
           </div>
 
-          {/* 브레이크아웃: 잠금 없음, 로그인 뒤 목록 */}
+          {/* 브레이크아웃: Pro·팀비블 등급부터(Pro 미만은 들어가면 업그레이드 안내) */}
           <div className="mt-8 border-t border-line pt-6">
             <Link href="/trend-search/breakout" className="group inline-flex h-11 items-center gap-1.5 text-ui font-semibold text-fg transition-colors duration-150 hover:text-fg-2">
-              브레이크아웃 <span aria-hidden="true" className={ARROW}>→</span>
+              브레이크아웃
+              {!isProPlus && <span className="inline-flex items-center rounded border border-line-strong px-1 text-micro font-medium leading-[18px] text-fg-3">Pro</span>}
+              <span aria-hidden="true" className={ARROW}>→</span>
             </Link>
-            <p className="text-body-sm text-fg-3">주제와 상관없이 어제 올라온 영상 중 구독자 수에 비해 조회수가 잘 나온 영상을 매일 모아 봅니다.</p>
+            <p className="text-body-sm text-fg-3">주제와 상관없이 어제 올라온 가로 롱폼 영상 중 구독자 수에 비해 조회수가 잘 나온 영상을 매일 모아 봅니다.</p>
           </div>
         </div>
       </div>

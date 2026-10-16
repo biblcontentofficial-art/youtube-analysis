@@ -11,6 +11,7 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 import { auth, getUserPlan } from "@/lib/auth";
+import { canBreakout } from "@/lib/stripe";
 import { addChannel, addKeyword, listWatch, removeChannel, removeKeyword, type WatchResult } from "@/lib/trend/watch";
 
 export const dynamic = "force-dynamic";
@@ -43,7 +44,9 @@ const str = (v: unknown) => (typeof v === "string" ? v : "");
 export async function GET() {
   const { userId } = await auth();
   if (!userId) return json({ error: "unauthorized" }, 401);
-  const watch = await listWatch(userId, await getUserPlan(userId));
+  const plan = await getUserPlan(userId);
+  if (!canBreakout(plan)) return json({ error: "plan" }, 403); // 브레이크아웃은 Pro·팀비블 등급부터
+  const watch = await listWatch(userId, plan);
   return watch ? json({ watch }) : json({ error: "db" }, 500);
 }
 
@@ -53,6 +56,7 @@ export async function POST(req: NextRequest) {
   const body = await readBody(req);
   if (!body) return json({ error: "invalid" }, 400);
   const plan = await getUserPlan(userId);
+  if (!canBreakout(plan)) return json({ error: "plan" }, 403);
   if (body.type === "keyword") return respond(await addKeyword(userId, str(body.term), plan));
   if (body.type === "channel") {
     return respond(
