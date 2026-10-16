@@ -129,7 +129,7 @@ export const PLANS: Record<PlanKey, PlanConfig> = {
   team: {
     name: "팀비블",
     priceId: null,
-    dailySearchLimit: 100,                   // 소유자 결정(2026-10-15): 월 한도 없이 하루 100회
+    dailySearchLimit: null,                  // 소유자 결정(2026-10-16): 영상 검색 무제한
     monthlySearchLimit: null,
     dailyChannelSearchLimit: null,
     channelSearchMonthlyLimit: null,         // 소유자 결정(2026-10-15): 채널 찾기 무제한
