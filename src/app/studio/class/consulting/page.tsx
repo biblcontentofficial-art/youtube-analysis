@@ -135,14 +135,14 @@ export default function TeamBiblConsultingPage() {
 
             {/* 사진 카드: 가격 + 신청 */}
             <article className="overflow-hidden rounded-panel border border-line bg-surface lg:col-span-5 lg:col-start-8 lg:row-span-2 lg:row-start-1">
-              <div className="aspect-[16/9] overflow-hidden bg-surface-2 sm:aspect-[16/10]">
+              <div className="aspect-video overflow-hidden bg-surface-2">
                 <Image
-                  src="/home/svc-consulting.jpg"
-                  width={1360}
-                  height={850}
-                  alt="책장 앞에서 이야기하는 비블. 뒤 책장에 유튜브 실버 플레이 버튼이 놓여 있다"
+                  src="/home/svc-consulting-thumb.webp"
+                  width={1280}
+                  height={720}
+                  alt="1:1 유튜브 컨설팅 팀비블 썸네일. 칠판 앞에서 마주 앉아 이야기하는 비블과 수강생"
                   sizes="(min-width: 1280px) 500px, (min-width: 1024px) 40vw, 100vw"
-                  className="size-full object-cover object-[95%_50%]"
+                  className="size-full object-cover"
                   priority
                 />
               </div>
