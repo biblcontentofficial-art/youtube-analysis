@@ -209,19 +209,37 @@ export default function HomeServices() {
               more="채널 대행 문의하기"
             />
 
-            <article className={cx(CARD, "p-5 sm:p-6 lg:col-span-12 lg:grid lg:grid-cols-12 lg:items-center lg:gap-6 lg:px-8 lg:py-7")}>
-              <div className="lg:col-span-4">
+            {/* 브랜드 인큐베이팅: 가로 전체 카드. 1024 이상은 왼쪽 사진·오른쪽 글이고, 높이를 위 두 카드와 같게 맞춘다.
+                위 카드 높이 = 테두리 2px + 안쪽 폭의 16:9 사진 + 글 영역 302px. 위 카드 안쪽 폭 = (이 카드 안쪽 폭 cqw - 26px) / 2 → 사진 칸 높이를 같은 식으로 잡는다. */}
+            <article className={cx(CARD, "@container lg:col-span-12 lg:grid lg:grid-cols-2")}>
+              <div className="aspect-video overflow-hidden bg-surface-2 lg:aspect-auto lg:h-[calc((100cqw-26px)/2*0.5625+302px)]">
+                <img
+                  src="/home/svc-incubating.webp"
+                  width={1236}
+                  height={666}
+                  alt="회의 테이블에 둘러앉아 이야기하는 사람들(흑백 사진)"
+                  className="size-full object-cover"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </div>
+              <div className="flex flex-col p-5 sm:p-6 lg:p-8">
                 <h4 className="text-title">
                   <Link href="/incubating" className={CARD_LINK}>브랜드 인큐베이팅</Link>
                 </h4>
-                <Meta items={[`영어${DOT}수학 선생님 모집`, `오픈채팅${DOT}메일로 지원`]} className="mt-1" />
+                <p className="mt-2.5 text-ui text-fg-2 lg:text-body">
+                  {`채널 기획${DOT}제작${DOT}마케팅${DOT}상품화는 레이블이, 선생님은 가르치는 일에만 집중합니다.`}
+                </p>
+                <div className="mt-auto pt-6 lg:pt-8">
+                  <div className="border-t border-line pt-4">
+                    <p className="text-h4 font-extrabold">{`영어${DOT}수학 선생님 모집`}</p>
+                    <Meta items={[`오픈채팅${DOT}메일로 지원`]} className="mt-1" />
+                  </div>
+                  <p aria-hidden="true" className={MORE}>
+                    오픈채팅으로 지원하기 <span className={ARROW}>→</span>
+                  </p>
+                </div>
               </div>
-              <p className="mt-3 text-ui text-fg-2 lg:col-span-5 lg:mt-0 lg:text-body">
-                {`채널 기획${DOT}제작${DOT}마케팅${DOT}상품화는 레이블이, 선생님은 가르치는 일에만 집중합니다.`}
-              </p>
-              <p aria-hidden="true" className={cx(MORE, "lg:col-span-3 lg:mt-0 lg:justify-self-end")}>
-                오픈채팅으로 지원하기 <span className={ARROW}>→</span>
-              </p>
             </article>
           </div>
         </div>
