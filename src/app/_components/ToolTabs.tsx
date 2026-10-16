@@ -4,7 +4,7 @@
  *
  *   <ToolTabs current="/search" />
  *
- * - 탭 목록은 결정 18 기본(B): 영상 찾기 · 채널 찾기 · 수집한 영상(Pro) 3개.
+ * - 탭 목록: 영상 찾기 · 채널 찾기 · 수집한 영상(Pro) · 브레이크아웃(소유자 요청 2026-10-16, /trend-search/breakout 이하 전체가 현재 탭).
  *   '채널 분석'(/my-channel)은 로그인·횟수 제한 없이 YouTube 쿼터를 쓰는 경로라, 서버 측 제한이 먼저 들어가기 전에는 넣지 않는다.
  * - 잠긴 탭은 라벨 fg-3 + Pro 태그 한 모양(DESIGN 6.12·6.29). 자물쇠 아이콘 없음.
  *   잠금 표기는 결정 9 답 전까지 지금 정책 그대로(수집한 영상 = Pro 부터). 채널 찾기는 Free 도 쓸 수 있어 태그를 달지 않는다.
@@ -15,12 +15,13 @@
 import Link from "next/link";
 import { TAB_BAR } from "@/components/ui/tabs";
 
-export type ToolTabHref = "/search" | "/channels" | "/saved";
+export type ToolTabHref = "/search" | "/channels" | "/saved" | "/trend-search/breakout";
 
 const TABS: { href: ToolTabHref; label: string; plan?: string }[] = [
   { href: "/search", label: "영상 찾기" },
   { href: "/channels", label: "채널 찾기" },
   { href: "/saved", label: "수집한 영상", plan: "Pro" },
+  { href: "/trend-search/breakout", label: "브레이크아웃" },
 ];
 
 /** 탭 하나. 높이 44px · 768 이상 48px */

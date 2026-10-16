@@ -7,7 +7,6 @@ import { Logo } from "@/components/ui/logo";
 import NavUser, { useSessionUser } from "./NavUser";
 import SearchUsageBadge from "./SearchUsageBadge";
 import NavMenuSheet, { type NavSheetFooter, type NavSheetGroup } from "./NavMenuSheet";
-import NavServicesDropdown from "./NavServicesDropdown";
 import NavHeightObserver from "./NavHeightObserver";
 
 /**
@@ -15,7 +14,7 @@ import NavHeightObserver from "./NavHeightObserver";
  * 모두 이 클라이언트 잎에서만 한다(루트 레이아웃 auth()·cookies() 금지).
  *
  * - 홈형: 로고 │ 비블과 함께 3개(흰 600) │ 직접 하기 3개(fg-3 500) │ 오른쪽
- * - 앱형: 로고 │ 직접 하기 3개 │ '비블과 함께 ▾' 드롭다운 │ 남은 횟수 배지 · 아바타
+ * - 앱형: 로고 │ 직접 하기 3개 │ 비블과 함께 3개(드롭다운 없이 옆으로, 소유자 요청 2026-10-16) │ 남은 횟수 배지 · 아바타
  * - 1280 미만: 56px 한 줄(로고 · 시작하기 또는 아바타 · 메뉴 버튼) + 전체 높이 메뉴 시트
  */
 
@@ -152,7 +151,7 @@ export default function SiteNav() {
               <>
                 <NavList label="직접 하기" items={DIY} pathname={pathname} />
                 <span aria-hidden="true" className="mx-3 h-4 w-px bg-line" />
-                <NavServicesDropdown label="비블과 함께" items={WITH_BIBL} pathname={pathname} linkClass={NAV_LINK} />
+                <NavList label="비블과 함께" items={WITH_BIBL} pathname={pathname} />
               </>
             )}
           </nav>
