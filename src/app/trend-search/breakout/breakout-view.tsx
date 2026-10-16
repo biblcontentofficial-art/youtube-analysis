@@ -25,11 +25,12 @@ const SORTS: { key: BreakoutSort; label: string }[] = [
   { key: "subs", label: "구독자" },
   { key: "recent", label: "게시일" },
 ];
+/** 기준: 기본은 모두 보기(구독자 대비 조회수 순 상위 200개, 소유자 결정 2026-10-16) */
 const MINS: { key: string; value: number; label: string }[] = [
+  { key: "0", value: 0, label: "모두 보기" },
   { key: "1", value: 1, label: "조회수 ≥ 구독자" },
   { key: "3", value: 3, label: "구독자의 3배 이상" },
   { key: "10", value: 10, label: "구독자의 10배 이상" },
-  { key: "0", value: 0, label: "모두 보기" },
 ];
 
 function num(n: number): string {

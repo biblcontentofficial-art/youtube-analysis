@@ -128,13 +128,14 @@ function parseDuration(iso: string): number {
 
 const chunk = <T,>(a: T[], n: number) => Array.from({ length: Math.ceil(a.length / n) }, (_, i) => a.slice(i * n, i * n + n));
 
-async function searchIds(after: string, before: string, videoDuration: string, pages: number): Promise<string[]> {
+async function searchIds(after: string, before: string, videoDuration: string, pages: number, categoryId?: string): Promise<string[]> {
   const ids: string[] = [];
   let pageToken = "";
   for (let p = 0; p < pages; p++) {
     const data = await yt("search", {
       part: "id", type: "video", regionCode: "KR", relevanceLanguage: "ko", order: "viewCount",
       publishedAfter: after, publishedBefore: before, maxResults: "50", videoDuration,
+      ...(categoryId ? { videoCategoryId: categoryId } : {}),
       ...(pageToken ? { pageToken } : {}),
     });
     if (!data) break;
@@ -160,12 +161,25 @@ const isBlocked = (title?: string) => BLOCK.test(title ?? "");
 
 const POPULAR_CATEGORIES = ["", "1", "10", "17", "20", "22", "23", "24", "25", "26", "27", "28"];
 
+/**
+ * 가로 롱폼 후보를 넉넉히 모으는 검색(소유자 결정 2026-10-16: 브레이크아웃은 가로 롱폼만, 하루 200개).
+ * 쇼츠 길이(short) 검색은 하지 않고 medium(4~20분)·long(20분 넘음)만, 전체 + 카테고리별로 조회수 순.
+ * 뉴스(25)는 화면에서 빼므로 카테고리 검색에서도 뺀다. 하루 search.list 약 64회(약 6,400 unit, 뒤쪽 키부터 사용).
+ */
+const LONG_DURATIONS = ["medium", "long"] as const;
+const LONG_SEARCH_PAGES = 6;
+const SEARCH_CATEGORIES = ["1", "2", "10", "15", "17", "19", "20", "22", "23", "24", "26", "27", "28"];
+const CATEGORY_SEARCH_PAGES = 2;
+
 export async function collectBreakout(date: string, opts: { dryRun?: boolean } = {}): Promise<{ date: string; candidates: number; saved: number; sample?: unknown[] }> {
   const { after, before } = kstDayRange(date);
   const afterMs = Date.parse(after), beforeMs = Date.parse(before);
 
   // 1) 후보 영상 ID
-  const searchSets = await Promise.all(["short", "medium", "long"].map((d) => searchIds(after, before, d, 4)));
+  const searchSets = await Promise.all([
+    ...LONG_DURATIONS.map((d) => searchIds(after, before, d, LONG_SEARCH_PAGES)),
+    ...SEARCH_CATEGORIES.flatMap((c) => LONG_DURATIONS.map((d) => searchIds(after, before, d, CATEGORY_SEARCH_PAGES, c))),
+  ]);
   const popular = await Promise.all(POPULAR_CATEGORIES.map((c) =>
     yt("videos", { part: "id,snippet", chart: "mostPopular", regionCode: "KR", maxResults: "50", ...(c ? { videoCategoryId: c } : {}) })));
   const popularIds = popular.flatMap((d) => (d?.items ?? [])
