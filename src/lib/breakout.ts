@@ -51,12 +51,17 @@ const yt = (path: string, params: Record<string, string>) => youtubeGet(path, pa
 
 const API = "https://www.googleapis.com/youtube/v3";
 
+/**
+ * 백그라운드 작업(브레이크아웃 수집·트렌드 추적·홈 채널 실적)용 키 순서: 무료 키를 뒤에서부터 쓴다.
+ * 사용자 검색(src/lib/youtube.ts)은 앞 키부터 쓰므로, 매일 수집이 앞 키의 검색 한도를 먼저 다 써 버리지 않게 한다.
+ */
 function apiKeys(): string[] {
-  const keys: string[] = [];
-  if (process.env.YOUTUBE_API_KEY) keys.push(process.env.YOUTUBE_API_KEY);
-  for (let i = 2; i <= 10; i++) { const k = process.env[`YOUTUBE_API_KEY_${i}`]; if (k) keys.push(k); }
-  for (let i = 1; i <= 10; i++) { const k = process.env[`YOUTUBE_API_KEY_PAID_${i}`]; if (k) keys.push(k); }
-  return keys;
+  const free: string[] = [];
+  if (process.env.YOUTUBE_API_KEY) free.push(process.env.YOUTUBE_API_KEY);
+  for (let i = 2; i <= 10; i++) { const k = process.env[`YOUTUBE_API_KEY_${i}`]; if (k) free.push(k); }
+  const paid: string[] = [];
+  for (let i = 1; i <= 10; i++) { const k = process.env[`YOUTUBE_API_KEY_PAID_${i}`]; if (k) paid.push(k); }
+  return [...free.reverse(), ...paid];
 }
 
 /** 키를 돌려 가며 호출한다. 쿼터 소진(403 quota·429)만 다음 키로 넘긴다. 홈 채널 실적(proofChannels)도 같이 쓴다. */
@@ -76,6 +81,7 @@ export async function youtubeGet(
     const body = await res.json().catch(() => ({}));
     const reason = String(body?.error?.errors?.[0]?.reason ?? "").toLowerCase();
     if (res.status === 429 || (res.status === 403 && reason.includes("quota")) || reason === "dailylimitexceeded") continue;
+    if (reason === "keyinvalid" || String(body?.error?.message ?? "").includes("API key not valid")) continue; // 무효 키는 건너뛴다
     return null; // 그 밖의 오류는 이 호출만 건너뛴다
   }
   return null;

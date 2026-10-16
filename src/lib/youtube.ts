@@ -259,7 +259,7 @@ export async function searchChannels(query: string, isPaid = false): Promise<{
         const reason0 = errBody?.error?.errors?.[0]?.reason ?? "";
         const domain0 = errBody?.error?.errors?.[0]?.domain ?? "";
 
-        const isQuotaError = videoRes.status === 403 && (
+        const isQuotaError = videoRes.status === 429 || videoRes.status === 403 && (
           errMsg.toLowerCase().includes("quota") ||
           reason0.toLowerCase().includes("quota") ||
           domain0.toLowerCase().includes("quota") ||
@@ -433,7 +433,7 @@ export async function getTrendingVideos(isPaid = false, maxResults = 50, categor
 
         // 2) 쿼터 초과 → 다음 키로
         const isQuota =
-          res.status === 403 && (
+          res.status === 429 || res.status === 403 && (
             errMsg.includes("quota") ||
             reason.toLowerCase().includes("quota") ||
             errBody?.error?.errors?.[0]?.domain?.toLowerCase().includes("quota") ||
@@ -611,7 +611,7 @@ export async function searchVideos(query: string, filter?: string, pageToken?: s
         const reason0 = errBody?.error?.errors?.[0]?.reason ?? "";
         const domain0 = errBody?.error?.errors?.[0]?.domain ?? "";
         // YouTube 쿼터 초과: 메시지보다 reason/domain 필드가 더 신뢰할 수 있음
-        const isQuotaError = searchRes.status === 403 && (
+        const isQuotaError = searchRes.status === 429 || searchRes.status === 403 && (
           errMsg.toLowerCase().includes("quota") ||
           reason0.toLowerCase().includes("quota") ||
           domain0.toLowerCase().includes("quota") ||
@@ -777,7 +777,7 @@ export interface ChannelVideo {
 function isQuotaErr(status: number, errBody: any): boolean {
   const msg = errBody?.error?.message?.toLowerCase() ?? "";
   const reason = errBody?.error?.errors?.[0]?.reason ?? "";
-  return status === 403 && (
+  return status === 429 || status === 403 && (
     msg.includes("quota") || reason.includes("quota") ||
     reason === "quotaExceeded" || reason === "dailyLimitExceeded"
   );

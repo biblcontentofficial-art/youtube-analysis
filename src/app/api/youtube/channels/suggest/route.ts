@@ -62,7 +62,7 @@ export async function GET(req: NextRequest) {
         const errBody = await searchRes.json().catch(() => ({}));
         const reason0 = errBody?.error?.errors?.[0]?.reason ?? "";
         const isRetry = searchRes.status === 400 || searchRes.status === 401 ||
-          searchRes.status === 403 || reason0 === "quotaExceeded" || reason0 === "keyInvalid";
+          searchRes.status === 403 || searchRes.status === 429 || reason0 === "quotaExceeded" || reason0 === "keyInvalid";
         if (isRetry) { keyIndex++; continue; }
         return NextResponse.json({ items: [] });
       }
