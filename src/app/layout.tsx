@@ -243,7 +243,7 @@ export default async function RootLayout({
       name: "비블랩 (bibl lab)",
       alternateName: ["비블", "bibl lab", "bibllab"],
       url: "https://bibllab.com",
-      logo: "https://bibllab.com/og-image.png",
+      logo: "https://bibllab.com/og-image-v2.png",
       email: "bibl.content.official@gmail.com",
       telephone: "070-8027-2532",
       sameAs: [

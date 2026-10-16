@@ -115,7 +115,7 @@ const studioJsonLd = {
     "@type": "Organization",
     name: "비블랩 (bibl lab)",
     url: "https://bibllab.com",
-    logo: "https://bibllab.com/og-image.png",
+    logo: "https://bibllab.com/og-image-v2.png",
     sameAs: ["https://www.youtube.com/@biblcontent"],
   },
   areaServed: { "@type": "Country", name: "South Korea" },

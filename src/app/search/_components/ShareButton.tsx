@@ -53,7 +53,7 @@ export default function ShareButton({ query }: ShareButtonProps) {
       content: {
         title: shareText,
         description: "유튜브 키워드로 최신 영상을 찾고 조회수·구독자·게시일을 한눈에 확인하세요.",
-        imageUrl: "https://bibllab.com/og-image.png",
+        imageUrl: "https://bibllab.com/og-image-v2.png",
         link: { mobileWebUrl: shareUrl, webUrl: shareUrl },
       },
       buttons: [

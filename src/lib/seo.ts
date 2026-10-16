@@ -12,10 +12,10 @@ import type { Metadata } from "next";
 type OpenGraph = NonNullable<Metadata["openGraph"]>;
 
 export const OG_IMAGE = {
-  url: "https://bibllab.com/og-image.png",
-  width: 1280,
-  height: 720,
-  alt: "비블랩 - 유튜브 키워드·채널 분석 도구",
+  url: "https://bibllab.com/og-image-v2.png",
+  width: 1200,
+  height: 630,
+  alt: "bibl lab · find what works on youtube",
 } as const;
 
 export const OG_DEFAULT = {
