@@ -1,8 +1,9 @@
 "use client";
 
 /**
- * 홈 검색(클라이언트 잎). 서버 컴포넌트 홈(page.tsx)이 첫 화면을 그리고, 상태가 필요한 것만 여기서 맡는다:
- * 인증 확인 · 방문 기록 · 검색 폼 · 예시 칩 · 로그인 모달 · 결과 미리보기 아래 링크.
+ * 키워드 검색(클라이언트 잎). 2026-10-16 홈에서 유튜브 트렌드 서치 허브(src/app/trend-search/page.tsx)로 옮겼다.
+ * 서버 컴포넌트 페이지가 화면을 그리고, 상태가 필요한 것만 여기서 맡는다:
+ * 인증 확인 · 검색 폼 · 예시 칩 · 로그인 모달 · 결과 미리보기 아래 링크.
  *
  * 불변 조건 1(검색 누적): saveToHistory · trySearch 본문은 옛 page.tsx 에서 글자 그대로 옮겼다
  * (scripts/ux/check-invariants.mjs 가 이름으로 찾아 해시를 비교한다). 검색창 제출과 예시 칩은 모두 trySearch 를 거친다.
@@ -36,7 +37,7 @@ function useHomeSearch(): HomeSearchValue {
   return value;
 }
 
-/** 첫 화면(#trend) 전체를 감싼다. 서버에서 그린 children 은 그대로 서버 HTML 로 남는다 */
+/** 검색 구역(검색창 + 결과 미리보기)을 감싼다. 서버에서 그린 children 은 그대로 서버 HTML 로 남는다 */
 export function HomeSearchProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [isSignedIn, setIsSignedIn] = useState(false);
@@ -49,12 +50,7 @@ export function HomeSearchProvider({ children }: { children: React.ReactNode }) 
       setIsLoaded(true);
     };
     fetchUser();
-    // bibllab.com 메인 방문 트래킹
-    fetch("/api/track", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ page: "bibllab", referrer: document.referrer || null }),
-    }).catch(() => {});
+    // 방문 기록은 페이지가 따로 남긴다(홈 HomeVisit, 트렌드 서치 TrackVisit)
   }, []);
   const { showLoading } = useNavigationLoading();
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -138,7 +134,7 @@ export function HomeSearchProvider({ children }: { children: React.ReactNode }) 
   );
 }
 
-/** 첫 화면 검색창 + 안내 한 줄 + 예시 칩 6개 */
+/** 검색창 + 안내 한 줄 + 예시 칩 6개 */
 export function HomeSearchForm() {
   const { isSignedIn, isLoaded, trySearch } = useHomeSearch();
   const showConfirm = useConfirm();

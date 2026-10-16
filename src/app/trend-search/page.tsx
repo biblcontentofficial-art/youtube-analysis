@@ -3,6 +3,9 @@ import TrackVisit from "@/app/_components/TrackVisit";
 import Link from "next/link";
 import { cx } from "@/components/ui/button";
 import { SectionHeader } from "@/components/ui/section-header";
+import { HomeSearchProvider, HomeSearchForm } from "@/app/_components/HomeSearch";
+import HomeResultPreview from "@/app/_components/home/HomeResultPreview";
+import HomeSteps from "@/app/_components/home/HomeSteps";
 import {
   LIST_PANEL,
   LIST_PANEL_HEAD,
@@ -11,14 +14,23 @@ import {
   LIST_PANEL_TITLE,
 } from "@/components/ui/list-panel";
 
+/**
+ * 유튜브 트렌드 서치 허브. 2026-10-16 홈의 키워드 검색을 이리로 옮겼다(홈은 비블랩 소개가 됨).
+ * 위: 키워드 검색(HomeSearch: 로그인 모달 · trySearch · saveToHistory, 불변 조건 1) → 결과 미리보기 → 01·02·03
+ * 아래: 분석 도구 목록 + 브레이크아웃. 잠금 표시는 로그인 사용자의 플랜으로 정한다(이 페이지만 인증을 읽는다).
+ * 실적 숫자(LandingStats)는 홈 첫 화면이 맡으므로 여기에는 두지 않는다.
+ */
 export const metadata: Metadata = {
   title: "유튜브 트렌드 서치",
   description:
-    "영상 찾기, 채널 찾기, 채널 분석, 영상 수집까지 비블랩의 유튜브 분석 도구를 한곳에서 사용하세요.",
+    "키워드 하나로 유튜브 트렌드를 파악하세요. 영상 찾기, 채널 찾기, 채널 분석, 영상 수집까지 비블랩의 유튜브 분석 도구를 한곳에서 사용합니다.",
   alternates: {
     canonical: "https://bibllab.com/trend-search",
   },
 };
+
+/** 가운뎃점에서 줄이 갈리지 않게 앞뒤에 WORD JOINER(U+2060) */
+const DOT = "⁠·⁠";
 
 /** 잠긴 도구 표시(DESIGN 6.12 Pro 태그 한 모양, 자물쇠 아이콘 없음) */
 const PLAN_TAG = "inline-flex items-center rounded border border-line-strong px-1 text-micro leading-[18px] text-fg-3";
@@ -82,61 +94,87 @@ export default async function TrendSearchPage() {
   return (
     <main className="min-h-screen bg-canvas text-fg">
       <TrackVisit page="trend-search" />
-      <div className="mx-auto w-full max-w-wide px-6 py-16 md:py-24 lg:px-8">
-        <SectionHeader caption="bibl lab" label="TREND SEARCH" />
 
-        <div className="max-w-3xl">
-          <h1 className="text-h2 text-silver lg:text-h1">
-            유튜브 <span className="text-accent">트렌드 서치</span>
-          </h1>
-          <p className="mt-4 text-ui text-fg-2 md:text-lead">
-            키워드·채널·데이터 분석 도구를 한곳에서 사용하세요.
-          </p>
-
-          <div className={cx(LIST_PANEL.standalone, "mt-10 md:mt-12")}>
-            <div className={LIST_PANEL_HEAD}>
-              <h2 className="text-caption font-semibold text-fg">분석 도구 4가지</h2>
-              <span className={LIST_PANEL_HEAD_META}>Free · Starter · Pro</span>
+      {/* 키워드 검색: 예전 홈 첫 화면(#trend)의 검색창 · 안내 한 줄 · 예시 칩 · 결과 미리보기 · 01·02·03 */}
+      <section id="trend" aria-labelledby="trend-title" className="border-b border-line">
+        <div className="mx-auto w-full max-w-wide px-6 pb-16 pt-8 sm:pt-12 lg:px-8 lg:pb-24 lg:pt-14">
+          <SectionHeader caption={`유튜브 트렌드 서치${DOT}키워드 분석`} label="TREND SEARCH" className="mb-8 md:mb-12" />
+          <HomeSearchProvider>
+            <div className="max-w-3xl">
+              <h1 id="trend-title" className="text-h2 text-silver sm:text-[44px] lg:text-h1">
+                <span className="block">키워드 하나로</span>{" "}
+                <span className="block">
+                  <span className="text-accent">유튜브 트렌드</span>를 파악하세요
+                </span>
+              </h1>
+              <p className="mt-3 max-w-[34em] text-body text-fg-2 sm:mt-4 lg:mt-5 lg:text-lead">
+                {`조회수${DOT}구독자${DOT}게시일을 한눈에 확인하고 경쟁력 있는 콘텐츠 주제를 발견해 보세요.`}
+              </p>
+              <HomeSearchForm />
             </div>
-            <ul className={LIST_PANEL_LIST}>
-              {TOOLS.map((t) => (
-                <li key={t.title}>
-                  <Link href={t.locked ? "/pricing" : t.href} className={ITEM_LINK}>
-                    <span className="min-w-0 flex-1">
-                      <span className={cx(LIST_PANEL_TITLE, "transition-colors duration-150 group-hover:text-fg-2", t.locked ? "text-fg-3" : "text-fg")}>
-                        {t.title}
-                        {t.locked && <span className={PLAN_TAG}>{t.plan}</span>}
-                      </span>
-                      <span className={ITEM_DESC}>{t.desc}</span>
-                    </span>
-                    <span className="flex shrink-0 items-center gap-1.5 text-body-sm font-semibold text-fg-2">
-                      {t.locked ? (
-                        <>
-                          <span className="sr-only">{t.plan}+ 필요, </span>
-                          <span className="hidden sm:inline">요금제 보기</span>
-                        </>
-                      ) : (
-                        <span className="sr-only">바로가기</span>
-                      )}
-                      <span aria-hidden="true" className={ARROW}>→</span>
-                    </span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
 
-          {/* 브레이크아웃: Pro·팀비블 등급부터(Pro 미만은 들어가면 업그레이드 안내) */}
-          <div className="mt-8 border-t border-line pt-6">
-            <Link href="/trend-search/breakout" className="group inline-flex h-11 items-center gap-1.5 text-ui font-semibold text-fg transition-colors duration-150 hover:text-fg-2">
-              브레이크아웃
-              {!isProPlus && <span className="inline-flex items-center rounded border border-line-strong px-1 text-micro font-medium leading-[18px] text-fg-3">Pro</span>}
-              <span aria-hidden="true" className={ARROW}>→</span>
-            </Link>
-            <p className="text-body-sm text-fg-3">주제와 상관없이 어제 올라온 가로 롱폼 영상 중 구독자 수에 비해 조회수가 잘 나온 영상을 매일 모아 봅니다.</p>
+            <HomeResultPreview />
+          </HomeSearchProvider>
+
+          <HomeSteps />
+        </div>
+      </section>
+
+      <section aria-labelledby="tools-title">
+        <div className="mx-auto w-full max-w-wide px-6 py-16 md:py-24 lg:px-8">
+          <SectionHeader caption="분석 도구" label="TOOLS" />
+
+          <div className="max-w-3xl">
+            <h2 id="tools-title" className="text-h3 md:text-h2">
+              <span className="block text-fg-3">{`키워드${DOT}채널${DOT}데이터 분석 도구를`}</span>
+              <span className="block">한곳에서 사용하세요</span>
+            </h2>
+
+            <div className={cx(LIST_PANEL.standalone, "mt-10 md:mt-12")}>
+              <div className={LIST_PANEL_HEAD}>
+                <h3 className="text-caption font-semibold text-fg">분석 도구 4가지</h3>
+                <span className={LIST_PANEL_HEAD_META}>Free · Starter · Pro</span>
+              </div>
+              <ul className={LIST_PANEL_LIST}>
+                {TOOLS.map((t) => (
+                  <li key={t.title}>
+                    <Link href={t.locked ? "/pricing" : t.href} className={ITEM_LINK}>
+                      <span className="min-w-0 flex-1">
+                        <span className={cx(LIST_PANEL_TITLE, "transition-colors duration-150 group-hover:text-fg-2", t.locked ? "text-fg-3" : "text-fg")}>
+                          {t.title}
+                          {t.locked && <span className={PLAN_TAG}>{t.plan}</span>}
+                        </span>
+                        <span className={ITEM_DESC}>{t.desc}</span>
+                      </span>
+                      <span className="flex shrink-0 items-center gap-1.5 text-body-sm font-semibold text-fg-2">
+                        {t.locked ? (
+                          <>
+                            <span className="sr-only">{t.plan}+ 필요, </span>
+                            <span className="hidden sm:inline">요금제 보기</span>
+                          </>
+                        ) : (
+                          <span className="sr-only">바로가기</span>
+                        )}
+                        <span aria-hidden="true" className={ARROW}>→</span>
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* 브레이크아웃: Pro·팀비블 등급부터(Pro 미만은 들어가면 업그레이드 안내) */}
+            <div className="mt-8 border-t border-line pt-6">
+              <Link href="/trend-search/breakout" className="group inline-flex h-11 items-center gap-1.5 text-ui font-semibold text-fg transition-colors duration-150 hover:text-fg-2">
+                브레이크아웃
+                {!isProPlus && <span className="inline-flex items-center rounded border border-line-strong px-1 text-micro font-medium leading-[18px] text-fg-3">Pro</span>}
+                <span aria-hidden="true" className={ARROW}>→</span>
+              </Link>
+              <p className="text-body-sm text-fg-3">주제와 상관없이 어제 올라온 가로 롱폼 영상 중 구독자 수에 비해 조회수가 잘 나온 영상을 매일 모아 봅니다.</p>
+            </div>
           </div>
         </div>
-      </div>
+      </section>
     </main>
   );
 }
