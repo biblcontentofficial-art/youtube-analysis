@@ -15,6 +15,7 @@
  * 이 파일은 상대 경로 import 와 지울 수 있는 타입 문법만 쓴다.
  */
 import { getSupabase } from "../supabase";
+import { SHORTS_MAX_SEC } from "./rules";
 
 export type StepName = "purge" | "terms" | "views_d1" | "track" | "notify" | "brief";
 export const STEP_NAMES: StepName[] = ["purge", "terms", "views_d1", "notify", "track", "brief"];
@@ -259,7 +260,8 @@ function requireDb() {
 export const supabaseJobStore: JobStore = {
   async eligibleDates(dates) {
     const db = requireDb();
-    // 집계 대상 행: kind is null 이고, 분류 칼럼이 생기기 전 수집 행(category_id·outlier 모두 null)이 아닌 행(trend_dev.sql 머리 주석)
+    // 집계 대상 행: kind is null 이고, 분류 칼럼이 생기기 전 수집 행(category_id·outlier 모두 null)이 아니고(trend_dev.sql 머리 주석),
+    // 가로 롱폼인 행(rules.ts isLongFormRow 와 같은 조건, 소유자 결정 2026-10-16). or() 두 번은 AND 로 묶인다
     const found = await Promise.all(
       dates.map(async (d) => {
         const { data, error } = await db
@@ -268,6 +270,7 @@ export const supabaseJobStore: JobStore = {
           .eq("snapshot_date", d)
           .is("kind", null)
           .or("category_id.not.is.null,outlier.not.is.null")
+          .or(`video_format.eq.long,and(video_format.is.null,duration_sec.gt.${SHORTS_MAX_SEC})`)
           .limit(1);
         if (error) throw new Error(`breakout_videos: ${error.message}`);
         return (data?.length ?? 0) > 0 ? d : null;

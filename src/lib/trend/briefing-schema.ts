@@ -18,10 +18,8 @@ import { REMIX_SYSTEM, VIDEO_ID_RE } from "./remix-schema";
 // ─── 한도 ───────────────────────────────────────────────────────────────
 
 export const BRIEFING_LIMITS = {
-  /** 롱폼 입력 영상 수(조회수÷구독자 상위) */
+  /** 가로 롱폼 입력 영상 수(조회수÷구독자 상위). 소유자 결정 2026-10-16: 쇼츠 목록은 넣지 않는다 */
   long: 30,
-  /** 쇼츠 입력 영상 수 */
-  shorts: 20,
   /** 썸네일 이미지 블록 수(롱폼 상위) */
   thumbnails: 12,
   /** 급상승 키워드 입력 수 */
@@ -186,7 +184,7 @@ export function buildBriefingPrompt({
       : "오늘 뜨는 포맷, 제목 패턴, 주제를 3~5줄로 요약해 줘. 썸네일 이미지는 없으니 썸네일 줄은 쓰지 않는다.",
     "- 각 줄은 60자 이내, 관찰한 근거(몇 개 중 몇 개 같은 개수)를 짧게 붙인다.",
     "- 각 줄의 label 은 포맷, 제목, 썸네일, 주제 중 하나.",
-    "- 롱폼과 쇼츠가 다르면 long_note, shorts_note 에 한 줄씩. 다르지 않으면 빈 문자열.",
+    "- 영상은 모두 가로 롱폼이다(쇼츠·세로·라이브 제외). 롱폼만의 경향이 따로 있으면 long_note 에 한 줄, 없으면 빈 문자열. shorts_note 는 빈 문자열.",
   ];
   if (images) lines.push(`- 썸네일 이미지는 videos 의 롱폼(format long) 앞에서부터 ${thumbnails}개와 같은 순서다.`);
   if (terms.length) lines.push("- rising_terms 는 최근 7일 여러 채널 제목에 함께 나온 단어와 그 채널 수다.");

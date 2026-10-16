@@ -1,11 +1,13 @@
 /**
  * /trend-search/breakout/channels 스켈레톤(DESIGN 6.19). 서버가 로그인 확인·채널 집계를 읽는 동안
  * 섹션 머리 → 탭 줄 → 제목 → 기준 줄 → 칩 줄 → 표 행 8줄을 실제와 같은 폭·여백·높이로 그린다. 인증·데이터 호출 없음.
+ * - 칩은 기간 · 구독자 두 묶음(길이 칩 없음, 가로 롱폼 전용 2026-10-16). 캡션은 고정 문구라 실제 글자(COUNTED_CAPTION)를 그린다.
  * - 제목·설명은 고정 문구라 실제 글자를 그린다(폭에 따라 설명이 두 줄이 되거나 기준 줄이 옆으로 가는 것까지 실제와 같게).
  * - 1024 이상: 표 머리 + 행(아바타 32px · 채널명·최근 영상 두 줄 · 등장 일수 · 영상 수 · 구독자 · 최근 등장, 오른쪽 pr-14 는 실제 표와 같은 카카오 버튼 여백)
  * - 1024 미만: 목록 행(아바타 · 채널명 24px · 최근 영상 24px · 메타 한 줄 23.8px, 실제 행 106.8px(경계선 포함)과 같게)
  */
 import { SectionHeader } from "@/components/ui/section-header";
+import { COUNTED_CAPTION } from "@/lib/trend/rules";
 import { BreakoutTabs } from "../_components/BreakoutTabs";
 import { CHANNELS_DESC } from "./channels-view";
 
@@ -37,7 +39,7 @@ export default function ChannelsLoading() {
         </div>
 
         <div aria-hidden="true" className={PULSE}>
-          {/* 기간 · 길이 · 구독자 칩 + 캡션 */}
+          {/* 기간 · 구독자 칩 + 캡션 */}
           <div className="mt-8 flex flex-wrap items-center gap-x-3 gap-y-2">
             <div className="flex gap-1.5">
               <div className={`${CHIP_BOX} w-[77px] sm:w-[73px]`} />
@@ -45,17 +47,11 @@ export default function ChannelsLoading() {
             </div>
             <span className="hidden h-5 w-px bg-line sm:block" />
             <div className="flex gap-1.5">
-              <div className={`${CHIP_BOX} w-12 sm:w-11`} />
-              <div className={`${CHIP_BOX} w-12 sm:w-11`} />
-              <div className={`${CHIP_BOX} w-12 sm:w-11`} />
-            </div>
-            <span className="hidden h-5 w-px bg-line sm:block" />
-            <div className="flex gap-1.5">
               <div className={`${CHIP_BOX} w-[77px] sm:w-[73px]`} />
               <div className={`${CHIP_BOX} w-[69px] sm:w-[65px]`} />
             </div>
             <span className="hidden h-5 w-px bg-line sm:block" />
-            <div className="flex h-[19.5px] items-center"><div className={`${BAR} h-3 w-52`} /></div>
+            <p className="text-caption text-fg-3">{COUNTED_CAPTION}</p>
           </div>
 
           {/* 1024 이상: 표 */}

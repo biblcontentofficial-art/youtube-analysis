@@ -164,14 +164,14 @@ test("스키마: label enum 은 남기고 배열 개수 제약은 보내지 않�
 
 const counted = (id, dur, extra = {}) => ({ video_id: id, title: `제목 ${id}`, duration_sec: dur, view_count: 1000, subscriber_count: 10, kind: null, category_id: "22", outlier: 2, ...extra });
 
-function mockStore({ long = [], shorts = [], terms = [], termsError = false } = {}) {
+function mockStore({ long = [], terms = [], termsError = false } = {}) {
   const saved = [];
   const calls = { topVideos: 0 };
   return {
     saved,
     calls,
     store: {
-      async topVideos() { calls.topVideos++; return { long, shorts }; },
+      async topVideos() { calls.topVideos++; return long; },
       async risingTerms() { if (termsError) throw new Error("rpc down"); return terms; },
       async saveBriefing(row) { saved.push(row); },
     },
@@ -224,10 +224,17 @@ test("운영 기본값(키·스위치 없음)으로 만든 brief 도 skipped(no_
   assert.deepEqual(u, { status: "unavailable" });
 });
 
-test("dry: 키가 없어도 Claude 를 부르지 않고 prompt_chars·videos 를 돌려준다(집계 대상만 센다)", async () => {
+test("dry: 키가 없어도 Claude 를 부르지 않고 prompt_chars·videos 를 돌려준다(집계 대상 = 가로 롱폼만 센다)", async () => {
   const m = mockStore({
-    long: [counted("AAAAAAAAAAA", 600), counted("CCCCCCCCCCC", 700, { kind: "news" }), counted("DDDDDDDDDDD", 800, { category_id: null, outlier: null })],
-    shorts: [counted("BBBBBBBBBBB", 30)],
+    long: [
+      counted("AAAAAAAAAAA", 600),
+      counted("CCCCCCCCCCC", 700, { kind: "news" }),
+      counted("DDDDDDDDDDD", 800, { category_id: null, outlier: null }),
+      // 저장소가 섞어 보내도 쇼츠·세로·라이브는 뺀다(소유자 결정 2026-10-16)
+      counted("BBBBBBBBBBB", 30),
+      counted("EEEEEEEEEEE", 900, { video_format: "vertical" }),
+      counted("FFFFFFFFFFF", 5400, { video_format: "live" }),
+    ],
     terms: [{ term: "가을 차박", channels: 4 }],
   });
   const call = okCall();
@@ -236,8 +243,8 @@ test("dry: 키가 없어도 Claude 를 부르지 않고 prompt_chars·videos 를
   assert.equal(r.status, "ok");
   assert.equal(r.detail.dry, true);
   assert.equal(r.detail.would_call, false);
-  assert.equal(r.detail.videos, 2);
-  assert.equal(r.detail.videos_long, 1);
+  assert.equal(r.detail.videos, 1);
+  assert.equal(r.detail.videos_shorts, undefined, "쇼츠 목록은 넣지 않는다");
   assert.equal(r.detail.thumbnails, 1);
   assert.ok(r.detail.prompt_chars > 100);
   assert.deepEqual(r.detail.rising_terms, ["가을 차박"]);
@@ -252,7 +259,7 @@ test("집계 대상 행이 없으면 skipped(no_breakout_rows)", async () => {
 });
 
 test("성공: trend_briefings 한 행(version 2, model·usage·input_stats·body), 급상승 키워드 실패는 생략하고 계속", async () => {
-  const m = mockStore({ long: [counted("AAAAAAAAAAA", 600)], shorts: [counted("BBBBBBBBBBB", 30)], termsError: true });
+  const m = mockStore({ long: [counted("AAAAAAAAAAA", 600)], termsError: true });
   const call = okCall();
   const b = B.createBrief({ store: () => m.store, call, aiEnabled: () => true, hasKey: () => true, now: () => NOW });
   const r = await b.runBrief("2026-10-14", { dry: false, deadline: NOW + 55_000 });
@@ -270,6 +277,21 @@ test("성공: trend_briefings 한 행(version 2, model·usage·input_stats·body
   assert.deepEqual(row.body, goodRaw);
   assert.equal(row.input_stats.rising_terms_error, "rpc down");
   assert.equal(call.seen[0].filter((x) => x.type === "image").length, 1);
+});
+
+test("가로 롱폼이 없고 쇼츠·세로만 있으면 skipped(no_breakout_rows), 모델이 shorts_note 를 써도 저장은 null", async () => {
+  const only = mockStore({ long: [counted("BBBBBBBBBBB", 30), counted("EEEEEEEEEEE", 900, { video_format: "vertical" })] });
+  const b0 = B.createBrief({ store: () => only.store, call: okCall(), aiEnabled: () => true, hasKey: () => true, now: () => NOW });
+  assert.deepEqual(await b0.runBrief("2026-10-14", { dry: false, deadline: NOW + 55_000 }), { status: "skipped", detail: "no_breakout_rows" });
+
+  const m = mockStore({ long: [counted("AAAAAAAAAAA", 600)] });
+  const call = okCall({ ...goodRaw, shorts_note: "쇼츠는 짧아요." });
+  const b = B.createBrief({ store: () => m.store, call, aiEnabled: () => true, hasKey: () => true, now: () => NOW });
+  const r = await b.runBrief("2026-10-14", { dry: false, deadline: NOW + 55_000 });
+  assert.equal(r.status, "ok");
+  assert.equal(m.saved[0].shorts_note, null);
+  const text = call.seen[0][0].text;
+  assert.ok(text.includes("shorts_note 는 빈 문자열"));
 });
 
 test("before_output 이고 남은 시간 25초 이상이면 이미지 없이 한 번 더", async () => {

@@ -2,6 +2,7 @@
  * cron 단계 views_d1 · track (A3 조회수 추적, roadmap T5). 테이블은 supabase/migrations/trend_dev.sql 의 breakout_views.
  *
  * views_d1(scope 'date', 따라잡기): copyD1(date)
+ *   가로 롱폼 전용(소유자 결정 2026-10-16): isCountedRow 가 쇼츠·세로·라이브를 빼므로 그런 영상은 복사·재측정하지 않는다(쿼터 절약).
  *   breakout_videos(snapshot_date = date) 중 집계 대상 행(isCountedRow)이고 collected_at < d1Cutoff(date) 인 행의
  *   view_count 를 breakout_views(day_offset 1, snapshot_date = 게시 날짜, measured_at = 그 행의 collected_at)로
  *   insert on conflict do nothing. 늦게 처리해도(따라잡기) 원래 수집 시각으로 판단하므로 부푼 값을 넣지 않는다.
@@ -227,7 +228,7 @@ export const supabaseTrackStore: TrackStore = {
     return readAll<SourceRow>("breakout_videos", (from, to) =>
       db
         .from("breakout_videos")
-        .select("video_id,view_count,collected_at,kind,category_id,outlier")
+        .select("video_id,view_count,collected_at,kind,category_id,outlier,video_format,duration_sec")
         .eq("snapshot_date", date)
         .order("video_id")
         .range(from, to),

@@ -10,20 +10,20 @@
  *   RISING_SHOW_MULTIPLIER 이상일 때만 '▲ n배' positive 글자. 이전 0곳이면 '새로 등장' 태그.
  * - 흰색은 정렬 기준 열(채널 수)·최근 채널 수·주제어에만. 상승 표시는 positive 글자 + ▲ 만(색 면 없음).
  * - 빈 상태(sparse·empty·none)는 6.20 상자, 불러오기 실패(error)는 6.13 오류 상자(빈 상태 문구로 떨어지지 않음).
- * - C8 '내 채널에 맞는 주제'(roadmap T10): 칩 줄 아래·표 위. fit 이 없으면 그리지 않는다. 카드 데이터는 롱폼 급상승 키워드로
- *   고르므로 롱폼 칩이고 표가 있는 상태(rising·top)에서만 보인다. Starter 미만은 잠금 줄(6.29: 라벨 fg-3 + Starter 태그, 자물쇠·흐림 없음),
+ * - 가로 롱폼 전용(소유자 결정 2026-10-16: 쇼츠·세로·라이브 제외). 길이 칩은 없고 캡션 줄(COUNTED_CAPTION)에 기준을 적는다.
+ * - C8 '내 채널에 맞는 주제'(roadmap T10): 캡션 줄 아래·표 위. fit 이 없으면 그리지 않는다. 카드 데이터는 같은 급상승 키워드로
+ *   고르므로 표가 있는 상태(rising·top)에서만 보인다. Starter 미만은 잠금 줄(6.29: 라벨 fg-3 + Starter 태그, 자물쇠·흐림 없음),
  *   그 밖은 클라이언트 잎 TrendFitCard(이 화면은 Claude 를 부르지 않고 기다리지도 않는다).
  */
 import Link from "next/link";
 import { SectionHeader } from "@/components/ui/section-header";
-import { CHIP } from "@/components/ui/chip";
 import { cx } from "@/components/ui/button";
 import { badgeClass } from "@/components/ui/badge";
 import { InfoIcon, WarningIcon } from "@/components/ui/icons";
 import { DerivedNotice } from "@/components/ui/notice";
 import { NUM, ROW, TABLE, TD, TH, TH_SORT_ACTIVE } from "@/components/ui/table";
-import { MIN_PRIOR_DAYS, MIN_RECENT_DAYS, RISING_SHOW_MULTIPLIER } from "@/lib/trend/rules";
-import type { RisingFormat, RisingResult, RisingRow, RisingSample, RisingWindow } from "@/lib/trend/rising";
+import { COUNTED_CAPTION, MIN_PRIOR_DAYS, MIN_RECENT_DAYS, RISING_SHOW_MULTIPLIER } from "@/lib/trend/rules";
+import type { RisingResult, RisingRow, RisingSample, RisingWindow } from "@/lib/trend/rising";
 import { BreakoutTabs } from "../_components/BreakoutTabs";
 import { TrendFitCard, type TrendFitPreview } from "./TrendFitCard";
 
@@ -32,14 +32,6 @@ export type KeywordsFit = { kind: "locked" } | { kind: "card"; registered: boole
 
 /** 잠금 태그(DESIGN 6.12 Pro 모양, 글자만 Starter. 트렌드 서치 허브 PLAN_TAG 와 같은 값) */
 const PLAN_TAG = "inline-flex items-center rounded border border-line-strong px-1 text-micro leading-[18px] text-fg-3";
-
-const FORMATS: { key: RisingFormat; label: string }[] = [
-  { key: "long", label: "롱폼" },
-  { key: "shorts", label: "쇼츠" },
-];
-
-const PAGE_PATH = "/trend-search/breakout/keywords";
-const DEFAULT_HREF: Record<RisingFormat, string> = { long: PAGE_PATH, shorts: `${PAGE_PATH}?format=shorts` };
 
 /** 'YYYY-MM-DD' → 'M/D' */
 function md(date: string): string {
@@ -249,14 +241,14 @@ function FitLocked({ className }: { className?: string }) {
   );
 }
 
-/** C8 자리(칩 줄 아래). 롱폼이고 표가 있는 상태에서만 */
+/** C8 자리(캡션 줄 아래). 표가 있는 상태에서만 */
 function FitSlot({ data, fit, heading }: { data: RisingResult; fit?: KeywordsFit; heading: "h2" | "h3" }) {
-  if (!fit || data.format !== "long" || (data.state !== "rising" && data.state !== "top")) return null;
+  if (!fit || (data.state !== "rising" && data.state !== "top")) return null;
   if (fit.kind === "locked") return <FitLocked className="mt-6" />;
   return <TrendFitCard registered={fit.registered} mode={data.window?.mode ?? null} heading={heading} preview={fit.preview} className="mt-6" />;
 }
 
-/** 상태에 맞는 본문(칩 줄 아래) */
+/** 상태에 맞는 본문(캡션 줄 아래) */
 function Body({ data }: { data: RisingResult }) {
   const w = data.window;
   switch (data.state) {
@@ -277,7 +269,7 @@ function Body({ data }: { data: RisingResult }) {
         <EmptyBox
           className="mt-6"
           title="기준을 넘는 주제어가 없습니다."
-          body={data.format === "shorts" ? "쇼츠는 제목이 짧아 주제어가 적게 잡혀요. 롱폼으로 바꿔 보세요." : "쇼츠로 바꿔 보세요."}
+          body="수집 날짜가 쌓이면 늘어납니다. 내일 다시 확인해 주세요."
         />
       );
     case "top":
@@ -296,16 +288,13 @@ function Body({ data }: { data: RisingResult }) {
   }
 }
 
-/** 본문(제목·설명·기준 줄·칩·표나 상태 상자). 섹션 머리·탭 줄은 그리지 않는다 */
+/** 본문(제목·설명·기준 줄·캡션·표나 상태 상자). 섹션 머리·탭 줄은 그리지 않는다 */
 export function KeywordsSection({
   data,
-  hrefs = DEFAULT_HREF,
   heading = "h1",
   fit,
 }: {
   data: RisingResult;
-  /** 롱폼·쇼츠 칩 주소(미리보기는 자기 주소를 넘긴다) */
-  hrefs?: Record<RisingFormat, string>;
   heading?: "h1" | "h2";
   /** C8 카드 자리(없으면 그리지 않음) */
   fit?: KeywordsFit;
@@ -321,15 +310,7 @@ export function KeywordsSection({
         <WindowLine state={data.state} w={data.window} />
       </div>
 
-      <div className="mt-8 flex flex-wrap items-center gap-x-3 gap-y-2">
-        <nav aria-label="영상 길이" className="flex gap-1.5">
-          {FORMATS.map((f) => (
-            <Link key={f.key} href={hrefs[f.key]} aria-current={f.key === data.format ? "page" : undefined} className={CHIP}>{f.label}</Link>
-          ))}
-        </nav>
-        <span aria-hidden="true" className="hidden h-5 w-px bg-line sm:block" />
-        <p className="text-caption text-fg-3">뉴스·홈쇼핑·정치·이슈 채널은 빼고 셉니다</p>
-      </div>
+      <p className="mt-6 text-caption text-fg-3">{COUNTED_CAPTION}</p>
 
       <FitSlot data={data} fit={fit} heading={heading === "h1" ? "h2" : "h3"} />
       <Body data={data} />
@@ -340,12 +321,10 @@ export function KeywordsSection({
 /** 탭 페이지 전체(로그인 확인 뒤). 로컬 미리보기에서도 재사용한다 */
 export function KeywordsView({
   data,
-  hrefs,
   badge,
   fit,
 }: {
   data: RisingResult;
-  hrefs?: Record<RisingFormat, string>;
   badge?: number;
   fit?: KeywordsFit;
 }) {
@@ -354,7 +333,7 @@ export function KeywordsView({
       <div className="mx-auto w-full max-w-wide px-6 py-10 md:py-14 lg:px-8">
         <SectionHeader caption="유튜브 트렌드 서치" label="RISING" />
         <BreakoutTabs current="keywords" badge={badge} />
-        <KeywordsSection data={data} hrefs={hrefs} fit={fit} />
+        <KeywordsSection data={data} fit={fit} />
       </div>
     </main>
   );

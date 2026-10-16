@@ -132,12 +132,32 @@ test("규칙 상수: SHORTS_MAX_SEC 는 breakout.ts 와 같다, 일반어 시험
   assert.equal(R.GENERIC_WORDS.size, 14);
 });
 
-test("isCountedRow: kind 있음·분류 칼럼 전 행 제외", () => {
-  assert.equal(R.isCountedRow({ kind: null, category_id: "24", outlier: 1.2 }), true);
-  assert.equal(R.isCountedRow({ kind: null, category_id: null, outlier: 0.8 }), true);
-  assert.equal(R.isCountedRow({ kind: "news", category_id: "25", outlier: 3 }), false);
-  assert.equal(R.isCountedRow({ kind: null, category_id: null, outlier: null }), false);
+test("isCountedRow: kind 있음·분류 칼럼 전 행·가로 롱폼 아닌 행 제외", () => {
+  const LONG = { video_format: "long", duration_sec: 600 };
+  assert.equal(R.isCountedRow({ kind: null, category_id: "24", outlier: 1.2, ...LONG }), true);
+  assert.equal(R.isCountedRow({ kind: null, category_id: null, outlier: 0.8, ...LONG }), true);
+  assert.equal(R.isCountedRow({ kind: "news", category_id: "25", outlier: 3, ...LONG }), false);
+  assert.equal(R.isCountedRow({ kind: null, category_id: null, outlier: null, ...LONG }), false);
   assert.equal(R.isLegacyRow({ kind: null, category_id: null, outlier: null }), true);
+  // 쇼츠·세로·라이브는 집계하지 않는다(소유자 결정 2026-10-16)
+  for (const video_format of ["shorts", "vertical", "live"]) {
+    assert.equal(R.isCountedRow({ kind: null, category_id: "24", outlier: 1.2, video_format, duration_sec: 900 }), false, video_format);
+  }
+  // 칼럼을 읽지 않은 행(둘 다 없음)은 롱폼으로 보지 않는다
+  assert.equal(R.isCountedRow({ kind: null, category_id: "24", outlier: 1.2 }), false);
+});
+
+test("isLongFormRow: video_format 우선, 없으면 180초 초과만", () => {
+  assert.equal(R.isLongFormRow({ video_format: "long", duration_sec: 600 }), true);
+  assert.equal(R.isLongFormRow({ video_format: "vertical", duration_sec: 600 }), false);
+  assert.equal(R.isLongFormRow({ video_format: "live", duration_sec: 7200 }), false);
+  assert.equal(R.isLongFormRow({ video_format: "shorts", duration_sec: 40 }), false);
+  // 칼럼 추가 전 수집분(video_format null): 길이로만
+  assert.equal(R.isLongFormRow({ video_format: null, duration_sec: 181 }), true);
+  assert.equal(R.isLongFormRow({ video_format: null, duration_sec: 180 }), false);
+  assert.equal(R.isLongFormRow({ video_format: null, duration_sec: null }), false);
+  // video_format 이 long 이면 길이가 짧게 적혀 있어도 롱폼(SQL coalesce 와 같은 순서)
+  assert.equal(R.isLongFormRow({ video_format: "long", duration_sec: 100 }), true);
 });
 
 // ─── 가상 제목 40개 ────────────────────────────────────────────────────
@@ -160,16 +180,18 @@ test("가상 제목 40개", async (t) => {
 // ─── terms 집계(순수 부분) ─────────────────────────────────────────────
 
 test("buildTermRows: 서로 다른 채널 수·영상 수·대표 영상·길이 구분·말뭉치 근거 어간화", () => {
-  const row = (video_id, channel_id, title, view_count, duration_sec = 600) => ({
-    video_id, channel_id, title, view_count, duration_sec, kind: null, category_id: "24", outlier: 1,
+  const row = (video_id, channel_id, title, view_count, duration_sec = 600, video_format = null) => ({
+    video_id, channel_id, title, view_count, duration_sec, video_format, kind: null, category_id: "24", outlier: 1,
   });
   const rows = [
     row("v1", "c1", "맨유 승리 요약", 100),
     row("v2", "c1", "맨유가 또 이겼다", 300), // 같은 채널: 채널 수는 1 그대로
     row("v3", "c2", "맨유의 새 감독", 50),
     row("v4", "c3", "맨유 감독 인터뷰", 900),
-    row("v5", "c4", "맨유 하이라이트 #맨유 #shorts", 10, 40), // 쇼츠
-    row("v6", "c5", "디스플레이 비교", 5),
+    row("v5", "c4", "맨유 하이라이트 #맨유 #shorts", 10, 40), // 쇼츠(길이로 판정): 세지 않는다
+    row("v6", "c5", "디스플레이 비교", 5, 600, "long"),
+    row("v7", "c6", "맨유 세로 브이로그", 20, 600, "vertical"), // 세로: 세지 않는다
+    row("v8", "c7", "맨유 경기 라이브 다시보기", 30, 7200, "live"), // 라이브: 세지 않는다
   ];
   const out = TERMS.buildTermRows(rows, ["감독"]);
   const long = Object.fromEntries(out.long.map((r) => [`${r.term_type}:${r.term}`, r]));
@@ -180,12 +202,12 @@ test("buildTermRows: 서로 다른 채널 수·영상 수·대표 영상·길이
   assert.equal(long["word:감독"].channel_count, 2);
   assert.ok(long["word:디스플레이"], "디스플레이 보존");
   assert.equal(out.long[0].term, "맨유", "채널 수 순 정렬");
-  const shorts = Object.fromEntries(out.shorts.map((r) => [`${r.term_type}:${r.term}`, r]));
-  assert.equal(shorts["word:맨유"].channel_count, 1);
-  assert.equal(shorts["tag:맨유"].channel_count, 1);
-  assert.equal(shorts["tag:shorts"], undefined);
-  assert.equal(shorts["word:하이라이트"], undefined);
-  assert.deepEqual(out.videosByFormat, { long: 5, shorts: 1 });
+  // 가로 롱폼 전용: 쇼츠·세로·라이브 행은 어떤 단어도 만들지 않고, shorts 는 언제나 빈 배열
+  assert.equal(long["tag:맨유"], undefined);
+  assert.equal(long["word:브이로그"], undefined);
+  assert.equal(long["word:경기"], undefined);
+  assert.deepEqual(out.shorts, []);
+  assert.deepEqual(out.videosByFormat, { long: 5, excluded: 3 });
   // 같은 입력이면 같은 결과(두 번 실행해도 행 수 같음)
   assert.deepEqual(TERMS.buildTermRows(rows, ["감독"]).long, out.long);
 });

@@ -13,7 +13,8 @@
  * - 흰색·화살표는 실제로 순서를 정한 열(7일 뒤 · 다음 날, 7일 값이 없는 날짜면 3일 뒤)의 숫자에만. 제목·채널은 유튜브로 나가는 링크(.ext, 새 창).
  * - 정렬 기준 상위 50개만 그린다(전체가 더 많으면 표 위 캡션 '정렬 기준 상위 50개').
  * - 빈 상태(empty)는 6.20 상자, 불러오기 실패(error)는 6.13 오류 상자. 7일 값이 아직 없으면 표 위 6.13 안내 상자에 첫 7일 날짜.
- * - 칩 주소는 기본값(롱폼 · 7일 증가 배수순)을 빼고 만든다. 미리보기는 basePath 에 자기 주소를 넘긴다.
+ * - 가로 롱폼 전용(소유자 결정 2026-10-16: 쇼츠·세로·라이브 제외). 길이 칩은 없고 캡션(COUNTED_CAPTION)에 기준을 적는다.
+ * - 칩 주소는 기본값(7일 증가 배수순)을 빼고 만든다. 미리보기는 basePath 에 자기 주소를 넘긴다.
  */
 import Link from "next/link";
 import type { ReactNode } from "react";
@@ -24,12 +25,10 @@ import { badgeClass } from "@/components/ui/badge";
 import { InfoIcon, WarningIcon } from "@/components/ui/icons";
 import { DerivedNotice } from "@/components/ui/notice";
 import { NUM, ROW, TABLE, TD, TH, TH_SORT, TH_SORT_ACTIVE } from "@/components/ui/table";
-import { GROWTH_LIMIT, GROWTH_SHOW_MULTIPLIER, SHORTS_MAX_SEC, cellState, classifyFlow, growthMultiplier, type Flow } from "@/lib/trend/rules";
+import { COUNTED_CAPTION, GROWTH_LIMIT, GROWTH_SHOW_MULTIPLIER, cellState, classifyFlow, growthMultiplier, type Flow } from "@/lib/trend/rules";
 import {
-  GROWTH_FORMATS,
   GROWTH_SORTS,
   type GrowthDate,
-  type GrowthFormat,
   type GrowthResult,
   type GrowthRow,
   type GrowthSort,
@@ -41,7 +40,6 @@ const PAGE_PATH = "/trend-search/breakout/growth";
 /** 섹션 설명(spec 3.3). 스켈레톤(loading.tsx)도 같은 글자를 그려 줄바꿈·높이를 실제와 맞춘다 */
 export const GROWTH_DESC = "같은 영상을 게시 다음 날, 3일 뒤, 7일 뒤 아침에 다시 잰 조회수입니다. 꾸준히 크는 영상과 초반에만 몰린 영상을 나눠 봅니다.";
 
-const FORMAT_LABEL: Record<GrowthFormat, string> = { long: "롱폼", shorts: "쇼츠" };
 const SORT_LABEL: Record<GrowthSort, string> = { growth: "7일 증가 배수순", v7: "7일 조회수순", v1: "다음 날 조회수순" };
 const FLOW_LABEL: Record<"steady" | "early", string> = { steady: "꾸준히 성장", early: "초반 집중" };
 
@@ -84,12 +82,11 @@ function chipSuffix(d: GrowthDate): string | null {
   return d.hasD3 ? "3일까지" : "다음 날만";
 }
 
-/** 칩 주소. 기본값(롱폼 · 7일 증가 배수순)은 쿼리에서 뺀다. basePath 에 이미 쿼리가 있으면 이어 붙인다 */
-function chipHref(basePath: string, cur: { date: string | null; format: GrowthFormat; sort: GrowthSort }, patch: Partial<{ date: string; format: GrowthFormat; sort: GrowthSort }>): string {
+/** 칩 주소. 기본값(7일 증가 배수순)은 쿼리에서 뺀다. basePath 에 이미 쿼리가 있으면 이어 붙인다 */
+function chipHref(basePath: string, cur: { date: string | null; sort: GrowthSort }, patch: Partial<{ date: string; sort: GrowthSort }>): string {
   const next = { ...cur, ...patch };
   const params = new URLSearchParams();
   if (next.date) params.set("date", next.date);
-  if (next.format !== GROWTH_FORMATS[0]) params.set("format", next.format);
   if (next.sort !== GROWTH_SORTS[0]) params.set("sort", next.sort);
   const qs = params.toString();
   if (!qs) return basePath;
@@ -200,7 +197,7 @@ function Thumb({ r, className }: { r: GrowthRow; className: string }) {
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={r.thumbnail ?? `https://i.ytimg.com/vi/${r.videoId}/mqdefault.jpg`} alt="" width={320} height={180} loading="lazy" decoding="async" className="aspect-video w-full object-cover" />
       <span className="tnum absolute bottom-1 right-1 rounded bg-canvas/80 px-1 py-0.5 text-micro font-semibold">
-        {r.durationSec <= SHORTS_MAX_SEC ? "쇼츠" : dur(r.durationSec)}
+        {dur(r.durationSec)}
       </span>
     </a>
   );
@@ -232,7 +229,7 @@ function effectiveSortCol(rows: GrowthRow[], sort: GrowthSort): SortCol {
  * 흐름 열 오른쪽 pr-14: 카카오 플로팅 버튼(right-6 size-14)이 1024~1375 폭에서 마지막 열 글자를 가리지 않게 비워 둔다(다른 탭 표와 같은 값).
  */
 function GrowthList({ data, basePath, rowHeading: RH }: { data: GrowthResult; basePath: string; rowHeading: "h2" | "h3" }) {
-  const cur = { date: data.date, format: data.format, sort: data.sort };
+  const cur = { date: data.date, sort: data.sort };
   const col = effectiveSortCol(data.rows, data.sort);
   const d7Active = col === "v7";
   const d3Active = col === "v3";
@@ -346,7 +343,7 @@ function Body({ data, basePath, rowHeading }: { data: GrowthResult; basePath: st
         <EmptyBox
           className="mt-6"
           title="이 날짜에 추적한 영상이 없습니다."
-          body={data.format === "shorts" ? "롱폼으로 바꿔 보세요." : "쇼츠로 바꿔 보세요."}
+          body="다른 게시 날짜를 골라 보세요."
         />
       )}
     </>
@@ -370,7 +367,7 @@ export function GrowthSection({
   heading?: "h1" | "h2";
 }) {
   const H = heading;
-  const cur = { date: data.date, format: data.format, sort: data.sort };
+  const cur = { date: data.date, sort: data.sort };
   return (
     <section aria-labelledby="growth-title">
       <div className="flex flex-wrap items-end justify-between gap-4">
@@ -400,19 +397,13 @@ export function GrowthSection({
       ) : null}
 
       <div className={cx("flex flex-wrap items-center gap-x-3 gap-y-2", data.state === "ok" && data.dates.length > 0 ? "mt-4" : "mt-8")}>
-        <nav aria-label="영상 길이" className="flex gap-1.5">
-          {GROWTH_FORMATS.map((f) => (
-            <Link key={f} href={chipHref(basePath, cur, { format: f })} aria-current={f === data.format ? "page" : undefined} className={CHIP}>{FORMAT_LABEL[f]}</Link>
-          ))}
-        </nav>
-        <Divider />
         <nav aria-label="정렬" className="flex flex-wrap gap-1.5">
           {GROWTH_SORTS.map((s) => (
             <Link key={s} href={chipHref(basePath, cur, { sort: s })} aria-current={s === data.sort ? "page" : undefined} className={CHIP}>{SORT_LABEL[s]}</Link>
           ))}
         </nav>
         <Divider />
-        <p className="text-caption text-fg-3">뉴스·홈쇼핑·정치·이슈 채널은 빼고 셉니다</p>
+        <p className="text-caption text-fg-3">{COUNTED_CAPTION}</p>
       </div>
 
       <Body data={data} basePath={basePath} rowHeading={heading === "h1" ? "h2" : "h3"} />

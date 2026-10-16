@@ -119,9 +119,11 @@ function mockStore({ source = {}, views = [] } = {}) {
   return { store, rows, log };
 }
 
-const counted = (id, at, views = 5000) => ({ video_id: id, view_count: views, collected_at: at, kind: null, category_id: "22", outlier: 1.2 });
-const legacy = (id, at) => ({ video_id: id, view_count: 9000, collected_at: at, kind: null, category_id: null, outlier: null });
-const news = (id, at) => ({ video_id: id, view_count: 9000, collected_at: at, kind: "news", category_id: "25", outlier: 2 });
+const counted = (id, at, views = 5000) => ({ video_id: id, view_count: views, collected_at: at, kind: null, category_id: "22", outlier: 1.2, video_format: "long", duration_sec: 600 });
+const legacy = (id, at) => ({ video_id: id, view_count: 9000, collected_at: at, kind: null, category_id: null, outlier: null, video_format: "long", duration_sec: 600 });
+const news = (id, at) => ({ video_id: id, view_count: 9000, collected_at: at, kind: "news", category_id: "25", outlier: 2, video_format: "long", duration_sec: 600 });
+/** 가로 롱폼이 아닌 행(쇼츠·세로·라이브). 집계 대상이 아니라 복사·재측정하지 않는다(2026-10-16) */
+const nonLong = (id, at, video_format, duration_sec = 600) => ({ ...counted(id, at), video_format, duration_sec });
 
 test("copyD1: 기한 안 집계 대상 행만 복사, measured_at = collected_at, 다시 돌리면 0행", async () => {
   const src = {
@@ -131,6 +133,9 @@ test("copyD1: 기한 안 집계 대상 행만 복사, measured_at = collected_at
       counted("c", "2026-10-15T10:00:00Z"), // 10-15 19시 KST: 느슨해도 늦음
       legacy("d", "2026-10-13T21:00:00Z"),
       news("e", "2026-10-13T21:00:00Z"),
+      nonLong("f", "2026-10-13T21:00:00Z", "shorts", 40),
+      nonLong("g", "2026-10-13T21:00:00Z", "vertical"),
+      nonLong("h", "2026-10-13T21:00:00Z", "live", 7200),
     ],
   };
   const m = mockStore({ source: src });
@@ -184,7 +189,12 @@ test("trackOffsets: 두 offset 을 한 줄로 50개씩, 응답에 없는 id 는 
   const d7 = ids("s", 130); // 2026-10-08
   const m = mockStore({
     source: {
-      "2026-10-12": [...d3.map((id) => counted(id, "2026-10-12T21:00:00Z")), legacy("old", "2026-10-12T21:00:00Z")],
+      "2026-10-12": [
+        ...d3.map((id) => counted(id, "2026-10-12T21:00:00Z")),
+        legacy("old", "2026-10-12T21:00:00Z"),
+        // 쇼츠·세로·라이브는 다시 재지 않는다(쿼터 절약). 호출 수·대상 수가 아래 기대값 그대로여야 한다
+        ...ids("x", 60).map((id, i) => nonLong(id, "2026-10-12T21:00:00Z", ["shorts", "vertical", "live"][i % 3], i % 3 === 0 ? 40 : 900)),
+      ],
       "2026-10-08": d7.map((id) => counted(id, "2026-10-15T01:00:00Z")),
     },
   });
@@ -275,8 +285,9 @@ test("defaultGrowthDate · firstD7Date · parseGrowthQuery", () => {
   assert.equal(G.firstD7Date([{ date: "2026-10-13", hasD3: false, hasD7: false }], "2026-10-15"), "2026-10-20");
   assert.equal(G.firstD7Date([], "2026-10-15"), "2026-10-21");
   assert.equal(G.firstD7Date([{ date: "2026-10-01", hasD3: true, hasD7: false }], "2026-10-15"), "2026-10-16");
-  assert.deepEqual(G.parseGrowthQuery({ date: "x", format: "zz", sort: "nope" }), { date: null, format: "long", sort: "growth" });
-  assert.deepEqual(G.parseGrowthQuery({ date: "2026-10-08", format: "shorts", sort: "v1" }), { date: "2026-10-08", format: "shorts", sort: "v1" });
+  assert.deepEqual(G.parseGrowthQuery({ date: "x", sort: "nope" }), { date: null, sort: "growth" });
+  // 가로 롱폼 전용: 예전 주소의 format 은 무시한다
+  assert.deepEqual(G.parseGrowthQuery({ date: "2026-10-08", format: "shorts", sort: "v1" }), { date: "2026-10-08", sort: "v1" });
 });
 
 test("buildGrowthResult: 정렬(null 뒤로)·상위 50개·total·날짜 없으면 기본 날짜", () => {
@@ -288,22 +299,22 @@ test("buildGrowthResult: 정렬(null 뒤로)·상위 50개·total·날짜 없으
     row("e", 5000, null, null), // 7일 측정 전
   ];
   const dates = [{ date: "2026-10-08", hasD3: true, hasD7: true }];
-  const g = G.buildGrowthResult({ q: { date: null, format: "long", sort: "growth" }, dates, rows, today: "2026-10-15" });
+  const g = G.buildGrowthResult({ q: { date: null, sort: "growth" }, dates, rows, today: "2026-10-15" });
   assert.equal(g.state, "ok");
   assert.equal(g.date, "2026-10-08");
   assert.deepEqual(g.rows.map((r) => r.videoId), ["d", "a", "b", "c", "e"]);
-  const v7 = G.buildGrowthResult({ q: { date: "2026-10-08", format: "long", sort: "v7" }, dates, rows, today: "2026-10-15" });
+  const v7 = G.buildGrowthResult({ q: { date: "2026-10-08", sort: "v7" }, dates, rows, today: "2026-10-15" });
   assert.deepEqual(v7.rows.map((r) => r.videoId), ["c", "d", "a", "b", "e"]);
-  const v1 = G.buildGrowthResult({ q: { date: "2026-10-08", format: "long", sort: "v1" }, dates, rows, today: "2026-10-15" });
+  const v1 = G.buildGrowthResult({ q: { date: "2026-10-08", sort: "v1" }, dates, rows, today: "2026-10-15" });
   assert.deepEqual(v1.rows.map((r) => r.videoId), ["e", "d", "a", "b", "c"]);
 
   const many = Array.from({ length: 120 }, (_, i) => row(`m${String(i).padStart(3, "0")}`, 1000, 2000, 1000 + i * 100));
-  const big = G.buildGrowthResult({ q: { date: "1999-01-01", format: "long", sort: "growth" }, dates, rows: many, today: "2026-10-15" });
+  const big = G.buildGrowthResult({ q: { date: "1999-01-01", sort: "growth" }, dates, rows: many, today: "2026-10-15" });
   assert.equal(big.rows.length, 50);
   assert.equal(big.total, 120);
   assert.equal(big.date, "2026-10-08", "칩 목록에 없는 날짜는 기본 날짜로");
 
-  const empty = G.buildGrowthResult({ q: { date: null, format: "long", sort: "growth" }, dates: [], rows: [], today: "2026-10-15" });
+  const empty = G.buildGrowthResult({ q: { date: null, sort: "growth" }, dates: [], rows: [], today: "2026-10-15" });
   assert.equal(empty.state, "empty");
   assert.equal(empty.firstD7, "2026-10-21");
 });

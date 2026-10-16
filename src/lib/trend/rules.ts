@@ -10,10 +10,8 @@
 /** 쇼츠 기준(초). src/lib/breakout.ts 의 SHORTS_MAX_SEC 와 같아야 한다(복제: 이 파일은 import 를 하지 않는다) */
 export const SHORTS_MAX_SEC = 180;
 
-/** A1: 최근 7일 서로 다른 채널 수 하한(롱폼). 소유자 결정 2026-10-15: 3곳 */
+/** A1: 최근 7일 서로 다른 채널 수 하한(가로 롱폼). 소유자 결정 2026-10-15: 3곳 */
 export const MIN_RECENT_CHANNELS = 3;
-/** A1: 쇼츠 하한. 소유자 결정 2026-10-15: 2곳(쇼츠는 하루 수집량이 롱폼의 1/3 안팎) */
-export const MIN_RECENT_CHANNELS_SHORTS = 2;
 /** A1: 최근 기간 수집 일수가 이보다 적으면 sparse */
 export const MIN_RECENT_DAYS = 3;
 /** A1: 이전 기간 수집 일수가 이보다 적으면 비교 대신 top(많이 나온 단어) */
@@ -88,19 +86,42 @@ export const ALLOW_TERMS = set(`냉장고 시카고 산티아고 샌디에이고
 /** 토크나이저에 넘기는 묶음 */
 export const TOKEN_RULES = { stopWords: STOP_WORDS, allowTerms: ALLOW_TERMS, tagStop: TAG_STOP };
 
-/** breakout_videos 행 중 집계에 쓰는 칼럼 */
-export type CountedRowLike = { kind: string | null; category_id: string | number | null; outlier: number | null };
+/**
+ * breakout_videos 행 중 집계에 쓰는 칼럼. 이 판정을 쓰는 select 는 반드시 video_format,duration_sec 를 같이 읽는다
+ * (빠뜨리면 롱폼 판정이 안 되어 모든 행이 집계에서 빠진다. 타입으로 막으려고 두 칼럼을 필수로 둔다).
+ */
+export type CountedRowLike = {
+  kind: string | null;
+  category_id: string | number | null;
+  outlier: number | null;
+  /** long | shorts | vertical | live. 칼럼 추가 전 수집분은 null */
+  video_format: string | null;
+  duration_sec: number | null;
+};
 
 /**
- * 집계 대상 행(trend_dev.sql 머리 주석과 같은 조건): kind 가 없고(뉴스·홈쇼핑·이슈 제외),
- * 분류 칼럼이 생기기 전 수집 행(kind·category_id·outlier 모두 null, 2026-10-07 의 221행)이 아닌 행.
+ * 가로 롱폼인가(소유자 결정 2026-10-16: 브레이크아웃 모든 탭은 가로 롱폼만, 쇼츠·세로·라이브 제외).
+ * video_format 이 있으면 'long' 만, 없으면(칼럼 추가 전 수집분) 길이가 SHORTS_MAX_SEC 초과일 때만 롱폼으로 본다.
+ * SQL 은 trend_longform_only.sql 의 coalesce(bv.video_format, case when bv.duration_sec > p_shorts_max then 'long' else 'shorts' end) = 'long'.
  */
-export function isCountedRow(row: CountedRowLike): boolean {
-  return row.kind == null && !(row.category_id == null && row.outlier == null);
+export function isLongFormRow(row: Pick<CountedRowLike, "video_format" | "duration_sec">): boolean {
+  if (row.video_format != null) return row.video_format === "long";
+  return row.duration_sec != null && Number(row.duration_sec) > SHORTS_MAX_SEC;
 }
 
+/**
+ * 집계 대상 행(trend_dev.sql 머리 주석 + trend_longform_only.sql 과 같은 조건): kind 가 없고(뉴스·홈쇼핑·이슈 제외),
+ * 분류 칼럼이 생기기 전 수집 행(kind·category_id·outlier 모두 null, 2026-10-07 의 221행)이 아니고, 가로 롱폼(isLongFormRow)인 행.
+ */
+export function isCountedRow(row: CountedRowLike): boolean {
+  return row.kind == null && !(row.category_id == null && row.outlier == null) && isLongFormRow(row);
+}
+
+/** 화면 캡션(급상승 키워드·지금 크는 채널·성장 추적 공통). 스켈레톤도 같은 글자를 그린다 */
+export const COUNTED_CAPTION = "가로 롱폼 영상 기준(쇼츠·세로·라이브 제외), 뉴스·홈쇼핑·정치·이슈 채널은 빼고 셉니다";
+
 /** 분류 칼럼이 생기기 전 수집 행(집계 제외, detail.excluded_legacy 로 센다) */
-export function isLegacyRow(row: CountedRowLike): boolean {
+export function isLegacyRow(row: Pick<CountedRowLike, "kind" | "category_id" | "outlier">): boolean {
   return row.kind == null && row.category_id == null && row.outlier == null;
 }
 

@@ -23,6 +23,10 @@
 --  2026-10-07 의 221행, collected_at 2026-10-08 07시 UTC)이 아닌 행.
 --  그 221행은 뉴스·홈쇼핑 판정을 받지 않아(채널명으로만 봐도 약 50개가 뉴스) 집계에서 뺀다.
 --  SQL 조건: bv.kind is null and not (bv.category_id is null and bv.outlier is null)
+--
+-- 2026-10-16 가로 롱폼 전용: trend_longform_only.sql 이 이 파일의 trend_rising_window · trend_recurring_channels ·
+--  trend_growth 를 같은 인자로 덮어쓴다(video_format 으로 쇼츠·세로·라이브 제외). 이 파일을 다시 실행했다면
+--  trend_longform_only.sql 도 바로 이어서 다시 실행한다(아래 세 함수의 길이 조건은 예전 판정이다).
 -- ═══════════════════════════════════════════════════════════════
 
 

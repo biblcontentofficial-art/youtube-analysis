@@ -5,7 +5,8 @@
  * runBrief(date, { dry, deadline })
  *   1. dry 가 아니고 AI 를 부를 수 없으면(claude.ts: 키 없음 또는 AI_FEATURES_ENABLED 꺼짐) DB 를 읽지 않고 바로 skipped.
  *      detail 은 키가 없으면 'no_api_key', 키는 있는데 스위치가 꺼져 있으면 'ai_disabled'. trend_briefings 에 쓰지 않는다.
- *   2. 그날 집계 대상 행(isCountedRow) 중 조회수÷구독자(ratio) 상위 롱폼 30·쇼츠 20. 없으면 skipped(no_breakout_rows).
+ *   2. 그날 집계 대상 행(isCountedRow: 가로 롱폼만, 소유자 결정 2026-10-16) 중 조회수÷구독자(ratio) 상위 30. 없으면 skipped(no_breakout_rows).
+ *      쇼츠 목록은 넣지 않는다(프롬프트는 shorts_note 를 빈 문자열로 쓰게 하고, 검증이 null 로 바꾼다).
  *      프롬프트에는 { title, format, duration_sec, view_count, subscriber_count } 만(outlier·ratio 제외).
  *   3. rpc trend_rising_window → trend_rising_terms 로 그날 기준 롱폼 급상승 키워드 상위 15(실패·자료 부족이면 생략).
  *   4. 롱폼 상위 12개 썸네일 이미지 블록(주소는 video_id 로 서버가 만든다).
@@ -45,7 +46,6 @@ export const BRIEF_RETRY_MIN_MS = 25_000;
 export type BriefSourceRow = CountedRowLike & {
   video_id: string;
   title: string | null;
-  duration_sec: number | null;
   view_count: number | null;
   subscriber_count: number | null;
 };
@@ -65,8 +65,8 @@ export type BriefingRow = {
 
 /** DB 접근(시험에서는 모의 객체로 바꾼다) */
 export interface BriefStore {
-  /** 그날 집계 대상 행 중 ratio 상위(롱폼 longLimit·쇼츠 shortsLimit) */
-  topVideos(date: string, longLimit: number, shortsLimit: number): Promise<{ long: BriefSourceRow[]; shorts: BriefSourceRow[] }>;
+  /** 그날 집계 대상 행(가로 롱폼) 중 ratio 상위 limit 개 */
+  topVideos(date: string, limit: number): Promise<BriefSourceRow[]>;
   /** 그날 기준 롱폼 급상승 키워드 상위 limit. 자료가 부족하면 빈 배열 */
   risingTerms(date: string, limit: number): Promise<BriefingTerm[]>;
   saveBriefing(row: BriefingRow): Promise<void>;
@@ -100,10 +100,9 @@ export function createBrief({ store, call, aiEnabled, hasKey, now = () => Date.n
     }
 
     const s = store();
-    const top = await s.topVideos(date, BRIEFING_LIMITS.long, BRIEFING_LIMITS.shorts);
-    const long = top.long.filter(isCountedRow).slice(0, BRIEFING_LIMITS.long);
-    const shorts = top.shorts.filter(isCountedRow).slice(0, BRIEFING_LIMITS.shorts);
-    if (!long.length && !shorts.length) return { status: "skipped", detail: "no_breakout_rows" };
+    // 저장소가 이미 거르지만, 다른 저장소(시험·뒷날 바뀐 쿼리)가 쇼츠·세로·라이브를 섞어 보내도 여기서 한 번 더 뺀다
+    const long = (await s.topVideos(date, BRIEFING_LIMITS.long)).filter(isCountedRow).slice(0, BRIEFING_LIMITS.long);
+    if (!long.length) return { status: "skipped", detail: "no_breakout_rows" };
 
     let risingTerms: BriefingTerm[] = [];
     let risingError: string | undefined;
@@ -114,12 +113,10 @@ export function createBrief({ store, call, aiEnabled, hasKey, now = () => Date.n
       console.error(`[trend/brief] rising terms ${date}:`, risingError);
     }
 
-    const videos = [...long, ...shorts].map((v) => ({ ...v, title: v.title ?? "" }));
+    const videos = long.map((v) => ({ ...v, title: v.title ?? "" }));
     const first = buildBriefingContent({ date, videos, risingTerms, withImages: true });
     const inputStats: Record<string, unknown> = {
       videos: videos.length,
-      videos_long: long.length,
-      videos_shorts: shorts.length,
       thumbnails: first.thumbnails,
       rising_terms: risingTerms.map((t) => t.term),
       prompt_chars: first.text.length,
@@ -155,12 +152,13 @@ export function createBrief({ store, call, aiEnabled, hasKey, now = () => Date.n
       throw new Error(`claude_${result.phase}: ${result.message}${retried ? " (retry_without_images)" : ""}`);
     }
 
-    const { bullets, long_note, shorts_note } = result.data;
+    const { bullets, long_note } = result.data;
     await s.saveBriefing({
       snapshot_date: date,
       bullets,
       long_note,
-      shorts_note,
+      // 쇼츠 목록을 넣지 않으므로 쇼츠 줄은 언제나 비운다(모델이 무언가 써도 화면에 '쇼츠' 줄이 생기지 않게)
+      shorts_note: null,
       body: raw,
       model: result.model,
       input_stats: inputStats,
@@ -185,26 +183,24 @@ function requireDb() {
   return db;
 }
 
-const SOURCE_COLUMNS = "video_id,title,duration_sec,view_count,subscriber_count,kind,category_id,outlier";
+const SOURCE_COLUMNS = "video_id,title,duration_sec,video_format,view_count,subscriber_count,kind,category_id,outlier";
 
 export const supabaseBriefStore: BriefStore = {
-  async topVideos(date, longLimit, shortsLimit) {
+  async topVideos(date, limit) {
     const db = requireDb();
-    // 집계 대상 행(trend_dev.sql 머리 주석): kind is null 이고 분류 칼럼이 생기기 전 수집 행이 아닌 행
-    const base = () =>
-      db
-        .from("breakout_videos")
-        .select(SOURCE_COLUMNS)
-        .eq("snapshot_date", date)
-        .is("kind", null)
-        .or("category_id.not.is.null,outlier.not.is.null");
-    const [l, s] = await Promise.all([
-      base().gt("duration_sec", SHORTS_MAX_SEC).order("ratio", { ascending: false, nullsFirst: false }).order("video_id").limit(longLimit),
-      base().lte("duration_sec", SHORTS_MAX_SEC).order("ratio", { ascending: false, nullsFirst: false }).order("video_id").limit(shortsLimit),
-    ]);
+    // 집계 대상 행(trend_dev.sql 머리 주석): kind is null 이고 분류 칼럼이 생기기 전 수집 행이 아니고, 가로 롱폼(rules.ts isLongFormRow 와 같은 조건)
+    const l = await db
+      .from("breakout_videos")
+      .select(SOURCE_COLUMNS)
+      .eq("snapshot_date", date)
+      .is("kind", null)
+      .or("category_id.not.is.null,outlier.not.is.null")
+      .or(`video_format.eq.long,and(video_format.is.null,duration_sec.gt.${SHORTS_MAX_SEC})`)
+      .order("ratio", { ascending: false, nullsFirst: false })
+      .order("video_id")
+      .limit(limit);
     if (l.error) throw new Error(`breakout_videos long: ${l.error.message}`);
-    if (s.error) throw new Error(`breakout_videos shorts: ${s.error.message}`);
-    return { long: (l.data ?? []) as BriefSourceRow[], shorts: (s.data ?? []) as BriefSourceRow[] };
+    return (l.data ?? []) as BriefSourceRow[];
   },
 
   async risingTerms(date, limit) {

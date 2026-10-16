@@ -1,11 +1,13 @@
 /**
  * cron 단계 terms(A1 데이터, roadmap T2): 그날 breakout_videos 제목을 토큰화해 breakout_terms 를 채운다(API 비용 0).
  *
- * 1. breakout_videos 에서 snapshot_date = date 인 행을 range() 로 끝까지 읽고 집계 대상 행(isCountedRow)만 남긴다.
+ * 1. breakout_videos 에서 snapshot_date = date 인 행을 range() 로 끝까지 읽고 집계 대상 행(isCountedRow: 가로 롱폼만)만 남긴다.
+ *    소유자 결정 2026-10-16: 급상승 키워드는 가로 롱폼 전용(쇼츠·세로·라이브 제외).
  * 2. 1차: 모든 제목을 조사 떼기 없이(불용어도 남긴 채) 토큰화해 그날 bareForms 를 만든다.
  *    여기에 최근 30일 breakout_terms 의 term(같은 날짜 제외)과 불용어를 더한다(불용어+조사 → 어간이 불용어라 버려지게).
- * 3. 2차: bareForms 를 넘겨 다시 토큰화하고 format(long|shorts)·term_type(word|tag)별로 서로 다른 채널 수를 센다.
- * 4. dry 가 아니면 format 마다 rpc replace_breakout_terms 한 번(그 날짜·format 삭제+삽입이 한 트랜잭션, 다시 돌려도 행 수 같음).
+ * 3. 2차: bareForms 를 넘겨 다시 토큰화하고 term_type(word|tag)별로 서로 다른 채널 수를 센다(format 은 언제나 long).
+ * 4. dry 가 아니면 rpc replace_breakout_terms 를 long(집계 행)·shorts(빈 배열) 두 번 부른다(각각 그 날짜·format 삭제+삽입이
+ *    한 트랜잭션, 다시 돌려도 행 수 같음). shorts 를 빈 배열로 부르는 것은 예전에 쓴 그 날짜 쇼츠 단어를 지우기 위해서다.
  *
  * 그날 집계 대상 행이 0이면 skipped(no_breakout_rows) 로 끝나고 따라잡기가 다음 실행 때 다시 본다.
  * jobs.ts 와 같은 이유로(Node 직접 시험) 상대 경로 import 와 지울 수 있는 타입 문법만 쓴다.
@@ -16,7 +18,7 @@
  */
 import { getSupabase } from "../supabase";
 import { tokenizeTitle } from "./tokenize";
-import { ALLOW_TERMS, GENERIC_WORDS, SHORTS_MAX_SEC, STOP_WORDS, TAG_STOP, TOKEN_RULES, isCountedRow, isLegacyRow } from "./rules";
+import { ALLOW_TERMS, GENERIC_WORDS, STOP_WORDS, TAG_STOP, TOKEN_RULES, isCountedRow, isLegacyRow, isLongFormRow } from "./rules";
 import type { StepDef, StepOutcome } from "./jobs";
 
 export type BreakoutTitleRow = {
@@ -25,6 +27,7 @@ export type BreakoutTitleRow = {
   channel_id: string | null;
   channel_title?: string | null;
   duration_sec: number | null;
+  video_format: string | null;
   view_count: number | null;
   kind: string | null;
   category_id: string | number | null;
@@ -51,11 +54,7 @@ const MAX_PAYLOAD_BYTES = 900_000;
 const CAPPED_CHANNEL_IDS = 50;
 const TOP_N = 10;
 
-const ROW_COLUMNS = "video_id,title,channel_id,channel_title,duration_sec,view_count,kind,category_id,outlier";
-
-function formatOf(row: BreakoutTitleRow): TermFormat {
-  return row.duration_sec != null && row.duration_sec <= SHORTS_MAX_SEC ? "shorts" : "long";
-}
+const ROW_COLUMNS = "video_id,title,channel_id,channel_title,duration_sec,video_format,view_count,kind,category_id,outlier";
 
 function cmp(a: string, b: string): number {
   return a < b ? -1 : a > b ? 1 : 0;
@@ -69,10 +68,12 @@ export function addDays(date: string, n: number): string {
 }
 
 /**
- * 순수 집계: 행(이미 isCountedRow 로 거른 것) + 누적 사전 → format 별 단어 행.
+ * 순수 집계: 행(이미 isCountedRow 로 거른 것) + 누적 사전 → 가로 롱폼 단어 행.
+ * 가로 롱폼이 아닌 행(isLongFormRow 아님)이 섞여 와도 세지 않는다(videosByFormat.excluded 로만 센다). shorts 는 언제나 빈 배열.
  * 정렬은 서로 다른 채널 수 → 영상 수 → 단어 순(같은 입력이면 같은 결과).
  */
-export function buildTermRows(rows: BreakoutTitleRow[], history: Iterable<string> = []) {
+export function buildTermRows(input: BreakoutTitleRow[], history: Iterable<string> = []) {
+  const rows = input.filter(isLongFormRow);
   // 1차: 그날 조사 없이 나온 형태(불용어 포함) + 누적 사전 + 불용어
   const bare = new Set<string>(history);
   const firstRules = { allowTerms: ALLOW_TERMS, tagStop: TAG_STOP };
@@ -86,22 +87,21 @@ export function buildTermRows(rows: BreakoutTitleRow[], history: Iterable<string
 
   // 2차: 조사 떼기 + 불용어
   type Acc = { term: string; term_type: TermType; channels: Set<string>; videos: { id: string; views: number }[] };
-  const acc: Record<TermFormat, Map<string, Acc>> = { long: new Map(), shorts: new Map() };
-  const videosByFormat: Record<TermFormat, number> = { long: 0, shorts: 0 };
+  const acc = new Map<string, Acc>();
+  const videosByFormat = { long: 0, excluded: input.length - rows.length };
 
   for (const r of rows) {
     if (!r.title) continue;
-    const format = formatOf(r);
-    videosByFormat[format]++;
+    videosByFormat.long++;
     const t = tokenizeTitle(r.title, { rules: TOKEN_RULES, bareForms: bare });
     const lists: [TermType, string[]][] = [["word", t.words], ["tag", t.tags]];
     for (const [term_type, list] of lists) {
       for (const term of list) {
         const key = `${term_type}\u0000${term}`;
-        let a = acc[format].get(key);
+        let a = acc.get(key);
         if (!a) {
           a = { term, term_type, channels: new Set(), videos: [] };
-          acc[format].set(key, a);
+          acc.set(key, a);
         }
         if (r.channel_id) a.channels.add(r.channel_id);
         a.videos.push({ id: r.video_id, views: r.view_count ?? 0 });
@@ -124,7 +124,7 @@ export function buildTermRows(rows: BreakoutTitleRow[], history: Iterable<string
       }))
       .sort((x, y) => y.channel_count - x.channel_count || y.video_count - x.video_count || cmp(x.term, y.term) || cmp(x.term_type, y.term_type));
 
-  return { long: toRows(acc.long), shorts: toRows(acc.shorts), bareSize: bare.size, videosByFormat };
+  return { long: toRows(acc), shorts: [] as TermRow[], bareSize: bare.size, videosByFormat };
 }
 
 /** 상위 n 개 요약(detail 용) */
@@ -200,6 +200,8 @@ export async function buildTermsForDate(date: string, { dry }: { dry: boolean })
   const counted = all.filter(isCountedRow);
   const excludedLegacy = all.filter(isLegacyRow).length;
   const excludedKind = all.filter((r) => r.kind != null).length;
+  // 뉴스 등·분류 전 행이 아니면서 가로 롱폼이 아니라서 빠진 행(쇼츠·세로·라이브)
+  const excludedFormat = all.filter((r) => r.kind == null && !isLegacyRow(r) && !isLongFormRow(r)).length;
   if (!counted.length) return { status: "skipped", detail: "no_breakout_rows" };
 
   // 누적 사전은 보조 자료라 읽기 실패해도 그날 단어만으로 계속한다
@@ -219,15 +221,13 @@ export async function buildTermsForDate(date: string, { dry }: { dry: boolean })
     rows: all.length,
     videos: counted.length,
     videos_long: built.videosByFormat.long,
-    videos_shorts: built.videosByFormat.shorts,
     excluded_legacy: excludedLegacy,
     excluded_kind: excludedKind,
+    excluded_format: excludedFormat,
     terms_long: built.long.length,
-    terms_shorts: built.shorts.length,
     bare_forms: built.bareSize,
     history_terms: history.size,
     top_long: topLong,
-    top_shorts: top(built.shorts),
     generic_in_top10: topLong.filter((t) => GENERIC_WORDS.has(t.term)).length,
   };
   if (historyError) detail.history_error = historyError;
@@ -235,8 +235,9 @@ export async function buildTermsForDate(date: string, { dry }: { dry: boolean })
   if (!dry) {
     const written: Record<TermFormat, number> = { long: 0, shorts: 0 };
     let capped = false;
+    // shorts 는 빈 배열(그 날짜의 예전 쇼츠 단어를 지운다). replace_breakout_terms 는 빈 배열이면 삭제만 하고 0 을 돌려준다
     for (const format of ["long", "shorts"] as const) {
-      const fit = fitPayload(built[format]);
+      const fit = fitPayload(format === "long" ? built.long : []);
       capped ||= fit.capped;
       const { data, error } = await db.rpc("replace_breakout_terms", { p_date: date, p_format: format, p_rows: fit.rows });
       if (error) throw new Error(`replace_breakout_terms ${format}: ${error.message}`);

@@ -46,6 +46,8 @@ const video = (over = {}) => ({
   category_id: "17",
   outlier: 2.5,
   ratio: 0.5,
+  video_format: "long",
+  duration_sec: 600,
   ...over,
 });
 
@@ -197,6 +199,26 @@ test("runNotify: dry 면 쓰지 않고 would_insert 만", async () => {
   const n = N.createNotify({ store: () => m.store, now: () => 0 });
   const r = await n.runNotify("2026-10-14", { dry: true });
   assert.equal(r.detail.would_insert, 4);
+  assert.equal(m.table.size, 0);
+});
+
+test("buildNotifications: 쇼츠·세로·라이브 영상은 키워드·채널 모두 알림 없음(가로 롱폼 전용)", () => {
+  const f = fixture();
+  const videos = [
+    video({ video_id: "s1", title: "맨유 1차전", video_format: "shorts", duration_sec: 40 }),
+    video({ video_id: "s2", title: "맨유 1차전", video_format: "vertical", duration_sec: 600 }),
+    video({ video_id: "s3", title: "맨유 1차전", video_format: "live", duration_sec: 7200 }),
+    video({ video_id: "s4", title: "맨유 1차전", video_format: null, duration_sec: 150 }), // 칼럼 전 수집분: 길이로 쇼츠
+    video({ video_id: "l1", title: "맨유 1차전", video_format: null, duration_sec: 900 }), // 칼럼 전 수집분: 길이로 롱폼
+  ];
+  const rows = N.buildNotifications("2026-10-14", videos, f.keywords, f.channels);
+  assert.deepEqual([...new Set(rows.map((r) => r.video_id))], ["l1"]);
+});
+
+test("runNotify: 가로 롱폼 행이 하나도 없으면 skipped(no_breakout_rows)", async () => {
+  const m = mockStore({ ...fixture(), videos: [video({ video_format: "shorts", duration_sec: 40 }), video({ video_id: "v2", video_format: "vertical" })] });
+  const n = N.createNotify({ store: () => m.store, now: () => 0 });
+  assert.deepEqual(await n.runNotify("2026-10-14", { dry: false }), { status: "skipped", detail: "no_breakout_rows" });
   assert.equal(m.table.size, 0);
 });
 

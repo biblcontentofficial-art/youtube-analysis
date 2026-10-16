@@ -71,7 +71,7 @@ export async function getTrendFit(userId: string, end: string, opts: { plan: str
     readChannel: () => getUserChannel(userId),
     readMatch: () => readMatch(userId, end),
     readRising: async () => {
-      const r = await getRisingTerms({ end, format: "long" });
+      const r = await getRisingTerms({ end });
       if (r.state === "error") return "error";
       return r.rows.map((row) => ({ term: row.term, recentChannels: row.recentChannels, priorChannels: row.priorChannels }));
     },

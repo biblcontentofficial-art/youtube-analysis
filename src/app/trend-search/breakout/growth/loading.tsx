@@ -1,11 +1,13 @@
 /**
  * /trend-search/breakout/growth 스켈레톤(DESIGN 6.19). 서버가 로그인 확인·추적 기록을 읽는 동안
- * 섹션 머리 → 탭 줄 → 제목 → 기준 줄 → 날짜 칩 → 길이·정렬 칩 → 표 행 6줄을 실제와 같은 폭·여백·높이로 그린다. 인증·데이터 호출 없음.
+ * 섹션 머리 → 탭 줄 → 제목 → 기준 줄 → 날짜 칩 → 정렬 칩 → 표 행 6줄을 실제와 같은 폭·여백·높이로 그린다. 인증·데이터 호출 없음.
+ * - 길이 칩은 없다(가로 롱폼 전용, 2026-10-16). 캡션은 고정 문구라 실제 글자(COUNTED_CAPTION)를 그린다.
  * - 제목·설명은 고정 문구라 실제 글자를 그린다(폭에 따라 설명이 두 줄이 되거나 기준 줄이 옆으로 가는 것까지 실제와 같게).
  * - 1024 이상: 표 머리 + 행(썸네일 w-32 · xl:w-36, 제목 두 줄 · 채널 · 숫자 세 칸 · 흐름, 오른쪽 pr-14 는 실제 표와 같은 카카오 버튼 여백)
  * - 1024 미만: '조회수: 다음 날 → 3일 뒤 → 7일 뒤' 줄(36px) + 목록 행(썸네일 w-28 · md:w-44, 제목 두 줄 · 채널 · 값 한 줄, 390 폭 실제 행 125.8px 와 같게)
  */
 import { SectionHeader } from "@/components/ui/section-header";
+import { COUNTED_CAPTION } from "@/lib/trend/rules";
 import { BreakoutTabs } from "../_components/BreakoutTabs";
 import { GROWTH_DESC } from "./growth-view";
 
@@ -44,20 +46,15 @@ export default function GrowthLoading() {
             ))}
           </div>
 
-          {/* 길이 · 정렬 칩 + 캡션 */}
+          {/* 정렬 칩 + 캡션 */}
           <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2">
-            <div className="flex gap-1.5">
-              <div className={`${CHIP_BOX} w-12 sm:w-11`} />
-              <div className={`${CHIP_BOX} w-12 sm:w-11`} />
-            </div>
-            <span className="hidden h-5 w-px bg-line sm:block" />
             <div className="flex flex-wrap gap-1.5">
               <div className={`${CHIP_BOX} w-[110px] sm:w-[104px]`} />
               <div className={`${CHIP_BOX} w-[98px] sm:w-[92px]`} />
               <div className={`${CHIP_BOX} w-[110px] sm:w-[104px]`} />
             </div>
             <span className="hidden h-5 w-px bg-line sm:block" />
-            <div className="flex h-[19.5px] items-center"><div className={`${BAR} h-3 w-52`} /></div>
+            <p className="text-caption text-fg-3">{COUNTED_CAPTION}</p>
           </div>
 
           {/* 1024 이상: 표 */}

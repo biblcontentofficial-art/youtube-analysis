@@ -2,8 +2,11 @@
  * A1 급상승 키워드 데이터(서버 전용). 화면은 keywords-view.tsx(props 만 받음), 규칙 상수는 rules.ts,
  * RPC 는 supabase/migrations/trend_dev.sql 의 trend_rising_window · trend_rising_terms.
  *
- *   const result = await getRisingTerms({ format: "long" });
+ *   const result = await getRisingTerms({});
  *   result.state  // rising | top | sparse | none | empty | error
+ *
+ * 가로 롱폼 전용(소유자 결정 2026-10-16: 쇼츠·세로·라이브 제외). breakout_terms 는 terms 단계가 가로 롱폼만 써 두고,
+ * RPC 에는 언제나 p_format 'long' 을 넘긴다(trend_longform_only.sql 적용 전에는 기간 통계가 길이 180초 초과로만 거른다).
  *
  * 상태 판정 순서(spec 3.1):
  *  ① trend_rising_window 로 기간 통계(단어가 0개여도 1행). 실패면 error. 수집 날짜 0이면 empty.
@@ -21,7 +24,6 @@ import { getBreakoutDates, kstToday } from "@/lib/breakout";
 import {
   MIN_PRIOR_DAYS,
   MIN_RECENT_CHANNELS,
-  MIN_RECENT_CHANNELS_SHORTS,
   MIN_RECENT_DAYS,
   RISING_LIMIT,
   SHORTS_MAX_SEC,
@@ -29,7 +31,6 @@ import {
   TOP_MIN_HIST_DAYS,
 } from "./rules";
 
-export type RisingFormat = "long" | "shorts";
 export type RisingState = "rising" | "top" | "sparse" | "none" | "empty" | "error";
 export type RisingMode = "rising" | "top";
 
@@ -59,7 +60,6 @@ export type RisingRow = {
 
 export type RisingResult = {
   state: RisingState;
-  format: RisingFormat;
   window: RisingWindow | null;
   rows: RisingRow[];
 };
@@ -88,21 +88,24 @@ function thumbOf(id: string): string {
   return `https://i.ytimg.com/vi/${id}/mqdefault.jpg`;
 }
 
-export async function getRisingTerms({ end, format }: { end?: string; format: RisingFormat }): Promise<RisingResult> {
+/** 언제나 가로 롱폼(RPC p_format) */
+const FORMAT = "long";
+
+export async function getRisingTerms({ end }: { end?: string } = {}): Promise<RisingResult> {
   const db = getSupabase();
   if (!db) {
     console.error("[trend/rising] supabase 환경 변수가 없습니다");
-    return { state: "error", format, window: null, rows: [] };
+    return { state: "error", window: null, rows: [] };
   }
 
   // 기준 날짜: 마지막 수집일. 수집일을 못 찾으면 어제(한국)로 기간 통계를 받아 empty·sparse 를 가른다
   const endDate = end ?? (await getBreakoutDates(1))[0] ?? kstToday(-1);
 
   // ① 기간 통계
-  const w = await db.rpc("trend_rising_window", { p_end: endDate, p_format: format, p_shorts_max: SHORTS_MAX_SEC });
+  const w = await db.rpc("trend_rising_window", { p_end: endDate, p_format: FORMAT, p_shorts_max: SHORTS_MAX_SEC });
   if (w.error) {
     console.error("[trend/rising] rpc trend_rising_window error:", w.error.message);
-    return { state: "error", format, window: null, rows: [] };
+    return { state: "error", window: null, rows: [] };
   }
   const stat = ((Array.isArray(w.data) ? w.data[0] : w.data) ?? null) as WindowRow | null;
   const window: RisingWindow = {
@@ -114,10 +117,10 @@ export async function getRisingTerms({ end, format }: { end?: string; format: Ri
     mode: null,
   };
   if (window.histDays === 0) {
-    return { state: "empty", format, window, rows: [] };
+    return { state: "empty", window, rows: [] };
   }
   if (window.recentDays < MIN_RECENT_DAYS) {
-    return { state: "sparse", format, window, rows: [] };
+    return { state: "sparse", window, rows: [] };
   }
 
   // ② 단어 목록(한 번)
@@ -125,9 +128,9 @@ export async function getRisingTerms({ end, format }: { end?: string; format: Ri
   window.mode = mode;
   const t = await db.rpc("trend_rising_terms", {
     p_end: endDate,
-    p_format: format,
+    p_format: FORMAT,
     p_mode: mode,
-    p_min_recent: format === "shorts" ? MIN_RECENT_CHANNELS_SHORTS : MIN_RECENT_CHANNELS,
+    p_min_recent: MIN_RECENT_CHANNELS,
     p_limit: RISING_LIMIT,
     p_shorts_max: SHORTS_MAX_SEC,
     p_max_day_ratio: TOP_MAX_DAY_RATIO,
@@ -135,10 +138,10 @@ export async function getRisingTerms({ end, format }: { end?: string; format: Ri
   });
   if (t.error) {
     console.error("[trend/rising] rpc trend_rising_terms error:", t.error.message);
-    return { state: "error", format, window, rows: [] };
+    return { state: "error", window, rows: [] };
   }
   const terms = ((t.data ?? []) as TermsRow[]).filter((r) => r && typeof r.term === "string");
-  if (terms.length === 0) return { state: "none", format, window, rows: [] };
+  if (terms.length === 0) return { state: "none", window, rows: [] };
 
   // ③ 대표 영상 한 번에
   const pick = terms.map((r) => (r.sample_video_ids ?? []).filter(Boolean).slice(0, SAMPLES_PER_TERM));
@@ -170,5 +173,5 @@ export async function getRisingTerms({ end, format }: { end?: string; format: Ri
     }),
   }));
 
-  return { state: mode, format, window, rows };
+  return { state: mode, window, rows };
 }

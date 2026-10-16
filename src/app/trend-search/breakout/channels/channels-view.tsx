@@ -12,7 +12,8 @@
  * - 모바일 목록의 채널명·최근 영상 링크는 각각 높이 24px 이상(DESIGN 8 터치 최소)이다.
  * - 흰색은 정렬 기준 열(등장 일수)에만. 채널명·최근 영상은 유튜브로 나가는 링크(.ext, 새 창).
  * - 빈 상태(empty)는 6.20 상자, 불러오기 실패(error)는 6.13 오류 상자(빈 상태 문구로 떨어지지 않음).
- * - 칩 주소는 기본값을 빼고 만든다(14일 · 전체 · 10만 미만이면 쿼리 없음). 미리보기는 basePath 에 자기 주소를 넘긴다.
+ * - 가로 롱폼 전용(소유자 결정 2026-10-16: 쇼츠·세로·라이브 제외). 길이 칩은 없고 캡션(COUNTED_CAPTION)에 기준을 적는다.
+ * - 칩 주소는 기본값을 빼고 만든다(14일 · 10만 미만이면 쿼리 없음). 미리보기는 basePath 에 자기 주소를 넘긴다.
  */
 import type { ReactNode } from "react";
 import Link from "next/link";
@@ -22,13 +23,12 @@ import { cx } from "@/components/ui/button";
 import { WarningIcon } from "@/components/ui/icons";
 import { DerivedNotice } from "@/components/ui/notice";
 import { NUM, ROW, TABLE, TD, TH, TH_SORT_ACTIVE } from "@/components/ui/table";
+import { COUNTED_CAPTION } from "@/lib/trend/rules";
 import {
   CHANNEL_DAYS,
-  CHANNEL_FORMATS,
   CHANNEL_LIMIT,
   CHANNEL_MAX_SUBS,
   type ChannelDays,
-  type ChannelFormat,
   type ChannelMaxSubs,
   type ChannelQuery,
   type RecurringChannel,
@@ -42,7 +42,6 @@ const PAGE_PATH = "/trend-search/breakout/channels";
 export const CHANNELS_DESC = "최근 브레이크아웃에 여러 번 오른 구독자 10만 미만 채널입니다. 벤치마킹 후보로 보세요.";
 
 const DAYS_LABEL: Record<ChannelDays, string> = { 14: "최근 14일", 30: "최근 30일" };
-const FORMAT_LABEL: Record<ChannelFormat, string> = { all: "전체", long: "롱폼", shorts: "쇼츠" };
 const SUBS_LABEL: Record<ChannelMaxSubs, string> = { 100_000: "10만 미만", 10_000: "1만 미만" };
 
 /** 정렬 기준 숫자(DESIGN 6.10 앱 표, 브레이크아웃 영상 탭과 같은 값) */
@@ -69,7 +68,6 @@ function chipHref(basePath: string, q: ChannelQuery, patch: Partial<ChannelQuery
   const next = { ...q, ...patch };
   const params = new URLSearchParams();
   if (next.days !== CHANNEL_DAYS[0]) params.set("days", String(next.days));
-  if (next.format !== CHANNEL_FORMATS[0]) params.set("format", next.format);
   if (next.maxSubs !== CHANNEL_MAX_SUBS[0]) params.set("subs", String(next.maxSubs));
   const qs = params.toString();
   if (!qs) return basePath;
@@ -281,7 +279,7 @@ export function ChannelsSection({
   actionSlot?: ActionSlot;
 }) {
   const H = heading;
-  const q: ChannelQuery = { days: data.days, format: data.format, maxSubs: data.maxSubs };
+  const q: ChannelQuery = { days: data.days, maxSubs: data.maxSubs };
   return (
     <section aria-labelledby="channels-title">
       <div className="flex flex-wrap items-end justify-between gap-4">
@@ -299,19 +297,13 @@ export function ChannelsSection({
           ))}
         </nav>
         <Divider />
-        <nav aria-label="영상 길이" className="flex gap-1.5">
-          {CHANNEL_FORMATS.map((f) => (
-            <Link key={f} href={chipHref(basePath, q, { format: f })} aria-current={f === q.format ? "page" : undefined} className={CHIP}>{FORMAT_LABEL[f]}</Link>
-          ))}
-        </nav>
-        <Divider />
         <nav aria-label="구독자" className="flex gap-1.5">
           {CHANNEL_MAX_SUBS.map((s) => (
             <Link key={s} href={chipHref(basePath, q, { maxSubs: s })} aria-current={s === q.maxSubs ? "page" : undefined} className={CHIP}>{SUBS_LABEL[s]}</Link>
           ))}
         </nav>
         <Divider />
-        <p className="text-caption text-fg-3">뉴스·홈쇼핑·정치·이슈 채널은 빼고 셉니다</p>
+        <p className="text-caption text-fg-3">{COUNTED_CAPTION}</p>
       </div>
 
       <Body data={data} actionSlot={actionSlot} />

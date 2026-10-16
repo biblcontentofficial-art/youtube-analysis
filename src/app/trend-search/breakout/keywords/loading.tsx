@@ -1,10 +1,12 @@
 /**
  * /trend-search/breakout/keywords 스켈레톤(DESIGN 6.19). 서버가 로그인 확인·기간 통계·단어 목록을 읽는 동안
- * 섹션 머리 → 탭 줄 → 제목 → 기준 줄 → 칩 줄 → 표 행 8줄을 실제와 같은 폭·여백·높이로 그린다. 인증·데이터 호출 없음.
+ * 섹션 머리 → 탭 줄 → 제목 → 기준 줄 → 캡션 줄 → 표 행 8줄을 실제와 같은 폭·여백·높이로 그린다. 인증·데이터 호출 없음.
+ * - 길이 칩은 없다(가로 롱폼 전용, 2026-10-16). 캡션은 고정 문구라 실제 글자(COUNTED_CAPTION)를 그린다.
  * - 1024 이상: 표 머리 + 행(순위 · 주제어 · 채널 수 · 변화 · 썸네일 w-24 두 장, 오른쪽 pr-14 는 실제 표와 같은 카카오 버튼 여백), 행 높이는 실제 행과 같은 약 75px
  * - 1024 미만: 목록 행(순위·주제어 한 줄 · 채널 수 한 줄 · 썸네일 w-28 두 장)
  */
 import { SectionHeader } from "@/components/ui/section-header";
+import { COUNTED_CAPTION } from "@/lib/trend/rules";
 import { BreakoutTabs } from "../_components/BreakoutTabs";
 
 const BAR = "rounded-control bg-surface-2";
@@ -38,15 +40,10 @@ export default function KeywordsLoading() {
           </div>
         </div>
 
+        {/* 캡션(실제와 같은 글자) */}
+        <p className="mt-6 text-caption text-fg-3">{COUNTED_CAPTION}</p>
+
         <div aria-hidden="true" className={PULSE}>
-          {/* 길이 칩 + 캡션 */}
-          <div className="mt-8 flex flex-wrap items-center gap-x-3 gap-y-2">
-            <div className="flex gap-1.5">
-              <div className="h-10 w-14 rounded-control border border-line sm:h-9 pointer-coarse:h-11" />
-              <div className="h-10 w-14 rounded-control border border-line sm:h-9 pointer-coarse:h-11" />
-            </div>
-            <div className={`${BAR} h-3 w-52`} />
-          </div>
 
           {/* 1024 이상: 표 */}
           <div className="mt-6 hidden lg:block">

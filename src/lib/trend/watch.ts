@@ -15,6 +15,8 @@
  * - plan 은 호출하는 쪽이 getUserPlan(userId)(auth.ts, profiles)로만 정해 넘긴다. 알 수 없는 값은 free.
  * - 채널 이름·썸네일: 최근 30일 breakout_videos 값 → watch_channels 캐시(meta_at 30일 뒤 purge 가 비움) → null(화면은 '채널 열기').
  * - 모든 쿼리에 user_id = 본인 조건을 건다(service role 이라 RLS 가 막아 주지 않는다).
+ * - 알림은 cron notify 단계(notify.ts)가 가로 롱폼 영상만 만든다(소유자 결정 2026-10-16: 쇼츠·세로·라이브 제외).
+ *   이 파일은 notifications 를 그대로 읽으므로 목록에도 가로 롱폼 영상만 보인다. 채널 이름 찾기(recentChannelMeta)는 영상 형태와 무관하다.
  */
 import { getSupabase } from "@/lib/supabase";
 import { PLANS, type PlanKey } from "@/lib/stripe";

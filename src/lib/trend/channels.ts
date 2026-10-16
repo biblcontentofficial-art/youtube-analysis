@@ -2,10 +2,12 @@
  * A2 지금 크는 채널 데이터(서버 전용). 화면은 channels-view.tsx(props 만 받음),
  * RPC 는 supabase/migrations/trend_dev.sql 의 trend_recurring_channels.
  *
- *   const q = parseChannelQuery(searchParams);          // 잘못된 값은 기본값(14일 · 전체 · 10만 미만)
+ *   const q = parseChannelQuery(searchParams);          // 잘못된 값은 기본값(14일 · 10만 미만)
  *   const result = await getRecurringChannels(q);
  *   result.state  // ok | empty | error
  *
+ * - 가로 롱폼 전용(소유자 결정 2026-10-16: 쇼츠·세로·라이브 제외, 길이 칩 없음). RPC 에 언제나 p_format 'long' 을 넘긴다.
+ *   trend_longform_only.sql 적용 전에는 RPC 가 길이 180초 초과로만 거른다(3분 넘는 세로·라이브가 섞일 수 있다).
  * - 최근 14/30일 브레이크아웃(집계 대상 행: kind 없음, 분류 칼럼 전 수집 행 제외)에 서로 다른 날짜
  *   CHANNEL_MIN_DAYS 일 이상 오른, 구독자 상한 미만 채널. API 비용 0(DB 집계 한 번).
  * - 기준 날짜(end)는 마지막 수집일. 기간은 end-days+1 ~ end.
@@ -19,13 +21,11 @@ import { getBreakoutDates, kstToday } from "@/lib/breakout";
 import { SHORTS_MAX_SEC } from "./rules";
 
 export type ChannelDays = 14 | 30;
-export type ChannelFormat = "all" | "long" | "shorts";
 export type ChannelMaxSubs = 100_000 | 10_000;
 export type ChannelState = "ok" | "empty" | "error";
 
 /** 허용 값(그 밖은 첫 값 = 기본값). 화면 칩도 이 순서로 그린다 */
 export const CHANNEL_DAYS: readonly ChannelDays[] = [14, 30];
-export const CHANNEL_FORMATS: readonly ChannelFormat[] = ["all", "long", "shorts"];
 export const CHANNEL_MAX_SUBS: readonly ChannelMaxSubs[] = [100_000, 10_000];
 
 /** A2: 서로 다른 수집 날짜 하한. 소유자 결정 2026-10-15: 2일 이상 */
@@ -36,7 +36,10 @@ export const CHANNEL_LIMIT = 50;
 /** 채널명이 비었을 때 화면에 보이는 이름 */
 export const UNNAMED_CHANNEL = "이름 없는 채널";
 
-export type ChannelQuery = { days: ChannelDays; format: ChannelFormat; maxSubs: ChannelMaxSubs };
+export type ChannelQuery = { days: ChannelDays; maxSubs: ChannelMaxSubs };
+
+/** 언제나 가로 롱폼(RPC p_format) */
+const FORMAT = "long";
 
 export type RecurringChannel = {
   channelId: string;
@@ -80,11 +83,10 @@ function pick<T extends string | number>(raw: string | undefined, allowed: reado
   return allowed.find((v) => String(v) === raw) ?? allowed[0];
 }
 
-/** 주소 쿼리 → 조건. days=999 처럼 허용 밖 값은 기본값(14 · all · 100000) */
-export function parseChannelQuery(sp: { days?: string; format?: string; subs?: string }): ChannelQuery {
+/** 주소 쿼리 → 조건. days=999 처럼 허용 밖 값은 기본값(14 · 100000). 예전 주소의 format 은 무시한다 */
+export function parseChannelQuery(sp: { days?: string; subs?: string }): ChannelQuery {
   return {
     days: pick(sp.days, CHANNEL_DAYS),
-    format: pick(sp.format, CHANNEL_FORMATS),
     maxSubs: pick(sp.subs, CHANNEL_MAX_SUBS),
   };
 }
@@ -94,9 +96,9 @@ function shiftDate(date: string, days: number): string {
   return new Date(new Date(`${date}T00:00:00Z`).getTime() + days * 86400_000).toISOString().slice(0, 10);
 }
 
-export async function getRecurringChannels({ end, days, format, maxSubs }: ChannelQuery & { end?: string }): Promise<RecurringResult> {
+export async function getRecurringChannels({ end, days, maxSubs }: ChannelQuery & { end?: string }): Promise<RecurringResult> {
   // 호출하는 쪽이 타입 밖 값을 넘겨도 기본값으로(주소 쿼리를 그대로 넘기는 실수 방지)
-  const q = parseChannelQuery({ days: String(days), format, subs: String(maxSubs) });
+  const q = parseChannelQuery({ days: String(days), subs: String(maxSubs) });
   const db = getSupabase();
   if (!db) {
     console.error("[trend/channels] supabase 환경 변수가 없습니다");
@@ -111,7 +113,7 @@ export async function getRecurringChannels({ end, days, format, maxSubs }: Chann
     p_days: q.days,
     p_max_subs: q.maxSubs,
     p_min_days: CHANNEL_MIN_DAYS,
-    p_format: q.format,
+    p_format: FORMAT,
     p_limit: CHANNEL_LIMIT,
     p_shorts_max: SHORTS_MAX_SEC,
   });
