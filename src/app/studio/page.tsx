@@ -735,13 +735,13 @@ export default function StudioPage() {
           </h2>
           <p className="mt-5 text-lead font-bold text-fg md:text-h4">
             기본 구성 · 월 콘텐츠 발행량{" "}
-            <span className="text-owner-red">롱폼 4개 + 쇼츠(롱폼 리프레이밍) 4개</span>
+            <span className="text-owner-red">롱폼 4개 + 쇼츠(롱폼 리프레이밍) 10개</span>
           </p>
 
           <div className={cx(CARD, "mt-10 grid grid-cols-1 gap-8 p-5 sm:p-6 md:grid-cols-[1fr_auto] md:gap-12 lg:mt-12 lg:p-10")}>
             <div className="min-w-0">
               <h3 className="text-title">비블 유튜브 대행 패키지</h3>
-              <p className="mt-2 text-ui text-fg-2">월 롱폼 4개 + 쇼츠(롱폼 리프레이밍) 4개</p>
+              <p className="mt-2 text-ui text-fg-2">월 롱폼 4개 + 쇼츠(롱폼 리프레이밍) 10개</p>
               <ul aria-label="포함 항목" className="mt-6 grid grid-cols-2 gap-x-6 gap-y-2.5 sm:grid-cols-3">
                 {PRICE_INCLUDES.map((item) => (
                   <li key={item} className="flex items-center gap-2 text-ui text-fg-1">

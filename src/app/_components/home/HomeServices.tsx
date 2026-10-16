@@ -205,7 +205,7 @@ export default function HomeServices() {
               href="/studio/consulting"
               desc={`검증된 유튜브 전문가와 성장을 함께하세요. 기획${DOT}촬영${DOT}편집${DOT}업로드${DOT}채널관리까지 책임지고 운영해드립니다.`}
               price="월 350만원"
-              meta={["부가세 별도", "롱폼 4개 + 쇼츠 4개"]}
+              meta={["부가세 별도", "롱폼 4개 + 숏폼 10개"]}
               more="채널 대행 문의하기"
             />
 
