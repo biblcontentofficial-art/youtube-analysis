@@ -51,7 +51,7 @@ const WITH_BIBL: NavItem[] = [
 
 const DIY: NavItem[] = [
   { href: "/trend-search", label: "유튜브 트렌드 서치", match: (p) => APP_TOOL_ROUTES.some((b) => under(p, b)) },
-  { href: "/community", label: "커뮤니티&자료", match: (p) => under(p, "/community") },
+  { href: "/community", label: "커뮤니티 & 무료자료", match: (p) => under(p, "/community") },
   { href: "/pricing", label: "요금제", match: (p) => p === "/pricing" },
 ];
 

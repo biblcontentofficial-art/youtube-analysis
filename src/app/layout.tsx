@@ -318,7 +318,7 @@ const FOOTER_GROUPS: { title: string; items: { href: string; label: string; pref
     title: "직접 하기",
     items: [
       { href: "/trend-search", label: "유튜브 트렌드 서치" },
-      { href: "/community", label: "커뮤니티&자료" },
+      { href: "/community", label: "커뮤니티 & 무료자료" },
       { href: "/pricing", label: "요금제" },
     ],
   },
