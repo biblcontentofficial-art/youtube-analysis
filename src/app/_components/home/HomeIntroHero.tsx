@@ -48,6 +48,11 @@ export default async function HomeIntroHero() {
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 lg:items-end lg:gap-6">
           {/* 결과 먼저: 큰 숫자. 보이는 숫자는 장식, 스크린 리더는 sr-only 문장 */}
           <div data-animate="load" className="lg:col-span-6">
+            {/* 유튜브 로고(소유자 요청 2026-10-17): 70만+ 위 왼쪽. 브랜드 표식이라 유튜브 빨강 fill 리터럴(구글 로고와 같은 예외) */}
+            <svg aria-hidden="true" viewBox="0 0 28.57 20" className="mb-3 h-auto w-12 sm:w-14 lg:mb-4 lg:w-16">
+              <path fill="#FF0000" d="M27.97 3.12A3.58 3.58 0 0 0 25.45.6C23.22 0 14.29 0 14.29 0S5.35 0 3.12.6A3.58 3.58 0 0 0 .6 3.12C0 5.35 0 10 0 10s0 4.65.6 6.88a3.58 3.58 0 0 0 2.52 2.52c2.23.6 11.17.6 11.17.6s8.93 0 11.16-.6a3.58 3.58 0 0 0 2.52-2.52c.6-2.23.6-6.88.6-6.88s0-4.65-.6-6.88Z" />
+              <path fill="#FFFFFF" d="m11.43 14.29 7.42-4.29-7.42-4.29v8.58Z" />
+            </svg>
             <p className="tnum text-[88px] font-extrabold leading-[0.9] tracking-[-0.03em] sm:text-[120px] lg:text-[148px] xl:text-[176px]">
               <span aria-hidden="true">
                 <CountUp value="70만" />

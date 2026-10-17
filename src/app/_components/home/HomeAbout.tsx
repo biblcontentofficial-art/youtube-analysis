@@ -3,7 +3,7 @@
  * 홈 비블 소개 #about(2026-10-16 소유자 확정 안 C). 작은 정사각 인물 사진(3칸) + 제목·설명·사실 3줄(9칸).
  * 첫 화면 아래라 '첫 화면 인물 사진 없음' 규칙과 부딪히지 않는다.
  * 모션 A(소유자 결정 2026-10-17): 머리·사진·글 묶음이 화면에 들어올 때 한 번 떠오른다(data-animate="rise").
- * 사진은 public/home/bibl-portrait-original.webp(배경을 지우지 않은 원본 public/studio/instructor.jpg 를 가운데 정사각으로 잘라 800px, 소유자 요청 2026-10-17).
+ * 사진은 public/home/bibl-portrait-original.webp(배경을 지우지 않은 원본 public/studio/instructor.jpg 를 머리~어깨 정사각으로 잘라 800px, 소유자 요청 2026-10-17: 머리 위 여백 조금, 가슴 위에서 자름).
  */
 import { SectionHeader } from "@/components/ui/section-header";
 
@@ -37,7 +37,7 @@ export default function HomeAbout() {
                 src="/home/bibl-portrait-original.webp"
                 width={720}
                 height={720}
-                alt="비블 프로필 사진. 검은 배경 앞 검은 재킷 차림"
+                alt="비블 프로필 사진. 회색 배경 앞 검은 재킷 차림"
                 className="aspect-square w-full object-cover"
                 loading="lazy"
                 decoding="async"
