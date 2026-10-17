@@ -62,9 +62,11 @@ export default async function HomeIntroHero() {
 
           <div className="lg:col-span-6">
             <h1 id="intro-title" className="text-h3 text-silver sm:text-[40px] sm:leading-[1.2] lg:text-h1">
-              <span className="block">채널 4개를 직접 키운 비블이</span>{" "}
               <span className="block">
-                <span className="text-accent">여러분의 채널</span>을 키웁니다
+                유튜브를 통해 <span className="text-accent">당신의 영향력</span>을
+              </span>{" "}
+              <span className="block">
+                세상에 <span className="text-accent">연결</span>합니다
               </span>
             </h1>
             <p className="mt-4 max-w-[34em] text-body text-fg-2 lg:mt-5 lg:text-lead">

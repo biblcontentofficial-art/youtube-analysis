@@ -2,7 +2,7 @@
 /**
  * 홈 비블 소개 #about(2026-10-16 소유자 확정 안 C). 작은 정사각 인물 사진(3칸) + 제목·설명·사실 3줄(9칸).
  * 첫 화면 아래라 '첫 화면 인물 사진 없음' 규칙과 부딪히지 않는다.
- * 사진은 public/home/bibl-portrait.webp(원본을 가운데 정사각으로 잘라 720px).
+ * 사진은 public/home/bibl-portrait-original.webp(배경을 지우지 않은 원본 public/studio/instructor.jpg 를 가운데 정사각으로 잘라 800px, 소유자 요청 2026-10-17).
  */
 import { SectionHeader } from "@/components/ui/section-header";
 
@@ -12,7 +12,7 @@ const DOT = "⁠·⁠";
 const ABOUT_ROWS: { title: string; desc: string }[] = [
   {
     title: `채널 4개 직접 운영${DOT}기획`,
-    desc: `세계유명 골프정보${DOT}영어 키위새${DOT}스윔클래스${DOT}비블 bibl. 골프 채널은 골프 쇼핑몰 연 매출 10억⁠+⁠으로 이어졌습니다.`,
+    desc: `세계유명 골프정보${DOT}영어 키위새${DOT}스윔클래스${DOT}비블 bibl. 채널 운영은 쇼핑몰, 영어 강의, 컨설팅 등 연 매출 10억⁠+⁠으로 이어졌습니다.`,
   },
   {
     title: "유튜브 실버 플레이 버튼",
@@ -33,7 +33,7 @@ export default function HomeAbout() {
           <figure className="w-40 sm:w-52 lg:col-span-3 lg:w-auto">
             <div className="overflow-hidden rounded-panel border border-line bg-canvas">
               <img
-                src="/home/bibl-portrait.webp"
+                src="/home/bibl-portrait-original.webp"
                 width={720}
                 height={720}
                 alt="비블 프로필 사진. 검은 배경 앞 검은 재킷 차림"

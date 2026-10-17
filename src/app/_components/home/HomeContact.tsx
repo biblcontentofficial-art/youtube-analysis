@@ -26,7 +26,7 @@ export default function HomeContact() {
               <span className="block text-fg-3">
                 지금 <span className="whitespace-nowrap">채널 대행을</span> 문의해보세요
               </span>
-              <span className="block">비블이 직접 연락드립니다</span>
+              <span className="block">비블이 직접 채널을 관리해드립니다</span>
             </h2>
             <p className="mt-5 text-body text-fg-2 lg:text-lead">여러분의 채널에 맞는 대행 방향을 제안해드립니다.</p>
           </div>

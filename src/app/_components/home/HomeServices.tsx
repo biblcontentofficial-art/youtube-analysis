@@ -1,9 +1,8 @@
 /* eslint-disable @next/next/no-img-element -- 시안과 같은 크기의 정적 사진(public/home), 최적화 서버를 거치지 않는다 */
 /**
  * 홈 서비스 5가지 #services(DESIGN 6.8 서비스 사진 카드 · 6.27 목록 패널 · 7.1 5행). 네비와 같은 두 묶음.
- * - 첫 기능(소유자 요청 2026-10-17): 유튜브 트렌드 서치 큰 카드. 그림 칸은 /trend-search 첫 화면(검색창 모양 + 결과 미리보기 표)
- * - 비블과 함께: 컨설팅 · 대행 사진 카드 + 인큐베이팅 큰 카드
- * - 함께 배우기: 커뮤니티&자료(1024 이상 미디어 칸 340px 목록 패널, 장식)
+ * - 배치(소유자 요청 2026-10-17): 1줄 유튜브 트렌드 서치 큰 카드(그림 = /trend-search 첫 화면 축소판)
+ *   2줄 팀비블 1:1 컨설팅 · 유튜브 채널 대행, 3줄 브랜드 인큐베이팅 · 커뮤니티&자료(목록 패널은 사진과 같은 16:9)
  * 카드 전체가 링크(제목 안 a 의 ::after). 포커스 링은 카드 둘레에 그린다.
  * 대행 링크는 결정 1 답 전까지 /studio/consulting(상담 신청). /studio 는 가드 때문에 일반 방문자가 홈으로 튕긴다.
  */
@@ -46,15 +45,6 @@ function Meta({ items, className }: { items: string[]; className?: string }) {
         </span>
       ))}
     </p>
-  );
-}
-
-function GroupHead({ title, desc }: { title: string; desc: string }) {
-  return (
-    <div className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
-      <h3 className="text-ui font-bold">{title}</h3>
-      <p className="text-caption text-fg-3">{desc}</p>
-    </div>
   );
 }
 
@@ -129,7 +119,7 @@ function ToolCard({
   return (
     <article className={cx(CARD, className)}>
       {/* 1024 이상 미디어 칸: 장식 목록(누를 수 없음). 목록이 보이는 폭에서는 같은 말을 하는 설명 문장을 숨긴다 */}
-      <div aria-hidden="true" className={cx(LIST_PANEL.media, "pointer-events-none hidden select-none lg:flex lg:h-[340px]")}>
+      <div aria-hidden="true" className={cx(LIST_PANEL.media, "pointer-events-none hidden select-none lg:flex lg:aspect-video")}>
         <div className={LIST_PANEL_HEAD}>
           {panel.head}
           <span className={LIST_PANEL_HEAD_META}>{panel.meta}</span>
@@ -226,22 +216,15 @@ export default function HomeServices() {
       <div className="mx-auto max-w-wide px-6 py-16 md:py-24 lg:px-8">
         <SectionHeader caption="비블랩 서비스 5가지" label="SERVICES" />
         <h2 id="services-title" className="text-h3 md:text-h1">
-          <span className="block text-fg-3">비블과 함께하거나, 직접 하거나</span>
-          <span className="block">필요한 만큼 고르세요</span>
+          <span className="block text-fg-3">여러분의 유튜브 성공을</span>
+          <span className="block">돕기 위해 연구합니다</span>
         </h2>
 
-        {/* 첫 기능: 유튜브 트렌드 서치 */}
-        <div className="mt-12 md:mt-16">
-          <GroupHead title="직접 하기" desc="키워드 하나로 유튜브 트렌드를 바로 확인합니다" />
-          <div className="mt-4">
+        {/* 서비스 5가지(소유자 배치 2026-10-17): 1줄 트렌드 서치 · 2줄 컨설팅·채널 대행 · 3줄 인큐베이팅·커뮤니티 */}
+        <div className="mt-12 grid grid-cols-1 gap-4 md:mt-16 lg:grid-cols-12 lg:gap-6">
+          <div className="lg:col-span-12">
             <TrendSearchCard />
           </div>
-        </div>
-
-        {/* 비블과 함께 */}
-        <div className="mt-12 md:mt-16">
-          <GroupHead title="비블과 함께" desc="비블이 직접 가르치고, 맡아서 운영하고, 함께 만듭니다" />
-          <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-12 lg:gap-6">
             <PhotoCard
               className="lg:col-span-6"
               img={{
@@ -274,48 +257,24 @@ export default function HomeServices() {
               meta={["부가세 별도", "롱폼 4개 + 숏폼 10개"]}
               more="채널 대행 문의하기"
             />
-
-            {/* 브랜드 인큐베이팅: 가로 전체 카드. 1024 이상은 왼쪽 사진·오른쪽 글이고, 높이를 위 두 카드와 같게 맞춘다.
-                위 카드 높이 = 테두리 2px + 안쪽 폭의 16:9 사진 + 글 영역 302px. 위 카드 안쪽 폭 = (이 카드 안쪽 폭 cqw - 26px) / 2 → 사진 칸 높이를 같은 식으로 잡는다. */}
-            <article className={cx(CARD, "@container lg:col-span-12 lg:grid lg:grid-cols-2")}>
-              <div className="aspect-video overflow-hidden bg-surface-2 lg:aspect-auto lg:h-[calc((100cqw-26px)/2*0.5625+302px)]">
-                <img
-                  src="/home/svc-incubating-2.webp"
-                  width={736}
-                  height={981}
-                  alt="높은 창가의 회의 테이블에 둘러앉아 이야기하는 사람들(흑백 사진)"
-                  className="size-full object-cover object-[50%_78%]"
-                  loading="lazy"
-                  decoding="async"
-                />
-              </div>
-              <div className="flex flex-col p-5 sm:p-6 lg:p-8">
-                <h4 className="text-title">
-                  <Link href="/incubating" className={CARD_LINK}>브랜드 인큐베이팅</Link>
-                </h4>
-                <p className="mt-2.5 text-ui text-fg-2 lg:text-body">
-                  {`채널 기획${DOT}제작${DOT}마케팅${DOT}상품화는 레이블이, 선생님은 가르치는 일에만 집중합니다.`}
-                </p>
-                <div className="mt-auto pt-6 lg:pt-8">
-                  <div className="border-t border-line pt-4">
-                    <p className="text-h4 font-extrabold">{`영어${DOT}수학 선생님 모집`}</p>
-                    <Meta items={[`오픈채팅${DOT}메일로 지원`]} className="mt-1" />
-                  </div>
-                  <p aria-hidden="true" className={MORE}>
-                    오픈채팅으로 지원하기 <span className={ARROW}>→</span>
-                  </p>
-                </div>
-              </div>
-            </article>
-          </div>
-        </div>
-
-        {/* 함께 배우기 */}
-        <div className="mt-12 md:mt-16">
-          <GroupHead title="함께 배우기" desc="실무 자료와 회원들의 답으로 혼자서도 꾸준히" />
-          <div className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-12 lg:gap-6">
+            <PhotoCard
+              className="lg:col-span-6"
+              img={{
+                src: "/home/svc-incubating-2.webp",
+                width: 736,
+                height: 981,
+                alt: "높은 창가의 회의 테이블에 둘러앉아 이야기하는 사람들(흑백 사진)",
+                position: "object-[50%_78%]",
+              }}
+              title="브랜드 인큐베이팅"
+              href="/incubating"
+              desc={`채널 기획${DOT}제작${DOT}마케팅${DOT}상품화는 레이블이, 선생님은 가르치는 일에만 집중합니다.`}
+              price={`영어${DOT}수학 선생님 모집`}
+              meta={[`오픈채팅${DOT}메일로 지원`]}
+              more="오픈채팅으로 지원하기"
+            />
             <ToolCard
-              className="lg:col-span-12"
+              className="lg:col-span-6"
               panel={{
                 head: (
                   <img src="/home/community-wordmark.png" width={743} height={91} alt="" className="h-[18px] w-auto" loading="lazy" decoding="async" />
@@ -334,7 +293,6 @@ export default function HomeServices() {
               meta={["회원가입만 하면 입장", "멤버 1,409명"]}
               more="무료로 가입하고 입장하기"
             />
-          </div>
         </div>
       </div>
     </section>

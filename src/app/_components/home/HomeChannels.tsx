@@ -3,7 +3,7 @@
  * 채널 실적 부품(DESIGN 6.28). 홈 #channels 가 쓰고, /studio(C07)·/incubating(C09)이 props 로 머리 문구만 바꿔 다시 쓴다.
  * - 640 이상: 채널마다 왼쪽 4칸(아이콘 44px · 채널명(외부 링크 표시) · 분야 · 구독자) + 오른쪽 8칸 대표 영상 3장(1024 미만 2장)
  * - 640 미만: 4곳 2열 격자(28px 숫자) + 대표 영상 8장 가로 스냅 목록(aria-label '대표 영상')
- * - 이어서 실버 플레이 버튼 사진(5칸) + 큰 지표 10억+(7칸, 골프 쇼핑몰 연 매출). showRevenue={false} 로 뺄 수 있다
+ * - 이어서 실버 플레이 버튼 사진(5칸) + 큰 지표 10억+(7칸, 쇼핑몰·영어 강의·컨설팅 등 연 매출). showRevenue={false} 로 뺄 수 있다
  * 숫자는 YouTube 공개 값을 실시간으로 받는다(src/lib/proofChannels.ts, 30일 캐시): 구독자 수, 채널별 조회수 높은 영상 3개와 조회수.
  * 비블 bibl 은 소유자가 고른 영상 3개. 실패하면 고정값.
  * 채널 아이콘은 콘텐츠라 '첫 화면 인물 사진 없음' 규칙 밖이다.
@@ -210,7 +210,7 @@ export default async function HomeChannels({
                 </span>
                 <span className="sr-only">10억 원 이상</span>
               </p>
-              <p className="mt-2.5 text-caption text-fg-3 lg:text-ui">골프 쇼핑몰 연 매출</p>
+              <p className="mt-2.5 text-caption text-fg-3 lg:text-ui">쇼핑몰, 영어 강의, 컨설팅 등 연 매출</p>
               <h3 className="mt-8 text-h4 font-extrabold lg:mt-10 lg:text-h3">채널 성과에서 끝나지 않습니다</h3>
               <p className="mt-3 max-w-[34em] text-body text-fg-2 lg:text-lead">
                 {`세계유명 골프정보의 조회수는 쇼핑몰 매출로 이어졌습니다. 다양한 채널을 직접 운영${DOT}기획하고 사업으로 연결한 실전 경험을 그대로 여러분의 채널에 적용합니다.`}

@@ -268,7 +268,7 @@ const DIFFERENCES = [
 
 const COMPARE = [
   { k: "직접 운영 채널", a: "없음", b: "총 70만 구독자, 7개 채널" },
-  { k: "사업 경험", a: "영상 제작자 출신 다수", b: "유튜브 분석 SaaS 운영 · 매출 10억+ 쇼핑몰 · 유튜버 교육 컨설팅 · 오프라인 매장 3곳" },
+  { k: "사업 경험", a: "영상 제작자 출신 다수", b: "유튜브 분석 SaaS 운영 · 쇼핑몰·영어 강의·컨설팅 등 연 매출 10억+ · 유튜버 교육 컨설팅 · 오프라인 매장 3곳" },
   { k: "주제 선정", a: "감 · 회의", b: "자체 SaaS 데이터 + 운영 인사이트" },
   { k: "촬영 디렉팅", a: "PD 외주", b: "비블 직접 현장 디렉팅" },
   { k: "썸네일 · 제목", a: "디자이너 외주", b: "비블 직접 제작" },
@@ -455,7 +455,7 @@ export default function StudioPage() {
               ))}
             </dl>
             <p className="mt-8 border-t border-line pt-6 text-body-sm text-fg-2 md:text-ui">
-              채널 성과에서 끝나지 않습니다. 이 트래픽은 골프 쇼핑몰{" "}
+              채널 성과에서 끝나지 않습니다. 이 트래픽은 쇼핑몰, 영어 강의, 컨설팅 등{" "}
               <span className="font-semibold text-owner-red">연 매출 10억+</span>으로 직접 연결됩니다. 트래픽을 매출로
               전환하는 비즈니스 설계, 일반 대행사와 가장 다른 지점입니다.
             </p>
@@ -819,7 +819,7 @@ export default function StudioPage() {
                 <span className="block text-fg-3">
                   지금 <span className="whitespace-nowrap">채널 대행을</span> 문의해보세요
                 </span>
-                <span className="block">비블이 직접 연락드립니다</span>
+                <span className="block">비블이 직접 채널을 관리해드립니다</span>
               </h2>
               <p className="mt-5 text-body text-fg-2 lg:text-lead">여러분의 채널에 맞는 대행 방향을 제안해드립니다.</p>
             </div>
