@@ -1,8 +1,9 @@
 /* eslint-disable @next/next/no-img-element -- 시안과 같은 크기의 정적 사진(public/home), 최적화 서버를 거치지 않는다 */
 /**
  * 홈 서비스 5가지 #services(DESIGN 6.8 서비스 사진 카드 · 6.27 목록 패널 · 7.1 5행). 네비와 같은 두 묶음.
- * - 비블과 함께: 컨설팅 5칸 · 대행 7칸 사진 카드 + 인큐베이팅 가로 띠
- * - 직접 하기: 트렌드 서치 · 커뮤니티&자료(1024 이상 미디어 칸 340px 목록 패널, 장식)
+ * - 첫 기능(소유자 요청 2026-10-17): 유튜브 트렌드 서치 큰 카드. 그림 칸은 /trend-search 첫 화면(검색창 모양 + 결과 미리보기 표)
+ * - 비블과 함께: 컨설팅 · 대행 사진 카드 + 인큐베이팅 큰 카드
+ * - 함께 배우기: 커뮤니티&자료(1024 이상 미디어 칸 340px 목록 패널, 장식)
  * 카드 전체가 링크(제목 안 a 의 ::after). 포커스 링은 카드 둘레에 그린다.
  * 대행 링크는 결정 1 답 전까지 /studio/consulting(상담 신청). /studio 는 가드 때문에 일반 방문자가 홈으로 튕긴다.
  */
@@ -10,6 +11,8 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { cx } from "@/components/ui/button";
 import { SectionHeader } from "@/components/ui/section-header";
+import { SearchIcon } from "@/components/ui/icons";
+import HomeResultPreview from "./HomeResultPreview";
 import {
   LIST_PANEL,
   LIST_PANEL_DESC,
@@ -107,6 +110,7 @@ function PhotoCard({
 }
 
 function ToolCard({
+  className = "lg:col-span-6",
   panel,
   title,
   href,
@@ -114,6 +118,7 @@ function ToolCard({
   meta,
   more,
 }: {
+  className?: string;
   panel: { head: ReactNode; meta: string; items: { title: ReactNode; desc: string }[] };
   title: string;
   href: string;
@@ -122,7 +127,7 @@ function ToolCard({
   more: string;
 }) {
   return (
-    <article className={cx(CARD, "lg:col-span-6")}>
+    <article className={cx(CARD, className)}>
       {/* 1024 이상 미디어 칸: 장식 목록(누를 수 없음). 목록이 보이는 폭에서는 같은 말을 하는 설명 문장을 숨긴다 */}
       <div aria-hidden="true" className={cx(LIST_PANEL.media, "pointer-events-none hidden select-none lg:flex lg:h-[340px]")}>
         <div className={LIST_PANEL_HEAD}>
@@ -160,6 +165,59 @@ function ToolCard({
   );
 }
 
+/**
+ * 유튜브 트렌드 서치 큰 카드: 위는 /trend-search 첫 화면 축소판(제목 · 검색창 모양 링크 · 예시 · 결과 미리보기 표),
+ * 아래는 다른 카드와 같은 글 영역(제목 · 설명 · 무료 · 더 보기). 홈에서는 검색하지 않고 검색창을 누르면 /trend-search 로 간다.
+ * 안에 링크가 여러 개라 카드 전체 링크(::after)를 쓰지 않는다.
+ */
+function TrendSearchCard() {
+  const EXAMPLES = ["캠핑", "영어 공부", "주식 투자", "다이어트", "여행 브이로그"];
+  return (
+    <article className="overflow-hidden rounded-panel border border-line bg-surface">
+      <div className="border-b border-line p-5 sm:p-6 lg:p-8">
+        <p className="text-h4 font-extrabold md:text-h3">
+          <span className="text-fg-3">키워드 하나로 </span>
+          <span className="whitespace-nowrap">유튜브 트렌드</span>
+          <span className="text-fg-3">를 파악하세요</span>
+        </p>
+        <Link
+          href="/trend-search"
+          className="group/search mt-5 flex h-14 max-w-2xl items-center gap-3 rounded-control border border-line-strong bg-canvas pl-4 pr-1.5 transition-colors duration-150 hover:border-line-hover"
+        >
+          <SearchIcon className="text-fg-3" />
+          <span className="min-w-0 flex-1 truncate text-ui text-fg-3">분석할 키워드를 입력하세요</span>
+          <span className="inline-flex h-11 shrink-0 items-center rounded-control bg-accent px-4 text-ui font-semibold text-accent-ink transition-colors duration-150 group-hover/search:bg-accent-hover">
+            분석 시작
+          </span>
+          <span className="sr-only">유튜브 트렌드 서치에서 검색하기</span>
+        </Link>
+        <p aria-hidden="true" className="mt-3 flex flex-wrap items-center gap-1.5 text-caption text-fg-3">
+          <span className="mr-1">예시</span>
+          {EXAMPLES.map((k) => (
+            <span key={k} className="inline-flex h-8 items-center rounded-control border border-line px-2.5 text-fg-2">{k}</span>
+          ))}
+        </p>
+        <HomeResultPreview className="mt-6" linkHref="/trend-search" />
+      </div>
+      <div className="flex flex-col gap-5 p-5 sm:p-6 lg:flex-row lg:items-end lg:justify-between lg:gap-10 lg:p-8">
+        <div className="min-w-0">
+          <h4 className="text-title">
+            <Link href="/trend-search" className="hover:underline hover:underline-offset-4">유튜브 트렌드 서치</Link>
+          </h4>
+          <p className="mt-2.5 text-ui text-fg-2 lg:text-body">{`키워드${DOT}채널${DOT}데이터 분석 도구를 한곳에서 사용하세요. 영상 찾기${DOT}채널 찾기${DOT}채널 분석${DOT}브레이크아웃.`}</p>
+        </div>
+        <div className="shrink-0 border-t border-line pt-4 lg:min-w-[280px]">
+          <p className="tnum text-h4 font-extrabold">무료</p>
+          <Meta items={["영상 검색 하루 2회", "유료 월 19,000원부터"]} className="tnum mt-1" />
+          <Link href="/trend-search" className={cx(MORE, "hover:text-fg-2")}>
+            검색해 보기 <span aria-hidden="true" className={ARROW}>→</span>
+          </Link>
+        </div>
+      </div>
+    </article>
+  );
+}
+
 const PRO_TAG = "rounded border border-line-strong px-1 text-micro leading-[18px] text-fg-3";
 
 export default function HomeServices() {
@@ -171,6 +229,14 @@ export default function HomeServices() {
           <span className="block text-fg-3">비블과 함께하거나, 직접 하거나</span>
           <span className="block">필요한 만큼 고르세요</span>
         </h2>
+
+        {/* 첫 기능: 유튜브 트렌드 서치 */}
+        <div className="mt-12 md:mt-16">
+          <GroupHead title="직접 하기" desc="키워드 하나로 유튜브 트렌드를 바로 확인합니다" />
+          <div className="mt-4">
+            <TrendSearchCard />
+          </div>
+        </div>
 
         {/* 비블과 함께 */}
         <div className="mt-12 md:mt-16">
@@ -244,35 +310,12 @@ export default function HomeServices() {
           </div>
         </div>
 
-        {/* 직접 하기 */}
+        {/* 함께 배우기 */}
         <div className="mt-12 md:mt-16">
-          <GroupHead title="직접 하기" desc="분석 도구와 실무 자료로 혼자서도 꾸준히" />
+          <GroupHead title="함께 배우기" desc="실무 자료와 회원들의 답으로 혼자서도 꾸준히" />
           <div className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-12 lg:gap-6">
             <ToolCard
-              panel={{
-                head: <span className="text-caption font-semibold text-fg">분석 도구 4가지</span>,
-                meta: "Free · Starter · Pro",
-                items: [
-                  { title: "영상 찾기", desc: "키워드로 최신 유튜브 영상을 수집합니다." },
-                  { title: "채널 찾기", desc: `구독자 급상승${DOT}신생 채널 필터를 제공합니다.` },
-                  { title: "채널 분석", desc: "내 채널의 데이터를 분석해 개선 포인트를 확인합니다." },
-                  {
-                    title: (
-                      <>
-                        수집한 영상<span className={PRO_TAG}>Pro</span>
-                      </>
-                    ),
-                    desc: "마음에 드는 영상을 수집하고 CSV로 내보냅니다.",
-                  },
-                ],
-              }}
-              title="유튜브 트렌드 서치"
-              href="/trend-search"
-              desc={`키워드${DOT}채널${DOT}데이터 분석 도구를 한곳에서 사용하세요.`}
-              meta={["영상 검색 하루 2회", "유료 월 19,000원부터"]}
-              more="도구 4가지 보기"
-            />
-            <ToolCard
+              className="lg:col-span-12"
               panel={{
                 head: (
                   <img src="/home/community-wordmark.png" width={743} height={91} alt="" className="h-[18px] w-auto" loading="lazy" decoding="async" />

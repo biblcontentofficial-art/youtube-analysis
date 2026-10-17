@@ -9,8 +9,12 @@
 import { cx } from "@/components/ui/button";
 import { TABLE, TD_PREVIEW, TH_PREVIEW, TH_SORT_ACTIVE } from "@/components/ui/table";
 import { badgeClass } from "@/components/ui/badge";
+import Link from "next/link";
 import { HomePreviewLink } from "@/app/_components/HomeSearch";
 import preview from "./home-preview.json";
+
+const PREVIEW_LINK =
+  "inline-flex h-11 items-center gap-1.5 self-start font-semibold text-fg transition-colors duration-150 hover:text-fg-2 sm:-my-2 sm:self-auto";
 
 type PreviewRow = (typeof preview.rows)[number];
 
@@ -27,12 +31,16 @@ function Thumb({ row, className }: { row: PreviewRow; className: string }) {
   );
 }
 
-export default function HomeResultPreview() {
+/**
+ * className: 바깥 여백을 바꿀 때(기본 mt-7·sm:mt-8·lg:mt-10).
+ * linkHref: 검색 기능(HomeSearchProvider) 밖에서 쓸 때 아래 링크를 이 주소로 가는 일반 링크로 바꾼다(홈 서비스의 트렌드 서치 카드).
+ */
+export default function HomeResultPreview({ className = "mt-7 sm:mt-8 lg:mt-10", linkHref }: { className?: string; linkHref?: string } = {}) {
   const rows = preview.rows.slice(0, 5);
   const mobileRows = preview.rows.slice(0, 3);
 
   return (
-    <figure className="mt-7 overflow-hidden rounded-panel border border-line bg-surface sm:mt-8 lg:mt-10">
+    <figure className={cx("overflow-hidden rounded-panel border border-line bg-surface", className)}>
       <div aria-hidden="true" className="pointer-events-none select-none">
         <div className="hidden items-center justify-between gap-4 border-b border-line px-5 sm:flex">
           <div className="-mb-px flex gap-5 text-caption">
@@ -125,7 +133,13 @@ export default function HomeResultPreview() {
           <time dateTime={preview.capturedAt}>{preview.capturedLabel}</time>
           {` YouTube 공개 검색 결과 · ${preview.sortLabel}`}
         </span>
-        <HomePreviewLink className="inline-flex h-11 items-center gap-1.5 self-start font-semibold text-fg transition-colors duration-150 hover:text-fg-2 sm:-my-2 sm:self-auto" />
+        {linkHref ? (
+          <Link href={linkHref} className={PREVIEW_LINK}>
+            트렌드 서치에서 직접 검색하기 <span aria-hidden="true">→</span>
+          </Link>
+        ) : (
+          <HomePreviewLink className={PREVIEW_LINK} />
+        )}
       </figcaption>
     </figure>
   );
