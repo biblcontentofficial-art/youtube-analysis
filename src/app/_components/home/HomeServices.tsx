@@ -2,7 +2,7 @@
 /**
  * 홈 서비스 5가지 #services(DESIGN 6.8 서비스 사진 카드 · 6.27 목록 패널 · 7.1 5행). 네비와 같은 두 묶음.
  * - 배치(소유자 요청 2026-10-17): 1줄 유튜브 트렌드 서치 큰 카드(그림 = /trend-search 첫 화면 축소판)
- *   2줄 팀비블 1:1 컨설팅 · 유튜브 채널 대행, 3줄 브랜드 인큐베이팅 · 커뮤니티&자료(목록 패널은 사진과 같은 16:9)
+ *   2줄 팀비블 1:1 컨설팅 · 유튜브 채널 대행, 3줄 브랜드 인큐베이팅 · 커뮤니티 & 무료자료(모두 사진 카드)
  * 카드 전체가 링크(제목 안 a 의 ::after). 포커스 링은 카드 둘레에 그린다.
  * 대행 링크는 결정 1 답 전까지 /studio/consulting(상담 신청). /studio 는 가드 때문에 일반 방문자가 홈으로 튕긴다.
  */
@@ -12,15 +12,6 @@ import { cx } from "@/components/ui/button";
 import { SectionHeader } from "@/components/ui/section-header";
 import { SearchIcon } from "@/components/ui/icons";
 import HomeResultPreview from "./HomeResultPreview";
-import {
-  LIST_PANEL,
-  LIST_PANEL_DESC,
-  LIST_PANEL_HEAD,
-  LIST_PANEL_HEAD_META,
-  LIST_PANEL_ITEM,
-  LIST_PANEL_LIST,
-  LIST_PANEL_TITLE,
-} from "@/components/ui/list-panel";
 
 /** 마케팅 카드(누를 수 있는 카드라 hover 는 선 색만) + 카드 둘레 포커스 링 */
 const CARD =
@@ -99,62 +90,6 @@ function PhotoCard({
   );
 }
 
-function ToolCard({
-  className = "lg:col-span-6",
-  panel,
-  title,
-  href,
-  desc,
-  meta,
-  more,
-}: {
-  className?: string;
-  panel: { head: ReactNode; meta: string; items: { title: ReactNode; desc: string }[] };
-  title: string;
-  href: string;
-  desc: string;
-  meta: string[];
-  more: string;
-}) {
-  return (
-    <article className={cx(CARD, className)}>
-      {/* 1024 이상 미디어 칸: 장식 목록(누를 수 없음). 목록이 보이는 폭에서는 같은 말을 하는 설명 문장을 숨긴다 */}
-      <div aria-hidden="true" className={cx(LIST_PANEL.media, "pointer-events-none hidden select-none lg:flex lg:aspect-video")}>
-        <div className={LIST_PANEL_HEAD}>
-          {panel.head}
-          <span className={LIST_PANEL_HEAD_META}>{panel.meta}</span>
-        </div>
-        <ul className={LIST_PANEL_LIST}>
-          {panel.items.map((item) => (
-            <li key={item.desc} className={LIST_PANEL_ITEM}>
-              <p className={LIST_PANEL_TITLE}>{item.title}</p>
-              <p className={LIST_PANEL_DESC}>{item.desc}</p>
-            </li>
-          ))}
-        </ul>
-      </div>
-      <div className="flex flex-1 items-center gap-4 p-5 sm:p-6 lg:flex-col lg:items-stretch lg:gap-0 lg:p-8">
-        <div className="min-w-0 flex-1 lg:flex lg:flex-col">
-          <h4 className="text-title">
-            <Link href={href} className={CARD_LINK}>{title}</Link>
-          </h4>
-          <p className="mt-1.5 text-body-sm text-fg-2 lg:hidden">{desc}</p>
-          <div className="mt-3 lg:mt-auto lg:pt-6">
-            <div className="flex flex-wrap items-baseline gap-x-2 lg:block lg:border-t lg:border-line lg:pt-4">
-              <p className="tnum text-h4 font-extrabold">무료</p>
-              <Meta items={meta} className="tnum lg:mt-1" />
-            </div>
-            <p aria-hidden="true" className={cx(MORE, "hidden lg:inline-flex")}>
-              {more} <span className={ARROW}>→</span>
-            </p>
-          </div>
-        </div>
-        <span aria-hidden="true" className={cx("shrink-0 text-h4 text-fg-3 lg:hidden", ARROW)}>→</span>
-      </div>
-    </article>
-  );
-}
-
 /**
  * 유튜브 트렌드 서치 큰 카드: 위는 /trend-search 첫 화면 축소판(제목 · 검색창 모양 링크 · 예시 · 결과 미리보기 표),
  * 아래는 다른 카드와 같은 글 영역(제목 · 설명 · 무료 · 더 보기). 홈에서는 검색하지 않고 검색창을 누르면 /trend-search 로 간다.
@@ -208,7 +143,6 @@ function TrendSearchCard() {
   );
 }
 
-const PRO_TAG = "rounded border border-line-strong px-1 text-micro leading-[18px] text-fg-3";
 
 export default function HomeServices() {
   return (
@@ -273,23 +207,19 @@ export default function HomeServices() {
               meta={[`오픈채팅${DOT}메일로 지원`]}
               more="오픈채팅으로 지원하기"
             />
-            <ToolCard
+            <PhotoCard
               className="lg:col-span-6"
-              panel={{
-                head: (
-                  <img src="/home/community-wordmark.png" width={743} height={91} alt="" className="h-[18px] w-auto" loading="lazy" decoding="async" />
-                ),
-                meta: "회원 전용 게시판",
-                items: [
-                  { title: "유튜브 실전 Q&A", desc: "막히는 지점을 묻고, 먼저 겪은 회원들의 답을 받습니다." },
-                  { title: "자료실 다운로드", desc: `기획 템플릿${DOT}체크리스트${DOT}전자책 등 실무 자료를 받아갑니다.` },
-                  { title: "매일 챌린지 · 스터디", desc: "혼자서는 못 지키는 업로드 루틴을 함께 만듭니다." },
-                  { title: "성과 공유 · 협업", desc: "채널 성장과 매출 사례, 구인구직과 협업 제안이 오갑니다." },
-                ],
+              img={{
+                src: "/home/svc-community.webp",
+                width: 480,
+                height: 600,
+                alt: "모임 공간에 모여 앉아 발표를 듣는 사람들",
+                position: "object-[50%_62%]",
               }}
-              title="커뮤니티&자료"
+              title="커뮤니티 & 무료자료"
               href="/community"
-              desc={`막히는 지점을 묻고, 기획 템플릿${DOT}체크리스트${DOT}전자책 같은 실무 자료를 받아갑니다.`}
+              desc={`막히는 지점을 묻고, 기획 템플릿${DOT}체크리스트${DOT}전자책 같은 실무 자료를 무료로 받아갑니다.`}
+              price="무료"
               meta={["회원가입만 하면 입장", "멤버 1,409명"]}
               more="무료로 가입하고 입장하기"
             />
