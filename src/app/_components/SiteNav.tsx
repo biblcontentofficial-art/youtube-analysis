@@ -13,8 +13,8 @@ import NavHeightObserver from "./NavHeightObserver";
  * 전역 네비(DESIGN 6.2, 레이아웃 F). 루트 레이아웃의 정적 렌더를 지키려고 경로 분기·현재 위치·로그인 표시는
  * 모두 이 클라이언트 잎에서만 한다(루트 레이아웃 auth()·cookies() 금지).
  *
- * - 홈형: 로고 │ 비블과 함께 3개(흰 600) │ 직접 하기 3개(fg-3 500) │ 오른쪽
- * - 앱형: 로고 │ 직접 하기 3개 │ 비블과 함께 3개(드롭다운 없이 옆으로, 소유자 요청 2026-10-16) │ 남은 횟수 배지 · 아바타
+ * - 홈형·앱형 같은 순서(소유자 요청 2026-10-17): 유튜브 트렌드 서치 · 커뮤니티 & 무료자료 │ 팀비블 1:1 유튜브 컨설팅 · 유튜브 채널 대행 · 브랜드 인큐베이팅 · 요금제
+ *   모두 흰 600(현재 위치는 accent). 오른쪽은 홈형 로그인·시작하기, 앱형 남은 횟수 배지 · 아바타
  * - 1280 미만: 56px 한 줄(로고 · 시작하기 또는 아바타 · 메뉴 버튼) + 전체 높이 메뉴 시트
  */
 
@@ -45,7 +45,7 @@ const WITH_BIBL: NavItem[] = [
     match: (p) => under(p, "/studio/class/consulting"),
   },
   // 대행 링크는 결정 1 답 전까지 지금 값(/studio) 유지
-  { href: "/studio", label: "유튜브 채널 대행 문의", match: (p) => p === "/studio" || under(p, "/studio/consulting") },
+  { href: "/studio", label: "유튜브 채널 대행", match: (p) => p === "/studio" || under(p, "/studio/consulting") },
   { href: "/incubating", label: "브랜드 인큐베이팅", match: (p) => under(p, "/incubating") },
 ];
 
@@ -102,16 +102,10 @@ export default function SiteNav() {
     setOpen(false);
   }, [pathname]);
 
-  const groups: NavSheetGroup[] =
-    kind === "app"
-      ? [
-          { title: "직접 하기", items: DIY },
-          { title: "비블과 함께", items: WITH_BIBL },
-        ]
-      : [
-          { title: "비블과 함께", items: WITH_BIBL },
-          { title: "직접 하기", items: DIY },
-        ];
+  const groups: NavSheetGroup[] = [
+    { title: "직접 하기", items: DIY },
+    { title: "비블과 함께", items: WITH_BIBL },
+  ];
 
   const sheetFooter: NavSheetFooter =
     kind === "app" || authPage || !loaded ? "none" : user ? "home-member" : "home-guest";
@@ -141,19 +135,9 @@ export default function SiteNav() {
           </Link>
 
           <nav aria-label="주 메뉴" className="hidden min-w-0 flex-1 items-center nav:flex">
-            {kind === "home" ? (
-              <>
-                <NavList label="비블과 함께" items={WITH_BIBL} pathname={pathname} strong />
-                <span aria-hidden="true" className="mx-3 h-4 w-px bg-line" />
-                <NavList label="직접 하기" items={DIY} pathname={pathname} />
-              </>
-            ) : (
-              <>
-                <NavList label="직접 하기" items={DIY} pathname={pathname} />
-                <span aria-hidden="true" className="mx-3 h-4 w-px bg-line" />
-                <NavList label="비블과 함께" items={WITH_BIBL} pathname={pathname} />
-              </>
-            )}
+            <NavList label="직접 하기" items={DIY.filter((i) => i.href !== "/pricing")} pathname={pathname} strong />
+            <span aria-hidden="true" className="mx-3 h-4 w-px bg-line" />
+            <NavList label="비블과 함께" items={[...WITH_BIBL, ...DIY.filter((i) => i.href === "/pricing")]} pathname={pathname} strong />
           </nav>
 
           <div className="ml-auto flex shrink-0 items-center gap-1.5">

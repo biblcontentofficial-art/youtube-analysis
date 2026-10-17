@@ -310,7 +310,7 @@ const FOOTER_GROUPS: { title: string; items: { href: string; label: string; pref
     title: "비블과 함께",
     items: [
       { href: "/studio/class/consulting", label: "팀비블 1:1 유튜브 컨설팅", prefetch: false },
-      { href: "/studio", label: "유튜브 채널 대행 문의" },
+      { href: "/studio", label: "유튜브 채널 대행" },
       { href: "/incubating", label: "브랜드 인큐베이팅" },
     ],
   },
