@@ -7,6 +7,8 @@
  * 숫자는 YouTube 공개 값을 실시간으로 받는다(src/lib/proofChannels.ts, 30일 캐시): 구독자 수, 채널별 조회수 높은 영상 3개와 조회수.
  * 비블 bibl 은 소유자가 고른 영상 3개. 실패하면 고정값.
  * 채널 아이콘은 콘텐츠라 '첫 화면 인물 사진 없음' 규칙 밖이다.
+ * animate(홈만 켠다, 모션 A 소유자 결정 2026-10-17): 머리·제목·채널 행·실적 블록이 화면에 들어올 때 한 번 떠오른다(data-animate="rise").
+ * /studio 는 자체 AnimationObserver 가 있어 기본값 false 로 둔다(그 화면의 움직임은 바꾸지 않는다).
  */
 import type { ReactNode } from "react";
 import { SectionHeader } from "@/components/ui/section-header";
@@ -63,6 +65,7 @@ export default async function HomeChannels({
   channels: channelsProp,
   only,
   showRevenue = true,
+  animate = false,
 }: {
   id?: string;
   caption?: ReactNode;
@@ -73,6 +76,8 @@ export default async function HomeChannels({
   /** 실시간 데이터에서 이 이름의 채널만 보여 준다 */
   only?: string[];
   showRevenue?: boolean;
+  /** 스크롤 등장(data-animate="rise"). AnimationObserver 가 있는 페이지에서만 움직인다 */
+  animate?: boolean;
 }) {
   const headingId = `${id}-title`;
   const live = channelsProp ? null : await getProofChannels().catch(() => null);
@@ -81,24 +86,25 @@ export default async function HomeChannels({
   const asOf = new Date(live?.fetchedAt ?? Date.now());
   const asOfKst = new Date(asOf.getTime() + 9 * 3600_000);
   const ym = `${asOfKst.getUTCFullYear()}.${String(asOfKst.getUTCMonth() + 1).padStart(2, "0")}`;
+  const rise = animate ? ("rise" as const) : undefined;
   const mobileVideos = channels.flatMap((c) => c.videos.slice(0, 2).map((v) => ({ ...v, channel: c.name })));
 
   return (
     <section id={id} aria-labelledby={headingId} className="scroll-mt-16 border-b border-line">
       <div className="mx-auto max-w-wide px-6 py-16 md:py-24 lg:px-8">
-        <SectionHeader caption={caption} label={label} />
-        <h2 id={headingId} className="text-h3 md:text-h1">
+        <SectionHeader caption={caption} label={label} animate={rise} />
+        <h2 id={headingId} data-animate={rise} className="text-h3 md:text-h1">
           <span className="block text-fg-3">{lead}</span>
           <span className="block">{title}</span>
         </h2>
 
-        <p className="mt-10 text-caption text-fg-3 md:mt-12">
+        <p data-animate={rise} className="mt-10 text-caption text-fg-3 md:mt-12">
           {`대표 채널 ${channels.length}곳 · YouTube 공개 구독자 수·조회수 · `}
           <time dateTime={ym.replace(".", "-")}>{ym}</time>
         </p>
 
         {/* 640 미만: 2열 격자 + 대표 영상 가로 스냅 목록 */}
-        <div className="mt-4 sm:hidden">
+        <div data-animate={rise} className="mt-4 sm:hidden">
           <ul className="grid grid-cols-2 gap-x-4 gap-y-7 border-t border-line pt-5">
             {channels.map((c) => (
               <li key={c.name} className="min-w-0">
@@ -144,7 +150,7 @@ export default async function HomeChannels({
         {/* 640 이상: 채널마다 한 줄 */}
         <ol className="mt-4 hidden border-b border-line sm:block">
           {channels.map((c) => (
-            <li key={c.name} className="grid gap-5 border-t border-line py-7 lg:grid-cols-12 lg:gap-6 lg:py-9">
+            <li key={c.name} data-animate={rise} className="grid gap-5 border-t border-line py-7 lg:grid-cols-12 lg:gap-6 lg:py-9">
               <div className="flex flex-col gap-4 lg:col-span-4 lg:justify-between">
                 <div className="flex items-center gap-3">
                   <ChannelAvatar src={c.icon} size={48} className="size-11 lg:size-12" />
@@ -183,11 +189,11 @@ export default async function HomeChannels({
             </li>
           ))}
         </ol>
-        <p className="tnum mt-4 text-caption text-fg-3">{`표시한 ${channels.length}곳 외 운영${DOT}기획 채널 포함 총 구독자 70만+`}</p>
+        <p data-animate={rise} className="tnum mt-4 text-caption text-fg-3">{`표시한 ${channels.length}곳 외 운영${DOT}기획 채널 포함 총 구독자 70만+`}</p>
 
         {showRevenue && (
           <div className="mt-14 grid grid-cols-1 gap-8 lg:mt-20 lg:grid-cols-12 lg:gap-6">
-            <figure className="lg:col-span-5">
+            <figure data-animate={rise} className="lg:col-span-5">
               <div className="overflow-hidden rounded-panel border border-line bg-surface-2">
                 <img
                   src="/home/silver-play-button-neutral.jpg"
@@ -203,7 +209,7 @@ export default async function HomeChannels({
                 <span className="font-semibold text-fg-1">유튜브가 직접 수여한 실버 플레이 버튼.</span> 세계유명 골프정보 10만&nbsp;구독자 달성
               </figcaption>
             </figure>
-            <div className="flex flex-col justify-end lg:col-span-7 lg:pl-10">
+            <div data-animate={rise} className="flex flex-col justify-end lg:col-span-7 lg:pl-10">
               <p className="tnum text-[44px] font-extrabold leading-none tracking-[-0.035em] sm:text-[48px] xl:text-[56px]">
                 <span aria-hidden="true">
                   10억<span className="text-silver">+</span>

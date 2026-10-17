@@ -4,6 +4,9 @@
  * - 배치(소유자 요청 2026-10-17): 1줄 유튜브 트렌드 서치 큰 카드(그림 = /trend-search 첫 화면 축소판)
  *   2줄 팀비블 1:1 컨설팅 · 유튜브 채널 대행, 3줄 브랜드 인큐베이팅 · 커뮤니티 & 무료자료(모두 사진 카드)
  * 카드 전체가 링크(제목 안 a 의 ::after). 포커스 링은 카드 둘레에 그린다.
+ * 모션 A(소유자 결정 2026-10-17): 머리·제목·카드가 화면에 들어올 때 한 번 떠오른다(data-animate="rise", 홈 AnimationObserver).
+ *   사진 카드는 hover 때 선 색(기존) + 액자 안 사진만 1.02 확대(카드 들림 없음, 움직임 줄이기면 확대 없음).
+ *   등장은 카드 바깥 칸(div)에 건다: 카드의 transition-colors 가 등장 전환을 덮지 않게.
  * 대행 링크는 결정 1 답 전까지 /studio/consulting(상담 신청). /studio 는 가드 때문에 일반 방문자가 홈으로 튕긴다.
  */
 import Link from "next/link";
@@ -13,7 +16,7 @@ import { SectionHeader } from "@/components/ui/section-header";
 import { SearchIcon } from "@/components/ui/icons";
 import HomeResultPreview from "./HomeResultPreview";
 
-/** 마케팅 카드(누를 수 있는 카드라 hover 는 선 색만) + 카드 둘레 포커스 링 */
+/** 마케팅 카드(누를 수 있는 카드라 hover 는 선 색, 사진 카드는 사진만 1.02 확대) + 카드 둘레 포커스 링 */
 const CARD =
   "group relative flex flex-col overflow-hidden rounded-panel border border-line bg-surface transition-colors duration-150 hover:border-line-hover has-[a:focus-visible]:outline-2 has-[a:focus-visible]:outline-offset-2 has-[a:focus-visible]:outline-accent";
 
@@ -59,34 +62,39 @@ function PhotoCard({
   more: string;
 }) {
   return (
-    <article className={cx(CARD, className)}>
-      <div className="aspect-video overflow-hidden bg-surface-2">
-        <img
-          src={img.src}
-          width={img.width}
-          height={img.height}
-          alt={img.alt}
-          className={cx("size-full object-cover", img.position)}
-          loading="lazy"
-          decoding="async"
-        />
-      </div>
-      <div className="flex flex-1 flex-col p-5 sm:p-6 lg:p-8">
-        <h4 className="text-title">
-          <Link href={href} className={CARD_LINK}>{title}</Link>
-        </h4>
-        <p className="mt-2.5 text-ui text-fg-2 lg:text-body">{desc}</p>
-        <div className="mt-auto pt-6 lg:pt-8">
-          <div className="border-t border-line pt-4">
-            <p className="tnum text-h4 font-extrabold">{price}</p>
-            <Meta items={meta} className="mt-1" />
-          </div>
-          <p aria-hidden="true" className={MORE}>
-            {more} <span className={ARROW}>→</span>
-          </p>
+    <div data-animate="rise" className={cx("flex", className)}>
+      <article className={cx(CARD, "min-w-0 flex-1")}>
+        <div className="aspect-video overflow-hidden bg-surface-2">
+          <img
+            src={img.src}
+            width={img.width}
+            height={img.height}
+            alt={img.alt}
+            className={cx(
+              "size-full object-cover transition-transform duration-500 ease-out motion-safe:group-hover:scale-[1.02]",
+              img.position,
+            )}
+            loading="lazy"
+            decoding="async"
+          />
         </div>
-      </div>
-    </article>
+        <div className="flex flex-1 flex-col p-5 sm:p-6 lg:p-8">
+          <h4 className="text-title">
+            <Link href={href} className={CARD_LINK}>{title}</Link>
+          </h4>
+          <p className="mt-2.5 text-ui text-fg-2 lg:text-body">{desc}</p>
+          <div className="mt-auto pt-6 lg:pt-8">
+            <div className="border-t border-line pt-4">
+              <p className="tnum text-h4 font-extrabold">{price}</p>
+              <Meta items={meta} className="mt-1" />
+            </div>
+            <p aria-hidden="true" className={MORE}>
+              {more} <span className={ARROW}>→</span>
+            </p>
+          </div>
+        </div>
+      </article>
+    </div>
   );
 }
 
@@ -148,15 +156,15 @@ export default function HomeServices() {
   return (
     <section id="services" aria-labelledby="services-title" className="scroll-mt-16 border-b border-line">
       <div className="mx-auto max-w-wide px-6 py-16 md:py-24 lg:px-8">
-        <SectionHeader caption="비블랩 서비스 5가지" label="SERVICES" />
-        <h2 id="services-title" className="text-h3 md:text-h1">
+        <SectionHeader caption="비블랩 서비스 5가지" label="SERVICES" animate="rise" />
+        <h2 id="services-title" data-animate="rise" className="text-h3 md:text-h1">
           <span className="block text-fg-3">여러분의 유튜브 성공을</span>
           <span className="block">돕기 위해 연구합니다</span>
         </h2>
 
         {/* 서비스 5가지(소유자 배치 2026-10-17): 1줄 트렌드 서치 · 2줄 컨설팅·채널 대행 · 3줄 인큐베이팅·커뮤니티 */}
         <div className="mt-12 grid grid-cols-1 gap-4 md:mt-16 lg:grid-cols-12 lg:gap-6">
-          <div className="lg:col-span-12">
+          <div data-animate="rise" className="lg:col-span-12">
             <TrendSearchCard />
           </div>
             <PhotoCard

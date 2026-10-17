@@ -11,8 +11,11 @@
 import type { ReactNode } from "react";
 import { cx } from "./button";
 
-/** globals.css 의 스크롤 등장 종류(AnimationObserver 가 있는 페이지에서만 움직인다) */
-export type AnimateKind = "fade" | "up" | "left" | "right" | "scale";
+/**
+ * globals.css 의 스크롤 등장 종류(AnimationObserver 가 있는 페이지에서만 움직인다).
+ * rise = 홈 은은한 모션(12px · 500ms), load = 첫 화면 블록이 첫 그림부터 CSS 로 한 번 떠오름
+ */
+export type AnimateKind = "fade" | "up" | "left" | "right" | "scale" | "rise" | "load";
 
 export function SectionHeader({
   caption,

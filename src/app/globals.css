@@ -360,6 +360,10 @@
   from { opacity: 0; transform: translateY(4px); }
   to { opacity: 1; transform: translateY(0); }
 }
+@keyframes riseIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 @keyframes slideInFromBottom {
   from { opacity: 0; transform: translateY(1rem); }
   to { opacity: 1; transform: translateY(0); }
@@ -484,6 +488,25 @@
   }
   html[data-motion="ready"] [data-animate="scale"]:not(.in-view) {
     transform: scale(0.98);
+  }
+
+  /* 홈 은은한 모션 A(소유자 결정 2026-10-17): 화면에 들어올 때 한 번 12px 떠오르며 500ms 에 나타난다(튕김 없는 ease-out) */
+  [data-animate="rise"] {
+    transition-duration: 0.5s;
+    transition-timing-function: cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+  html[data-motion="ready"] [data-animate="rise"]:not(.in-view) {
+    transform: translateY(12px);
+  }
+
+  /*
+   * 첫 화면 블록(홈 #intro): JS 를 기다리지 않고 첫 그림부터 CSS 로 한 번 떠오른다(rise 와 같은 값).
+   * 첫 화면 안이라 AnimationObserver 가 바로 in-view 를 붙이므로 숨김 규칙과 겹치지 않는다.
+   */
+  @media (prefers-reduced-motion: no-preference) {
+    [data-animate="load"] {
+      animation: riseIn 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+    }
   }
 
   /* 숫자 카운터 */

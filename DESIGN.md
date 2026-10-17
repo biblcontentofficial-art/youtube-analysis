@@ -515,6 +515,12 @@ C18b(2026-10-10)부터 `--color-*: initial;` 을 켠 상태다(9.3·9.4). `globa
 
 - 겹침 단계는 `globals.css` 주석 그대로: z-10 표 머리 · z-30 페이지 안 sticky·하단 바 · z-40 카카오 버튼 · z-50 전역 네비 · z-70 토스트 · z-80 진행 막대. 모달은 `showModal()` top layer.
 - 전환은 `transition-colors duration-150 ease-out` 하나. 카드 hover 는 선 색만(들림·확대 없음). 화살표만 `group-hover:translate-x-0.5`.
+- **소유자 결정 2026-10-17: 홈(/)에 은은한 모션 A.** 홈에서만 아래를 더한다(다른 화면은 위 규칙 그대로). 시안·녹화는 `src/app/ux-preview/home-motion`(로컬 전용) · `docs/home-motion/`.
+  - 구역·블록 등장: 화면에 들어올 때 한 번 12px 떠오르며 500ms 에 나타난다(`data-animate="rise"`, `cubic-bezier(0.2,0.7,0.2,1)`, 차례 지연 없음). `AnimationObserver` 체계라 숨김은 JS 준비 뒤에만 걸리고, 첫 화면 안 요소는 숨기지 않는다.
+  - 첫 화면 #intro 블록 4개: 같은 값으로 첫 그림부터 CSS 로 한 번(`data-animate="load"`, JS 를 기다리지 않는다).
+  - 숫자: 첫 화면 70만 과 채널 4곳 구독자만 0.9초 한 번 센다(`CountUp`). 서버 HTML 이 최종값, 최종값을 보이지 않게 깔아 칸 폭 고정(CLS 0), `tnum`.
+  - 사진 카드 hover: 선 색(기존) + 액자 안 사진만 `motion-safe:group-hover:scale-[1.02]`(500ms). 카드 자체 들림·그림자 없음.
+  - transform·opacity 만. 글로우·그라데이션·튕김 금지. `prefers-reduced-motion: reduce` 이면 전부 정지(내용 바로 보임, 숫자 세지 않음, 확대 없음).
 - `/studio` 의 `.channel-card:hover`(들림·확대·그림자), `.feat-img` 확대는 F 언어로 옮길 때 지운다.
 - `prefers-reduced-motion` 전역 규칙 유지.
 
@@ -672,7 +678,7 @@ R04 공용 부품(`src/components/ui/*`)은 모양을 TS 문자열 상수로 내
 | 미리보기 패널 | `overflow-hidden rounded-panel border border-line bg-surface`, 안쪽 `aria-hidden pointer-events-none select-none`, 바깥 `figcaption` 에 날짜·출처·링크 |
 
 - 카드 전체가 링크: 제목 안 `<a>` 에 `after:absolute after:inset-0 focus-visible:outline-none`, 카드에 `group has-[a:focus-visible]:outline-2 has-[a:focus-visible]:outline-offset-2 has-[a:focus-visible]:outline-accent` (포커스 링을 카드 둘레에. check-theme 의 `outline-none` WARN 은 이 경우 예외로 보고).
-- 그림자·들림·확대 없음. hover 는 선 색만, 안쪽 화살표만 `group-hover:translate-x-0.5`.
+- 그림자·들림·확대 없음. hover 는 선 색만, 안쪽 화살표만 `group-hover:translate-x-0.5`. 예외(소유자 결정 2026-10-17): 홈 서비스 사진 카드는 액자 안 사진만 1.02 확대(5.6).
 
 ### 6.8 서비스 사진 카드
 

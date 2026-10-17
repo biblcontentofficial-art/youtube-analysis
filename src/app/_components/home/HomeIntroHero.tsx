@@ -4,11 +4,14 @@
  * 채널 줄은 HomeChannels 와 같은 실시간 값(src/lib/proofChannels.ts, 30일 캐시). 실패하면 고정값.
  * 70만+ 는 표시한 4곳 외 운영·기획 채널을 포함한 값이라 숫자 아래에 그 사실을 적는다(4곳 합계와 다르다).
  * 채널 아이콘은 콘텐츠라 '첫 화면 인물 사진 없음' 규칙 밖이다.
+ * 모션 A(소유자 결정 2026-10-17): 블록 4개가 첫 그림부터 CSS 로 한 번 떠오르고(data-animate="load"),
+ * 70만 과 채널 구독자 숫자는 CountUp 이 한 번 센다(서버 HTML 은 최종값).
  */
 import Link from "next/link";
 import { buttonClass } from "@/components/ui/button";
 import { SectionHeader } from "@/components/ui/section-header";
 import ChannelAvatar from "./ChannelAvatar";
+import CountUp from "./CountUp";
 import { getProofChannels, PROOF_CHANNELS_FALLBACK } from "@/lib/proofChannels";
 
 /** 가운뎃점에서 줄이 갈리지 않게 앞뒤에 WORD JOINER(U+2060) */
@@ -40,14 +43,15 @@ export default async function HomeIntroHero() {
   return (
     <section id="intro" aria-labelledby="intro-title" className="border-b border-line">
       <div className="mx-auto max-w-wide px-6 pb-14 pt-8 sm:pt-12 lg:px-8 lg:pb-16 lg:pt-14">
-        <SectionHeader caption={`비블랩${DOT}유튜브 컨설팅과 채널 운영`} label="BIBL LAB" className="mb-8 md:mb-12" />
+        <SectionHeader caption={`비블랩${DOT}유튜브 컨설팅과 채널 운영`} label="BIBL LAB" animate="load" className="mb-8 md:mb-12" />
 
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 lg:items-end lg:gap-6">
           {/* 결과 먼저: 큰 숫자. 보이는 숫자는 장식, 스크린 리더는 sr-only 문장 */}
-          <div className="lg:col-span-6">
+          <div data-animate="load" className="lg:col-span-6">
             <p className="tnum text-[88px] font-extrabold leading-[0.9] tracking-[-0.03em] sm:text-[120px] lg:text-[148px] xl:text-[176px]">
               <span aria-hidden="true">
-                70만<span className="text-silver">+</span>
+                <CountUp value="70만" />
+                <span className="text-silver">+</span>
               </span>
               <span className="sr-only">총 구독자 70만 명 이상</span>
             </p>
@@ -60,7 +64,7 @@ export default async function HomeIntroHero() {
             </p>
           </div>
 
-          <div className="lg:col-span-6">
+          <div data-animate="load" className="lg:col-span-6">
             <h1 id="intro-title" className="text-h3 text-silver sm:text-[40px] sm:leading-[1.2] lg:text-h1">
               <span className="block">
                 유튜브를 통해 <span className="text-accent">나의 영향력</span>을
@@ -84,7 +88,7 @@ export default async function HomeIntroHero() {
         </div>
 
         {/* 채널 4곳 줄: 아바타(채널 아이콘) · 채널명 · 한 줄 설명 · 구독자 */}
-        <div className="mt-12 lg:mt-16">
+        <div data-animate="load" className="mt-12 lg:mt-16">
           <div className="flex items-baseline justify-between gap-4">
             <p className="text-caption text-fg-3">
               {`직접 운영${DOT}기획하는 채널 4곳 · YouTube 공개 구독자 수 · `}
@@ -108,7 +112,10 @@ export default async function HomeIntroHero() {
                   </div>
                 </div>
                 <p className="mt-auto flex items-baseline gap-1.5 pt-4">
-                  <span className="tnum text-[28px] font-extrabold leading-none tracking-[-0.03em] lg:text-[36px]">{c.subscribers}</span>
+                  <span className="tnum text-[28px] font-extrabold leading-none tracking-[-0.03em] lg:text-[36px]">
+                    <span className="sr-only">{c.subscribers}</span>
+                    <CountUp value={c.subscribers} />
+                  </span>
                   <span className="text-caption text-fg-3">구독자</span>
                 </p>
               </li>

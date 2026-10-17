@@ -2,6 +2,7 @@
 /**
  * 홈 비블 소개 #about(2026-10-16 소유자 확정 안 C). 작은 정사각 인물 사진(3칸) + 제목·설명·사실 3줄(9칸).
  * 첫 화면 아래라 '첫 화면 인물 사진 없음' 규칙과 부딪히지 않는다.
+ * 모션 A(소유자 결정 2026-10-17): 머리·사진·글 묶음이 화면에 들어올 때 한 번 떠오른다(data-animate="rise").
  * 사진은 public/home/bibl-portrait-original.webp(배경을 지우지 않은 원본 public/studio/instructor.jpg 를 가운데 정사각으로 잘라 800px, 소유자 요청 2026-10-17).
  */
 import { SectionHeader } from "@/components/ui/section-header";
@@ -28,9 +29,9 @@ export default function HomeAbout() {
   return (
     <section id="about" aria-labelledby="about-title" className="scroll-mt-16 border-b border-line">
       <div className="mx-auto max-w-wide px-6 py-16 md:py-24 lg:px-8">
-        <SectionHeader caption="비블랩을 운영하는 사람" label="ABOUT" />
+        <SectionHeader caption="비블랩을 운영하는 사람" label="ABOUT" animate="rise" />
         <div className="grid grid-cols-1 gap-10 lg:grid-cols-12 lg:gap-6">
-          <figure className="w-40 sm:w-52 lg:col-span-3 lg:w-auto">
+          <figure data-animate="rise" className="w-40 sm:w-52 lg:col-span-3 lg:w-auto">
             <div className="overflow-hidden rounded-panel border border-line bg-canvas">
               <img
                 src="/home/bibl-portrait-original.webp"
@@ -48,7 +49,7 @@ export default function HomeAbout() {
             </figcaption>
           </figure>
 
-          <div className="lg:col-span-9 lg:pl-10">
+          <div data-animate="rise" className="lg:col-span-9 lg:pl-10">
             <h2 id="about-title" className="text-h3 md:text-h1">
               <span className="block text-fg-3">직접 해 본 방법만</span>
               <span className="block">가르치고, 맡아서 운영합니다</span>
