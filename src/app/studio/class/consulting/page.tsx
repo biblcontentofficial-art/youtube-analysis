@@ -5,18 +5,20 @@ import { BottomCTABar } from "@/components/ui/bottom-cta-bar";
 import { buttonClass } from "@/components/ui/button";
 import { ArrowRightIcon } from "@/components/ui/icons";
 import { SectionHeader } from "@/components/ui/section-header";
+import { ReserveButton, ReserveDialog } from "./_components/Reserve";
 
 /**
  * 팀비블 1:1 유튜브 컨설팅 상세 페이지 (서버 컴포넌트, 방문 기록·하단 바만 클라이언트)
  * - 첫 화면: 사진 카드 히어로 + '월 49만원' + 이미지 속 사실(4.png 구성, 6.png 결제) + 신청 버튼
  * - 상세 이미지 7장 (public/studio/consulting/1~7.png). 실제 크기를 선언해 로딩 중 높이가 바뀌지 않게 한다
  * - 가격 이미지(6번) 바로 뒤에 HTML 신청 블록
- * - "1:1 팀비블 신청하기" → Latpeed 결제 페이지(새 창)
+ * - 4기 마감(소유자 2026-10-21): 신청 버튼은 모두 "5기 사전예약하기" → 같은 페이지 설문 팝업(_components/Reserve.tsx).
+ *   Latpeed 결제 주소는 아래 주석(APPLY_URL)에 남겨 둔다.
  * - '20명 소수 정예 · 평균 3개월 대기'는 결정 6 전까지 이미지 안에만 둔다(HTML 에 올리지 않음)
  */
 
-const APPLY_URL =
-  "https://www.latpeed.com/memberships/6969983ba5c296323a6eb78c/pay/eLjQa";
+// 5기 결제를 다시 열 때 쓴다(지금은 사전예약):
+// const APPLY_URL = "https://www.latpeed.com/memberships/6969983ba5c296323a6eb78c/pay/eLjQa";
 
 /** 상세 이미지: 실제 크기(1000px 폭) + 이미지 속 소제목 한 줄 alt + 점프 링크 앵커 */
 const DETAIL_IMAGES: { n: number; height: number; alt: string; id?: string }[] =
@@ -74,17 +76,10 @@ const JUMP_LINKS = [
 // data-apply-cta: 이 버튼이 화면에 보이는 동안 하단 고정 신청 바를 숨긴다(흰 버튼은 한 화면에 하나)
 function ApplyButton({ block = false }: { block?: boolean }) {
   return (
-    <a
-      href={APPLY_URL}
-      target="_blank"
-      rel="noopener noreferrer"
-      data-apply-cta=""
-      className={buttonClass({ size: "lg", block })}
-    >
-      1:1 팀비블 신청하기
+    <ReserveButton data-apply-cta="" className={buttonClass({ size: "lg", block })}>
+      5기 사전예약하기
       <ArrowRightIcon size={20} />
-      <span className="sr-only">(새 창)</span>
-    </a>
+    </ReserveButton>
   );
 }
 
@@ -103,15 +98,9 @@ export default function TeamBiblConsultingPage() {
           >
             <span aria-hidden="true">←</span> 스튜디오
           </Link>
-          <a
-            href={APPLY_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={buttonClass({ variant: "secondary", size: "sm" })}
-          >
-            신청하기
-            <span className="sr-only">(새 창)</span>
-          </a>
+          <ReserveButton className={buttonClass({ variant: "secondary", size: "sm" })}>
+            5기 사전예약
+          </ReserveButton>
         </div>
       </div>
 
@@ -162,7 +151,7 @@ export default function TeamBiblConsultingPage() {
                 <div className="mt-6 border-t border-line pt-6 max-lg:pr-14">
                   <ApplyButton block />
                   <p className="mt-2.5 text-caption text-fg-3">
-                    신청 페이지로 이동합니다
+                    4기 마감 · 5기 오픈 때 가장 먼저 연락드려요
                   </p>
                 </div>
               </div>
@@ -241,12 +230,12 @@ export default function TeamBiblConsultingPage() {
               <section className="border-y border-line px-6 py-16 md:px-[7.8%] md:py-24">
                 <div className="flex flex-col items-start gap-6 md:flex-row md:items-center md:justify-between">
                   <h2 className="text-h3 md:text-h2">
-                    1:1 팀비블과 시작하세요
+                    5기 사전예약을 받고 있어요
                   </h2>
                   <div>
                     <ApplyButton />
                     <p className="mt-2.5 text-caption text-fg-3">
-                      신청 페이지로 이동합니다
+                      4기 마감 · 5기 오픈 때 가장 먼저 연락드려요
                     </p>
                   </div>
                 </div>
@@ -259,16 +248,11 @@ export default function TeamBiblConsultingPage() {
       {/* 하단 고정 신청 바 (데스크톱 한 줄 메뉴 미만: 모바일·태블릿). 위의 신청 버튼이 화면에 보이는 동안은 숨는다.
           카카오 상담 버튼은 globals.css 의 data-bottom-bar 규칙으로 바 위에 뜬다. */}
       <BottomCTABar hideFrom="nav" hideWhenVisible="[data-apply-cta]">
-        <a
-          href={APPLY_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={buttonClass({ size: "lg", block: true })}
-        >
-          1:1 팀비블 신청하기
-          <span className="sr-only">(새 창)</span>
-        </a>
+        <ReserveButton className={buttonClass({ size: "lg", block: true })}>
+          5기 사전예약하기
+        </ReserveButton>
       </BottomCTABar>
+      <ReserveDialog />
     </main>
   );
 }

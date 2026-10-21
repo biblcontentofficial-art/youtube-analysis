@@ -122,10 +122,12 @@ const PLANS: PlanData[] = [
       { text: "100강 VOD 제공" },
       { text: "매월 비블 오프라인 커뮤니티 초대권" },
     ],
-    cta: "TEAM BIBL 시작하기",
+    cta: "5기 사전예약하기",
     planKey: "business",
     monthlyOnly: true,
-    externalUrl: "https://www.latpeed.com/memberships/6969983ba5c296323a6eb78c/pay/eLjQa",
+    // 4기 마감(2026-10-21): 결제 대신 컨설팅 페이지의 5기 사전예약 팝업으로. 결제 재개 시 Latpeed 주소로 되돌린다
+    // https://www.latpeed.com/memberships/6969983ba5c296323a6eb78c/pay/eLjQa
+    externalUrl: "/studio/class/consulting#reserve",
   },
 ];
 
@@ -318,6 +320,13 @@ export default function PricingCards({
                   <button type="button" disabled className={CURRENT_PLAN}>
                     현재 플랜
                   </button>
+                ) : plan.externalUrl?.startsWith("/") ? (
+                  <>
+                    <Link href={plan.externalUrl} className={ctaClass}>
+                      {plan.cta}
+                    </Link>
+                    <p className="mt-2 text-center text-caption text-fg-3">4기 마감 · 5기 오픈 때 가장 먼저 연락드려요</p>
+                  </>
                 ) : plan.externalUrl ? (
                   <>
                     <a href={plan.externalUrl} target="_blank" rel="noopener noreferrer" className={ctaClass}>
