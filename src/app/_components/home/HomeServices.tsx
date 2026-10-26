@@ -7,6 +7,7 @@
  * 모션 A(소유자 결정 2026-10-17): 머리·제목·카드가 화면에 들어올 때 한 번 떠오른다(data-animate="rise", 홈 AnimationObserver).
  *   사진 카드는 hover 때 선 색(기존) + 액자 안 사진만 1.02 확대(카드 들림 없음, 움직임 줄이기면 확대 없음).
  *   등장은 카드 바깥 칸(div)에 건다: 카드의 transition-colors 가 등장 전환을 덮지 않게.
+ * 팀비블 카드(4기 마감, 2026-10-26): 컨설팅 페이지 #reserve 로 가서 5기 사전예약 창을 바로 연다.
  * 대행 링크는 결정 1 답 전까지 /studio/consulting(상담 신청). /studio 는 가드 때문에 일반 방문자가 홈으로 튕긴다.
  */
 import Link from "next/link";
@@ -177,11 +178,11 @@ export default function HomeServices() {
                 position: "object-center",
               }}
               title="팀비블 1:1 유튜브 컨설팅"
-              href="/studio/class/consulting"
+              href="/studio/class/consulting#reserve"
               desc="유튜브 채널 성장과 함께 사업을 성장시키는 방법까지, 비블이 1:1로 함께합니다."
               price="월 49만원"
               meta={["매주 1:1 미팅", "VOD 100강", "오프라인 커뮤니티"]}
-              more="1:1 팀비블 신청하기"
+              more="5기 사전예약하기"
             />
             <PhotoCard
               className="lg:col-span-6"
