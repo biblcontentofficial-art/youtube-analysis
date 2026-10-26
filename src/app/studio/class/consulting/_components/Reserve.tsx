@@ -228,7 +228,7 @@ export function ReserveDialog() {
             사전예약이 접수됐어요
           </h2>
           <p id={descId} className="mt-3 text-body-sm text-fg-3">
-            {form.name}님, 5기 모집이 열리면
+            {form.name}님, 2027년 1월 5기 모집이 열리면
             <br />
             {form.phone} 으로 가장 먼저 연락드릴게요.
           </p>
@@ -242,7 +242,7 @@ export function ReserveDialog() {
             팀비블 5기 사전예약
           </h2>
           <p id={descId} className={DIALOG_DESCRIPTION}>
-            4기는 마감됐어요. 5기 모집을 시작하면 사전예약하신 분께 가장 먼저 연락드려요.
+            4기는 마감됐어요. 5기는 2027년 1월 예정이고, 사전예약하신 분께 가장 먼저 연락드려요.
           </p>
 
           <div className="mt-6 flex flex-col gap-5">

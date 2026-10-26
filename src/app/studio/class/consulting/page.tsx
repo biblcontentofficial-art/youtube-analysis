@@ -151,7 +151,7 @@ export default function TeamBiblConsultingPage() {
                 <div className="mt-6 border-t border-line pt-6 max-lg:pr-14">
                   <ApplyButton block />
                   <p className="mt-2.5 text-caption text-fg-3">
-                    4기 마감 · 5기 오픈 때 가장 먼저 연락드려요
+                    4기 마감 · 5기는 2027년 1월 예정
                   </p>
                 </div>
               </div>
@@ -235,7 +235,7 @@ export default function TeamBiblConsultingPage() {
                   <div>
                     <ApplyButton />
                     <p className="mt-2.5 text-caption text-fg-3">
-                      4기 마감 · 5기 오픈 때 가장 먼저 연락드려요
+                      4기 마감 · 5기는 2027년 1월 예정
                     </p>
                   </div>
                 </div>

@@ -325,7 +325,7 @@ export default function PricingCards({
                     <Link href={plan.externalUrl} className={ctaClass}>
                       {plan.cta}
                     </Link>
-                    <p className="mt-2 text-center text-caption text-fg-3">4기 마감 · 5기 오픈 때 가장 먼저 연락드려요</p>
+                    <p className="mt-2 text-center text-caption text-fg-3">4기 마감 · 5기는 2027년 1월 예정</p>
                   </>
                 ) : plan.externalUrl ? (
                   <>
