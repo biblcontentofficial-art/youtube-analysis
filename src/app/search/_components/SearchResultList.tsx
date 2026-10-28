@@ -433,7 +433,8 @@ export default function SearchResultList({
 
   const filterHref = (f: "all" | "long" | "shorts") => {
     const base = `/search?${filterBase ?? `q=${encodeURIComponent(query)}&fromHistory=1&region=${region}`}`;
-    return f === "all" ? base : `${base}&filter=${f}`;
+    // 기본 탭이 '쇼츠 제외'라서 '전체'도 filter=all 을 붙인다(빼면 쇼츠 제외로 열린다)
+    return `${base}&filter=${f}`;
   };
 
   return (

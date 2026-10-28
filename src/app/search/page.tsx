@@ -52,7 +52,8 @@ const MAX_INITIAL_PAGES_SINGLE = 2; // 롱폼·쇼츠 한 가지 필터는 최�
 
 export default async function SearchPage({ searchParams }: Props) {
   const query = searchParams.q || "";
-  const filter = searchParams.filter ?? "all";
+  // 기본 = 쇼츠 제외(롱폼만, 첫 화면 최대 100개·플랜 resultLimit 상한). 소유자 요청 2026-10-28. '전체'는 filter=all 로 명시
+  const filter = searchParams.filter ?? "long";
   const fromHistory = searchParams.fromHistory === "1";
   const upgraded = searchParams.upgraded === "1";
   const searchVersion = searchParams.v || "1";
