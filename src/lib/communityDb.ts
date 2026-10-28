@@ -689,3 +689,46 @@ export async function getGradeMap(
   }
   return out;
 }
+
+/** 월간 게시판 작성 순위 한 줄 */
+export interface MonthlyAuthor {
+  author_id: string;
+  author_name: string;
+  count: number;
+}
+
+/**
+ * 한 게시판의 KST 달력 한 달(ym = "2026-10") 동안 글 수 순위 (게시된 글, 공지 제외).
+ * 매일 유튜브 챌린지 TOP 5 후보(소유자 요청 2026-10-28)에 쓴다. 전체 순위를 돌려줘서 화면이 '내 순위'도 계산한다.
+ * 같은 수면 그 수에 먼저 도달한 사람(마지막 글이 이른 사람)이 앞선다.
+ */
+export async function getMonthlyAuthorRanking(boardId: string, ym: string): Promise<MonthlyAuthor[]> {
+  const db = getSupabase();
+  if (!db) return [];
+  const [y, m] = ym.split("-").map(Number);
+  const from = new Date(Date.UTC(y, m - 1, 1) - 9 * 3600000).toISOString();
+  const to = new Date(Date.UTC(y, m, 1) - 9 * 3600000).toISOString();
+  const { data, error } = await db
+    .from("community_posts")
+    .select("author_id, author_name, created_at")
+    .eq("board_id", boardId)
+    .eq("status", "published")
+    .eq("is_notice", false)
+    .gte("created_at", from)
+    .lt("created_at", to)
+    .order("created_at", { ascending: true })
+    .limit(1000);
+  if (error || !data) return [];
+  const map = new Map<string, MonthlyAuthor & { last: string }>();
+  for (const r of data as { author_id: string | null; author_name: string; created_at: string }[]) {
+    if (!r.author_id) continue;
+    const cur = map.get(r.author_id) ?? { author_id: r.author_id, author_name: r.author_name, count: 0, last: r.created_at };
+    cur.count += 1;
+    cur.last = r.created_at;
+    cur.author_name = r.author_name || cur.author_name;
+    map.set(r.author_id, cur);
+  }
+  return [...map.values()]
+    .sort((a, b) => b.count - a.count || a.last.localeCompare(b.last))
+    .map(({ author_id, author_name, count }) => ({ author_id, author_name, count }));
+}

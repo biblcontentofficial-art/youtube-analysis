@@ -11,6 +11,7 @@ import {
   getAvatarMap,
   getBoards,
   getGradeMap,
+  getMonthlyAuthorRanking,
   getRecentBoardIds,
   listFeed,
   listPosts,
@@ -18,11 +19,15 @@ import {
 import { PAGE_SIZE, canReadBoard, type PostSummary } from "@/lib/community";
 import { buttonClass, cx } from "@/components/ui/button";
 import CategoryChips from "./_components/CategoryChips";
+import ChallengeLeaderboard from "./_components/ChallengeLeaderboard";
 import FeedCard from "./_components/FeedCard";
 import FeedHeader from "./_components/FeedHeader";
 import FeedSkeleton from "./_components/FeedSkeleton";
 
 export const dynamic = "force-dynamic";
+
+/** 월간 TOP 5 후보를 띄우는 게시판(매일 유튜브 챌린지, slug 는 네이버 카페 이관 때의 'free') */
+const CHALLENGE_SLUG = "free";
 
 interface Props {
   searchParams: Promise<{ cat?: string; page?: string; q?: string; sort?: string }>;
@@ -78,12 +83,19 @@ async function CommunityFeed({ sp }: { sp: FeedParams }) {
   const noticeBoard = readable.find((b) => b.slug === "notice") ?? null;
   const showPinned = !cat && page === 1 && !q && sort === "recent" && noticeBoard !== null;
 
-  const [{ posts, total }, noticeRows, recentBoardIds] = await Promise.all([
+  // 매일 유튜브 챌린지: 이번 달(KST) 작성 순위 TOP 5 후보 (1페이지 · 검색 없음일 때만)
+  const showChallengeTop = activeBoard?.slug === CHALLENGE_SLUG && page === 1 && !q;
+  const kst = new Date(Date.now() + 9 * 3600000);
+  const ym = kst.toISOString().slice(0, 7);
+  const lastDay = new Date(Date.UTC(kst.getUTCFullYear(), kst.getUTCMonth() + 1, 0)).getUTCDate();
+
+  const [{ posts, total }, noticeRows, recentBoardIds, ranking] = await Promise.all([
     listFeed(feedIds, { page, q, sort }),
     showPinned && noticeBoard
       ? listPosts(noticeBoard.id, { page: 1 }).then((r) => r.notices.slice(0, 2))
       : Promise.resolve([]),
     getRecentBoardIds(),
+    showChallengeTop && activeBoard ? getMonthlyAuthorRanking(activeBoard.id, ym) : Promise.resolve([]),
   ]);
 
   const pinned: PostSummary[] =
@@ -99,7 +111,7 @@ async function CommunityFeed({ sp }: { sp: FeedParams }) {
   const feedPosts = posts.filter((p) => !pinnedIds.has(p.id));
 
   // 작성자 프로필 사진 · 등급 (아바타 배지)
-  const authorIds = [...pinned, ...posts].map((p) => p.author_id);
+  const authorIds = [...pinned, ...posts].map((p) => p.author_id).concat(ranking.slice(0, 5).map((r) => r.author_id));
   const [avatarMap, gradeMap] = await Promise.all([
     getAvatarMap(authorIds),
     getGradeMap(authorIds),
@@ -148,6 +160,19 @@ async function CommunityFeed({ sp }: { sp: FeedParams }) {
         recentHref={hrefFor(1, "recent")}
         popularHref={hrefFor(1, "popular")}
       />
+
+      {showChallengeTop && (
+        <ChallengeLeaderboard
+          ranking={ranking}
+          month={kst.getUTCMonth() + 1}
+          daysLeft={lastDay - kst.getUTCDate() + 1}
+          endLabel={`${kst.getUTCMonth() + 1}.${lastDay}`}
+          viewerId={user?.id ?? null}
+          avatarMap={avatarMap}
+          gradeMap={gradeMap}
+          writeHref={writeHref}
+        />
+      )}
 
       {/* 검색 상태 */}
       {q && (
