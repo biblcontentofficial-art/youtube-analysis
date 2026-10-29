@@ -83,8 +83,11 @@ async function CommunityFeed({ sp }: { sp: FeedParams }) {
   const noticeBoard = readable.find((b) => b.slug === "notice") ?? null;
   const showPinned = !cat && page === 1 && !q && sort === "recent" && noticeBoard !== null;
 
-  // 매일 유튜브 챌린지: 이번 달(KST) 작성 순위 TOP 5 후보 (1페이지 · 검색 없음일 때만)
-  const showChallengeTop = activeBoard?.slug === CHALLENGE_SLUG && page === 1 && !q;
+  // 매일 유튜브 챌린지: 이번 달(KST) 작성 순위 TOP 5 후보. 챌린지 게시판과 커뮤니티 첫 화면(전체글)에서, 1페이지 · 검색 없음일 때만
+  // (전체글에도 띄움: 소유자 요청 2026-10-29)
+  const challengeBoard = readable.find((b) => b.slug === CHALLENGE_SLUG) ?? null;
+  const showChallengeTop =
+    challengeBoard !== null && (!cat || activeBoard?.slug === CHALLENGE_SLUG) && page === 1 && !q;
   const kst = new Date(Date.now() + 9 * 3600000);
   const ym = kst.toISOString().slice(0, 7);
   const lastDay = new Date(Date.UTC(kst.getUTCFullYear(), kst.getUTCMonth() + 1, 0)).getUTCDate();
@@ -95,7 +98,7 @@ async function CommunityFeed({ sp }: { sp: FeedParams }) {
       ? listPosts(noticeBoard.id, { page: 1 }).then((r) => r.notices.slice(0, 2))
       : Promise.resolve([]),
     getRecentBoardIds(),
-    showChallengeTop && activeBoard ? getMonthlyAuthorRanking(activeBoard.id, ym) : Promise.resolve([]),
+    showChallengeTop && challengeBoard ? getMonthlyAuthorRanking(challengeBoard.id, ym) : Promise.resolve([]),
   ]);
 
   const pinned: PostSummary[] =
@@ -169,8 +172,8 @@ async function CommunityFeed({ sp }: { sp: FeedParams }) {
           endLabel={`${kst.getUTCMonth() + 1}.${lastDay}`}
           viewerId={user?.id ?? null}
           avatarMap={avatarMap}
-          gradeMap={gradeMap}
-          writeHref={writeHref}
+          writeHref={`/community/write?board=${CHALLENGE_SLUG}`}
+          boardHref={cat ? undefined : `/community?cat=${CHALLENGE_SLUG}`}
         />
       )}
 
