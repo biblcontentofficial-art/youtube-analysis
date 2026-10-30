@@ -143,7 +143,7 @@ export default async function CommunityPostPage({ params }: { params: Params }) 
     viewer ? hasLiked(post.id, viewer.id) : Promise.resolve(false),
   ]);
 
-  // 작성자·운영진 본인 조회는 조회수에서 제외한다.
+  // 작성자·운영진 본인 조회와 비회원(공개 칼럼) 조회는 조회수에서 제외한다(조회 API 가 로그인 필요).
   // 실제 증가는 ViewTracker(클라이언트)가 마운트 시 1회만 수행한다.
   const isModerator = canModerateCommunity(viewer);
   const isAuthor = !!viewer && !!post.author_id && post.author_id === viewer.id;
@@ -161,7 +161,7 @@ export default async function CommunityPostPage({ params }: { params: Params }) 
 
   return (
     <div className="mx-auto max-w-[720px]">
-      <ViewTracker postId={post.id} skip={isModerator || isAuthor} />
+      <ViewTracker postId={post.id} skip={isModerator || isAuthor || !viewer} />
       {/* 뒤로가기 (DESIGN 6.32, 댓글 아래 '목록으로'와 같은 주소) */}
       <div className="mb-4">
         <Link href={listHref} className={TEXT_LINK}>

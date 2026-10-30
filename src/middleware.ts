@@ -24,6 +24,19 @@ function handleTmklab(req: NextRequest): NextResponse | null {
   return null;
 }
 
+const COMMUNITY_PUBLIC_HEADER = "x-community-public";
+const PUBLIC_COLUMN_SLUG = "column"; // src/lib/community.ts PUBLIC_BOARD_SLUGS 와 같은 값
+
+function markCommunityPublic(req: NextRequest) {
+  req.headers.delete(COMMUNITY_PUBLIC_HEADER);
+  const { pathname, searchParams } = req.nextUrl;
+  const isPublic =
+    (pathname === "/community" && searchParams.get("cat") === PUBLIC_COLUMN_SLUG) ||
+    pathname === `/community/${PUBLIC_COLUMN_SLUG}` ||
+    pathname.startsWith(`/community/${PUBLIC_COLUMN_SLUG}/`);
+  if (isPublic) req.headers.set(COMMUNITY_PUBLIC_HEADER, "1");
+}
+
 // 인증이 필요한 경로
 const protectedPaths = [
   "/mypage",
@@ -61,6 +74,10 @@ export default async function middleware(req: NextRequest) {
   // tmklab 도메인 rewrite
   const tmklabResponse = handleTmklab(req);
   if (tmklabResponse) return tmklabResponse;
+
+  // 커뮤니티 공개 게시판(비블 bibl 칼럼) 표시: 레이아웃 게이트가 이 헤더로 비회원 통과 여부를 정한다.
+  // 바깥에서 보낸 같은 이름 헤더는 먼저 지운다(위조 방지). 목록 /community?cat=column · 글 /community/column/{id}
+  markCommunityPublic(req);
 
   // Supabase 세션 갱신 (모든 요청)
   const response = await updateSession(req);

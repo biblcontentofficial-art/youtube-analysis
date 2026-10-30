@@ -2,15 +2,20 @@
  * /community — 비블 커뮤니티 공통 레이아웃 (Skool형)
  * 커뮤니티 전체가 비블랩 회원 전용이다. 비로그인 방문자는 하위 페이지가
  * 렌더되기 전에 이 레이아웃에서 입장 게이트로 막힌다(글 제목·내용 일절 미노출).
+ * 예외: 공개 게시판(비블 bibl 칼럼, 2026-10-30)은 middleware 가 x-community-public 헤더를 붙인 경로에서만
+ * 비회원에게 배너 + 가입 안내 줄 + 본문을 보여 준다(탭·사이드바 없음). 페이지의 canReadBoard 가 한 번 더 막는다.
  * 로그인 시: 배너 → 머리(CommunityChrome: 타이틀 + 새 포스트) → 탭(커뮤니티/랭킹/소개) → 좌측 게시판 메뉴 + 본문.
  * 사이드 카드의 카테고리 링크 규약: /community?cat={slug}
  */
 
 import type { Metadata } from "next";
+import Link from "next/link";
+import { headers } from "next/headers";
 import { Suspense, type ReactNode } from "react";
 import { currentUser } from "@/lib/auth";
 import { getBoards, getBoardCounts, getCommunityStats, getRecentBoardIds } from "@/lib/communityDb";
 import { canModerateCommunity, groupBoards } from "@/lib/community";
+import { buttonClass } from "@/components/ui/button";
 import CommunityTabs from "./_components/CommunityTabs";
 import CommunitySidebar from "./_components/CommunitySidebar";
 import CommunityGate from "./_components/CommunityGate";
@@ -59,6 +64,35 @@ export default async function CommunityLayout({ children }: { children: ReactNod
   recentP.catch(() => {});
 
   const [user, boards] = await Promise.all([currentUser(), getBoards()]);
+
+  // 비로그인 + 공개 게시판(칼럼) 경로 → 배너 + 가입 안내 + 본문
+  if (!user && headers().get("x-community-public") === "1") {
+    return (
+      <div className="min-h-screen bg-canvas">
+        <div className="mx-auto max-w-wide px-6 pt-4 lg:px-8">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/community-images/community-banner-bibl.png"
+            alt="bibl"
+            width={2000}
+            height={629}
+            className="h-auto w-full rounded-panel border border-line"
+          />
+        </div>
+        <div className="mx-auto max-w-wide px-6 py-6 lg:px-8 lg:py-8">
+          <div className="mb-6 flex flex-col gap-3 rounded-card border border-line bg-surface p-4 sm:flex-row sm:items-center sm:justify-between md:p-5">
+            <p className="text-body-sm text-fg-2">
+              <span className="font-semibold text-fg">비블 bibl 칼럼</span>은 누구나 읽을 수 있어요. 가입하면 커뮤니티 전체와 무료자료를 이용할 수 있습니다.
+            </p>
+            <Link href="/sign-in?next=%2Fcommunity" className={buttonClass({ size: "sm" })}>
+              무료로 가입하기
+            </Link>
+          </div>
+          <main className="min-w-0">{children}</main>
+        </div>
+      </div>
+    );
+  }
 
   // 비로그인 → 입장 게이트 (하위 page.tsx는 렌더되지 않는다)
   if (!user) {

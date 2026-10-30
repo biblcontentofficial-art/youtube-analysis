@@ -296,13 +296,28 @@ export function canModerateCommunity(user: Pick<Viewer, "email" | "plan"> | null
 }
 
 /**
+ * 로그인 없이 읽을 수 있는 공개 게시판(slug). 소유자 요청 2026-10-30: 비블 bibl 칼럼은 비회원도 열람.
+ * 목록(/community?cat=column)과 글(/community/column/[id])만 열린다. 글쓰기·댓글·좋아요·다운로드는 그대로 로그인 필요.
+ * 레이아웃 게이트는 middleware 가 붙이는 x-community-public 헤더로 이 경로만 통과시킨다(src/middleware.ts).
+ */
+export const PUBLIC_BOARD_SLUGS: readonly string[] = ["column"];
+
+export function isPublicBoard(slug: string | null | undefined): boolean {
+  return !!slug && PUBLIC_BOARD_SLUGS.includes(slug);
+}
+
+/**
  * 게시판 읽기 권한.
- * 커뮤니티 전체가 비블랩 회원 전용이므로 로그인이 최소 조건이다
+ * 커뮤니티는 비블랩 회원 전용이므로 로그인이 최소 조건이다. 단 공개 게시판(PUBLIC_BOARD_SLUGS)은 비회원도 읽는다
  * (레이아웃 게이트와 같은 규칙 — 클라이언트 내비게이션으로 게이트를 건너뛰어도 여기서 막힌다).
+ * slug 를 넘기지 않으면(댓글 API 등) 공개 여부를 모르므로 로그인만 본다.
  * read_role 은 나중에 특정 게시판만 더 좁힐 때 쓰기 위해 남겨둔다.
  */
-export function canReadBoard(_board: Pick<Board, "read_role">, user: Viewer | null): boolean {
-  return !!user;
+export function canReadBoard(
+  board: Pick<Board, "read_role"> & { slug?: string | null },
+  user: Viewer | null
+): boolean {
+  return !!user || isPublicBoard(board.slug);
 }
 
 /**
