@@ -14,6 +14,7 @@ import {
   canManagePost,
   canModerateCommunity,
   canReadBoard,
+  isPublicBoard,
   displayName,
   excerpt,
   timeAgo,
@@ -81,11 +82,33 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
     : null;
   if (!canReadBoard(board, viewer)) return GENERIC_METADATA;
 
+  const description = excerpt(post.content, 160);
+
+  // 공개 게시판(비블 bibl 칼럼)은 검색엔진 색인 대상(소유자 요청 2026-10-30). 대표 주소 + 기사형 OG
+  if (isPublicBoard(board.slug)) {
+    const path = `/community/${board.slug}/${post.id}`;
+    return {
+      title: `${post.title} | 비블 bibl 칼럼`,
+      description,
+      robots: { index: true, follow: true },
+      alternates: { canonical: path },
+      openGraph: {
+        type: "article",
+        title: post.title,
+        description,
+        url: path,
+        publishedTime: post.created_at,
+        modifiedTime: post.updated_at,
+        authors: ["비블 bibl"],
+      },
+    };
+  }
+
+  // 그 밖의 게시판은 회원 전용이라 색인하지 않는다(레이아웃의 noindex 를 명시적으로 유지)
   return {
     title: `${post.title} | 비블 커뮤니티`,
-    description: excerpt(post.content, 160),
-    // 회원 전용 게시판은 로그인 상태에서 접근했더라도 색인 대상이 아니다
-    ...(board.read_role === "member" ? { robots: { index: false, follow: false } } : {}),
+    description,
+    robots: { index: false, follow: false },
   };
 }
 

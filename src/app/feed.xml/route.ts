@@ -1,3 +1,53 @@
+import { getSupabase } from "@/lib/supabase";
+
+// 칼럼 새 글이 들어오도록 한 시간마다 다시 만든다(빌드 때 한 번 굳지 않게)
+export const revalidate = 3600;
+
+/** XML 특수문자 이스케이프 */
+function esc(str: string): string {
+  return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+/** 본문 앞부분 한 줄 요약(이미지 URL·소제목 기호 제거) */
+function summary(content: string, max = 200): string {
+  const text = content
+    .split("\n")
+    .filter((l) => !/^\s*(https?:\/\/|\/api\/community\/image)/.test(l))
+    .join(" ")
+    .replace(/^#+\s*/gm, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  return text.length > max ? `${text.slice(0, max)}…` : text;
+}
+
+/** 비블 bibl 칼럼 최신 글(공개 게시판, 2026-10-30 색인 허용). 실패하면 빈 목록 */
+async function columnItems(baseUrl: string): Promise<string[]> {
+  try {
+    const db = getSupabase();
+    if (!db) return [];
+    const { data: board } = await db.from("community_boards").select("id").eq("slug", "column").eq("is_active", true).maybeSingle();
+    if (!board) return [];
+    const { data: posts } = await db
+      .from("community_posts")
+      .select("id, title, content, created_at")
+      .eq("board_id", board.id)
+      .eq("status", "published")
+      .order("created_at", { ascending: false })
+      .limit(50);
+    return (posts ?? []).map(
+      (p) => `    <item>
+      <title>${esc(p.title)}</title>
+      <link>${baseUrl}/community/column/${p.id}</link>
+      <guid isPermaLink="true">${baseUrl}/community/column/${p.id}</guid>
+      <description>${esc(summary(p.content ?? ""))}</description>
+      <pubDate>${new Date(p.created_at).toUTCString()}</pubDate>
+    </item>`
+    );
+  } catch {
+    return [];
+  }
+}
+
 export async function GET() {
   const baseUrl = "https://bibllab.com";
 
@@ -13,7 +63,7 @@ export async function GET() {
     { title: "비블랩 소개", url: "/about", date: "2026-04-11" },
   ];
 
-  const items = pages
+  const pageItems = pages
     .map(
       (p) => `    <item>
       <title>${p.title}</title>
@@ -22,6 +72,7 @@ export async function GET() {
     </item>`
     )
     .join("\n");
+  const items = [...(await columnItems(baseUrl)), pageItems].join("\n");
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0">

@@ -1,6 +1,9 @@
 import { MetadataRoute } from 'next'
 import { getSupabase } from '@/lib/supabase'
 
+// 칼럼 새 글이 들어오도록 한 시간마다 다시 만든다(빌드 때 한 번 굳지 않게)
+export const revalidate = 3600
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://bibllab.com'
   const now = new Date()
@@ -50,8 +53,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'daily',
       priority: 0.85,
     },
+    // 비블 bibl 칼럼(공개 게시판, 2026-10-30 색인 허용). 옛 /insights 는 여기로 리다이렉트되므로 싣지 않는다
     {
-      url: `${baseUrl}/insights`,
+      url: `${baseUrl}/community?cat=column`,
       lastModified: now,
       changeFrequency: 'daily',
       priority: 0.85,
@@ -95,27 +99,36 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ]
 
-  // 발행된 인사이트 글 동적 추가
+  // 비블 bibl 칼럼 글 동적 추가 (커뮤니티 column 게시판, 게시된 글). 옛 posts 테이블·/insights/[slug] 는 리다이렉트라 뺀다
   try {
     const db = getSupabase()
     if (db) {
-      const { data: posts } = await db
-        .from('posts')
-        .select('slug, updated_at, published_at')
-        .eq('status', 'published')
-        .order('published_at', { ascending: false })
-        .limit(500)
+      const { data: board } = await db
+        .from('community_boards')
+        .select('id')
+        .eq('slug', 'column')
+        .eq('is_active', true)
+        .maybeSingle()
+      if (board) {
+        const { data: posts } = await db
+          .from('community_posts')
+          .select('id, created_at, updated_at')
+          .eq('board_id', board.id)
+          .eq('status', 'published')
+          .order('created_at', { ascending: false })
+          .limit(1000)
 
-      const postUrls: MetadataRoute.Sitemap = (posts ?? []).map((p) => ({
-        url: `${baseUrl}/insights/${p.slug}`,
-        lastModified: new Date(p.updated_at || p.published_at || now),
-        changeFrequency: 'weekly' as const,
-        priority: 0.7,
-      }))
-      return [...staticUrls, ...postUrls]
+        const postUrls: MetadataRoute.Sitemap = (posts ?? []).map((p) => ({
+          url: `${baseUrl}/community/column/${p.id}`,
+          lastModified: new Date(p.updated_at || p.created_at || now),
+          changeFrequency: 'weekly' as const,
+          priority: 0.7,
+        }))
+        return [...staticUrls, ...postUrls]
+      }
     }
   } catch (e) {
-    console.error('[sitemap] posts fetch failed', e)
+    console.error('[sitemap] column posts fetch failed', e)
   }
 
   return staticUrls

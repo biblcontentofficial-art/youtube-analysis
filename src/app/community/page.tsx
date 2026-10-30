@@ -4,6 +4,7 @@
  * 레이아웃 게이트가 비로그인을 먼저 막지만, canReadBoard 필터로 이중 방어한다.
  */
 
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { currentUser } from "@/lib/auth";
@@ -16,7 +17,7 @@ import {
   listFeed,
   listPosts,
 } from "@/lib/communityDb";
-import { PAGE_SIZE, canReadBoard, type PostSummary } from "@/lib/community";
+import { PAGE_SIZE, canReadBoard, isPublicBoard, type PostSummary } from "@/lib/community";
 import { buttonClass, cx } from "@/components/ui/button";
 import CategoryChips from "./_components/CategoryChips";
 import ChallengeLeaderboard from "./_components/ChallengeLeaderboard";
@@ -31,6 +32,24 @@ const CHALLENGE_SLUG = "free";
 
 interface Props {
   searchParams: Promise<{ cat?: string; page?: string; q?: string; sort?: string }>;
+}
+
+/**
+ * 공개 게시판(비블 bibl 칼럼) 목록만 검색엔진에 색인한다(소유자 요청 2026-10-30). 검색·정렬·2페이지 이후는 대표 주소로 모으고 색인하지 않는다.
+ * 나머지는 레이아웃의 noindex 를 그대로 따른다.
+ */
+export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
+  const sp = await searchParams;
+  const cat = (sp.cat ?? "").trim();
+  if (!isPublicBoard(cat)) return {};
+  const firstPage = !sp.q && !sp.sort && (!sp.page || sp.page === "1");
+  return {
+    title: "비블 bibl 칼럼",
+    description: "70만 유튜버 비블이 직접 쓰는 유튜브·사업 칼럼. 채널 기획, 브랜딩, 수익화까지 실전 경험을 나눕니다.",
+    robots: firstPage ? { index: true, follow: true } : { index: false, follow: true },
+    alternates: { canonical: `/community?cat=${cat}` },
+    openGraph: { title: "비블 bibl 칼럼", url: `/community?cat=${cat}` },
+  };
 }
 
 /** 페이지네이션에 노출할 페이지 번호 (현재 페이지 주변 최대 5개) */
